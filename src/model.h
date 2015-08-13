@@ -10,7 +10,7 @@ namespace modeltest {
 class Model
 {
 public:
-    Model(int matrix_index,
+    Model(mt_index_t matrix_index,
           int model_params,
           std::string const& matrix="");
 
@@ -89,13 +89,13 @@ public:
      * @brief Gets the number of model substitution rate parameters
      * @return the number of model substitution rate parameters
      */
-    int get_n_subst_params() const;
+    mt_size_t get_n_subst_params() const;
 
     /**
      * @brief Gets the number of model free parameters
      * @return the number of model free parameters
      */
-    int get_n_free_variables() const;
+    mt_size_t get_n_free_variables() const;
 
     /**
      * @brief Gets the log-Likelihood score
@@ -109,7 +109,7 @@ public:
      */
     void set_lnl( double l );
 
-    bool evaluate_criteria (int n_branches_params,
+    bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
 
     double get_bic() const;
@@ -138,7 +138,7 @@ private:
     double frequencies[N_STATES];
     double subst_rates[N_SUBST_RATES];
 
-    int n_free_variables;
+    mt_size_t n_free_variables;
 
     double lnL;
     double bic;

@@ -14,6 +14,9 @@
 #define MT_ERROR_UNIMPLEMENTED 10000
 #define MT_ERROR_LIBPLL        10100
 #define MT_ERROR_ALIGNMENT     10200
+#define MT_ERROR_TREE          10300
+#define MT_ERROR_INSTANCE      10400
+#define MT_ERROR_OPTIMIZE      10500
 
 #include "plldefs.h"
 
@@ -25,16 +28,16 @@ typedef struct
   modeltest::Tree * tree;   //! user defined tree (optional)
   tree_type start_tree;     //! starting tree type
   std::vector<modeltest::Model *> c_models; //! candidate models
-  int sample_size;          //! sample size for model selection
+  mt_size_t sample_size;          //! sample size for model selection
 
-  int n_tips;               //! number of tips
-  int n_catg;               //! number of Gamma rate categories
+  mt_size_t n_tips;               //! number of tips
+  mt_size_t n_catg;               //! number of Gamma rate categories
 } selection_instance;
 
 class ModelTest
 {
 public:
-    ModelTest(int number_of_threads = 1);
+    ModelTest(mt_size_t number_of_threads = 1);
     ~ModelTest();
 
     /**
@@ -45,8 +48,8 @@ public:
      * @return true, if the file is a valid MSA
      */
     static bool test_msa(std::string const& msa_filename,
-                  int *n_tips,
-                  int *n_sites);
+                  mt_size_t *n_tips,
+                  mt_size_t *n_sites);
 
     /**
      * @brief Tests whether a tree file is valid
@@ -55,7 +58,7 @@ public:
      * @return true, if the file is a valid tree in NEWICK format
      */
     static bool test_tree(std::string const& tree_filename,
-                  int *n_tips);
+                  mt_size_t *n_tips);
 
     /**
      * @brief Creates a model    optimization instance
@@ -69,7 +72,7 @@ public:
      * @return true, if everything was OK, false in case of error
      */
     bool build_instance(int model_params,
-                        int n_catg,
+                        mt_size_t n_catg,
                         const std::vector<int> &model_matrices,
                         std::string const& msa_filename,
                         std::string const& tree_filename,
@@ -85,7 +88,7 @@ public:
      * @return true, if the optimization is OK
      */
     bool evaluate_single_model(Model * model,
-                               int thread_number = 0,
+                               mt_index_t thread_number = 0,
                                double tolerance = 0.0001,
                                double epsilon = 0.001);
 
@@ -96,7 +99,7 @@ public:
     bool evaluate_models();
 
     ModelOptimizer * get_model_optimizer(Model * model,
-                                         int thread_number = 0) const;
+                                         mt_index_t thread_number = 0) const;
 
     /**
      * @brief Gets the set of candidate models
@@ -112,7 +115,7 @@ public:
     bool set_models(const std::vector<Model *> &c_models);
 
 private:
-    int number_of_threads;                  //! number of threads
+    mt_size_t number_of_threads;            //! number of threads
     selection_instance * current_instance;  //! model optimization parameters
 
     /**

@@ -19,14 +19,14 @@ namespace modeltest
   public:
     TreePll (tree_type type,
              std::string const& filename,
-             int number_of_threads = 1,
+             mt_size_t number_of_threads = 1,
              int random_seed = 12345);
     virtual ~TreePll ();
 
     pll_utree_t *get_pll_tree( int thread_number = 0) { return pll_tree[thread_number]; }
-    virtual void print(int thread_number = 0);
+    virtual void print(mt_index_t thread_number = 0);
 
-    static bool test_tree(std::string const& tree_filename, int *n_tips);
+    static bool test_tree(std::string const& tree_filename, mt_size_t *n_tips);
 
   private:
     pll_utree_t **pll_tree;

@@ -20,12 +20,12 @@ namespace modeltest
     MsaPll (std::string msa_filename);
     virtual ~MsaPll ();
 
-    virtual const char * get_header (int index);
-    virtual const char * get_sequence (int index);
+    virtual const char * get_header (mt_index_t index);
+    virtual const char * get_sequence (mt_index_t index);
 
     static bool test(std::string const& msa_filename,
-               int *n_tips,
-               int *n_sites);
+               mt_size_t *n_tips,
+               mt_size_t *n_sites);
 
   private:
     char **sequences;

@@ -46,7 +46,7 @@ namespace modeltest
 {
   TreePll::TreePll (tree_type type,
                     std::string const& filename,
-                    int number_of_threads,
+                    mt_size_t number_of_threads,
                     int random_seed)
       : Tree(type, filename, number_of_threads, random_seed)
   {
@@ -55,7 +55,7 @@ namespace modeltest
       {
       case tree_user_fixed:
       {
-          for (int i=0; i<number_of_threads; i++)
+          for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
               if (!pll_tree[i])
@@ -74,8 +74,12 @@ namespace modeltest
           string mp_tree_filename = "mtTempMpTree";
           char command[500];
           sprintf(command, "scripts/makeParsimony.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
-          system(command);
-          for (int i=0; i<number_of_threads; i++)
+          int retval = system(command);
+          if (retval)
+          {
+              cout << "ERROR: Command failed: " << command << endl;
+          }
+          for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
               if (!pll_tree[i])
@@ -94,8 +98,12 @@ namespace modeltest
           string mp_tree_filename = "mtTempMpTree";
           char command[500];
           sprintf(command, "scripts/makeGtrML.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
-          system(command);
-          for (int i=0; i<number_of_threads; i++)
+          int retval = system(command);
+          if (retval)
+          {
+              cout << "ERROR: Command failed: " << command << endl;
+          }
+          for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
               if (!pll_tree[i])
@@ -116,7 +124,7 @@ namespace modeltest
       }
 
       /* fix all missing branch lengths to 0.00001 */
-      for (int i=0; i<number_of_threads; i++)
+      for (mt_index_t i=0; i<number_of_threads; i++)
       {
         set_missing_branch_length (pll_tree[i], 0.00001);
       }
@@ -125,12 +133,12 @@ namespace modeltest
 
   TreePll::~TreePll ()
   {
-      for (int i=0; i<number_of_threads; i++)
+      for (mt_index_t i=0; i<number_of_threads; i++)
         pll_utree_destroy(pll_tree[i]);
       free( pll_tree );
   }
 
-  bool TreePll::test_tree(std::string const& tree_filename, int *n_tips)
+  bool TreePll::test_tree(std::string const& tree_filename, mt_size_t *n_tips)
   {
         pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str(), n_tips);
         if (!tree)
@@ -145,7 +153,7 @@ namespace modeltest
         }
   }
 
-  void TreePll::print(int thread_number)
+  void TreePll::print(mt_index_t thread_number)
   {
       char *newick = pll_utree_export_newick(pll_tree[thread_number]);
       cout << newick << endl;

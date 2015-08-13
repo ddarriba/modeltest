@@ -12,4 +12,6 @@ extern "C" {
 #include <pll_optimize.h>
 }
 
+typedef unsigned int pll_index_t;
+
 #endif /* PLLDEFS_H_ */

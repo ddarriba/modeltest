@@ -127,8 +127,8 @@ private:
 
     tree_type start_tree;
 
-    int n_seqs;
-    int seq_len;
+    mt_size_t n_seqs;
+    mt_size_t seq_len;
 
     ModelTest *mtest;
     std::vector<Model *> c_models;

@@ -12,7 +12,7 @@ namespace modeltest {
 
 using namespace std;
 
-ModelTest::ModelTest(int number_of_threads)
+ModelTest::ModelTest(mt_size_t number_of_threads)
     : number_of_threads(number_of_threads)
 {
     setlocale(LC_NUMERIC, "C");
@@ -33,8 +33,8 @@ void ModelTest::create_instance()
 
 static bool sort_forwards(Model * m1, Model * m2)
 {
-    int p1 = m1->get_n_free_variables();
-    int p2 = m2->get_n_free_variables();
+    mt_size_t p1 = m1->get_n_free_variables();
+    mt_size_t p2 = m2->get_n_free_variables();
     if (m1->is_G())
         p1 += 20;
     if (m2->is_G())
@@ -97,7 +97,7 @@ static bool build_models(int model_params,
 }
 
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
-                                     int thread_number) const
+                                     mt_index_t thread_number) const
 {
     if( thread_number > number_of_threads)
     {
@@ -108,27 +108,15 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     return new ModelOptimizerPll(msa, tree, model, current_instance->n_catg, thread_number);
 }
 
-bool ModelTest::evaluate_single_model(Model * model, int thread_number, double tolerance, double epsilon)
+bool ModelTest::evaluate_single_model(Model * model, mt_index_t thread_number, double tolerance, double epsilon)
 {
     ModelOptimizer * mopt = get_model_optimizer(model, thread_number);
-    if (!mopt)
-    {
-        return false;
-    }
+    assert(mopt);
+
     bool result = mopt->run(epsilon, tolerance);
     delete mopt;
 
     return result;
-//    if( thread_number > number_of_threads)
-//    {
-//        return false;
-//    }
-//	MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
-//    TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-//    ModelOptimizerPll optimizer(msa, tree, model, current_instance->n_catg, thread_number);
-
-//	bool result = optimizer.run(epsilon, tolerance);
-//    return result;
 }
 
 bool ModelTest::evaluate_models()
@@ -144,20 +132,20 @@ bool ModelTest::evaluate_models()
 }
 
 bool ModelTest::test_msa(std::string const& msa_filename,
-                         int *n_tips,
-                         int *n_sites)
+                         mt_size_t *n_tips,
+                         mt_size_t *n_sites)
 {
    return MsaPll::test(msa_filename, n_tips, n_sites);
 }
 
 bool ModelTest::test_tree(std::string const& tree_filename,
-              int *n_tips)
+              mt_size_t *n_tips)
 {
     return TreePll::test_tree(tree_filename, n_tips);
 }
 
 bool ModelTest::build_instance(int model_params,
-                               int n_catg,
+                               mt_size_t n_catg,
                                const std::vector<int> &model_matrices,
                                const string &msa_filename,
                                const string &tree_filename,

@@ -16,7 +16,7 @@ static void set_subst_params(string const& matrix, int * m_ind)
       m_ind[i] = (int)(matrix.at(i) - '0');
  }
 
-Model::Model(int matrix_index,
+Model::Model(mt_index_t matrix_index,
              int model_params,
              string const& matrix)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
@@ -27,7 +27,7 @@ Model::Model(int matrix_index,
 
     set_subst_params(model_matrices[matrix_index], matrix_symmetries);
 
-    int standard_matrix_index = find(model_matrices_ind,
+    mt_index_t standard_matrix_index = find(model_matrices_ind,
                                      model_matrices_ind + N_MODEL_MATRICES,
                                      matrix_index) - model_matrices_ind;
     if (standard_matrix_index < N_MODEL_MATRICES)
@@ -41,9 +41,9 @@ Model::Model(int matrix_index,
             ss_name << "[F]";
     }
 
-    for (int i=0; i<N_STATES; i++)
+    for (mt_index_t i=0; i<N_STATES; i++)
       frequencies[i] = 1.0/N_STATES;
-    for (int i=0; i<N_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<N_SUBST_RATES; i++)
       subst_rates[i] = 1.0;
 
     prop_inv = 0.0;
@@ -129,7 +129,7 @@ const int * Model::get_symmetries( void ) const
     return matrix_symmetries;
 }
 
-int Model::get_n_free_variables() const
+mt_size_t Model::get_n_free_variables() const
 {
     return n_free_variables;
 }
@@ -144,7 +144,7 @@ void Model::set_lnl( double l )
     lnL = l;
 }
 
-int Model::get_n_subst_params() const
+mt_size_t Model::get_n_subst_params() const
 {
     return *max_element(matrix_symmetries, matrix_symmetries+N_SUBST_RATES);
 }
@@ -207,13 +207,13 @@ void Model::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
-bool Model::evaluate_criteria ( int n_branches_params,
+bool Model::evaluate_criteria (mt_size_t n_branches_params,
                                 double sample_size )
 {
     if (!lnL)
         return false;
 
-    int n_params = n_free_variables + n_branches_params;
+    mt_size_t n_params = n_free_variables + n_branches_params;
 
     aic = 2*n_params - 2*lnL;
     aicc = aic + 2*n_params*(n_params+1)/(n_params - sample_size - 1);

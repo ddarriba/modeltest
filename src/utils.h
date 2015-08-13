@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "global_defs.h"
 #include <string>
 
 namespace modeltest {
@@ -32,6 +33,10 @@ public:
                            unsigned int n_sites,
                            unsigned int n_categories,
                            unsigned int n_states);
+
+    static void * allocate(mt_size_t n, mt_size_t size);
+    static void * c_allocate(mt_size_t n, mt_size_t size);
+    static void exit_with_error(const char * message, ...);
 };
 
 }

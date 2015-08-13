@@ -373,7 +373,7 @@ void jModelTest::on_btnLoadTree_clicked()
 
     if ( loaded_file .compare(""))
     {
-        int n_tips;
+        mt_size_t n_tips;
 
         utree_filename = loaded_file;
         if (ModelTest::test_tree(utree_filename,

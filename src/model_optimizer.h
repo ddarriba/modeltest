@@ -15,6 +15,8 @@
 namespace modeltest
 {
 
+  extern bool on_run;
+
   class ModelOptimizer
   {
   public:
@@ -32,7 +34,7 @@ namespace modeltest
      * @param[in] tolerance         tolerance for parameter optimization
      * @return the resulting log-Likelihood of the model
      */
-    virtual double opt_single_parameter(int which_parameter,
+    virtual double opt_single_parameter(mt_index_t which_parameter,
                                         double tolerance = 0.0001) = 0;
 
     /**

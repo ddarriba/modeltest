@@ -8,6 +8,7 @@
 #ifndef MSA_H_
 #define MSA_H_
 
+#include "global_defs.h"
 #include <string>
 
 namespace modeltest
@@ -24,22 +25,22 @@ namespace modeltest
     {
     }
 
-    virtual const char * get_header (int index) = 0;
-    virtual const char * get_sequence (int index) = 0;
+    virtual const char * get_header (mt_index_t index) = 0;
+    virtual const char * get_sequence (mt_index_t index) = 0;
 
-    int get_n_sequences (void) const
+    mt_size_t get_n_sequences (void) const
     {
       return n_sequences;
     }
-    int get_n_sites (void) const
+    mt_size_t get_n_sites (void) const
     {
       return n_sites;
     }
 
   protected:
     const std::string msa_filename;
-    int n_sequences;
-    int n_sites;
+    mt_size_t n_sequences;
+    mt_size_t n_sites;
   };
 
 } /* namespace modeltest */

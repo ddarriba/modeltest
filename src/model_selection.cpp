@@ -75,7 +75,7 @@ void ModelSelection::print(ostream &out)
 {
     for (size_t i=0; i<models.size(); i++)
     {
-        out << "    " << setw(10) << left << models[i].model->get_name() << right << setw(15) << models[i].score << setw(15) << models[i].delta << setw(10) << setprecision(4) << models[i].weight << endl;
+        out << "    " << setw(10) << left << models[i].model->get_name() << right << setw(15) << setprecision(4) << models[i].model->get_lnl() << setw(15) << models[i].score << setw(15) << models[i].delta << setw(10) << models[i].weight << endl;
     }
 }
 

@@ -8,6 +8,7 @@
 #ifndef TREE_H_
 #define TREE_H_
 
+#include "global_defs.h"
 #include <string>
 
 typedef enum
@@ -27,7 +28,7 @@ namespace modeltest
   public:
     Tree (tree_type type,
           std::string const& filename,
-          int number_of_threads = 1,
+          mt_size_t number_of_threads = 1,
           int random_seed = 12345)
     : type(type),
       tree_file(filename),
@@ -41,14 +42,14 @@ namespace modeltest
     {
     }
 
-    int get_n_tips( void ) const { return n_tips; }
-    virtual void print(int thread_number = 0) = 0;
+    mt_size_t get_n_tips( void ) const { return n_tips; }
+    virtual void print(mt_index_t thread_number = 0) = 0;
 
   protected:
     tree_type type;
     const std::string tree_file;
-    int n_tips;
-    int number_of_threads;
+    mt_size_t n_tips;
+    mt_size_t number_of_threads;
     int random_seed;
   };
 

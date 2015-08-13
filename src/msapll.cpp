@@ -6,6 +6,7 @@
  */
 
 #include "msapll.h"
+#include "utils.h"
 
 #include <cerrno>
 #include <cassert>
@@ -22,14 +23,14 @@ namespace modeltest
     long hdrlen;
     long seqno;
 
+    /* MSA should be always checked beforehand */
+    /* Therefore it should never fail here */
     assert(MsaPll::test(msa_filename, &n_sequences, &n_sites));
 
     pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
-    tipnames  = (char **)calloc(n_sequences, sizeof(char *));
-    sequences = (char **)calloc(n_sequences, sizeof(char *));
-
-    assert(tipnames && sequences);
+    tipnames  = (char **)Utils::c_allocate(n_sequences, sizeof(char *));
+    sequences = (char **)Utils::c_allocate(n_sequences, sizeof(char *));
 
     for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdrlen,&seq,&seqlen,&seqno); ++cur_seq)
     {
@@ -44,32 +45,32 @@ namespace modeltest
 
   MsaPll::~MsaPll ()
   {
-    for (int i = 0; i < n_sequences; i++)
+    for (mt_index_t i = 0; i < n_sequences; i++)
       free (sequences[i]);
     free (sequences);
 
-    for (int i = 0; i < n_sequences; i++)
+    for (mt_index_t i = 0; i < n_sequences; i++)
       free (tipnames[i]);
     free (tipnames);
   }
 
-  const char * MsaPll::get_header (int index)
+  const char * MsaPll::get_header (mt_index_t index)
   {
     assert(index < n_sequences);
     return tipnames[index];
   }
 
-  const char * MsaPll::get_sequence (int index)
+  const char * MsaPll::get_sequence (mt_index_t index)
   {
     assert(index < n_sequences);
     return sequences[index];
   }
 
   bool MsaPll::test(std::string const& msa_filename,
-			   int *n_tips,
-               int *n_sites)
+               mt_size_t *n_tips,
+               mt_size_t *n_sites)
   {
-    int cur_seq;
+    mt_index_t cur_seq;
     char *hdr = NULL;
     char *seq = NULL;
     long seqlen;

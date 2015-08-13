@@ -18,19 +18,17 @@
 namespace modeltest
 {
 
-  extern bool on_run;
-
   class ModelOptimizerPll : public ModelOptimizer
   {
   public:
     ModelOptimizerPll (MsaPll *msa,
                        TreePll *tree,
                        Model *model,
-                       int n_cat_g = 4,
-                       int thread_number = 0);
+                       mt_size_t n_cat_g = 4,
+                       mt_index_t thread_number = 0);
     virtual ~ModelOptimizerPll ();
 
-    virtual double opt_single_parameter(int which_parameter,
+    virtual double opt_single_parameter(mt_index_t which_parameter,
                                         double tolerance = 0.0001);
 
     virtual bool run(double epsilon   = 0.01,
@@ -47,9 +45,9 @@ namespace modeltest
     pll_operation_t * operations;    //! array of operation for CLVs
 
     double * branch_lengths;    //! array of branch lengths
-    int * matrix_indices;       //! array of matrix indices
+    mt_index_t * matrix_indices;       //! array of matrix indices
 
-    int thread_number;  //! the number of the current thread
+    mt_index_t thread_number;  //! the number of the current thread
   };
 
 } /* namespace modeltest */

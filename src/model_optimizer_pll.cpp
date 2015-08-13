@@ -32,13 +32,13 @@ static int cb_reset_branches(pll_utree_t * node)
 namespace modeltest
 {
 
-bool on_run = false;
+bool on_run = true;
 
 ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                                       TreePll *tree,
                                       Model *model,
-                                      int n_cat_g,
-                                      int thread_number)
+                                      mt_size_t n_cat_g,
+                                      mt_index_t thread_number)
     : ModelOptimizer(model), msa(msa), tree(tree),
       thread_number(thread_number)
 {
@@ -47,9 +47,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
     branch_lengths = NULL;
     matrix_indices = NULL;
 
-    int n_tips = tree->get_n_tips ();
+    mt_size_t n_tips = tree->get_n_tips ();
     pll_partition = pll_partition_create (n_tips, (n_tips - 2), 4,
-                                          (int) msa->get_n_sites (), 1,
+                                          (mt_size_t) msa->get_n_sites (), 1,
                                           (2 * n_tips - 3),
                                           model->is_G () ? n_cat_g : 1,
                                           n_tips - 2,
@@ -63,12 +63,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
     assert(pll_utree_query_tipnodes (pll_tree, tipnodes));
 
     /* find sequences and link them with the corresponding taxa */
-    for (int i = 0; i < n_tips; ++i)
+    for (mt_index_t i = 0; i < n_tips; ++i)
     {
         int tip_clv_index = -1;
         const char * header = msa->get_header (i);
 
-        for (int j = 0; j < n_tips; ++j)
+        for (mt_index_t j = 0; j < n_tips; ++j)
         {
             if (!strcmp (tipnodes[j]->label, header))
             {
@@ -81,7 +81,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
             std::cerr << "ERROR: Cannot find tip \"" << header << "\"" << std::endl;
         assert(tip_clv_index > -1);
 
-        pll_set_tip_states (pll_partition, tip_clv_index, pll_map_nt,
+        pll_set_tip_states (pll_partition, (unsigned int)tip_clv_index, pll_map_nt,
                             msa->get_sequence (i));
     }
 
@@ -93,16 +93,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                 (2 * n_tips - 2) * sizeof(pll_utree_t *));
 
     /* additional stuff */
-    int traversal_size = pll_utree_traverse (pll_tree, cb_reset_branches,
+    mt_size_t traversal_size = pll_utree_traverse (pll_tree, cb_reset_branches,
                                              travbuffer);
 
     assert(traversal_size > 0);
 
     branch_lengths = new double[2 * n_tips - 3];
-    matrix_indices = new int[2 * n_tips - 3];
+    matrix_indices = new mt_index_t[2 * n_tips - 3];
     operations = new pll_operation_t[n_tips - 2];
-    int matrix_count;
-    int ops_count;
+    mt_size_t matrix_count;
+    mt_size_t ops_count;
 
     pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
                                  matrix_indices, operations, &matrix_count,
@@ -123,7 +123,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
       pll_partition_destroy(pll_partition);
   }
 
-  double ModelOptimizerPll::opt_single_parameter(int which_parameter,
+  double ModelOptimizerPll::opt_single_parameter(mt_index_t which_parameter,
                                       double tolerance)
   {
       double cur_logl;
@@ -144,7 +144,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
           int traversal_size = pll_utree_traverse (pll_tree,
                                                    cb_full_traversal,
                                                    travbuffer);
-          int matrix_count, ops_count;
+          mt_index_t matrix_count, ops_count;
           pll_utree_create_operations(travbuffer,
                                       traversal_size,
                                       branch_lengths,
@@ -281,6 +281,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
           params_to_optimize.push_back(PLL_PARAMETER_FREQUENCIES);
 
       int cur_parameter_index = 0;
+
+      printf(" LOGL = %f\n", logl);
+
 
       while (fabs (cur_logl - logl) > epsilon && cur_logl < logl)
       {

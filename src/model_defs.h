@@ -1,6 +1,7 @@
 #ifndef MODEL_DEFS_H
 #define MODEL_DEFS_H
 
+#include "global_defs.h"
 #include <string>
 
 #define N_STATES 4
@@ -45,7 +46,7 @@ const std::string model_names[22] = {
 //    "012345"
 //};
 
-const int model_matrices_ind[11] = {
+const mt_index_t model_matrices_ind[11] = {
     0,
     18,
     59,
@@ -55,7 +56,7 @@ const int model_matrices_ind[11] = {
     167,
     139,
     155,
-    195,
+    194,
     202
 };
 
