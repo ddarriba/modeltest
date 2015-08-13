@@ -1,0 +1,270 @@
+#include "modeltest.h"
+
+#include "msapll.h"
+#include "treepll.h"
+
+#include <iostream>
+#include <cassert>
+#include <algorithm>
+#include <cerrno>
+
+namespace modeltest {
+
+using namespace std;
+
+ModelTest::ModelTest(int number_of_threads)
+    : number_of_threads(number_of_threads)
+{
+    setlocale(LC_NUMERIC, "C");
+    create_instance();
+}
+
+ModelTest::~ModelTest()
+{
+    free_stuff();
+}
+
+void ModelTest::create_instance()
+{
+    current_instance = new selection_instance;
+    current_instance->msa = 0;
+    current_instance->tree = 0;
+}
+
+static bool sort_forwards(Model * m1, Model * m2)
+{
+    int p1 = m1->get_n_free_variables();
+    int p2 = m2->get_n_free_variables();
+    if (m1->is_G())
+        p1 += 20;
+    if (m2->is_G())
+        p2 += 20;
+    if (m1->is_I())
+        p1 += 10;
+    if (m2->is_I())
+        p2 += 10;
+    return p1 < p2;
+}
+
+static bool sort_backwards(Model * m1, Model * m2)
+{
+    return !sort_forwards(m1, m2);
+}
+
+static bool build_models(int model_params,
+                         const std::vector<int> & matrices,
+                         vector<Model *> &c_models,
+                         bool eval_all_matrices)
+{
+    int n_matrices = matrices.size(); /* temporary, all 11 matrices */
+    int n_models = 0;
+
+    int freq_params = model_params & MOD_MASK_FREQ_PARAMS;
+    int rate_params = model_params & MOD_MASK_RATE_PARAMS;
+    if (!freq_params) return false;
+
+    int it_model_params = rate_params;
+    while (it_model_params)
+    {
+        if (it_model_params & 1) n_models += n_matrices;
+        it_model_params >>= 1;
+    }
+
+    if (freq_params == 3)
+        n_models *= 2;
+    c_models.reserve(n_models);
+
+    for (int i=1; i<64; i*=2)
+    {
+        int cur_rate_param = rate_params & i;
+        if (cur_rate_param)
+        {
+            for (int j=0; j<n_matrices; j++)
+            {
+                if (freq_params & MOD_PARAM_EQUAL_FREQ)
+                    c_models.push_back(
+                                new Model(matrices[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                );
+                if (freq_params & MOD_PARAM_ML_FREQ)
+                    c_models.push_back(
+                                new Model(matrices[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                );
+            }
+        }
+    }
+
+    return true;
+}
+
+ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
+                                     int thread_number) const
+{
+    if( thread_number > number_of_threads)
+    {
+        return 0;
+    }
+    MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
+    TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+    return new ModelOptimizerPll(msa, tree, model, current_instance->n_catg, thread_number);
+}
+
+bool ModelTest::evaluate_single_model(Model * model, int thread_number, double tolerance, double epsilon)
+{
+    ModelOptimizer * mopt = get_model_optimizer(model, thread_number);
+    if (!mopt)
+    {
+        return false;
+    }
+    bool result = mopt->run(epsilon, tolerance);
+    delete mopt;
+
+    return result;
+//    if( thread_number > number_of_threads)
+//    {
+//        return false;
+//    }
+//	MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
+//    TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+//    ModelOptimizerPll optimizer(msa, tree, model, current_instance->n_catg, thread_number);
+
+//	bool result = optimizer.run(epsilon, tolerance);
+//    return result;
+}
+
+bool ModelTest::evaluate_models()
+{
+    assert(current_instance);
+
+    for (size_t i=0; i<current_instance->c_models.size(); i++)
+    {
+        Model * model = current_instance->c_models[i];
+        evaluate_single_model(model);
+    }
+    return true;
+}
+
+bool ModelTest::test_msa(std::string const& msa_filename,
+                         int *n_tips,
+                         int *n_sites)
+{
+   return MsaPll::test(msa_filename, n_tips, n_sites);
+}
+
+bool ModelTest::test_tree(std::string const& tree_filename,
+              int *n_tips)
+{
+    return TreePll::test_tree(tree_filename, n_tips);
+}
+
+bool ModelTest::build_instance(int model_params,
+                               int n_catg,
+                               const std::vector<int> &model_matrices,
+                               const string &msa_filename,
+                               const string &tree_filename,
+                               tree_type start_tree,
+                               bool eval_all_matrices)
+{
+    free_stuff ();
+    create_instance ();
+
+    current_instance->msa = new MsaPll (msa_filename);
+    current_instance->start_tree = start_tree;
+
+    switch (start_tree)
+    {
+    case tree_user_fixed:
+        if( tree_filename.compare (""))
+      {
+        current_instance->tree = new TreePll (start_tree, tree_filename, number_of_threads);
+      }
+    else
+      {
+        /* unimplemented */
+        errno = MT_ERROR_UNIMPLEMENTED;
+        return false;
+      }
+        break;
+    case tree_mp:
+    case tree_ml_gtr_fixed:
+    case tree_ml_jc_fixed:
+        cout << " Building MP tree from modeltest.cpp" << endl;
+        current_instance->tree = new TreePll (start_tree, msa_filename, number_of_threads);
+        current_instance->tree->print();
+        break;
+    default:
+        errno = MT_ERROR_UNIMPLEMENTED;
+        return false;
+    }
+
+    if (current_instance->msa->get_n_sequences() !=
+	current_instance->tree->get_n_tips())
+      {
+	cerr << "Tips do not agree! " << current_instance->msa->get_n_sequences() << " sequences vs "
+	    << current_instance->tree->get_n_tips() << " tips" << endl;
+	return false;
+      }
+    current_instance->n_tips = current_instance->msa->get_n_sequences();
+
+    if (model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+      current_instance->n_catg = n_catg;
+    else
+      current_instance->n_catg = 1;
+
+    if (!build_models (model_params, model_matrices,
+               current_instance->c_models, eval_all_matrices))
+      {
+        return false;
+      }
+
+    /*
+     * sort candidate models by
+     * estimated computational needs
+     */
+    bool (*fsort)(Model *, Model *);
+    if (number_of_threads == 1)
+        fsort = &sort_forwards;
+    else
+        fsort = &sort_backwards;
+    sort(current_instance->c_models.begin(),
+         current_instance->c_models.end(),
+         fsort);
+
+    return true;
+}
+
+vector<Model *> const& ModelTest::get_models() const
+{
+    return current_instance->c_models;
+}
+
+bool ModelTest::set_models(const std::vector<modeltest::Model *> &c_models)
+{
+    /* validate */
+    if (!current_instance || current_instance->c_models.size() != c_models.size())
+        return false;
+    for (size_t i=0; i<c_models.size(); i++)
+        if (c_models[i]->get_name().compare(current_instance->c_models[i]->get_name()))
+            return false;
+    for (size_t i=0; i<c_models.size(); i++)
+    {
+        current_instance->c_models[i]->clone(c_models[i]);
+    }
+    return true;
+}
+
+void ModelTest::free_stuff()
+{
+    if (current_instance)
+    {
+        for (size_t i=0; i<current_instance->c_models.size(); i++)
+            delete current_instance->c_models[i];
+
+        if (current_instance->msa)
+            delete current_instance->msa;
+        if (current_instance->tree)
+            delete current_instance->tree;
+
+        delete current_instance;
+    }
+}
+}

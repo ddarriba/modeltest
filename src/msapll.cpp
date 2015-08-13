@@ -1,0 +1,129 @@
+/*
+ * msapll.cpp
+ *
+ *  Created on: Jun 9, 2015
+ *      Author: diego
+ */
+
+#include "msapll.h"
+
+#include <cerrno>
+#include <cassert>
+
+namespace modeltest
+{
+
+  MsaPll::MsaPll (std::string msa_filename)
+      : Msa(msa_filename)
+  {
+    char *hdr = NULL;
+    char *seq = NULL;
+    long seqlen;
+    long hdrlen;
+    long seqno;
+
+    assert(MsaPll::test(msa_filename, &n_sequences, &n_sites));
+
+    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+
+    tipnames  = (char **)calloc(n_sequences, sizeof(char *));
+    sequences = (char **)calloc(n_sequences, sizeof(char *));
+
+    assert(tipnames && sequences);
+
+    for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdrlen,&seq,&seqlen,&seqno); ++cur_seq)
+    {
+        for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
+           hdr[i] = '\0';
+        tipnames[cur_seq]  = hdr;
+        sequences[cur_seq] = seq;
+    }
+
+    pll_fasta_close(fp);
+  }
+
+  MsaPll::~MsaPll ()
+  {
+    for (int i = 0; i < n_sequences; i++)
+      free (sequences[i]);
+    free (sequences);
+
+    for (int i = 0; i < n_sequences; i++)
+      free (tipnames[i]);
+    free (tipnames);
+  }
+
+  const char * MsaPll::get_header (int index)
+  {
+    assert(index < n_sequences);
+    return tipnames[index];
+  }
+
+  const char * MsaPll::get_sequence (int index)
+  {
+    assert(index < n_sequences);
+    return sequences[index];
+  }
+
+  bool MsaPll::test(std::string const& msa_filename,
+			   int *n_tips,
+               int *n_sites)
+  {
+    int cur_seq;
+    char *hdr = NULL;
+    char *seq = NULL;
+    long seqlen;
+    long hdrlen;
+    long seqno;
+
+    /* reset error */
+    errno = 0;
+
+    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+
+    if (!fp)
+      {
+	errno = pll_errno;
+	return false;
+      }
+
+    /* read FASTA sequences for finding the number of tips and seq len */
+    /* make sure they are all of the same length */
+    int sites = -1;
+    for (cur_seq = 0;
+	pll_fasta_getnext (fp, &hdr, &hdrlen, &seq, &seqlen, &seqno); ++cur_seq)
+      {
+	free (seq);
+	free (hdr);
+
+	/* if parsing fail, we continue for avoid memory leaks */
+	if (sites != -1 && sites != seqlen)
+	  errno = pll_errno;
+
+	if (sites == -1)
+	  sites = seqlen;
+      }
+
+    if (sites <= 0)
+      {
+	errno = pll_errno;
+      }
+
+    pll_fasta_close (fp);
+
+    if (errno)
+      {
+	*n_tips = 0;
+	*n_sites = 0;
+	return false;
+      }
+    else
+      {
+	*n_tips = cur_seq;
+	*n_sites = sites;
+      }
+
+    return true;
+  }
+
+} /* namespace modeltest */
