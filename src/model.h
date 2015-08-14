@@ -56,6 +56,18 @@ public:
     virtual const int * get_symmetries( void ) const;
 
     /**
+     * @brief Gets the number of states
+     * @return the number of states
+     */
+    const int get_n_states( void ) const;
+
+    /**
+     * @brief Gets the number of substitution rates
+     * @return the number of substitution rates
+     */
+    const int get_n_subst_rates( void ) const;
+
+    /**
      * @brief Gets the model state frequencies
      * @return the state frequencies
      */

@@ -2,15 +2,17 @@
 #define MODEL_DEFS_H
 
 #include "global_defs.h"
+#include "plldefs.h"
+
 #include <string>
 
-#define N_DNA_STATES            4
-#define N_DNA_SUBST_RATES       6
-#define N_DNA_MODEL_MATRICES   11
-
-#define N_PROT_STATES          20
-#define N_PROT_SUBST_RATES    190
-#define N_PROT_MODEL_MATRICES  19
+#define N_DNA_STATES             4
+#define N_DNA_SUBST_RATES        6
+#define N_DNA_MODEL_MATRICES    11
+#define N_DNA_ALLMATRIX_COUNT  203
+#define N_PROT_STATES           20
+#define N_PROT_SUBST_RATES     190
+#define N_PROT_MODEL_MATRICES   19
 
 #define MOD_PARAM_EQUAL_FREQ   (1<<0)
 #define MOD_PARAM_ML_FREQ      (1<<1)
@@ -36,21 +38,21 @@ const std::string dna_model_names[22] = {
     "SYM",    "GTR"
 };
 
-const mt_index_t dna_model_matrices_indices[11] = {
-    0,
-    18,
-    59,
-    116,
-    72,
-    100,
-    167,
-    139,
-    155,
-    194,
-    202
+const mt_index_t dna_model_matrices_indices[N_DNA_MODEL_MATRICES] = {
+    0,    /*     JC/F81    */
+    18,   /*    K80/HKY    */
+    59,   /*  TrNef/TrN    */
+    116,  /*   TPM1/TPM1uf */
+    72,   /*   TPM2/TPM2uf */
+    100,  /*   TPM3/TPM3uf */
+    167,  /* TIM1ef/TIM1   */
+    139,  /* TIM2ef/TIM2   */
+    155,  /* TIM3ef/TIM3   */
+    194,  /*  TVMef/TVM    */
+    202   /*    SYM/GTR    */
 };
 
-const std::string dna_model_matrices[203] = {
+const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
     "000000",                                                             // 0
 
     "000001", "000010", "000011", "000100", "000101", "000110", "000111", // 1
@@ -90,5 +92,30 @@ const std::string dna_model_matrices[203] = {
 
     "012345"                                                              //202
 };
+
+const std::string prot_model_names[N_PROT_MODEL_MATRICES] = {
+    "DAYHOFF",
+    "LG",
+    "DCMUT",
+    "JTT",
+    "MTREV",
+    "WAG",
+    "RTREV",
+    "CPREV",
+    "VT",
+    "BLOSUM62",
+    "MTMAM",
+    "MTART",
+    "MTZOA",
+    "PMB",
+    "HIVB",
+    "HIVW",
+    "JTTDCMUT",
+    "FLU",
+    "STMTREV"
+};
+
+extern const double * prot_model_rates[N_PROT_MODEL_MATRICES];
+extern const double * prot_model_freqs[N_PROT_MODEL_MATRICES];
 
 #endif // MODEL_DEFS_H

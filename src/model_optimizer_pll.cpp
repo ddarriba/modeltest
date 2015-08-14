@@ -210,9 +210,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       /* optimization parameters */
       params->params_index = 0;
-      int *symmetries = new int[N_DNA_SUBST_RATES];
-      memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
-      params->subst_params_symmetries = symmetries;
+      if (model->get_n_subst_rates() == N_DNA_SUBST_RATES)
+      {
+        int *symmetries = new int[N_DNA_SUBST_RATES];
+        memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
+        params->subst_params_symmetries = symmetries;
+      }
+      else
+      {
+        params->subst_params_symmetries = 0;
+      }
       params->factr = 1e9;
 
       return true;

@@ -15,4 +15,9 @@ extern int mpi_numprocs;
 #define MINE(x) (true)
 #endif
 
+typedef enum {
+    dt_dna,
+    dt_protein
+} data_type;
+
 #endif // GLOBAL_DEFS_H

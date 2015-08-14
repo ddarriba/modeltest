@@ -211,7 +211,7 @@ void jModelTest::updateGUI()
             ui->cbIGModels->isChecked();
 
     if (ui->radSchemes203->isChecked())
-        n_matrices = 203;
+        n_matrices = N_DNA_ALLMATRIX_COUNT;
     else
         n_matrices = ui->listMatrices->selectedItems().size();
 
@@ -811,7 +811,7 @@ void jModelTest::on_btnRun_clicked()
     }
     else
     {
-        for (int i=0; i<203; i++)
+        for (int i=0; i<N_DNA_ALLMATRIX_COUNT; i++)
         {
             matrices.push_back(i);
         }

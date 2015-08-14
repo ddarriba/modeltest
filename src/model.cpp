@@ -8,6 +8,50 @@
 #include <cmath>
 #include <cassert>
 
+const double * prot_model_rates[N_PROT_MODEL_MATRICES] = {
+   pll_aa_rates_dayhoff,
+   pll_aa_rates_lg,
+   pll_aa_rates_dcmut,
+   pll_aa_rates_jtt,
+   pll_aa_rates_mtrev,
+   pll_aa_rates_wag,
+   pll_aa_rates_rtrev,
+   pll_aa_rates_cprev,
+   pll_aa_rates_vt,
+   pll_aa_rates_blosum62,
+   pll_aa_rates_mtmam,
+   pll_aa_rates_mtart,
+   pll_aa_rates_mtzoa,
+   pll_aa_rates_pmb,
+   pll_aa_rates_hivb,
+   pll_aa_rates_hivw,
+   pll_aa_rates_jttdcmut,
+   pll_aa_rates_flu,
+   pll_aa_rates_stmtrev
+ };
+
+const double * prot_model_freqs[N_PROT_MODEL_MATRICES] = {
+   pll_aa_freqs_dayhoff,
+   pll_aa_freqs_lg,
+   pll_aa_freqs_dcmut,
+   pll_aa_freqs_jtt,
+   pll_aa_freqs_mtrev,
+   pll_aa_freqs_wag,
+   pll_aa_freqs_rtrev,
+   pll_aa_freqs_cprev,
+   pll_aa_freqs_vt,
+   pll_aa_freqs_blosum62,
+   pll_aa_freqs_mtmam,
+   pll_aa_freqs_mtart,
+   pll_aa_freqs_mtzoa,
+   pll_aa_freqs_pmb,
+   pll_aa_freqs_hivb,
+   pll_aa_freqs_hivw,
+   pll_aa_freqs_jttdcmut,
+   pll_aa_freqs_flu,
+   pll_aa_freqs_stmtrev
+};
+
 using namespace std;
 
 namespace modeltest {
@@ -113,6 +157,16 @@ void Model::set_alpha(double value)
     alpha = value;
 }
 
+const int Model::get_n_states( void ) const
+{
+    return n_frequencies;
+}
+
+const int Model::get_n_subst_rates( void ) const
+{
+    return n_subst_rates;
+}
+
 const double * Model::get_frequencies( void ) const
 {
     return frequencies;
@@ -191,6 +245,7 @@ DnaModel::DnaModel(mt_index_t matrix_index,
 {
     stringstream ss_name;
 
+    assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
     n_frequencies = N_DNA_STATES;
     n_subst_rates = N_DNA_SUBST_RATES;
 
