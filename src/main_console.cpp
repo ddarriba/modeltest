@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 //        for (int i=0; i<11; i++)
         for (int i=10; i>=0; i--)
         {
-            cout << "Add Matrix " << model_matrices_ind[i] << endl;
-            matrices.push_back(model_matrices_ind[i]);
+            cout << "Add Matrix " << dna_model_matrices_indices[i] << endl;
+            matrices.push_back(dna_model_matrices_indices[i]);
         }
 
         mt_size_t n_sites, n_seqs;

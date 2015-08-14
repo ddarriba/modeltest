@@ -10,17 +10,14 @@ namespace modeltest {
 class Model
 {
 public:
-    Model(mt_index_t matrix_index,
-          int model_params,
-          std::string const& matrix="");
-
-    Model(const Model & other);
+    Model(int model_params);
+    virtual ~Model();
 
     /**
      * @brief Clones all parameters from another model
      * @param other the other model
      */
-    void clone(const Model *other);
+    virtual void clone(const Model *other) = 0;
 
     /**
      * @brief Gets the name of the model
@@ -56,7 +53,7 @@ public:
      * @brief Gets the matrix symmetries
      * @return the rate matrix symmetries
      */
-    const int * get_symmetries( void ) const;
+    virtual const int * get_symmetries( void ) const;
 
     /**
      * @brief Gets the model state frequencies
@@ -82,14 +79,14 @@ public:
      * @param full_vector if false, contains only the rates
      *                    corresponding to non-equal rates in order
      */
-    void set_subst_rates(const double value[],
+    virtual void set_subst_rates(const double value[],
                          bool full_vector=true);
 
     /**
      * @brief Gets the number of model substitution rate parameters
      * @return the number of model substitution rate parameters
      */
-    mt_size_t get_n_subst_params() const;
+    virtual mt_size_t get_n_subst_params() const;
 
     /**
      * @brief Gets the number of model free parameters
@@ -125,9 +122,9 @@ public:
 
     time_t get_exec_time() const;
     void set_exec_time( time_t t);
-private:
+
+protected:
     std::string name;
-    int matrix_symmetries[N_SUBST_RATES];
 
     bool optimize_pinv;
     bool optimize_gamma;
@@ -135,8 +132,8 @@ private:
 
     double prop_inv;
     double alpha;
-    double frequencies[N_STATES];
-    double subst_rates[N_SUBST_RATES];
+    double *frequencies;
+    double *subst_rates;
 
     mt_size_t n_free_variables;
 
@@ -147,6 +144,29 @@ private:
     double dt;
 
     time_t exec_time;
+
+    int n_frequencies;
+    int n_subst_rates;
+};
+
+class DnaModel : public Model
+{
+public:
+    DnaModel(mt_index_t matrix_index,
+          int model_params);
+    DnaModel(const Model &other);
+    virtual void clone(const Model *other);
+
+    /**
+     * @brief Gets the matrix symmetries
+     * @return the rate matrix symmetries
+     */
+    virtual const int * get_symmetries( void ) const;
+    virtual mt_size_t get_n_subst_params() const;
+    virtual void set_subst_rates(const double value[],
+                                 bool full_vector=true);
+private:
+    int matrix_symmetries[N_DNA_SUBST_RATES];
 };
 
 }

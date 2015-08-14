@@ -122,7 +122,7 @@ size_t jModelTest::compute_size(int n_cats, int n_threads)
     size_t mem_b = Utils::mem_size(n_seqs,
                     seq_len,
                     n_cats,
-                    N_STATES);
+                    N_DNA_STATES);
     mem_b *= n_threads;
 
     /* overestimating factor */
@@ -806,7 +806,7 @@ void jModelTest::on_btnRun_clicked()
         for (int i=0; i < ui->listMatrices->count(); i++)
         {
             if (ui->listMatrices->item(i)->isSelected())
-                matrices.push_back(model_matrices_ind[i]);
+                matrices.push_back(dna_model_matrices_indices[i]);
         }
     }
     else
@@ -877,7 +877,7 @@ void jModelTest::on_btnRun_clicked()
     c_models.clear();
     c_models.resize( modelsPtr.size() );
     for (size_t i=0; i<modelsPtr.size(); i++)
-        c_models[i] = new Model(*(modelsPtr[i]));
+        c_models[i] = new DnaModel(*(modelsPtr[i]));
 
     delete mtest;
 

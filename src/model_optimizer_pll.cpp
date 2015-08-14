@@ -161,13 +161,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
       }
       else if (which_parameter == PLL_PARAMETER_FREQUENCIES)
       {
-          params->freq_ratios = (double *) calloc ((size_t) N_STATES - 1,
+          params->freq_ratios = (double *) calloc ((size_t) N_DNA_STATES - 1,
                                                   sizeof(double));
-          for (int i = 0; i < (N_STATES - 1); i++)
+          for (int i = 0; i < (N_DNA_STATES - 1); i++)
           {
               params->freq_ratios[i] =
                       pll_partition->frequencies[params->lk_params.freqs_index][i]
-                      / pll_partition->frequencies[params->lk_params.freqs_index][N_STATES
+                      / pll_partition->frequencies[params->lk_params.freqs_index][N_DNA_STATES
                       - 1];
           }
           params->which_parameters = PLL_PARAMETER_FREQUENCIES;
@@ -210,8 +210,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       /* optimization parameters */
       params->params_index = 0;
-      int *symmetries = new int[N_SUBST_RATES];
-      memcpy(symmetries, model->get_symmetries(), N_SUBST_RATES * sizeof(int));
+      int *symmetries = new int[N_DNA_SUBST_RATES];
+      memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
       params->subst_params_symmetries = symmetries;
       params->factr = 1e9;
 

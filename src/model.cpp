@@ -1,51 +1,28 @@
 #include "model.h"
+#include "utils.h"
 
 #include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
+#include <cassert>
 
 using namespace std;
 
 namespace modeltest {
 
-static void set_subst_params(string const& matrix, int * m_ind)
+static void set_subst_params(int * m_ind, string const& matrix)
  {
-    for (int i=0; i<N_SUBST_RATES; i++)
+    for (int i=0; i<N_DNA_SUBST_RATES; i++)
       m_ind[i] = (int)(matrix.at(i) - '0');
  }
 
-Model::Model(mt_index_t matrix_index,
-             int model_params,
-             string const& matrix)
+Model::Model(int model_params)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
       optimize_gamma(model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA)),
       optimize_freqs(model_params & MOD_PARAM_ML_FREQ)
 {
-    stringstream ss_name;
-
-    set_subst_params(model_matrices[matrix_index], matrix_symmetries);
-
-    mt_index_t standard_matrix_index = find(model_matrices_ind,
-                                     model_matrices_ind + N_MODEL_MATRICES,
-                                     matrix_index) - model_matrices_ind;
-    if (standard_matrix_index < N_MODEL_MATRICES)
-    {
-        ss_name << model_names[2 * standard_matrix_index + (optimize_freqs?1:0)];
-    }
-    else
-    {
-        ss_name << model_matrices[matrix_index];
-        if (optimize_freqs)
-            ss_name << "[F]";
-    }
-
-    for (mt_index_t i=0; i<N_STATES; i++)
-      frequencies[i] = 1.0/N_STATES;
-    for (mt_index_t i=0; i<N_SUBST_RATES; i++)
-      subst_rates[i] = 1.0;
-
     prop_inv = 0.0;
     alpha = 0.0;
 
@@ -55,48 +32,16 @@ Model::Model(mt_index_t matrix_index,
     aicc = 0.0;
     dt   = 0.0;
 
-    if (optimize_pinv)
-        ss_name << "+I";
-    if (optimize_gamma)
-        ss_name << "+G";
-    name = ss_name.str();
-
-    n_free_variables = get_n_subst_params();
-    if (optimize_freqs)
-        n_free_variables += N_STATES-1;
-    if (optimize_pinv)
-        n_free_variables ++;
-    if (optimize_gamma)
-        n_free_variables ++;
+    frequencies = 0;
+    subst_rates = 0;
 }
 
-Model::Model(const Model & other)
+Model::~Model()
 {
-    clone(&other);
-}
-
-void Model::clone(const Model * other)
-{
-    name = other->name;
-    memcpy(matrix_symmetries, other->matrix_symmetries, N_SUBST_RATES * sizeof(int));
-    optimize_pinv  = other->optimize_pinv;
-    optimize_gamma = other->optimize_gamma;
-    optimize_freqs = other->optimize_freqs;
-
-    prop_inv = other->prop_inv;
-    alpha    = other->alpha;
-    memcpy(frequencies, other->frequencies, N_STATES * sizeof(double));
-    memcpy(subst_rates, other->subst_rates, N_SUBST_RATES * sizeof(double));
-
-    n_free_variables = other->n_free_variables;
-
-    lnL  = other->lnL;
-    bic  = other->bic;
-    aic  = other->aic;
-    aicc = other->aicc;
-    dt   = other->dt;
-
-    exec_time = other->exec_time;
+    if (frequencies)
+        free(frequencies);
+    if (subst_rates)
+        free(subst_rates);
 }
 
 std::string const& Model::get_name() const
@@ -126,7 +71,7 @@ bool Model::is_F() const
 
 const int * Model::get_symmetries( void ) const
 {
-    return matrix_symmetries;
+    assert(0);
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -146,7 +91,7 @@ void Model::set_lnl( double l )
 
 mt_size_t Model::get_n_subst_params() const
 {
-    return *max_element(matrix_symmetries, matrix_symmetries+N_SUBST_RATES);
+    return 0;
 }
 
 double Model::get_prop_inv() const
@@ -175,7 +120,7 @@ const double * Model::get_frequencies( void ) const
 
 void Model::set_frequencies(const double value[])
 {
-    memcpy(frequencies, value, N_STATES * sizeof(double));
+    memcpy(frequencies, value, n_frequencies * sizeof(double));
 }
 
 const double * Model::get_subst_rates( void ) const
@@ -185,25 +130,13 @@ const double * Model::get_subst_rates( void ) const
 
 void Model::set_subst_rates(const double value[], bool full_vector)
 {
-    int n_subst_params = get_n_subst_params();
     if (full_vector)
     {
-        /*TODO: validate symmetries */
-        memcpy(subst_rates, value, N_SUBST_RATES * sizeof(double));
+        memcpy(subst_rates, value, n_subst_rates * sizeof(double));
     }
     else
     {
-        for (int i=0; i<N_SUBST_RATES; i++)
-        {
-            if (matrix_symmetries[i] == n_subst_params)
-            {
-                subst_rates[i] = 1.0;
-            }
-            else
-            {
-                subst_rates[i] = value[matrix_symmetries[i]];
-            }
-        }
+        assert(0);
     }
 }
 
@@ -250,6 +183,121 @@ time_t Model::get_exec_time() const
 void Model::set_exec_time( time_t t)
 {
     exec_time = t;
+}
+
+DnaModel::DnaModel(mt_index_t matrix_index,
+             int model_params)
+    : Model(model_params)
+{
+    stringstream ss_name;
+
+    n_frequencies = N_DNA_STATES;
+    n_subst_rates = N_DNA_SUBST_RATES;
+
+    frequencies = (double *) Utils::allocate(N_DNA_STATES, sizeof(double));
+    subst_rates = (double *) Utils::allocate(N_DNA_SUBST_RATES, sizeof(double));
+
+    set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
+
+    mt_index_t standard_matrix_index = find(dna_model_matrices_indices,
+                                     dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
+                                     matrix_index) - dna_model_matrices_indices;
+    if (standard_matrix_index < N_DNA_MODEL_MATRICES)
+    {
+        ss_name << dna_model_names[2 * standard_matrix_index + (optimize_freqs?1:0)];
+    }
+    else
+    {
+        ss_name << dna_model_matrices[matrix_index];
+        if (optimize_freqs)
+            ss_name << "[F]";
+    }
+
+    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+      frequencies[i] = 1.0/N_DNA_STATES;
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+      subst_rates[i] = 1.0;
+
+    if (optimize_pinv)
+        ss_name << "+I";
+    if (optimize_gamma)
+        ss_name << "+G";
+    name = ss_name.str();
+
+    n_free_variables = get_n_subst_params();
+    if (optimize_freqs)
+        n_free_variables += N_DNA_STATES-1;
+    if (optimize_pinv)
+        n_free_variables ++;
+    if (optimize_gamma)
+        n_free_variables ++;
+}
+
+DnaModel::DnaModel(const Model & other)
+    : Model(0)
+{
+    frequencies = (double *) Utils::allocate(N_DNA_STATES, sizeof(double));
+    subst_rates = (double *) Utils::allocate(N_DNA_SUBST_RATES, sizeof(double));
+    clone(&other);
+}
+
+void DnaModel::clone(const Model * other_model)
+{
+    const DnaModel * other = dynamic_cast<const DnaModel *>(other_model);
+    name = other->name;
+    memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
+    optimize_pinv  = other->optimize_pinv;
+    optimize_gamma = other->optimize_gamma;
+    optimize_freqs = other->optimize_freqs;
+
+    prop_inv = other->prop_inv;
+    alpha    = other->alpha;
+    memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
+    memcpy(subst_rates, other->subst_rates, N_DNA_SUBST_RATES * sizeof(double));
+
+    n_free_variables = other->n_free_variables;
+
+    lnL  = other->lnL;
+    bic  = other->bic;
+    aic  = other->aic;
+    aicc = other->aicc;
+    dt   = other->dt;
+
+    exec_time = other->exec_time;
+}
+
+const int * DnaModel::get_symmetries( void ) const
+{
+    return matrix_symmetries;
+}
+
+mt_size_t DnaModel::get_n_subst_params() const
+{
+    return *max_element(matrix_symmetries, matrix_symmetries+N_DNA_SUBST_RATES);
+}
+
+void DnaModel::set_subst_rates(const double value[], bool full_vector)
+{
+    int n_subst_params = get_n_subst_params();
+    if (full_vector)
+    {
+        /*TODO: validate symmetries */
+        memcpy(subst_rates, value, n_subst_rates * sizeof(double));
+    }
+    else
+    {
+        for (int i=0; i<n_subst_rates; i++)
+        {
+            if (matrix_symmetries[i] == n_subst_params)
+            {
+                subst_rates[i] = 1.0;
+            }
+            else
+            {
+                subst_rates[i] = value[matrix_symmetries[i]];
+            }
+        }
+    }
 }
 
 }

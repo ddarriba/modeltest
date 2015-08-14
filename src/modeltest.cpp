@@ -83,11 +83,11 @@ static bool build_models(int model_params,
             {
                 if (freq_params & MOD_PARAM_EQUAL_FREQ)
                     c_models.push_back(
-                                new Model(matrices[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                new DnaModel(matrices[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
                                 );
                 if (freq_params & MOD_PARAM_ML_FREQ)
                     c_models.push_back(
-                                new Model(matrices[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                new DnaModel(matrices[j], cur_rate_param | MOD_PARAM_ML_FREQ)
                                 );
             }
         }

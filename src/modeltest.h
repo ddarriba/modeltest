@@ -73,7 +73,7 @@ public:
      */
     bool build_instance(int model_params,
                         mt_size_t n_catg,
-                        const std::vector<int> &model_matrices,
+                        const std::vector<int> &dna_model_matrices,
                         std::string const& msa_filename,
                         std::string const& tree_filename,
                         tree_type start_tree,

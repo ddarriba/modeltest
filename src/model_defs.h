@@ -4,9 +4,13 @@
 #include "global_defs.h"
 #include <string>
 
-#define N_STATES 4
-#define N_SUBST_RATES 6
-#define N_MODEL_MATRICES 11
+#define N_DNA_STATES            4
+#define N_DNA_SUBST_RATES       6
+#define N_DNA_MODEL_MATRICES   11
+
+#define N_PROT_STATES          20
+#define N_PROT_SUBST_RATES    190
+#define N_PROT_MODEL_MATRICES  19
 
 #define MOD_PARAM_EQUAL_FREQ   (1<<0)
 #define MOD_PARAM_ML_FREQ      (1<<1)
@@ -18,7 +22,7 @@
 #define MOD_MASK_FREQ_PARAMS   3
 #define MOD_MASK_RATE_PARAMS  60
 
-const std::string model_names[22] = {
+const std::string dna_model_names[22] = {
     "JC",     "F81",
     "K80",    "HKY",
     "TrNef",  "TrN",
@@ -32,21 +36,7 @@ const std::string model_names[22] = {
     "SYM",    "GTR"
 };
 
-//const std::string model_matrices[11] = {
-//    "000000",
-//    "010010",
-//    "010020",
-//    "012210",
-//    "010212",
-//    "012012",
-//    "012230",
-//    "010232",
-//    "012032",
-//    "012314",
-//    "012345"
-//};
-
-const mt_index_t model_matrices_ind[11] = {
+const mt_index_t dna_model_matrices_indices[11] = {
     0,
     18,
     59,
@@ -60,7 +50,7 @@ const mt_index_t model_matrices_ind[11] = {
     202
 };
 
-const std::string model_matrices[203] = {
+const std::string dna_model_matrices[203] = {
     "000000",                                                             // 0
 
     "000001", "000010", "000011", "000100", "000101", "000110", "000111", // 1
