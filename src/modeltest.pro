@@ -8,27 +8,26 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = jModelTest2
+TARGET = modeltest-gui
 TEMPLATE = app
 
 SOURCES += main.cpp\
     utils.cpp \
     model.cpp \
     modeltest.cpp \
-    jmodeltest.cpp \
-    main-console.cpp \
     progressdialog.cpp \
     model_optimizer_pll.cpp \
     msapll.cpp \
     treepll.cpp \
-    model_selection.cpp
+    model_selection.cpp \
+    main_gui.cpp \
+    main_console.cpp
 
 HEADERS  += \
     model_defs.h \
     utils.h \
     model.h \
     modeltest.h \
-    jmodeltest.h \
     progressdialog.h \
     model_optimizer.h \
     model_optimizer_pll.h \
@@ -38,11 +37,13 @@ HEADERS  += \
     tree.h \
     treepll.h \
     model_selection.h \
-    global_defs.h
+    global_defs.h \
+    main_gui.h
 
-FORMS    += jmodeltest.ui \
+FORMS    += \
     compute_options.ui \
-    progressdialog.ui
+    progressdialog.ui \
+    modeltest.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll

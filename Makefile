@@ -8,7 +8,7 @@ CPPLIBS = -lpll_optimize -lpll -lm
 
 CPPFILES = $(wildcard **/*.cpp)
 CPPFILES = $(shell find jModelTest2/ -type f -name '*.cpp')
-OBJFILES = src/main-console.o \
+OBJFILES = src/main_console.o \
 	   src/utils.o \
 	   src/model.o \
 	   src/msapll.o \
@@ -22,7 +22,7 @@ all: $(OBJFILES)
 	$(CC) $(CFLAGS) -o modeltest $(OBJFILES) $(CPPLIBS)
 	@echo $(INSTALLDIR)
 
-jModelTest2/%.o: jModelTest2/%.cpp $(DEPS)
+src/%.o: src/%.cpp $(DEPS)
 	@mkdir -p "$(@D)"
 	$(CC) $(CFLAGS) -std=c++11 -c -o $@ $< 
 

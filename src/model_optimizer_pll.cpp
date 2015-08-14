@@ -264,7 +264,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       double cur_logl = logl * -1;
       logl = cur_logl + 10;
-      int n_iters = 0;
+      mt_index_t n_iters = 0;
 
       double test_logl;
       int converged = 0;
@@ -282,10 +282,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       int cur_parameter_index = 0;
 
-      printf(" LOGL = %f\n", logl);
-
-
-      while (fabs (cur_logl - logl) > epsilon && cur_logl < logl)
+      while (n_iters < params_to_optimize.size() || (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
       {
           n_iters++;
           logl = cur_logl;
@@ -312,6 +309,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
               if (fabs(test_logl - cur_logl) < tolerance)
                   converged |= cur_parameter;
           }
+
           cur_parameter_index++;
           cur_parameter_index %= params_to_optimize.size();
       }

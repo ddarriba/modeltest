@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "jmodeltest.h"
+#include "main_gui.h"
 #include "ui_jmodeltest.h"
 #include "progressdialog.h"
 
