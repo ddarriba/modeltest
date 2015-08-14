@@ -1,4 +1,4 @@
-#include "jmodeltest.h"
+#include "main_gui.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

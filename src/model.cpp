@@ -157,12 +157,12 @@ void Model::set_alpha(double value)
     alpha = value;
 }
 
-const int Model::get_n_states( void ) const
+int Model::get_n_states( void ) const
 {
     return n_frequencies;
 }
 
-const int Model::get_n_subst_rates( void ) const
+int Model::get_n_subst_rates( void ) const
 {
     return n_subst_rates;
 }
