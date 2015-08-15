@@ -71,13 +71,8 @@ public:
      * @param eval_all_matrices  evaluate 203 model matrices
      * @return true, if everything was OK, false in case of error
      */
-    bool build_instance(int model_params,
-                        mt_size_t n_catg,
-                        const std::vector<int> &dna_model_matrices,
-                        std::string const& msa_filename,
-                        std::string const& tree_filename,
-                        tree_type start_tree,
-                        bool eval_all_matrices = false);
+    bool build_instance(mt_options & options,
+                        bool eval_all_matrices);
 
     /**
      * @brief Optimizes the parameters for one single model

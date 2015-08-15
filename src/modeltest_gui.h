@@ -103,6 +103,10 @@ private slots:
 
     void on_btnLoadTree_clicked();
 
+    void on_radDatatypeDna_clicked();
+
+    void on_radDatatypeProt_clicked();
+
 public slots:
     void cancel_jobs();
 

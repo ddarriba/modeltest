@@ -144,26 +144,26 @@ bool ModelTest::test_tree(std::string const& tree_filename,
     return TreePll::test_tree(tree_filename, n_tips);
 }
 
-bool ModelTest::build_instance(int model_params,
-                               mt_size_t n_catg,
-                               const std::vector<int> &model_matrices,
-                               const string &msa_filename,
-                               const string &tree_filename,
-                               tree_type start_tree,
-                               bool eval_all_matrices)
+bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
 {
+//    int model_params = options->mt_size_t n_catg,
+//                                   const std::vector<int> &model_matrices,
+//                                   const string &msa_filename,
+//                                   const string &tree_filename,
+//                                   tree_type start_tree,
+//                                   bool eval_all_matrices)
     free_stuff ();
     create_instance ();
 
-    current_instance->msa = new MsaPll (msa_filename);
-    current_instance->start_tree = start_tree;
+    current_instance->msa = new MsaPll (options.msa_filename);
+    current_instance->start_tree = options.starting_tree;
 
-    switch (start_tree)
+    switch (options.starting_tree)
     {
     case tree_user_fixed:
-        if( tree_filename.compare (""))
+        if( options.tree_filename.compare (""))
       {
-        current_instance->tree = new TreePll (start_tree, tree_filename, number_of_threads);
+        current_instance->tree = new TreePll (options.starting_tree, options.tree_filename, number_of_threads);
       }
     else
       {
@@ -176,7 +176,7 @@ bool ModelTest::build_instance(int model_params,
     case tree_ml_gtr_fixed:
     case tree_ml_jc_fixed:
         cout << " Building MP tree from modeltest.cpp" << endl;
-        current_instance->tree = new TreePll (start_tree, msa_filename, number_of_threads);
+        current_instance->tree = new TreePll (options.starting_tree, options.msa_filename, number_of_threads);
         current_instance->tree->print();
         break;
     default:
@@ -193,12 +193,12 @@ bool ModelTest::build_instance(int model_params,
       }
     current_instance->n_tips = current_instance->msa->get_n_sequences();
 
-    if (model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
-      current_instance->n_catg = n_catg;
+    if (options.model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+      current_instance->n_catg = options.n_catg;
     else
       current_instance->n_catg = 1;
 
-    if (!build_models (model_params, model_matrices,
+    if (!build_models (options.model_params, options.candidate_models,
                current_instance->c_models, eval_all_matrices))
       {
         return false;

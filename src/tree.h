@@ -11,15 +11,6 @@
 #include "global_defs.h"
 #include <string>
 
-typedef enum
-{
-    tree_mp,
-    tree_ml_jc_fixed,
-    tree_ml_gtr_fixed,
-    tree_ml,
-    tree_user_fixed
-} tree_type;
-
 namespace modeltest
 {
 

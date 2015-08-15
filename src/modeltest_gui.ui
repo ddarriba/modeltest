@@ -334,9 +334,9 @@ p, li { white-space: pre-wrap; }
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-290</y>
+             <y>0</y>
              <width>994</width>
-             <height>761</height>
+             <height>838</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -365,7 +365,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <property name="topMargin">
-                <number>30</number>
+                <number>9</number>
                </property>
                <item>
                 <widget class="QRadioButton" name="radSetModelTest">
@@ -522,6 +522,54 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="grpDataType">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>61</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>61</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Data type</string>
+              </property>
+              <widget class="QRadioButton" name="radDatatypeDna">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>30</y>
+                 <width>91</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>DNA</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+              <widget class="QRadioButton" name="radDatatypeProt">
+               <property name="geometry">
+                <rect>
+                 <x>90</x>
+                 <y>30</y>
+                 <width>91</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Protein</string>
+               </property>
+              </widget>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="grpSubstSchemes">
               <property name="minimumSize">
                <size>
@@ -673,81 +721,102 @@ p, li { white-space: pre-wrap; }
              </layout>
             </item>
             <item>
-             <widget class="QListWidget" name="listMatrices">
-              <property name="minimumSize">
-               <size>
-                <width>200</width>
-                <height>212</height>
-               </size>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <property name="topMargin">
+               <number>5</number>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>3000</width>
-                <height>212</height>
-               </size>
-              </property>
-              <property name="showDropIndicator" stdset="0">
-               <bool>false</bool>
-              </property>
-              <property name="selectionMode">
-               <enum>QAbstractItemView::MultiSelection</enum>
+              <property name="bottomMargin">
+               <number>5</number>
               </property>
               <item>
-               <property name="text">
-                <string>000000  JC / F81</string>
-               </property>
+               <widget class="QListWidget" name="listMatrices">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>212</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>212</height>
+                 </size>
+                </property>
+                <property name="showDropIndicator" stdset="0">
+                 <bool>false</bool>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::MultiSelection</enum>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>000000  JC / F81</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>010010  K80 / HKY85</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>010020  TrNef / TrN</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012210  TPM1 / TPM1uf</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>010212  TPM2 / TPM2uf</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012012  TPM3 / TPM3uf</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012230  TIM1ef / TIM1</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>010232  TIM2ef / TIM2</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012032  TIM3ef / TIM3</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012314  TVMef / TVM</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>012345  SYM / GTR</string>
+                 </property>
+                </item>
+               </widget>
               </item>
               <item>
-               <property name="text">
-                <string>010010  K80 / HKY85</string>
-               </property>
+               <widget class="QTextBrowser" name="textBrowser">
+                <property name="html">
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;HELLO MODELS!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
-              <item>
-               <property name="text">
-                <string>010020  TrNef / TrN</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012210  TPM1 / TPM1uf</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>010212  TPM2 / TPM2uf</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012012  TPM3 / TPM3uf</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012230  TIM1ef / TIM1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>010232  TIM2ef / TIM2</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012032  TIM3ef / TIM3</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012314  TVMef / TVM</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>012345  SYM / GTR</string>
-               </property>
-              </item>
-             </widget>
+             </layout>
             </item>
             <item>
              <widget class="QGroupBox" name="grpModelSets">
@@ -1554,12 +1623,10 @@ p, li { white-space: pre-wrap; }
   <tabstop>btnLoadAlignment</tabstop>
   <tabstop>btnLoadTree</tabstop>
   <tabstop>tabView</tabstop>
-  <tabstop>radSetModelTest</tabstop>
   <tabstop>radSetMrbayes</tabstop>
   <tabstop>radSetRaxml</tabstop>
   <tabstop>radSetPhyml</tabstop>
   <tabstop>radSetPAUP</tabstop>
-  <tabstop>radTopo1</tabstop>
   <tabstop>radTopo2</tabstop>
   <tabstop>radTopo3</tabstop>
   <tabstop>radTopo4</tabstop>
@@ -1570,7 +1637,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>radSchemes11</tabstop>
   <tabstop>radSchemes203</tabstop>
   <tabstop>radSchemesUser</tabstop>
-  <tabstop>listMatrices</tabstop>
   <tabstop>cbNoRateVarModels</tabstop>
   <tabstop>cbIModels</tabstop>
   <tabstop>cbGModels</tabstop>

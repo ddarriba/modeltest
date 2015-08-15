@@ -20,8 +20,8 @@ SOURCES += main.cpp\
     msapll.cpp \
     treepll.cpp \
     model_selection.cpp \
-    main_gui.cpp \
-    main_console.cpp
+    main_console.cpp \
+    modeltest_gui.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -38,12 +38,12 @@ HEADERS  += \
     treepll.h \
     model_selection.h \
     global_defs.h \
-    main_gui.h
+    modeltest_gui.h
 
 FORMS    += \
     compute_options.ui \
     progressdialog.ui \
-    modeltest.ui
+    modeltest_gui.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll

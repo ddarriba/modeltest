@@ -1,6 +1,6 @@
 #include "utils.h"
-#include "main_gui.h"
-#include "ui_jmodeltest.h"
+#include "modeltest_gui.h"
+#include "ui_modeltest_gui.h"
 #include "progressdialog.h"
 
 #include <iostream>
@@ -181,11 +181,13 @@ void jModelTest::updateGUI()
     ui->btnLoadTree->setEnabled( state >= STATE_ALIGNMENT_LOADED );
 
     ui->listMatrices->setEnabled(
+                ui->radDatatypeProt->isChecked() ||
                 ui->radSetModelTest->isChecked() ||
                 ui->radSetPhyml->isChecked());
     ui->grpSubstSchemes->setEnabled(
-                ui->radSetModelTest->isChecked() ||
-                ui->radSetPhyml->isChecked());
+                !ui->radDatatypeProt->isChecked() &&
+                (ui->radSetModelTest->isChecked() ||
+                ui->radSetPhyml->isChecked()));
 
     ui->cbIModels->setEnabled( !ui->radSetRaxml->isChecked() );
     ui->cbIGModels->setEnabled( !ui->radSetRaxml->isChecked() );
@@ -210,7 +212,7 @@ void jModelTest::updateGUI()
             ui->cbGModels->isChecked() +
             ui->cbIGModels->isChecked();
 
-    if (ui->radSchemes203->isChecked())
+    if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
         n_matrices = N_DNA_ALLMATRIX_COUNT;
     else
         n_matrices = ui->listMatrices->selectedItems().size();
@@ -428,40 +430,55 @@ void jModelTest::on_listMatrices_itemSelectionChanged()
 
 void jModelTest::on_radSchemes3_clicked()
 {
-    int schemes[3] = {0, 1, 10};
-    autoSelectSchemes(schemes, 3);
-    ui->radSchemes3->setChecked(true);
-   // updateGUI();
+    if (ui->radDatatypeDna->isChecked())
+    {
+        int schemes[3] = {0, 1, 10};
+        autoSelectSchemes(schemes, 3);
+        ui->radSchemes3->setChecked(true);
+        // updateGUI();
+    }
 }
 
 void jModelTest::on_radSchemes5_clicked()
 {
-    int schemes[5] = {0, 1, 2, 3, 10};
-    autoSelectSchemes(schemes, 5);
-    ui->radSchemes5->setChecked(true);
-   // updateGUI();
+    if (ui->radDatatypeDna->isChecked())
+    {
+        int schemes[5] = {0, 1, 2, 3, 10};
+        autoSelectSchemes(schemes, 5);
+        ui->radSchemes5->setChecked(true);
+        // updateGUI();
+    }
 }
 
 void jModelTest::on_radSchemes7_clicked()
 {
-    int schemes[7] = {0, 1, 2, 3, 6, 9, 10};
-    autoSelectSchemes(schemes, 7);
-    ui->radSchemes7->setChecked(true);
-    //updateGUI();
+    if (ui->radDatatypeDna->isChecked())
+    {
+        int schemes[7] = {0, 1, 2, 3, 6, 9, 10};
+        autoSelectSchemes(schemes, 7);
+        ui->radSchemes7->setChecked(true);
+        //updateGUI();
+    }
 }
 
 void jModelTest::on_radSchemes11_clicked()
 {
-    ui->listMatrices->selectAll();
-    ui->radSchemes11->setChecked(true);
-   // updateGUI();
+    if (ui->radDatatypeDna->isChecked())
+    {
+        ui->listMatrices->selectAll();
+        ui->radSchemes11->setChecked(true);
+        // updateGUI();
+    }
 }
 
 void jModelTest::on_radSchemes203_clicked()
 {
-    ui->listMatrices->clearSelection();
-    ui->radSchemes203->setChecked(true);
-   // updateGUI();
+    if (ui->radDatatypeDna->isChecked())
+    {
+        ui->listMatrices->clearSelection();
+        ui->radSchemes203->setChecked(true);
+        // updateGUI();
+    }
 }
 
 void jModelTest::on_radTopoU_clicked()
@@ -801,7 +818,7 @@ void jModelTest::on_btnRun_clicked()
         model_params += MOD_PARAM_ML_FREQ;
 
     std::vector<int> matrices;
-    if (!ui->radSchemes203->isChecked())
+    if (ui->radDatatypeProt->isChecked() || !ui->radSchemes203->isChecked())
     {
         for (int i=0; i < ui->listMatrices->count(); i++)
         {
@@ -817,10 +834,14 @@ void jModelTest::on_btnRun_clicked()
         }
     }
 
-    mtest->build_instance(model_params, ui->sliderNCat->value(),
-                          matrices,
-                          msa_filename, utree_filename,
-                          start_tree, ui->radSchemes203->isChecked());
+    mt_options opts;
+    opts.model_params = model_params;
+    opts.n_catg = ui->sliderNCat->value();
+    opts.msa_filename = msa_filename;
+    opts.tree_filename = utree_filename;
+    opts.candidate_models = matrices;
+    opts.starting_tree = start_tree;
+    mtest->build_instance(opts, ui->radSchemes203->isChecked());
 
     if (c_models.size())
     {
@@ -832,6 +853,19 @@ void jModelTest::on_btnRun_clicked()
     updateGUI();
 
     QThreadPool::globalInstance()->setMaxThreadCount(number_of_threads);
+
+    /* print settings */
+    {
+    ui->txtMessages->append("");
+    ui->txtMessages->append("Execution options:");
+    ui->txtMessages->append(to_qstring("Alignment %1", msg_info).arg(msa_filename.c_str()));
+    ui->txtMessages->append(to_qstring("Tree      %1", msg_info).arg(utree_filename.c_str()));
+    if (ui->radDatatypeDna->isChecked())
+        ui->txtMessages->append("DataType  DNA");
+    else
+        ui->txtMessages->append("DataType  Protein");
+    ui->txtMessages->append(to_qstring("N.Models  %1", msg_info).arg(ui->lblNumModels->text()));
+    }
 
     //QFuture<void> fut = QtConcurrent::run(evalmodels, mtest, ui);
     const std::vector<Model *> & modelsPtr = mtest->get_models();
@@ -944,4 +978,39 @@ void modeltest::jModelTest::on_sliderNThreads_valueChanged(int value)
                 QString::number(
                     compute_size(ui->sliderNCat->value(),
                                  value)));
+}
+
+void modeltest::jModelTest::on_radDatatypeDna_clicked()
+{
+    ui->grpSubstSchemes->setVisible(true);
+    ui->grpSubstSchemes->setEnabled(true);
+    ui->cbMlFreq->setText("ML frequencies");
+    ui->listMatrices->clear();
+    ui->listMatrices->addItem("000000  JC / F81");
+    ui->listMatrices->addItem("010010  K80 / HKY85");
+    ui->listMatrices->addItem("010020  TrNef / TrN");
+    ui->listMatrices->addItem("012210  TPM1 / TPM1uf");
+    ui->listMatrices->addItem("010212  TPM2 / TPM2uf");
+    ui->listMatrices->addItem("012012  TPM3 / TPM3uf");
+    ui->listMatrices->addItem("012230  TIM1ef / TIM1");
+    ui->listMatrices->addItem("010232  TIM2ef / TIM2");
+    ui->listMatrices->addItem("012032  TIM3ef / TIM3");
+    ui->listMatrices->addItem("012314  TVMef / TVM");
+    ui->listMatrices->addItem("012345  SYM / GTR");
+    ui->listMatrices->setMinimumHeight(211);
+    ui->listMatrices->setMaximumHeight(211);
+    on_radSchemes11_clicked();
+}
+
+void modeltest::jModelTest::on_radDatatypeProt_clicked()
+{
+    ui->grpSubstSchemes->setVisible(false);
+    ui->grpSubstSchemes->setEnabled(false);
+    ui->cbMlFreq->setText("Empirical frequencies");
+    ui->listMatrices->clear();
+    for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+        ui->listMatrices->addItem(prot_model_names[i].c_str());
+    ui->listMatrices->setMinimumHeight(363);
+    ui->listMatrices->setMaximumHeight(363);
+    ui->listMatrices->selectAll();
 }
