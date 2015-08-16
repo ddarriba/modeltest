@@ -146,12 +146,6 @@ bool ModelTest::test_tree(std::string const& tree_filename,
 
 bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
 {
-//    int model_params = options->mt_size_t n_catg,
-//                                   const std::vector<int> &model_matrices,
-//                                   const string &msa_filename,
-//                                   const string &tree_filename,
-//                                   tree_type start_tree,
-//                                   bool eval_all_matrices)
     free_stuff ();
     create_instance ();
 

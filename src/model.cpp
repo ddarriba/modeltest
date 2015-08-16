@@ -355,4 +355,99 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
+
+
+/* PROTEIN MODELS */
+
+ProtModel::ProtModel(mt_index_t matrix_index,
+             int model_params)
+    : Model(model_params)
+{
+    stringstream ss_name;
+
+    assert(matrix_index < N_PROT_MODEL_MATRICES);
+    n_frequencies = N_PROT_STATES;
+    n_subst_rates = N_PROT_SUBST_RATES;
+
+    frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
+    memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
+    fixed_subst_rates = prot_model_rates[matrix_index];
+
+    ss_name << prot_model_names[matrix_index];
+    if (optimize_pinv)
+        ss_name << "+I";
+    if (optimize_gamma)
+        ss_name << "+G";
+    if (optimize_freqs)
+        ss_name << "+F";
+    name = ss_name.str();
+
+    n_free_variables = 0;
+    if (optimize_freqs)
+        n_free_variables += N_PROT_STATES-1;
+    if (optimize_pinv)
+        n_free_variables ++;
+    if (optimize_gamma)
+        n_free_variables ++;
+}
+
+ProtModel::ProtModel(const Model & other)
+    : Model(0)
+{
+    frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
+    clone(&other);
+}
+
+ProtModel::~ProtModel()
+{
+    free(frequencies);
+    frequencies = 0;
+    subst_rates = 0;
+}
+
+void ProtModel::clone(const Model * other_model)
+{
+    const ProtModel * other = dynamic_cast<const ProtModel *>(other_model);
+    name = other->name;
+    optimize_pinv  = other->optimize_pinv;
+    optimize_gamma = other->optimize_gamma;
+    optimize_freqs = other->optimize_freqs;
+
+    prop_inv = other->prop_inv;
+    alpha    = other->alpha;
+    memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
+    fixed_subst_rates = other->fixed_subst_rates;
+
+    n_free_variables = other->n_free_variables;
+
+    lnL  = other->lnL;
+    bic  = other->bic;
+    aic  = other->aic;
+    aicc = other->aicc;
+    dt   = other->dt;
+
+    exec_time = other->exec_time;
+}
+
+mt_size_t ProtModel::get_n_subst_params() const
+{
+    /* substitution rates are fixed */
+    return 0;
+}
+
+const double * ProtModel::get_subst_rates( void ) const
+{
+    return fixed_subst_rates;
+}
+
+void ProtModel::set_subst_rates(const double value[], bool full_vector)
+{
+    UNUSED(value);
+    UNUSED(full_vector);
+
+    assert(0);
+    cerr << "INTERNAL ERROR: Protein substitution rates must be fixed" << endl;
+    exit(EXIT_FAILURE);
+}
+
 }

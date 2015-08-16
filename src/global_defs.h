@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#define UNUSED(expr) do { (void)(expr); } while (0)
+
 typedef unsigned int mt_size_t;
 typedef mt_size_t mt_index_t;
 

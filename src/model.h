@@ -19,6 +19,8 @@ public:
      */
     virtual void clone(const Model *other) = 0;
 
+    virtual data_type get_datatype() = 0;
+
     /**
      * @brief Gets the name of the model
      * @return the name of the model
@@ -83,7 +85,7 @@ public:
      * @brief Gets the substitution rates
      * @return the substitution rates
      */
-    const double * get_subst_rates( void ) const;
+    virtual const double * get_subst_rates( void ) const;
 
     /**
      * @brief Sets the substitution rates
@@ -169,6 +171,11 @@ public:
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
+    virtual data_type get_datatype()
+    {
+        return dt_dna;
+    }
+
     /**
      * @brief Gets the matrix symmetries
      * @return the rate matrix symmetries
@@ -179,6 +186,28 @@ public:
                                  bool full_vector=true);
 private:
     int matrix_symmetries[N_DNA_SUBST_RATES];
+};
+
+class ProtModel : public Model
+{
+public:
+    ProtModel(mt_index_t matrix_index,
+          int model_params);
+    ProtModel(const Model &other);
+    virtual ~ProtModel();
+    virtual void clone(const Model *other);
+
+    virtual data_type get_datatype()
+    {
+        return dt_protein;
+    }
+
+    virtual mt_size_t get_n_subst_params() const;
+    virtual const double * get_subst_rates( void ) const;
+    virtual void set_subst_rates(const double value[],
+                                 bool full_vector=true);
+private:
+    const double *fixed_subst_rates;
 };
 
 }

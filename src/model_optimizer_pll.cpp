@@ -48,12 +48,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
     matrix_indices = NULL;
 
     mt_size_t n_tips = tree->get_n_tips ();
-    pll_partition = pll_partition_create (n_tips, (n_tips - 2), 4,
-                                          (mt_size_t) msa->get_n_sites (), 1,
-                                          (2 * n_tips - 3),
-                                          model->is_G () ? n_cat_g : 1,
-                                          n_tips - 2,
-                                          PLL_ATTRIB_ARCH_SSE);
+    pll_partition = pll_partition_create (
+                n_tips,                           /* tips */
+                (n_tips - 2),                     /* clv buffers */
+                model->get_n_states(),            /* states */
+                (mt_size_t) msa->get_n_sites (),  /* sites */
+                1,                                /* rate matrices */
+                (2 * n_tips - 3),                 /* prob matrices */
+                model->is_G () ? n_cat_g : 1,     /* rate cats */
+                n_tips - 2,                       /* scale buffers */
+                PLL_ATTRIB_ARCH_SSE               /* attributes */
+                );
     assert(pll_partition);
 
     pll_utree_t* pll_tree = tree->get_pll_tree (thread_number);
@@ -278,13 +283,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       std::vector<int> params_to_optimize;
       params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
-      if (model->get_n_subst_params() > 0)
+      if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
           params_to_optimize.push_back(PLL_PARAMETER_SUBST_RATES);
       if (model->is_G())
           params_to_optimize.push_back(PLL_PARAMETER_ALPHA);
       if (model->is_I())
           params_to_optimize.push_back(PLL_PARAMETER_PINV);
-      if (model->is_F())
+      if (model->get_datatype() == dt_dna && model->is_F())
           params_to_optimize.push_back(PLL_PARAMETER_FREQUENCIES);
 
       int cur_parameter_index = 0;
@@ -333,8 +338,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
           model->set_alpha(params->lk_params.alpha_value);
       if (model->is_I())
           model->set_prop_inv(pll_partition->prop_invar[0]);
-      model->set_frequencies(pll_partition->frequencies[0]);
-      model->set_subst_rates(pll_partition->subst_params[0]);
+
+      if (model->get_datatype() == dt_dna)
+      {
+        model->set_frequencies(pll_partition->frequencies[0]);
+        model->set_subst_rates(pll_partition->subst_params[0]);
+      }
 
       model->evaluate_criteria(2*tree->get_n_tips() - 3, params->lk_params.partition->sites);
 

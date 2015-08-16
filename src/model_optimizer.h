@@ -8,8 +8,6 @@
 #ifndef MODEL_OPTIMIZER_H_
 #define MODEL_OPTIMIZER_H_
 
-#define UNUSED(expr) do { (void)(expr); } while (0)
-
 #include "model.h"
 
 namespace modeltest

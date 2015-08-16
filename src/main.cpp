@@ -13,6 +13,10 @@ mt_options parse_arguments(int argc, char *argv[])
     mt_options exec_opt;
     bool input_file_ok = false;
     dna_subst_schemes dna_ss = ss_undef;
+    mt_size_t n_sequences, n_sites;
+
+    /* defaults */
+    dna_subst_schemes default_ss = ss_11;
 
     /* set default options */
     exec_opt.n_catg        = 4;
@@ -29,14 +33,14 @@ mt_options parse_arguments(int argc, char *argv[])
         { "input", required_argument, 0, 'i' },
         { "tree", required_argument, 0, 't' },
         { "partitions", required_argument, 0, 'q' },
-        { "seed", required_argument, 0, 's' },
+        { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
         { "output", required_argument, 0, 'o' },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:hi:t:q:s:o:", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:hi:t:q:r:S:o:", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
@@ -54,7 +58,7 @@ mt_options parse_arguments(int argc, char *argv[])
             else
             {
                 cerr << "ERROR: Invalid datatype " << optarg << endl;
-                exit(1);
+                exit(EXIT_FAILURE);
             }
         case 'e':
             exec_opt.epsilon_opt = atof(optarg);
@@ -62,7 +66,7 @@ mt_options parse_arguments(int argc, char *argv[])
             break;
         case 'h':
             cerr << "ModelTest Help:" << endl;
-            exit(1);
+            exit(EXIT_FAILURE);
         case 'i':
             exec_opt.msa_filename = optarg;
             input_file_ok = strcmp(optarg, "");
@@ -78,57 +82,101 @@ mt_options parse_arguments(int argc, char *argv[])
         case 'o':
             exec_opt.output_filename = optarg;
             break;
-        case 's':
+        case 'r':
             exec_opt.rnd_seed = (unsigned int) atoi(optarg);
             break;
         case 'S':
             if (!strcmp(optarg, "3"))
             {
-                exec_opt.subst_schemes = ss_3;
+                dna_ss = ss_3;
             }
             else if (!strcmp(optarg, "5"))
             {
-                exec_opt.subst_schemes = ss_5;
+                dna_ss = ss_5;
             }
             else if (!strcmp(optarg, "7"))
             {
-                exec_opt.subst_schemes = ss_7;
+                dna_ss = ss_7;
             }
             else if (!strcmp(optarg, "11"))
             {
-                exec_opt.subst_schemes = ss_11;
+                dna_ss = ss_11;
             }
             else if (!strcmp(optarg, "203"))
             {
-                exec_opt.subst_schemes = ss_203;
+                dna_ss = ss_203;
             }
             else
             {
                 cerr << "ERROR: Invalid number of substitution schemes " << optarg << endl;
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             break;
         default:
             cerr << "Unrecognised argument -" << opt << endl;
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
     srand(exec_opt.rnd_seed);
-    if (!input_file_ok) {
+
+    /* validate input file */
+    if (input_file_ok) {
+        if (!modeltest::MsaPll::test(exec_opt.msa_filename, &n_sequences, &n_sites))
+        {
+            cerr << "Error parsing alignment: " << exec_opt.msa_filename << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
         cerr << "Alignment file (-i) is required" << endl;
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    if (exec_opt.datatype == dt_protein && dna_ss != ss_undef)
+    if (exec_opt.datatype == dt_protein)
     {
-        cerr << "Warning: Substitution schemes will be ignored" << endl;
-    }
+        if (dna_ss != ss_undef)
+            cerr << "Warning: Substitution schemes will be ignored" << endl;
 
-    /* fill candidate matrices */
-    for (int i=0; i<=10; i++)
+        /* TODO: temporary the whole set is used */
+        for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
+            exec_opt.candidate_models.push_back(i);
+    }
+    else
     {
-        exec_opt.candidate_models.push_back(dna_model_matrices_indices[i]);
+        if (dna_ss == ss_undef)
+            exec_opt.subst_schemes = default_ss;
+        else
+            exec_opt.subst_schemes = dna_ss;
+
+        /* fill candidate matrices */
+        switch(exec_opt.subst_schemes)
+        {
+        case ss_11:
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[4]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[5]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[7]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[8]);
+        case ss_7:
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[6]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[9]);
+        case ss_5:
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[2]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[3]);
+        case ss_3:
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            break;
+        case ss_203:
+            for (int i=0; i<203; i++)
+                exec_opt.candidate_models.push_back(i);
+            break;
+        case ss_undef:
+        default:
+            assert(0);
+        }
     }
 
     /* if there are no model specifications, include all */
@@ -165,7 +213,13 @@ int main(int argc, char *argv[])
                 cerr << "ERROR OPTIMIZING MODEL" << endl;
                 exit(MT_ERROR_OPTIMIZE);
             }
-            cout << setw(2) << cur_model << "/" << mt.get_models().size() << setw(12) << model->get_name() << setw(18) << setprecision(4) << fixed << model->get_lnl() << setw(8) << time(NULL) - ini_t << setw(8) << time(NULL) - ini_global_time << endl;
+
+            /* print progress */
+            cout << setw(2) << cur_model << "/" << mt.get_models().size()
+                 << setw(12) << model->get_name()
+                 << setw(18) << setprecision(4) << fixed << model->get_lnl()
+                 << setw(8) << time(NULL) - ini_t
+                 << setw(8) << time(NULL) - ini_global_time << endl;
         }
 
         modeltest::ModelSelection bic_selection(mt.get_models(), modeltest::ic_bic);
