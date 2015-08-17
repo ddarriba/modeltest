@@ -24,13 +24,17 @@ mt_options parse_arguments(int argc, char *argv[])
     exec_opt.epsilon_opt   = 0.001;
     exec_opt.rnd_seed      = 12345;
     exec_opt.model_params  = 0;
+    exec_opt.datatype      = dt_dna;
 
     static struct option long_options[] =
     {
         { "categories", required_argument, 0, 'c' },
         { "datatype", required_argument, 0, 'd' },
         { "epsilon", required_argument, 0, 'e' },
+        { "model-freqs", required_argument, 0, 'F' },
+        { "help", no_argument, 0, 'h' },
         { "input", required_argument, 0, 'i' },
+        { "model-het", required_argument, 0, 'H' },
         { "tree", required_argument, 0, 't' },
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
@@ -40,7 +44,7 @@ mt_options parse_arguments(int argc, char *argv[])
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:hi:t:q:r:S:o:", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:hH:i:t:q:r:S:o:", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
@@ -60,13 +64,62 @@ mt_options parse_arguments(int argc, char *argv[])
                 cerr << "ERROR: Invalid datatype " << optarg << endl;
                 exit(EXIT_FAILURE);
             }
+            break;
         case 'e':
             exec_opt.epsilon_opt = atof(optarg);
             exec_opt.epsilon_param = atof(optarg);
             break;
+        case 'F':
+            for (mt_index_t i=0; i<strlen(optarg); i++)
+            {
+                switch(optarg[i])
+                {
+                case 'f':
+                case 'F':
+                    /* equal freqs (DNA) / empirical freqs (AA) */
+                    exec_opt.model_params  |= MOD_PARAM_FIXED_FREQ;
+                    break;
+                case 'e':
+                case 'E':
+                    /* ML freqs (DNA) / model defined freqs (AA) */
+                    exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
+                    break;
+                default:
+                    cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
         case 'h':
             cerr << "ModelTest Help:" << endl;
             exit(EXIT_FAILURE);
+        case 'H':
+            for (mt_index_t i=0; i<strlen(optarg); i++)
+            {
+                switch(optarg[i])
+                {
+                case 'u':
+                case 'U':
+                    exec_opt.model_params  |= MOD_PARAM_NO_RATE_VAR;
+                    break;
+                case 'i':
+                case 'I':
+                    exec_opt.model_params  |= MOD_PARAM_INV;
+                    break;
+                case 'g':
+                case 'G':
+                    exec_opt.model_params  |= MOD_PARAM_GAMMA;
+                    break;
+                case 'f':
+                case 'F':
+                    exec_opt.model_params  |= MOD_PARAM_INV_GAMMA;
+                    break;
+                default:
+                    cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
         case 'i':
             exec_opt.msa_filename = optarg;
             input_file_ok = strcmp(optarg, "");
@@ -122,7 +175,11 @@ mt_options parse_arguments(int argc, char *argv[])
 
     /* validate input file */
     if (input_file_ok) {
-        if (!modeltest::MsaPll::test(exec_opt.msa_filename, &n_sequences, &n_sites))
+        if (modeltest::MsaPll::test(exec_opt.msa_filename, &n_sequences, &n_sites))
+        {
+            cout << "Read OK: " << n_sequences << " x " << n_sites << endl;
+        }
+        else
         {
             cerr << "Error parsing alignment: " << exec_opt.msa_filename << endl;
             exit(EXIT_FAILURE);
@@ -181,7 +238,14 @@ mt_options parse_arguments(int argc, char *argv[])
 
     /* if there are no model specifications, include all */
     if (!exec_opt.model_params)
-        exec_opt.model_params = 63;
+        exec_opt.model_params =
+                MOD_PARAM_NO_RATE_VAR |
+                MOD_PARAM_INV |
+                MOD_PARAM_GAMMA |
+                MOD_PARAM_INV_GAMMA;
+
+    if (!(exec_opt.model_params & (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
+        exec_opt.model_params |= MOD_PARAM_FIXED_FREQ;
 
     return exec_opt;
 }
@@ -206,6 +270,8 @@ int main(int argc, char *argv[])
         cur_model = 0;
         for (cur_model=0; cur_model<mt.get_models().size(); cur_model++)
         {
+//            if (cur_model && cur_model < 59)
+//                continue;
             modeltest::Model *model = mt.get_models()[cur_model];
             time_t ini_t = time(NULL);
             if (!mt.evaluate_single_model(model, 0, opts.epsilon_param, opts.epsilon_opt))
@@ -215,8 +281,8 @@ int main(int argc, char *argv[])
             }
 
             /* print progress */
-            cout << setw(2) << cur_model << "/" << mt.get_models().size()
-                 << setw(12) << model->get_name()
+            cout << setw(5) << cur_model << "/" << mt.get_models().size()
+                 << setw(20) << model->get_name()
                  << setw(18) << setprecision(4) << fixed << model->get_lnl()
                  << setw(8) << time(NULL) - ini_t
                  << setw(8) << time(NULL) - ini_global_time << endl;

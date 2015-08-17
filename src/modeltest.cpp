@@ -51,16 +51,15 @@ static bool sort_backwards(Model * m1, Model * m2)
     return !sort_forwards(m1, m2);
 }
 
-static bool build_models(int model_params,
-                         const std::vector<int> & matrices,
+static bool build_models(mt_options & options,
                          vector<Model *> &c_models,
                          bool eval_all_matrices)
 {
-    int n_matrices = matrices.size(); /* temporary, all 11 matrices */
+    int n_matrices = options.candidate_models.size(); /* temporary, all 11 matrices */
     int n_models = 0;
 
-    int freq_params = model_params & MOD_MASK_FREQ_PARAMS;
-    int rate_params = model_params & MOD_MASK_RATE_PARAMS;
+    int freq_params = options.model_params & MOD_MASK_FREQ_PARAMS;
+    int rate_params = options.model_params & MOD_MASK_RATE_PARAMS;
     if (!freq_params) return false;
 
     int it_model_params = rate_params;
@@ -81,14 +80,31 @@ static bool build_models(int model_params,
         {
             for (int j=0; j<n_matrices; j++)
             {
-                if (freq_params & MOD_PARAM_EQUAL_FREQ)
-                    c_models.push_back(
-                                new DnaModel(matrices[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
-                                );
-                if (freq_params & MOD_PARAM_ML_FREQ)
-                    c_models.push_back(
-                                new DnaModel(matrices[j], cur_rate_param | MOD_PARAM_ML_FREQ)
-                                );
+                if (options.datatype == dt_dna)
+                {
+                    if (freq_params & MOD_PARAM_EQUAL_FREQ)
+                        c_models.push_back(
+                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                    );
+                    if (freq_params & MOD_PARAM_ML_FREQ)
+                        c_models.push_back(
+                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                    );
+                }
+                else if (options.datatype == dt_protein)
+                {
+                    if (freq_params & MOD_PARAM_EQUAL_FREQ)
+                        c_models.push_back(
+                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                    );
+                    if (freq_params & MOD_PARAM_ML_FREQ)
+                        c_models.push_back(
+                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                    );
+
+                }
+                else
+                    assert(0);
             }
         }
     }
@@ -192,7 +208,7 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
     else
       current_instance->n_catg = 1;
 
-    if (!build_models (options.model_params, options.candidate_models,
+    if (!build_models (options,
                current_instance->c_models, eval_all_matrices))
       {
         return false;

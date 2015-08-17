@@ -14,12 +14,12 @@
 #define N_PROT_SUBST_RATES     190
 #define N_PROT_MODEL_MATRICES   19
 
-#define MOD_PARAM_EQUAL_FREQ   (1<<0)
-#define MOD_PARAM_ML_FREQ      (1<<1)
-#define MOD_PARAM_NO_RATE_VAR  (1<<2)
-#define MOD_PARAM_INV          (1<<3)
-#define MOD_PARAM_GAMMA        (1<<4)
-#define MOD_PARAM_INV_GAMMA    (1<<5)
+#define MOD_PARAM_FIXED_FREQ      (1<<0)
+#define MOD_PARAM_ESTIMATED_FREQ  (1<<1)
+#define MOD_PARAM_NO_RATE_VAR     (1<<2)
+#define MOD_PARAM_INV             (1<<3)
+#define MOD_PARAM_GAMMA           (1<<4)
+#define MOD_PARAM_INV_GAMMA       (1<<5)
 
 #define MOD_MASK_FREQ_PARAMS   3
 #define MOD_MASK_RATE_PARAMS  60

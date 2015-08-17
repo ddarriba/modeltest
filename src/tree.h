@@ -35,13 +35,16 @@ namespace modeltest
 
     mt_size_t get_n_tips( void ) const { return n_tips; }
     virtual void print(mt_index_t thread_number = 0) = 0;
-
+    bool is_bl_optimized( void ) { return bl_optimized; }
+    void set_bl_optimized( void ) { bl_optimized = true; }
   protected:
     tree_type type;
     const std::string tree_file;
     mt_size_t n_tips;
     mt_size_t number_of_threads;
     int random_seed;
+
+    bool bl_optimized;
   };
 
 } /* namespace modeltest */

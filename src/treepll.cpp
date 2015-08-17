@@ -50,6 +50,7 @@ namespace modeltest
                     int random_seed)
       : Tree(type, filename, number_of_threads, random_seed)
   {
+      bl_optimized = false;
       pll_tree = (pll_utree_t **) malloc(number_of_threads * sizeof(pll_utree_t *));
       switch(type)
       {

@@ -86,7 +86,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
             std::cerr << "ERROR: Cannot find tip \"" << header << "\"" << std::endl;
         assert(tip_clv_index > -1);
 
-        pll_set_tip_states (pll_partition, (unsigned int)tip_clv_index, pll_map_nt,
+        pll_set_tip_states (pll_partition,
+                            (unsigned int)tip_clv_index,
+                            (model->get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
                             msa->get_sequence (i));
     }
 
@@ -256,6 +258,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
           assert( pll_partition->rate_cats == 1);
           rate_cats[0] = 1.0;
       }
+      /* TODO: Use empirical frequencies with prot data */
       pll_set_frequencies (pll_partition, 0, model->get_frequencies());
       pll_set_subst_params (pll_partition, 0, model->get_subst_rates());
       pll_set_category_rates (pll_partition, rate_cats);
@@ -282,7 +285,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
       int converged = 0;
 
       std::vector<int> params_to_optimize;
-      params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
+
+      if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
+          params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
+
       if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
           params_to_optimize.push_back(PLL_PARAMETER_SUBST_RATES);
       if (model->is_G())
@@ -294,36 +300,41 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
       int cur_parameter_index = 0;
 
-      while (n_iters < params_to_optimize.size() || (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+      if (params_to_optimize.size())
       {
-          n_iters++;
-          logl = cur_logl;
-
-          if (!on_run)
+          while (n_iters < params_to_optimize.size() || (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
           {
-              optimized = false;
+              n_iters++;
+              logl = cur_logl;
 
-              model->set_lnl(0.0);
-              model->set_exec_time(0);
+              if (!on_run)
+              {
+                  optimized = false;
 
-              if (model->is_G())
-                  model->set_alpha(0.0);
-              if (model->is_I())
-                  model->set_prop_inv(0.0);
-              return false;
+                  model->set_lnl(0.0);
+                  model->set_exec_time(0);
+
+                  if (model->is_G())
+                      model->set_alpha(0.0);
+                  if (model->is_I())
+                      model->set_prop_inv(0.0);
+                  return false;
+              }
+
+              int cur_parameter = params_to_optimize[cur_parameter_index];
+              if (!(converged & cur_parameter))
+              {
+                  test_logl = cur_logl;
+                  cur_logl = opt_single_parameter(cur_parameter, tolerance);
+                  if (fabs(test_logl - cur_logl) < tolerance)
+                      converged |= cur_parameter;
+              }
+
+              cur_parameter_index++;
+              cur_parameter_index %= params_to_optimize.size();
           }
-
-          int cur_parameter = params_to_optimize[cur_parameter_index];
-          if (!(converged & cur_parameter))
-          {
-              test_logl = cur_logl;
-              cur_logl = opt_single_parameter(cur_parameter, tolerance);
-              if (fabs(test_logl - cur_logl) < tolerance)
-                  converged |= cur_parameter;
-          }
-
-          cur_parameter_index++;
-          cur_parameter_index %= params_to_optimize.size();
+          /* TODO: if bl are reoptimized */
+          //tree->set_bl_optimized();
       }
       cur_logl *= -1;
 

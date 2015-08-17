@@ -70,61 +70,61 @@ namespace modeltest
                mt_size_t *n_tips,
                mt_size_t *n_sites)
   {
-    mt_index_t cur_seq;
-    char *hdr = NULL;
-    char *seq = NULL;
-    long seqlen;
-    long hdrlen;
-    long seqno;
+      mt_index_t cur_seq;
+      char *hdr = NULL;
+      char *seq = NULL;
+      long seqlen;
+      long hdrlen;
+      long seqno;
 
-    /* reset error */
-    errno = 0;
+      /* reset error */
+      errno = 0;
 
-    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+      pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
-    if (!fp)
+      if (!fp)
       {
-	errno = pll_errno;
-	return false;
+          errno = pll_errno;
+          return false;
       }
 
-    /* read FASTA sequences for finding the number of tips and seq len */
-    /* make sure they are all of the same length */
-    int sites = -1;
-    for (cur_seq = 0;
-	pll_fasta_getnext (fp, &hdr, &hdrlen, &seq, &seqlen, &seqno); ++cur_seq)
+      /* read FASTA sequences for finding the number of tips and seq len */
+      /* make sure they are all of the same length */
+      int sites = -1;
+      for (cur_seq = 0;
+           pll_fasta_getnext (fp, &hdr, &hdrlen, &seq, &seqlen, &seqno); ++cur_seq)
       {
-	free (seq);
-	free (hdr);
+          free (seq);
+          free (hdr);
 
-	/* if parsing fail, we continue for avoid memory leaks */
-	if (sites != -1 && sites != seqlen)
-	  errno = pll_errno;
+          /* if parsing fail, we continue for avoid memory leaks */
+          if (sites != -1 && sites != seqlen)
+              errno = pll_errno;
 
-	if (sites == -1)
-	  sites = seqlen;
+          if (sites == -1)
+              sites = seqlen;
       }
 
-    if (sites <= 0)
+      if (sites <= 0)
       {
-	errno = pll_errno;
+          errno = pll_errno;
       }
 
-    pll_fasta_close (fp);
+      pll_fasta_close (fp);
 
-    if (errno)
+      if (errno)
       {
-	*n_tips = 0;
-	*n_sites = 0;
-	return false;
+          *n_tips = 0;
+          *n_sites = 0;
+          return false;
       }
-    else
+      else
       {
-	*n_tips = cur_seq;
-	*n_sites = sites;
+          *n_tips = cur_seq;
+          *n_sites = sites;
       }
 
-    return true;
+      return true;
   }
 
 } /* namespace modeltest */
