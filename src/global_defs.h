@@ -46,6 +46,13 @@ extern int mpi_numprocs;
 #define MINE(x) (true)
 #endif
 
+#define MT_ERROR_UNIMPLEMENTED 10000
+#define MT_ERROR_LIBPLL        10100
+#define MT_ERROR_ALIGNMENT     10200
+#define MT_ERROR_TREE          10300
+#define MT_ERROR_INSTANCE      10400
+#define MT_ERROR_OPTIMIZE      10500
+
 typedef enum {
     dt_dna,
     dt_protein

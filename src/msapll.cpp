@@ -101,14 +101,20 @@ namespace modeltest
 
           assert(seqlen < MT_SIZE_UNDEF);
 
+          if (seqlen < 0)
+              return false;
+
           /* if parsing fail, we continue for avoid memory leaks */
           if (sites != MT_SIZE_UNDEF && sites != seqlen)
-              errno = pll_errno;
+          {
+              errno = MT_ERROR_ALIGNMENT;
+              break;
+          }
           else if (sites == MT_SIZE_UNDEF)
               sites = (mt_size_t) seqlen;
       }
 
-      if (sites <= 0)
+      if (sites == MT_SIZE_UNDEF)
       {
           errno = pll_errno;
       }
