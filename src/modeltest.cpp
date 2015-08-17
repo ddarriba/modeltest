@@ -82,24 +82,24 @@ static bool build_models(mt_options & options,
             {
                 if (options.datatype == dt_dna)
                 {
-                    if (freq_params & MOD_PARAM_EQUAL_FREQ)
+                    if (freq_params & MOD_PARAM_FIXED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
                                     );
-                    if (freq_params & MOD_PARAM_ML_FREQ)
+                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
                                     );
                 }
                 else if (options.datatype == dt_protein)
                 {
-                    if (freq_params & MOD_PARAM_EQUAL_FREQ)
+                    if (freq_params & MOD_PARAM_FIXED_FREQ)
                         c_models.push_back(
-                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_EQUAL_FREQ)
+                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
                                     );
-                    if (freq_params & MOD_PARAM_ML_FREQ)
+                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
                         c_models.push_back(
-                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ML_FREQ)
+                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
                                     );
 
                 }

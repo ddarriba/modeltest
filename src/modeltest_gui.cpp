@@ -805,7 +805,7 @@ void jModelTest::on_btnRun_clicked()
 
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
-        model_params += MOD_PARAM_EQUAL_FREQ;
+        model_params += MOD_PARAM_FIXED_FREQ;
     if (ui->cbNoRateVarModels->isChecked())
         model_params += MOD_PARAM_NO_RATE_VAR;
     if (ui->cbIModels->isChecked())
@@ -815,7 +815,7 @@ void jModelTest::on_btnRun_clicked()
     if (ui->cbIGModels->isChecked())
         model_params += MOD_PARAM_INV_GAMMA;
     if (ui->cbMlFreq->isChecked())
-        model_params += MOD_PARAM_ML_FREQ;
+        model_params += MOD_PARAM_ESTIMATED_FREQ;
 
     std::vector<int> matrices;
     if (ui->radDatatypeProt->isChecked() || !ui->radSchemes203->isChecked())
