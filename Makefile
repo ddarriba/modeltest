@@ -8,14 +8,16 @@ CPPLIBS = -lpll_optimize -lpll -lm
 
 CPPFILES = $(wildcard **/*.cpp)
 CPPFILES = $(shell find jModelTest2/ -type f -name '*.cpp')
-OBJFILES = src/main_console.o \
-	   src/utils.o \
+OBJFILES = src/modeltest.o \
+     src/utils.o \
 	   src/model.o \
 	   src/msapll.o \
 	   src/treepll.o \
 	   src/model_optimizer_pll.o \
 	   src/model_selection.o \
-	   src/modeltest.o 
+		 src/main.o
+     # src/main_console.o
+			
 DEPS = 
 
 all: $(OBJFILES)

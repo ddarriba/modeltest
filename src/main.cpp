@@ -1,30 +1,36 @@
+#ifndef CONSOLE
 #include "modeltest_gui.h"
+#include <QApplication>
+#else
+#include "modeltest.h"
+#endif
 
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <sstream>
 #include <getopt.h>
-#include <QApplication>
 
 using namespace std;
 
-mt_options parse_arguments(int argc, char *argv[])
+static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 {
-    mt_options exec_opt;
     bool input_file_ok = false;
     dna_subst_schemes dna_ss = ss_undef;
     mt_size_t n_sequences, n_sites;
+    string user_candidate_models = "";
 
     /* defaults */
     dna_subst_schemes default_ss = ss_11;
 
     /* set default options */
-    exec_opt.n_catg        = 4;
-    exec_opt.epsilon_param = 0.0001;
-    exec_opt.epsilon_opt   = 0.001;
-    exec_opt.rnd_seed      = 12345;
+    exec_opt.n_catg        = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.epsilon_param = DEFAULT_PARAM_EPSILON;
+    exec_opt.epsilon_opt   = DEFAULT_OPT_EPSILON;
+    exec_opt.rnd_seed      = DEFAULT_RND_SEED;
     exec_opt.model_params  = 0;
     exec_opt.datatype      = dt_dna;
+    exec_opt.subst_schemes = ss_undef;
 
     static struct option long_options[] =
     {
@@ -33,8 +39,9 @@ mt_options parse_arguments(int argc, char *argv[])
         { "epsilon", required_argument, 0, 'e' },
         { "model-freqs", required_argument, 0, 'F' },
         { "help", no_argument, 0, 'h' },
-        { "input", required_argument, 0, 'i' },
         { "model-het", required_argument, 0, 'H' },
+        { "input", required_argument, 0, 'i' },
+        { "models", required_argument, 0, 'm' },
         { "tree", required_argument, 0, 't' },
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
@@ -44,7 +51,7 @@ mt_options parse_arguments(int argc, char *argv[])
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:hH:i:t:q:r:S:o:", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:t:q:r:S:o:", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
@@ -62,7 +69,7 @@ mt_options parse_arguments(int argc, char *argv[])
             else
             {
                 cerr << "ERROR: Invalid datatype " << optarg << endl;
-                exit(EXIT_FAILURE);
+                return false;
             }
             break;
         case 'e':
@@ -86,13 +93,13 @@ mt_options parse_arguments(int argc, char *argv[])
                     break;
                 default:
                     cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
-                    exit(EXIT_FAILURE);
+                    return false;
                 }
             }
             break;
         case 'h':
             cerr << "ModelTest Help:" << endl;
-            exit(EXIT_FAILURE);
+            return false;
         case 'H':
             for (mt_index_t i=0; i<strlen(optarg); i++)
             {
@@ -116,7 +123,7 @@ mt_options parse_arguments(int argc, char *argv[])
                     break;
                 default:
                     cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
-                    exit(EXIT_FAILURE);
+                    return false;
                 }
             }
             break;
@@ -124,6 +131,11 @@ mt_options parse_arguments(int argc, char *argv[])
             exec_opt.msa_filename = optarg;
             input_file_ok = strcmp(optarg, "");
             break;
+        case 'm':
+        {
+            user_candidate_models = optarg;
+            break;
+        }
         case 't':
             exec_opt.tree_filename = optarg;
             exec_opt.starting_tree = tree_user_fixed;
@@ -162,12 +174,12 @@ mt_options parse_arguments(int argc, char *argv[])
             else
             {
                 cerr << "ERROR: Invalid number of substitution schemes " << optarg << endl;
-                exit(EXIT_FAILURE);
+                return false;
             }
             break;
         default:
             cerr << "Unrecognised argument -" << opt << endl;
-            exit(EXIT_FAILURE);
+            return false;
         }
     }
 
@@ -182,13 +194,13 @@ mt_options parse_arguments(int argc, char *argv[])
         else
         {
             cerr << "Error parsing alignment: " << exec_opt.msa_filename << endl;
-            exit(EXIT_FAILURE);
+            return false;
         }
     }
     else
     {
         cerr << "Alignment file (-i) is required" << endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     if (exec_opt.datatype == dt_protein)
@@ -196,16 +208,88 @@ mt_options parse_arguments(int argc, char *argv[])
         if (dna_ss != ss_undef)
             cerr << "Warning: Substitution schemes will be ignored" << endl;
 
-        /* TODO: temporary the whole set is used */
-        for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
-            exec_opt.candidate_models.push_back(i);
+        if (user_candidate_models.compare(""))
+        {
+            int prot_matrices_bitv = 0;
+            /* parse user defined models */
+            istringstream f(user_candidate_models);
+            string s;
+            while (getline(f, s, ',')) {
+                mt_index_t i, c_matrix;
+                for (i=0; i<N_PROT_MODEL_MATRICES; i++)
+                {
+                    if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
+                    {
+                        c_matrix = i;
+                        break;
+                    }
+                }
+                if (i == N_PROT_MODEL_MATRICES)
+                {
+                    cerr << "Invalid protein matrix: " << s << endl;
+                    return false;
+                }
+                prot_matrices_bitv |= 1<<c_matrix;
+            }
+            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            {
+                if (prot_matrices_bitv&1)
+                {
+                    exec_opt.candidate_models.push_back(i);
+                }
+                prot_matrices_bitv >>= 1;
+            }
+        }
+        else
+        {
+            /* the whole set is used */
+            for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
+                exec_opt.candidate_models.push_back(i);
+        }
     }
     else
     {
-        if (dna_ss == ss_undef)
-            exec_opt.subst_schemes = default_ss;
+        if (user_candidate_models.compare("") && (dna_ss == ss_undef))
+        {
+            int dna_matrices_bitv = 0;
+            /* parse user defined models */
+            istringstream f(user_candidate_models);
+            string s;
+            while (getline(f, s, ',')) {
+                mt_index_t i, c_matrix;
+                for (i=0; i<N_DNA_MODEL_MATRICES; i++)
+                {
+                    if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
+                        !strcasecmp(dna_model_names[2*i+1].c_str(), s.c_str()))
+                    {
+                        c_matrix = i;
+                        break;
+                    }
+                }
+                if (i == N_DNA_MODEL_MATRICES)
+                {
+                    cerr << "Invalid dna matrix: " << s << endl;
+                    return false;
+                }
+                dna_matrices_bitv |= 1<<c_matrix;
+            }
+            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            {
+                if (dna_matrices_bitv&1)
+                {
+                    exec_opt.candidate_models.push_back(
+                                dna_model_matrices_indices[i]);
+                }
+                dna_matrices_bitv >>= 1;
+            }
+        }
         else
-            exec_opt.subst_schemes = dna_ss;
+        {
+            if (dna_ss == ss_undef)
+                exec_opt.subst_schemes = default_ss;
+            else
+                exec_opt.subst_schemes = dna_ss;
+        }
 
         /* fill candidate matrices */
         switch(exec_opt.subst_schemes)
@@ -231,10 +315,14 @@ mt_options parse_arguments(int argc, char *argv[])
                 exec_opt.candidate_models.push_back(i);
             break;
         case ss_undef:
+            /* ignore */
+            break;
         default:
             assert(0);
         }
     }
+
+    assert(exec_opt.candidate_models.size() > 0);
 
     /* if there are no model specifications, include all */
     if (!exec_opt.model_params)
@@ -244,25 +332,29 @@ mt_options parse_arguments(int argc, char *argv[])
                 MOD_PARAM_GAMMA |
                 MOD_PARAM_INV_GAMMA;
 
-    if (!(exec_opt.model_params & (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
+    if (!(exec_opt.model_params &
+         (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
         exec_opt.model_params |= MOD_PARAM_FIXED_FREQ;
 
-    return exec_opt;
+    return true;
 }
 
 int main(int argc, char *argv[])
 {
-    int return_val = 0;
+    int return_val = EXIT_SUCCESS;
     time_t ini_global_time = time(NULL);
 
     if (argc > 1)
     {
         /* command line */
-        modeltest::ModelTest mt;
         mt_options opts;
+        modeltest::ModelTest mt;
         mt_index_t cur_model;
 
-        opts = parse_arguments(argc, argv);
+        if (!parse_arguments(argc, argv, opts))
+        {
+            return(EXIT_FAILURE);
+        }
 
         mt.build_instance(opts, tree_user_fixed);
 
@@ -270,34 +362,36 @@ int main(int argc, char *argv[])
         cur_model = 0;
         for (cur_model=0; cur_model<mt.get_models().size(); cur_model++)
         {
-//            if (cur_model && cur_model < 59)
-//                continue;
             modeltest::Model *model = mt.get_models()[cur_model];
             time_t ini_t = time(NULL);
             if (!mt.evaluate_single_model(model, 0, opts.epsilon_param, opts.epsilon_opt))
             {
                 cerr << "ERROR OPTIMIZING MODEL" << endl;
-                exit(MT_ERROR_OPTIMIZE);
+                return(MT_ERROR_OPTIMIZE);
             }
 
             /* print progress */
             cout << setw(5) << cur_model << "/" << mt.get_models().size()
                  << setw(20) << model->get_name()
-                 << setw(18) << setprecision(4) << fixed << model->get_lnl()
+                 << setw(18) << setprecision(MT_PRECISION_DIGITS) << fixed
+                 << model->get_lnl()
                  << setw(8) << time(NULL) - ini_t
                  << setw(8) << time(NULL) - ini_global_time << endl;
         }
 
-        modeltest::ModelSelection bic_selection(mt.get_models(), modeltest::ic_bic);
+        modeltest::ModelSelection bic_selection(mt.get_models(),
+                                                modeltest::ic_bic);
         bic_selection.print(cout);
     }
     else
     {
+        #ifndef CONSOLE
         /* launch GUI */
         QApplication a(argc, argv);
         modeltest::jModelTest w;
         w.show();
         return_val = a.exec();
+        #endif
     }
 
     return return_val;

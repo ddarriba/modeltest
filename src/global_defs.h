@@ -5,6 +5,12 @@
 #include <vector>
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
+#define MT_PRECISION_DIGITS 4
+
+#define DEFAULT_GAMMA_RATE_CATS   4
+#define DEFAULT_PARAM_EPSILON     0.0001
+#define DEFAULT_OPT_EPSILON       0.001
+#define DEFAULT_RND_SEED          12345
 
 typedef unsigned int mt_size_t;
 typedef mt_size_t mt_index_t;
