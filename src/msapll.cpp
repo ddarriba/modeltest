@@ -14,6 +14,8 @@
 namespace modeltest
 {
 
+  Msa::~Msa (){}
+
   MsaPll::MsaPll (std::string msa_filename)
       : Msa(msa_filename)
   {
@@ -90,19 +92,20 @@ namespace modeltest
 
       /* read FASTA sequences for finding the number of tips and seq len */
       /* make sure they are all of the same length */
-      int sites = -1;
+      mt_size_t sites = MT_SIZE_UNDEF;
       for (cur_seq = 0;
            pll_fasta_getnext (fp, &hdr, &hdrlen, &seq, &seqlen, &seqno); ++cur_seq)
       {
           free (seq);
           free (hdr);
 
-          /* if parsing fail, we continue for avoid memory leaks */
-          if (sites != -1 && sites != seqlen)
-              errno = pll_errno;
+          assert(seqlen < MT_SIZE_UNDEF);
 
-          if (sites == -1)
-              sites = seqlen;
+          /* if parsing fail, we continue for avoid memory leaks */
+          if (sites != MT_SIZE_UNDEF && sites != seqlen)
+              errno = pll_errno;
+          else if (sites == MT_SIZE_UNDEF)
+              sites = (mt_size_t) seqlen;
       }
 
       if (sites <= 0)

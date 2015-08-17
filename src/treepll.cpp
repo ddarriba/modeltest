@@ -18,15 +18,15 @@ static void set_missing_branch_length_recursive (pll_utree_t * tree,
   if (tree)
   {
     /* set branch length to default if not set */
-    if (!tree->length)
+    if (tree->length < DOUBLE_EPSILON)
       tree->length = length;
 
     if (tree->next)
     {
-      if (!tree->next->length)
+      if (tree->next->length < DOUBLE_EPSILON)
         tree->next->length = length;
 
-      if (!tree->next->next->length)
+      if (tree->next->next->length < DOUBLE_EPSILON)
         tree->next->next->length = length;
 
       set_missing_branch_length_recursive (tree->next->back, length);
@@ -44,6 +44,9 @@ static void set_missing_branch_length (pll_utree_t * tree, double length)
 
 namespace modeltest
 {
+
+  Tree::~Tree() {}
+
   TreePll::TreePll (tree_type type,
                     std::string const& filename,
                     mt_size_t number_of_threads,
@@ -116,12 +119,35 @@ namespace modeltest
           }
       }
           break;
-      default:
+      case tree_ml_jc_fixed:
       {
+          /* Temporary call to RAxML */
+          cout << "Testing ML GTR starting tree!" << endl;
+          string mp_tree_filename = "mtTempMpTree";
+          char command[500];
+          sprintf(command, "scripts/makeJcML.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
+          int retval = system(command);
+          if (retval)
+          {
+              cout << "ERROR: Command failed: " << command << endl;
+          }
+          for (mt_index_t i=0; i<number_of_threads; i++)
+          {
+              pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
+              if (!pll_tree[i])
+              {
+                  cout << "PLL ERROR: " << pll_errno << " : " << pll_errmsg << endl;
+                  errno = pll_errno;
+                  return;
+              }
+          }
+      }
+          break;
+      case tree_ml:
           /* unimplemented */
           cout << "Unimplemented" << endl;
           assert(0);
-      }
+          break;
       }
 
       /* fix all missing branch lengths to 0.00001 */

@@ -18,13 +18,11 @@ namespace modeltest
   class ModelOptimizer
   {
   public:
-    ModelOptimizer (Model *model) : model(model)
+    ModelOptimizer (Model *_model) : model(_model)
     {
         optimized = false;
     }
-    virtual ~ModelOptimizer ()
-    {
-    }
+    virtual ~ModelOptimizer ();
 
     /**
      * @brief Optimizes one single parameter

@@ -40,8 +40,6 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         case ic_dt:
             models[i].score = models[i].model->get_dt();
             break;
-        default:
-            assert(0);
         }
     }
 

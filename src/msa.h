@@ -17,13 +17,11 @@ namespace modeltest
   class Msa
   {
   public:
-    Msa (std::string msa_filename) :
-	msa_filename (msa_filename), n_sequences (0), n_sites (0)
+    Msa (std::string _msa_filename) :
+    msa_filename (_msa_filename), n_sequences (0), n_sites (0)
     {
     }
-    virtual ~Msa ()
-    {
-    }
+    virtual ~Msa ();
 
     virtual const char * get_header (mt_index_t index) = 0;
     virtual const char * get_sequence (mt_index_t index) = 0;

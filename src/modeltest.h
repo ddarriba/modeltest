@@ -62,12 +62,7 @@ public:
 
     /**
      * @brief Creates a model    optimization instance
-     * @param model_params       model parameters that define the candidates
-     * @param n_catg             number of Gamma rate categories
-     * @param model_matrices     candidate model matrices
-     * @param msa_filename       MSA filename (FASTA)
-     * @param tree_filename      tree filename (NEWICK)
-     * @param start_tree         starting tree mode
+     * @param options            general optimization options
      * @param eval_all_matrices  evaluate 203 model matrices
      * @return true, if everything was OK, false in case of error
      */
@@ -104,7 +99,7 @@ public:
 
     /**
      * @brief Updates the existing models with the values of another set
-     * @param c_models
+     * @param c_models candidate models
      * @return false if the models cannot be updated
      */
     bool set_models(const std::vector<Model *> &c_models);

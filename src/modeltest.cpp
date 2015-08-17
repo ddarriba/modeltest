@@ -12,8 +12,8 @@ namespace modeltest {
 
 using namespace std;
 
-ModelTest::ModelTest(mt_size_t number_of_threads)
-    : number_of_threads(number_of_threads)
+ModelTest::ModelTest(mt_size_t _number_of_threads)
+    : number_of_threads(_number_of_threads)
 {
     setlocale(LC_NUMERIC, "C");
     create_instance();
@@ -55,8 +55,9 @@ static bool build_models(mt_options & options,
                          vector<Model *> &c_models,
                          bool eval_all_matrices)
 {
-    int n_matrices = options.candidate_models.size(); /* temporary, all 11 matrices */
-    int n_models = 0;
+    UNUSED(eval_all_matrices);
+    mt_size_t n_matrices = (mt_size_t) options.candidate_models.size();
+    mt_size_t n_models = 0;
 
     int freq_params = options.model_params & MOD_MASK_FREQ_PARAMS;
     int rate_params = options.model_params & MOD_MASK_RATE_PARAMS;
@@ -78,7 +79,7 @@ static bool build_models(mt_options & options,
         int cur_rate_param = rate_params & i;
         if (cur_rate_param)
         {
-            for (int j=0; j<n_matrices; j++)
+            for (mt_index_t j=0; j<n_matrices; j++)
             {
                 if (options.datatype == dt_dna)
                 {
@@ -185,11 +186,10 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
     case tree_mp:
     case tree_ml_gtr_fixed:
     case tree_ml_jc_fixed:
-        cout << " Building MP tree from modeltest.cpp" << endl;
         current_instance->tree = new TreePll (options.starting_tree, options.msa_filename, number_of_threads);
         current_instance->tree->print();
         break;
-    default:
+    case tree_ml:
         errno = MT_ERROR_UNIMPLEMENTED;
         return false;
     }

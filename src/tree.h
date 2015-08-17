@@ -17,21 +17,19 @@ namespace modeltest
   class Tree
   {
   public:
-    Tree (tree_type type,
+    Tree (tree_type _type,
           std::string const& filename,
-          mt_size_t number_of_threads = 1,
-          int random_seed = 12345)
-    : type(type),
+          mt_size_t _number_of_threads = 1,
+          int _random_seed = 12345)
+    : type(_type),
       tree_file(filename),
       n_tips(0),
-      number_of_threads(number_of_threads),
-      random_seed(random_seed)
+      number_of_threads(_number_of_threads),
+      random_seed(_random_seed)
     {
     }
 
-    virtual ~Tree ()
-    {
-    }
+    virtual ~Tree ();
 
     mt_size_t get_n_tips( void ) const { return n_tips; }
     virtual void print(mt_index_t thread_number = 0) = 0;

@@ -55,7 +55,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
-            exec_opt.n_catg = atoi(optarg);
+            exec_opt.n_catg = (mt_index_t) atoi(optarg);
             break;
         case 'd':
             if (!strcasecmp(optarg, "nt"))
@@ -215,7 +215,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             istringstream f(user_candidate_models);
             string s;
             while (getline(f, s, ',')) {
-                mt_index_t i, c_matrix;
+                mt_index_t i, c_matrix = 0;
                 for (i=0; i<N_PROT_MODEL_MATRICES; i++)
                 {
                     if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
@@ -243,7 +243,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         else
         {
             /* the whole set is used */
-            for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
+            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
                 exec_opt.candidate_models.push_back(i);
         }
     }
@@ -256,7 +256,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             istringstream f(user_candidate_models);
             string s;
             while (getline(f, s, ',')) {
-                mt_index_t i, c_matrix;
+                mt_index_t i, c_matrix = 0;
                 for (i=0; i<N_DNA_MODEL_MATRICES; i++)
                 {
                     if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
@@ -295,30 +295,39 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         switch(exec_opt.subst_schemes)
         {
         case ss_11:
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[4]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[5]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[7]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[8]);
+            for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
+                exec_opt.candidate_models.push_back(dna_model_matrices_indices[i]);
+            break;
         case ss_7:
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[6]);
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[9]);
+
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[2]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[3]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            break;
         case ss_5:
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[2]);
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[3]);
+
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            break;
         case ss_3:
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
             exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
             break;
         case ss_203:
-            for (int i=0; i<203; i++)
+            for (mt_index_t i=0; i<203; i++)
                 exec_opt.candidate_models.push_back(i);
             break;
         case ss_undef:
             /* ignore */
             break;
-        default:
-            assert(0);
         }
     }
 
@@ -371,9 +380,10 @@ int main(int argc, char *argv[])
             }
 
             /* print progress */
-            cout << setw(5) << cur_model << "/" << mt.get_models().size()
-                 << setw(20) << model->get_name()
-                 << setw(18) << setprecision(MT_PRECISION_DIGITS) << fixed
+            cout << setw(5) << right << (cur_model+1) << "/"
+                 << setw(5) << left << mt.get_models().size()
+                 << setw(20) << left << model->get_name()
+                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
                  << model->get_lnl()
                  << setw(8) << time(NULL) - ini_t
                  << setw(8) << time(NULL) - ini_global_time << endl;

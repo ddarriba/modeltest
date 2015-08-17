@@ -58,7 +58,7 @@ namespace modeltest {
 
 static void set_subst_params(int * m_ind, string const& matrix)
  {
-    for (int i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
       m_ind[i] = (int)(matrix.at(i) - '0');
  }
 
@@ -157,12 +157,12 @@ void Model::set_alpha(double value)
     alpha = value;
 }
 
-int Model::get_n_states( void ) const
+mt_size_t Model::get_n_states( void ) const
 {
     return n_frequencies;
 }
 
-int Model::get_n_subst_rates( void ) const
+mt_size_t Model::get_n_subst_rates( void ) const
 {
     return n_subst_rates;
 }
@@ -197,7 +197,7 @@ void Model::set_subst_rates(const double value[], bool full_vector)
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
                                 double sample_size )
 {
-    if (!lnL)
+    if (!is_optimized())
         return false;
 
     mt_size_t n_params = n_free_variables + n_branches_params;
@@ -254,9 +254,9 @@ DnaModel::DnaModel(mt_index_t matrix_index,
 
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
 
-    mt_index_t standard_matrix_index = find(dna_model_matrices_indices,
+    mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
                                      dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
-                                     matrix_index) - dna_model_matrices_indices;
+                                     matrix_index) - dna_model_matrices_indices);
     if (standard_matrix_index < N_DNA_MODEL_MATRICES)
     {
         ss_name << dna_model_names[2 * standard_matrix_index + (optimize_freqs?1:0)];
@@ -328,12 +328,13 @@ const int * DnaModel::get_symmetries( void ) const
 
 mt_size_t DnaModel::get_n_subst_params() const
 {
-    return *max_element(matrix_symmetries, matrix_symmetries+N_DNA_SUBST_RATES);
+    return (mt_size_t) *max_element(matrix_symmetries,
+                                    matrix_symmetries+N_DNA_SUBST_RATES);
 }
 
 void DnaModel::set_subst_rates(const double value[], bool full_vector)
 {
-    int n_subst_params = get_n_subst_params();
+    mt_size_t n_subst_params = get_n_subst_params();
     if (full_vector)
     {
         /*TODO: validate symmetries */
@@ -341,9 +342,9 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
     }
     else
     {
-        for (int i=0; i<n_subst_rates; i++)
+        for (mt_index_t i=0; i<n_subst_rates; i++)
         {
-            if (matrix_symmetries[i] == n_subst_params)
+            if (((mt_size_t)matrix_symmetries[i]) == n_subst_params)
             {
                 subst_rates[i] = 1.0;
             }

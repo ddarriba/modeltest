@@ -61,13 +61,13 @@ public:
      * @brief Gets the number of states
      * @return the number of states
      */
-    int get_n_states( void ) const;
+    mt_size_t get_n_states( void ) const;
 
     /**
      * @brief Gets the number of substitution rates
      * @return the number of substitution rates
      */
-    int get_n_subst_rates( void ) const;
+    mt_size_t get_n_subst_rates( void ) const;
 
     /**
      * @brief Gets the model state frequencies
@@ -159,8 +159,8 @@ protected:
 
     time_t exec_time;
 
-    int n_frequencies;
-    int n_subst_rates;
+    mt_size_t n_frequencies;
+    mt_size_t n_subst_rates;
 };
 
 class DnaModel : public Model

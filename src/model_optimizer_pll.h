@@ -21,15 +21,16 @@ namespace modeltest
   class ModelOptimizerPll : public ModelOptimizer
   {
   public:
-    ModelOptimizerPll (MsaPll *msa,
-                       TreePll *tree,
-                       Model *model,
-                       mt_size_t n_cat_g = 4,
-                       mt_index_t thread_number = 0);
+    ModelOptimizerPll (MsaPll *_msa,
+                       TreePll *_tree,
+                       Model *_model,
+                       mt_size_t _n_cat_g = DEFAULT_GAMMA_RATE_CATS,
+                       mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
 
     virtual double opt_single_parameter(mt_index_t which_parameter,
-                                        double tolerance = 0.0001);
+                                        double tolerance
+                                               = DEFAULT_PARAM_EPSILON);
 
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001);

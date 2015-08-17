@@ -23,7 +23,7 @@ namespace modeltest
              int random_seed = 12345);
     virtual ~TreePll ();
 
-    pll_utree_t *get_pll_tree( int thread_number = 0) { return pll_tree[thread_number]; }
+    pll_utree_t *get_pll_tree( mt_index_t thread_number = 0) { return pll_tree[thread_number]; }
     virtual void print(mt_index_t thread_number = 0);
 
     static bool test_tree(std::string const& tree_filename, mt_size_t *n_tips);

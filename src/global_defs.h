@@ -3,6 +3,23 @@
 
 #include <string>
 #include <vector>
+#include <climits>
+
+#ifndef __has_cpp_attribute         // Optional of course.
+  #define __has_cpp_attribute(x) 0  // Compatibility with non-clang compilers.
+#endif
+
+//#if __has_cpp_attribute(clang::fallthrough)
+//#define FALLTHROUGH [[clang::fallthrough]]
+//#else
+//#define FALLTHROUGH
+//#endif
+
+#ifdef __clang__
+#define FALLTHROUGH [[clang::fallthrough]]
+#else
+#define FALLTHROUGH
+#endif
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define MT_PRECISION_DIGITS 4
@@ -11,6 +28,9 @@
 #define DEFAULT_PARAM_EPSILON     0.0001
 #define DEFAULT_OPT_EPSILON       0.001
 #define DEFAULT_RND_SEED          12345
+
+#define MT_SIZE_UNDEF             UINT_MAX
+#define DOUBLE_EPSILON            1e-12
 
 typedef unsigned int mt_size_t;
 typedef mt_size_t mt_index_t;
@@ -46,7 +66,7 @@ typedef enum {
     ss_5,
     ss_7,
     ss_11,
-    ss_203,
+    ss_203
 } dna_subst_schemes;
 
 typedef struct {
@@ -56,7 +76,7 @@ typedef struct {
     std::string partitions_filename;
     std::string output_filename;
     tree_type starting_tree;
-    std::vector<int> candidate_models;
+    std::vector<mt_index_t> candidate_models;
     int model_params;
     mt_size_t n_catg;
 
@@ -64,7 +84,7 @@ typedef struct {
     double epsilon_opt;
 
     dna_subst_schemes subst_schemes;
-    int rnd_seed;
+    unsigned int rnd_seed;
 } mt_options;
 
 #endif // GLOBAL_DEFS_H

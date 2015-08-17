@@ -34,13 +34,15 @@ namespace modeltest
 
 bool on_run = true;
 
-ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
-                                      TreePll *tree,
-                                      Model *model,
-                                      mt_size_t n_cat_g,
-                                      mt_index_t thread_number)
-    : ModelOptimizer(model), msa(msa), tree(tree),
-      thread_number(thread_number)
+ModelOptimizer::~ModelOptimizer() {}
+
+ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
+                                      TreePll *_tree,
+                                      Model *_model,
+                                      mt_size_t _n_cat_g,
+                                      mt_index_t _thread_number)
+    : ModelOptimizer(_model), msa(_msa), tree(_tree),
+      thread_number(_thread_number)
 {
     params = NULL;
     operations = NULL;
@@ -55,13 +57,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                 (mt_size_t) msa->get_n_sites (),  /* sites */
                 1,                                /* rate matrices */
                 (2 * n_tips - 3),                 /* prob matrices */
-                model->is_G () ? n_cat_g : 1,     /* rate cats */
+                model->is_G () ? _n_cat_g : 1,     /* rate cats */
                 n_tips - 2,                       /* scale buffers */
                 PLL_ATTRIB_ARCH_SSE               /* attributes */
                 );
     assert(pll_partition);
 
-    pll_utree_t* pll_tree = tree->get_pll_tree (thread_number);
+    pll_utree_t* pll_tree = tree->get_pll_tree (_thread_number);
 
     pll_utree_t ** tipnodes = (pll_utree_t **) calloc (n_tips,
                                                        sizeof(pll_utree_t *));
@@ -70,7 +72,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
     /* find sequences and link them with the corresponding taxa */
     for (mt_index_t i = 0; i < n_tips; ++i)
     {
-        int tip_clv_index = -1;
+        mt_index_t tip_clv_index = MT_SIZE_UNDEF;
         const char * header = msa->get_header (i);
 
         for (mt_index_t j = 0; j < n_tips; ++j)
@@ -82,9 +84,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
             }
         }
 
-        if (tip_clv_index == -1)
+        if (tip_clv_index == MT_SIZE_UNDEF)
             std::cerr << "ERROR: Cannot find tip \"" << header << "\"" << std::endl;
-        assert(tip_clv_index > -1);
+        assert(tip_clv_index != MT_SIZE_UNDEF);
 
         pll_set_tip_states (pll_partition,
                             (unsigned int)tip_clv_index,
@@ -100,8 +102,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                 (2 * n_tips - 2) * sizeof(pll_utree_t *));
 
     /* additional stuff */
-    mt_size_t traversal_size = pll_utree_traverse (pll_tree, cb_reset_branches,
-                                             travbuffer);
+    mt_size_t traversal_size = (mt_size_t) pll_utree_traverse (pll_tree,
+                                                               cb_reset_branches,
+                                                               travbuffer);
 
     assert(traversal_size > 0);
 
@@ -147,10 +150,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
 
           cur_logl = pll_optimize_branch_lengths_iterative (params, pll_tree, 5);
 
-          pll_utree_t ** travbuffer = (pll_utree_t **)malloc((2*tree->get_n_tips() - 2) * sizeof(pll_utree_t *));
-          int traversal_size = pll_utree_traverse (pll_tree,
-                                                   cb_full_traversal,
-                                                   travbuffer);
+          pll_utree_t ** travbuffer = (pll_utree_t **) malloc(
+                      (2*tree->get_n_tips() - 2) * sizeof(pll_utree_t *));
+          mt_size_t traversal_size = (mt_size_t) pll_utree_traverse (pll_tree,
+                                                            cb_full_traversal,
+                                                            travbuffer);
           mt_index_t matrix_count, ops_count;
           pll_utree_create_operations(travbuffer,
                                       traversal_size,
@@ -277,14 +281,18 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                                                     pll_tree->pmatrix_index,
                                                     0);
 
+      /* current logl changes the sign of the lk, such that the optimization
+       * function can minimize the score
+       */
       double cur_logl = logl * -1;
+      /* logl intialized to an arbitrary value above the current lk */
       logl = cur_logl + 10;
-      mt_index_t n_iters = 0;
+      mt_index_t n_iters = 0;       /* iterations counter */
 
-      double test_logl;
-      int converged = 0;
+      double test_logl;         /* temporary variable */
+      mt_size_t converged = 0;  /* bitvector for parameter convergence */
 
-      std::vector<int> params_to_optimize;
+      std::vector<mt_index_t> params_to_optimize;
 
       if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
           params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
@@ -298,7 +306,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
       if (model->get_datatype() == dt_dna && model->is_F())
           params_to_optimize.push_back(PLL_PARAMETER_FREQUENCIES);
 
-      int cur_parameter_index = 0;
+      mt_index_t cur_parameter_index = 0;
 
       if (params_to_optimize.size())
       {
@@ -321,7 +329,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *msa,
                   return false;
               }
 
-              int cur_parameter = params_to_optimize[cur_parameter_index];
+              mt_index_t cur_parameter = params_to_optimize[cur_parameter_index];
               if (!(converged & cur_parameter))
               {
                   test_logl = cur_logl;

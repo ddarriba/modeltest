@@ -36,7 +36,7 @@ public:
 
     static void * allocate(mt_size_t n, mt_size_t size);
     static void * c_allocate(mt_size_t n, mt_size_t size);
-    static void exit_with_error(const char * message, ...);
+    static void exit_with_error(const char * message, ...) __attribute__ ((noreturn));
 };
 
 }
