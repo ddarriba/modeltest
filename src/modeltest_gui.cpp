@@ -817,7 +817,7 @@ void jModelTest::on_btnRun_clicked()
     if (ui->cbMlFreq->isChecked())
         model_params += MOD_PARAM_ESTIMATED_FREQ;
 
-    std::vector<int> matrices;
+    std::vector<mt_index_t> matrices;
     if (ui->radDatatypeProt->isChecked() || !ui->radSchemes203->isChecked())
     {
         for (int i=0; i < ui->listMatrices->count(); i++)
