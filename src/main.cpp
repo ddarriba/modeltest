@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
             /* print progress */
             cout << setw(5) << right << (cur_model+1) << "/"
                  << setw(5) << left << mt.get_models().size()
-                 << setw(20) << left << model->get_name()
+                 << setw(15) << left << model->get_name()
                  << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
                  << model->get_lnl()
                  << setw(8) << time(NULL) - ini_t
@@ -392,6 +392,15 @@ int main(int argc, char *argv[])
         modeltest::ModelSelection bic_selection(mt.get_models(),
                                                 modeltest::ic_bic);
         bic_selection.print(cout);
+        modeltest::ModelSelection aic_selection(mt.get_models(),
+                                                modeltest::ic_aic);
+        aic_selection.print(cout, 10);
+        modeltest::ModelSelection aicc_selection(mt.get_models(),
+                                                modeltest::ic_aicc);
+        aicc_selection.print(cout, 10);
+        modeltest::ModelSelection dt_selection(mt.get_models(),
+                                                modeltest::ic_dt);
+        dt_selection.print(cout, 10);
     }
     else
     {

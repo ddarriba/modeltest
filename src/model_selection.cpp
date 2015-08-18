@@ -26,18 +26,23 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         switch(type)
         {
         case ic_lnl:
+            ic_name = "lnL";
             models[i].score = models[i].model->get_lnl();
             break;
         case ic_bic:
+            ic_name = "BIC";
             models[i].score = models[i].model->get_bic();
             break;
         case ic_aic:
+            ic_name = "AIC";
             models[i].score = models[i].model->get_aic();
             break;
         case ic_aicc:
+            ic_name = "AICc";
             models[i].score = models[i].model->get_aicc();
             break;
         case ic_dt:
+            ic_name = "DT";
             models[i].score = models[i].model->get_dt();
             break;
         }
@@ -69,12 +74,32 @@ const selection_model & ModelSelection::get_model(size_t i) const
     return models[i];
 }
 
-void ModelSelection::print(ostream &out)
+void ModelSelection::print(ostream &out, mt_size_t limit)
 {
-    for (size_t i=0; i<models.size(); i++)
+    mt_size_t n_models = limit;
+    out << endl
+        << setw(8) << left << ic_name << "  "
+        << setw(15) << left << "model"
+        << setw(15) << right << "lnL"
+        << setw(15) << "score"
+        << setw(15) << "delta"
+        << setw(10) << "weight"
+        << endl;
+    out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+    if (n_models<=0 || n_models>models.size())
+        n_models = models.size();
+    for (size_t i=0; i<n_models; i++)
     {
-        out << "    " << setw(10) << left << models[i].model->get_name() << right << setw(15) << setprecision(4) << models[i].model->get_lnl() << setw(15) << models[i].score << setw(15) << models[i].delta << setw(10) << models[i].weight << endl;
+        out << setprecision(4)
+            << setw(8) << right << i+1 << "  "
+            << setw(15) << left << models[i].model->get_name()
+            << setw(15) << right << models[i].model->get_lnl()
+            << setw(15) << models[i].score
+            << setw(15) << models[i].delta
+            << setw(10) << models[i].weight
+            << endl;
     }
+    out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }
 
 }

@@ -818,19 +818,30 @@ void jModelTest::on_btnRun_clicked()
         model_params += MOD_PARAM_ESTIMATED_FREQ;
 
     std::vector<mt_index_t> matrices;
-    if (ui->radDatatypeProt->isChecked() || !ui->radSchemes203->isChecked())
+    if (ui->radDatatypeProt->isChecked())
     {
         for (int i=0; i < ui->listMatrices->count(); i++)
         {
             if (ui->listMatrices->item(i)->isSelected())
-                matrices.push_back(dna_model_matrices_indices[i]);
+                matrices.push_back(i);
         }
     }
     else
     {
-        for (int i=0; i<N_DNA_ALLMATRIX_COUNT; i++)
+        if (!ui->radSchemes203->isChecked())
         {
-            matrices.push_back(i);
+            for (int i=0; i < ui->listMatrices->count(); i++)
+            {
+                if (ui->listMatrices->item(i)->isSelected())
+                    matrices.push_back(dna_model_matrices_indices[i]);
+            }
+        }
+        else
+        {
+            for (int i=0; i<N_DNA_ALLMATRIX_COUNT; i++)
+            {
+                matrices.push_back(i);
+            }
         }
     }
 
@@ -841,7 +852,9 @@ void jModelTest::on_btnRun_clicked()
     opts.tree_filename = utree_filename;
     opts.candidate_models = matrices;
     opts.starting_tree = start_tree;
-    mtest->build_instance(opts, ui->radSchemes203->isChecked());
+    opts.datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+
+    bool ok_inst = mtest->build_instance(opts, ui->radSchemes203->isChecked());
 
     if (c_models.size())
     {
@@ -911,7 +924,10 @@ void jModelTest::on_btnRun_clicked()
     c_models.clear();
     c_models.resize( modelsPtr.size() );
     for (size_t i=0; i<modelsPtr.size(); i++)
-        c_models[i] = new DnaModel(*(modelsPtr[i]));
+        if (ui->radDatatypeDna->isChecked())
+            c_models[i] = new DnaModel(*(modelsPtr[i]));
+        else
+            c_models[i] = new ProtModel(*(modelsPtr[i]));
 
     delete mtest;
 

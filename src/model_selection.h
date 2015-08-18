@@ -48,10 +48,11 @@ public:
      * @brief Prints the selection results
      * @param[in] out the output stream to print to
      */
-    void print(std::ostream  &out = std::cout);
+    void print(std::ostream  &out = std::cout, mt_size_t limit = 0);
 
 private:
     std::vector<selection_model> models; //! selection wrappers
+    std::string ic_name;
 };
 
 }

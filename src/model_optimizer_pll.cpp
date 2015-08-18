@@ -57,7 +57,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 (mt_size_t) msa->get_n_sites (),  /* sites */
                 1,                                /* rate matrices */
                 (2 * n_tips - 3),                 /* prob matrices */
-                model->is_G () ? _n_cat_g : 1,     /* rate cats */
+                model->is_G () ? _n_cat_g : 1,    /* rate cats */
                 n_tips - 2,                       /* scale buffers */
                 PLL_ATTRIB_ARCH_SSE               /* attributes */
                 );
@@ -88,10 +88,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             std::cerr << "ERROR: Cannot find tip \"" << header << "\"" << std::endl;
         assert(tip_clv_index != MT_SIZE_UNDEF);
 
-        pll_set_tip_states (pll_partition,
+        //TODO: keep tip states between models
+        if (!pll_set_tip_states (pll_partition,
                             (unsigned int)tip_clv_index,
                             (model->get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
-                            msa->get_sequence (i));
+                             msa->get_sequence (i)))
+        {
+            /* data type and tip states should be validated beforehand */
+            std::cerr << "ERROR: Sequence does not match the datatype" << std::endl;
+            assert(0);
+        }
     }
 
     free (tipnodes);
@@ -296,7 +302,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
           params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
-
       if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
           params_to_optimize.push_back(PLL_PARAMETER_SUBST_RATES);
       if (model->is_G())

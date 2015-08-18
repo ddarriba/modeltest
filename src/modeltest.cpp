@@ -33,6 +33,7 @@ void ModelTest::create_instance()
 
 static bool sort_forwards(Model * m1, Model * m2)
 {
+    fflush(stdout);
     mt_size_t p1 = m1->get_n_free_variables();
     mt_size_t p2 = m2->get_n_free_variables();
     if (m1->is_G())
@@ -43,11 +44,27 @@ static bool sort_forwards(Model * m1, Model * m2)
         p1 += 10;
     if (m2->is_I())
         p2 += 10;
+
+    fflush(stdout);
     return p1 < p2;
 }
 
 static bool sort_backwards(Model * m1, Model * m2)
 {
+    fflush(stdout);
+    mt_size_t p1 = m1->get_n_free_variables();
+    mt_size_t p2 = m2->get_n_free_variables();
+    if (m1->is_G())
+        p1 += 20;
+    if (m2->is_G())
+        p2 += 20;
+    if (m1->is_I())
+        p1 += 10;
+    if (m2->is_I())
+        p2 += 10;
+
+    fflush(stdout);
+    return p1 > p2;
     return !sort_forwards(m1, m2);
 }
 
@@ -102,13 +119,13 @@ static bool build_models(mt_options & options,
                         c_models.push_back(
                                     new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
                                     );
-
                 }
                 else
                     assert(0);
             }
         }
     }
+    assert(c_models.size() == n_models);
 
     return true;
 }
