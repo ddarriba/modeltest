@@ -72,7 +72,7 @@ typedef struct
  {
    int 	        tokenType;
    const char * lexeme;
-   int          len;
+   long         len;
  } lexToken;
 
 class Utils

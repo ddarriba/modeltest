@@ -86,8 +86,8 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
         << setw(10) << "weight"
         << endl;
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
-    if (n_models<=0 || n_models>models.size())
-        n_models = models.size();
+    if (n_models<=0 || (size_t) n_models > models.size())
+        n_models = (mt_size_t) models.size();
     for (size_t i=0; i<n_models; i++)
     {
         out << setprecision(4)

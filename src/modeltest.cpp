@@ -65,7 +65,6 @@ static bool sort_backwards(Model * m1, Model * m2)
 
     fflush(stdout);
     return p1 > p2;
-    return !sort_forwards(m1, m2);
 }
 
 static bool build_models(mt_options & options,
