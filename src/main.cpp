@@ -4,6 +4,7 @@
 #else
 #include "modeltest.h"
 #endif
+#include "utils.h"
 
 #include <iostream>
 #include <iomanip>
@@ -17,20 +18,20 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 {
     bool input_file_ok = false;
     dna_subst_schemes dna_ss = ss_undef;
-    mt_size_t n_sequences, n_sites;
     string user_candidate_models = "";
 
     /* defaults */
     dna_subst_schemes default_ss = ss_11;
 
     /* set default options */
-    exec_opt.n_catg        = DEFAULT_GAMMA_RATE_CATS;
-    exec_opt.epsilon_param = DEFAULT_PARAM_EPSILON;
-    exec_opt.epsilon_opt   = DEFAULT_OPT_EPSILON;
-    exec_opt.rnd_seed      = DEFAULT_RND_SEED;
-    exec_opt.model_params  = 0;
-    exec_opt.datatype      = dt_dna;
-    exec_opt.subst_schemes = ss_undef;
+    exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
+    exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
+    exec_opt.rnd_seed        = DEFAULT_RND_SEED;
+    exec_opt.model_params    = 0;
+    exec_opt.datatype        = dt_dna;
+    exec_opt.subst_schemes   = ss_undef;
+    exec_opt.partitions_desc = 0;
 
     static struct option long_options[] =
     {
@@ -136,16 +137,11 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             user_candidate_models = optarg;
             break;
         }
-        case 't':
-            exec_opt.tree_filename = optarg;
-            exec_opt.starting_tree = tree_user_fixed;
+        case 'o':
+            exec_opt.output_filename = optarg;
             break;
         case 'q':
             exec_opt.partitions_filename = optarg;
-            //partitionsFileDefined = true;
-            break;
-        case 'o':
-            exec_opt.output_filename = optarg;
             break;
         case 'r':
             exec_opt.rnd_seed = (unsigned int) atoi(optarg);
@@ -173,9 +169,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             else
             {
-                cerr << "ERROR: Invalid number of substitution schemes " << optarg << endl;
+                cerr << "Invalid number of substitution schemes " << optarg << endl;
                 return false;
             }
+            break;
+        case 't':
+            exec_opt.tree_filename = optarg;
+            exec_opt.starting_tree = tree_user_fixed;
             break;
         default:
             cerr << "Unrecognised argument -" << opt << endl;
@@ -187,11 +187,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 
     /* validate input file */
     if (input_file_ok) {
-        if (modeltest::MsaPll::test(exec_opt.msa_filename, &n_sequences, &n_sites))
-        {
-            cout << "Read OK: " << n_sequences << " x " << n_sites << endl;
-        }
-        else
+        if (!modeltest::MsaPll::test(exec_opt.msa_filename,
+                                    &exec_opt.n_taxa,
+                                    &exec_opt.n_sites))
         {
             cerr << "Error parsing alignment: " << exec_opt.msa_filename << endl;
             return false;
@@ -201,6 +199,30 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     {
         cerr << "Alignment file (-i) is required" << endl;
         return false;
+    }
+
+    /* validate partitions file */
+    if (exec_opt.partitions_filename.compare(""))
+    {
+        exec_opt.partitions_desc =
+                modeltest::Utils::parse_partitions_file(
+                    exec_opt.partitions_filename);
+        if (!exec_opt.partitions_desc)
+        {
+            if (errno == MT_ERROR_IO)
+                cerr << "Error: Cannot read partitions file: "
+                     << exec_opt.partitions_filename << endl;
+            else if (errno == MT_ERROR_IO_FORMAT)
+                cerr << "Error parsing partitions: "
+                     << exec_opt.partitions_filename << endl;
+            else
+                assert(0);
+            return false;
+        }
+        /* TODO: Validate sites */
+        /* Overlapping:         FATAL */
+        /* Uncovered sites:     WARN  */
+        /* Sites out of bounds: FATAL */
     }
 
     if (exec_opt.datatype == dt_protein)
@@ -365,6 +387,10 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
+        cout << endl;
+        modeltest::Utils::print_options(opts, cout);
+        cout << endl;
+
         mt.build_instance(opts, tree_user_fixed);
 
         //mt.evaluate_models();
@@ -401,6 +427,10 @@ int main(int argc, char *argv[])
         modeltest::ModelSelection dt_selection(mt.get_models(),
                                                 modeltest::ic_dt);
         dt_selection.print(cout, 10);
+
+        /* clean */
+        if (opts.partitions_desc)
+            delete opts.partitions_desc;
     }
     else
     {

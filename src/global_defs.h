@@ -46,6 +46,8 @@ extern int mpi_numprocs;
 #define MINE(x) (true)
 #endif
 
+#define MT_ERROR_IO              900
+#define MT_ERROR_IO_FORMAT       910
 #define MT_ERROR_UNIMPLEMENTED 10000
 #define MT_ERROR_LIBPLL        10100
 #define MT_ERROR_ALIGNMENT     10200
@@ -76,6 +78,22 @@ typedef enum {
     ss_203
 } dna_subst_schemes;
 
+typedef struct
+{
+    int start;
+    int end;
+    int stride;
+} partition_region_t;
+
+typedef struct
+{
+    std::vector<partition_region_t> regions;
+    data_type datatype;
+    std::string partition_name;
+} partition_t;
+
+typedef std::vector<partition_t> partitioning_scheme_t;
+
 typedef struct {
     data_type datatype;
     std::string msa_filename;
@@ -86,6 +104,10 @@ typedef struct {
     std::vector<mt_index_t> candidate_models;
     int model_params;
     mt_size_t n_catg;
+    std::vector<partition_t> * partitions_desc;
+
+    mt_size_t n_taxa;
+    mt_size_t n_sites;
 
     double epsilon_param;
     double epsilon_opt;

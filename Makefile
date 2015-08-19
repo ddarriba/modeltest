@@ -9,13 +9,13 @@ CPPLIBS = -lpll_optimize -lpll -lm
 CPPFILES = $(wildcard **/*.cpp)
 CPPFILES = $(shell find jModelTest2/ -type f -name '*.cpp')
 OBJFILES = src/modeltest.o \
-     src/utils.o \
+	   src/utils.o \
 	   src/model.o \
 	   src/msapll.o \
 	   src/treepll.o \
 	   src/model_optimizer_pll.o \
 	   src/model_selection.o \
-		 src/main.o
+	   src/main.o
      # src/main_console.o
 			
 DEPS = 
@@ -29,4 +29,4 @@ src/%.o: src/%.cpp $(DEPS)
 	$(CC) $(CFLAGS) -std=c++11 -c -o $@ $< 
 
 clean:
-	rm -rf obj
+	rm -rf src/*.o

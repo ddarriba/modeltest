@@ -220,6 +220,12 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
       }
     current_instance->n_tips = current_instance->msa->get_n_sequences();
 
+    /* evaluate partitions */
+    if( options.partitions_filename.compare (""))
+    {
+
+    }
+
     if (options.model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
       current_instance->n_catg = options.n_catg;
     else
