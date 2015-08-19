@@ -26,7 +26,7 @@ all: $(OBJFILES)
 
 src/%.o: src/%.cpp $(DEPS)
 	@mkdir -p "$(@D)"
-	$(CC) $(CFLAGS) -std=c++11 -c -o $@ $< 
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
 clean:
 	rm -rf src/*.o

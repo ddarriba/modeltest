@@ -95,16 +95,16 @@ color: #222;</string>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <property name="spacing">
-          <number>10</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
-          <number>15</number>
+          <number>5</number>
          </property>
          <property name="bottomMargin">
-          <number>15</number>
+          <number>5</number>
          </property>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="grbAlignment">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -112,13 +112,13 @@ color: #222;</string>
             </size>
            </property>
            <property name="title">
-            <string/>
+            <string notr="true"/>
            </property>
            <widget class="QPushButton" name="btnLoadAlignment">
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>2</y>
+              <y>0</y>
               <width>141</width>
               <height>27</height>
              </rect>
@@ -162,7 +162,7 @@ color: #222;</string>
             <property name="geometry">
              <rect>
               <x>170</x>
-              <y>2</y>
+              <y>0</y>
               <width>61</width>
               <height>27</height>
              </rect>
@@ -182,10 +182,14 @@ color: #222;</string>
              <string>Loaded:</string>
             </property>
            </widget>
+           <zorder>btnLoadAlignment</zorder>
+           <zorder>lblAlignment</zorder>
+           <zorder>lblLoadAlignText</zorder>
+           <zorder>btnLoadTree</zorder>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_2">
+          <widget class="QGroupBox" name="grbTree">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -193,7 +197,7 @@ color: #222;</string>
             </size>
            </property>
            <property name="title">
-            <string/>
+            <string notr="true"/>
            </property>
            <widget class="QLabel" name="lblTree">
             <property name="geometry">
@@ -220,7 +224,7 @@ color: #222;</string>
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>2</y>
+              <y>0</y>
               <width>141</width>
               <height>27</height>
              </rect>
@@ -243,7 +247,7 @@ color: #222;</string>
             <property name="geometry">
              <rect>
               <x>170</x>
-              <y>2</y>
+              <y>0</y>
               <width>61</width>
               <height>27</height>
              </rect>
@@ -261,6 +265,87 @@ color: #222;</string>
             </property>
             <property name="text">
              <string>Loaded:</string>
+            </property>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grbPartitions">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>31</height>
+            </size>
+           </property>
+           <property name="title">
+            <string notr="true"/>
+           </property>
+           <widget class="QLabel" name="lblParts">
+            <property name="geometry">
+             <rect>
+              <x>240</x>
+              <y>2</y>
+              <width>571</width>
+              <height>27</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="btnLoadParts">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>0</y>
+              <width>141</width>
+              <height>27</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load tree file in &lt;span style=&quot; font-weight:600;&quot;&gt;NEWICK&lt;/span&gt; format&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Load Partitions</string>
+            </property>
+           </widget>
+           <widget class="QLabel" name="lblLoadPartsText">
+            <property name="geometry">
+             <rect>
+              <x>170</x>
+              <y>0</y>
+              <width>61</width>
+              <height>27</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: #060;</string>
+            </property>
+            <property name="text">
+             <string>None</string>
             </property>
            </widget>
           </widget>
@@ -287,7 +372,7 @@ color: #222;</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -1733,8 +1818,29 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionNewMenu"/>
    </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <widget class="QMenu" name="menuTab">
+     <property name="font">
+      <font>
+       <family>Arial</family>
+      </font>
+     </property>
+     <property name="title">
+      <string>Tab</string>
+     </property>
+     <addaction name="actionConsole"/>
+     <addaction name="actionConfigure"/>
+     <addaction name="actionProgress"/>
+     <addaction name="actionResults"/>
+    </widget>
+    <addaction name="menuTab"/>
+   </widget>
    <addaction name="menuJModelTest_2_2"/>
    <addaction name="menuWhat_is_this"/>
+   <addaction name="menuWindow"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -1823,6 +1929,38 @@ p, li { white-space: pre-wrap; }
     <font>
      <family>Arial</family>
     </font>
+   </property>
+  </action>
+  <action name="actionConsole">
+   <property name="text">
+    <string>Console</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+1</string>
+   </property>
+  </action>
+  <action name="actionConfigure">
+   <property name="text">
+    <string>Configure</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+2</string>
+   </property>
+  </action>
+  <action name="actionProgress">
+   <property name="text">
+    <string>Progress</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+3</string>
+   </property>
+  </action>
+  <action name="actionResults">
+   <property name="text">
+    <string>Results</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+4</string>
    </property>
   </action>
  </widget>

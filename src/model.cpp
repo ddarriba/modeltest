@@ -116,6 +116,7 @@ bool Model::is_F() const
 const int * Model::get_symmetries( void ) const
 {
     assert(0);
+    return 0;
 }
 
 mt_size_t Model::get_n_free_variables() const

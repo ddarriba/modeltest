@@ -105,7 +105,7 @@ namespace modeltest
               return false;
 
           /* if parsing fail, we continue for avoid memory leaks */
-          if (sites != MT_SIZE_UNDEF && sites != seqlen)
+          if (sites != MT_SIZE_UNDEF && (long)sites != seqlen)
           {
               errno = MT_ERROR_ALIGNMENT;
               break;
