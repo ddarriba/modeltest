@@ -22,39 +22,39 @@ static const char * rawtext;
 static long rawtext_size;
 static long pos = 0;
 
-static int lex_table[PLL_ASCII_SIZE] = {
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN,     PLL_SYM_TAB,      PLL_SYM_CR,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN,      PLL_SYM_LF, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*      */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/*  !"# */   PLL_SYM_SPACE, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/* $%&' */ PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN,
-/* ()*+ */  PLL_SYM_OPAREN,  PLL_SYM_CPAREN, PLL_SYM_UNKNOWN,      PLL_SYM_PLUS,
-/* ,-./ */   PLL_SYM_COMMA,    PLL_SYM_DASH,     PLL_SYM_DOT,     PLL_SYM_SLASH,
-/* 0123 */   PLL_SYM_DIGIT,   PLL_SYM_DIGIT,   PLL_SYM_DIGIT,     PLL_SYM_DIGIT,
-/* 4567 */   PLL_SYM_DIGIT,   PLL_SYM_DIGIT,   PLL_SYM_DIGIT,     PLL_SYM_DIGIT,
-/* 89:; */   PLL_SYM_DIGIT,   PLL_SYM_DIGIT,   PLL_SYM_COLON, PLL_SYM_SEMICOLON,
-/* <=>? */ PLL_SYM_UNKNOWN,   PLL_SYM_EQUAL, PLL_SYM_UNKNOWN,      PLL_SYM_CHAR,
-/* @ABC */ PLL_SYM_UNKNOWN,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* DEFG */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* HIJK */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* LMNO */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* PQRS */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* TUVW */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* XYZ[ */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,   PLL_SYM_UNKNOWN,
-/* \]^_ */ PLL_SYM_SLASH,   PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,      PLL_SYM_CHAR,
-/* `abc */ PLL_SYM_UNKNOWN,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* defg */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* hijk */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* lmno */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* pqrs */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* tuvw */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,      PLL_SYM_CHAR,
-/* xyz{ */    PLL_SYM_CHAR,    PLL_SYM_CHAR,    PLL_SYM_CHAR,   PLL_SYM_UNKNOWN,
-/* |}~  */    PLL_SYM_CHAR, PLL_SYM_UNKNOWN, PLL_SYM_UNKNOWN,   PLL_SYM_UNKNOWN
+static int lex_table[ASCII_SIZE] = {
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN,     SYM_TAB,      SYM_CR,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN,      SYM_LF, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*      */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/*  !"# */   SYM_SPACE, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/* $%&' */ SYM_UNKNOWN, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN,
+/* ()*+ */  SYM_OPAREN,  SYM_CPAREN, SYM_UNKNOWN,      SYM_PLUS,
+/* ,-./ */   SYM_COMMA,    SYM_DASH,     SYM_DOT,     SYM_SLASH,
+/* 0123 */   SYM_DIGIT,   SYM_DIGIT,   SYM_DIGIT,     SYM_DIGIT,
+/* 4567 */   SYM_DIGIT,   SYM_DIGIT,   SYM_DIGIT,     SYM_DIGIT,
+/* 89:; */   SYM_DIGIT,   SYM_DIGIT,   SYM_COLON, SYM_SEMICOLON,
+/* <=>? */ SYM_UNKNOWN,   SYM_EQUAL, SYM_UNKNOWN,      SYM_CHAR,
+/* @ABC */ SYM_UNKNOWN,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* DEFG */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* HIJK */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* LMNO */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* PQRS */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* TUVW */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* XYZ[ */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,   SYM_UNKNOWN,
+/* \]^_ */ SYM_SLASH,   SYM_UNKNOWN, SYM_UNKNOWN,      SYM_CHAR,
+/* `abc */ SYM_UNKNOWN,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* defg */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* hijk */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* lmno */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* pqrs */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* tuvw */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
+/* xyz{ */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,   SYM_UNKNOWN,
+/* |}~  */    SYM_CHAR, SYM_UNKNOWN, SYM_UNKNOWN,   SYM_UNKNOWN
  };
 
 Utils::Utils()
@@ -229,7 +229,7 @@ static int get_next_byte (void)
   if (pos == rawtext_size)
    {
      ++pos;
-     return (PLL_EOS);
+     return (EOS);
    }
 
   return (rawtext[pos++]);
@@ -241,16 +241,16 @@ static int get_next_symbol (void)
 
   ch = get_next_byte ();
 
-  if (ch == PLL_EOS) return (PLL_SYM_EOF);
-  if (ch >= PLL_ASCII_SIZE) return (PLL_SYM_UNKNOWN);
+  if (ch == EOS) return (SYM_EOF);
+  if (ch >= ASCII_SIZE) return (SYM_UNKNOWN);
 
   sym = lex_table[ch];
 
-  if (sym == PLL_SYM_LF)
+  if (sym == SYM_LF)
    {
      if (get_next_byte() == '\n')
       {
-        sym = PLL_SYM_LFCR;
+        sym = SYM_LFCR;
       }
      else
       {
@@ -273,79 +273,79 @@ static lexToken get_token (int * input)
 
   switch (*input)
    {
-     case PLL_SYM_SLASH:
-       token.tokenType = PLL_TOKEN_SLASH;
+     case SYM_SLASH:
+       token.tokenType = TOKEN_SLASH;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_DASH:
-       token.tokenType = PLL_TOKEN_DASH;
+     case SYM_DASH:
+       token.tokenType = TOKEN_DASH;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_EQUAL:
-       token.tokenType = PLL_TOKEN_EQUAL;
+     case SYM_EQUAL:
+       token.tokenType = TOKEN_EQUAL;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_SEMICOLON:
-       token.tokenType = PLL_TOKEN_SEMICOLON;
+     case SYM_SEMICOLON:
+       token.tokenType = TOKEN_SEMICOLON;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_COMMA:
-       token.tokenType = PLL_TOKEN_COMMA;
+     case SYM_COMMA:
+       token.tokenType = TOKEN_COMMA;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_COLON:
-       token.tokenType = PLL_TOKEN_COLON;
+     case SYM_COLON:
+       token.tokenType = TOKEN_COLON;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_OPAREN:
-       token.tokenType = PLL_TOKEN_OPAREN;
+     case SYM_OPAREN:
+       token.tokenType = TOKEN_OPAREN;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_CPAREN:
-       token.tokenType = PLL_TOKEN_CPAREN;
+     case SYM_CPAREN:
+       token.tokenType = TOKEN_CPAREN;
        *input = get_next_symbol();
        break;
 
-     case PLL_SYM_SPACE:
-     case PLL_SYM_TAB:
+     case SYM_SPACE:
+     case SYM_TAB:
        do
         {
           *input = get_next_symbol();
-        } while (*input == PLL_SYM_SPACE || *input == PLL_SYM_TAB);
+        } while (*input == SYM_SPACE || *input == SYM_TAB);
        token.len   = pos - start_pos;
-       token.tokenType = PLL_TOKEN_WHITESPACE;
-       if (*input == PLL_SYM_LFCR) --token.len;
+       token.tokenType = TOKEN_WHITESPACE;
+       if (*input == SYM_LFCR) --token.len;
        break;
 
-     case PLL_SYM_DIGIT:
+     case SYM_DIGIT:
        do
         {
           *input = get_next_symbol();
-        } while (*input == PLL_SYM_DIGIT);
+        } while (*input == SYM_DIGIT);
 
-       if (*input == PLL_SYM_DOT)
+       if (*input == SYM_DOT)
         {
           isFloating = 1;
           do
            {
              *input = get_next_symbol ();
-           } while (*input == PLL_SYM_DIGIT);
+           } while (*input == SYM_DIGIT);
         }
 
-       if (*input != PLL_SYM_CHAR)
+       if (*input != SYM_CHAR)
         {
           token.len   = pos - start_pos;
           if (!isFloating)
-            token.tokenType = PLL_TOKEN_NUMBER;
+            token.tokenType = TOKEN_NUMBER;
           else
-            token.tokenType = PLL_TOKEN_FLOAT;
+            token.tokenType = TOKEN_FLOAT;
         }
        else
         {
@@ -354,69 +354,69 @@ static lexToken get_token (int * input)
            {
              *input = get_next_symbol ();
 
-             if (*input == PLL_SYM_PLUS || *input == PLL_SYM_DASH || *input == PLL_SYM_DIGIT)
+             if (*input == SYM_PLUS || *input == SYM_DASH || *input == SYM_DIGIT)
               {
                 do
                  {
                    *input = get_next_symbol ();
-                 } while (*input == PLL_SYM_DIGIT);
+                 } while (*input == SYM_DIGIT);
 
-                if (*input != PLL_SYM_CHAR)
+                if (*input != SYM_CHAR)
                  {
                    token.len = pos - start_pos;
-                   token.tokenType = PLL_TOKEN_FLOAT;
+                   token.tokenType = TOKEN_FLOAT;
                  }
               }
              else
               {
                 token.len = pos - start_pos;
-                token.tokenType = PLL_TOKEN_STRING;
+                token.tokenType = TOKEN_STRING;
               }
            }
 
-          if (*input == PLL_SYM_CHAR)
+          if (*input == SYM_CHAR)
            {
              do {
                *input = get_next_symbol();
-             } while (*input == PLL_SYM_CHAR || *input == PLL_SYM_DIGIT || *input == PLL_SYM_DOT);
+             } while (*input == SYM_CHAR || *input == SYM_DIGIT || *input == SYM_DOT);
              token.len   = pos - start_pos;
-             token.tokenType = PLL_TOKEN_STRING;
+             token.tokenType = TOKEN_STRING;
            }
         }
 
-       if (*input == PLL_SYM_LFCR) --token.len;
+       if (*input == SYM_LFCR) --token.len;
        break;
 
-     case PLL_SYM_CHAR:
+     case SYM_CHAR:
        do
         {
           *input = get_next_symbol();
         }
-       while (*input == PLL_SYM_CHAR  ||
-              *input == PLL_SYM_DIGIT ||
-              *input == PLL_SYM_DASH  ||
-              *input == PLL_SYM_DOT);
+       while (*input == SYM_CHAR  ||
+              *input == SYM_DIGIT ||
+              *input == SYM_DASH  ||
+              *input == SYM_DOT);
        token.len   = pos - start_pos;
-       token.tokenType = PLL_TOKEN_STRING;
-       if (*input == PLL_SYM_LFCR) --token.len;
+       token.tokenType = TOKEN_STRING;
+       if (*input == SYM_LFCR) --token.len;
        break;
 
-     case PLL_SYM_EOF:
-       token.tokenType = PLL_TOKEN_EOF;
+     case SYM_EOF:
+       token.tokenType = TOKEN_EOF;
        break;
 
-     case PLL_SYM_CR:
-     case PLL_SYM_LF:
-     case PLL_SYM_LFCR:
+     case SYM_CR:
+     case SYM_LF:
+     case SYM_LFCR:
        do
         {
           *input = get_next_symbol();
-        } while (*input == PLL_SYM_CR || *input == PLL_SYM_LFCR || *input == PLL_SYM_LF);
-       token.tokenType = PLL_TOKEN_NEWLINE;
+        } while (*input == SYM_CR || *input == SYM_LFCR || *input == SYM_LF);
+       token.tokenType = TOKEN_NEWLINE;
        break;
-     case PLL_SYM_UNKNOWN:
+     case SYM_UNKNOWN:
      default:
-       token.tokenType = PLL_TOKEN_UNKNOWN;
+       token.tokenType = TOKEN_UNKNOWN;
        break;
    }
 
@@ -436,16 +436,16 @@ static vector<partition_t> * parse_partition (int * inp)
     NEXT_TOKEN
 
     vector<partition_t> * partitions = new vector<partition_t>();
-    while (token.tokenType != PLL_TOKEN_EOF)
+    while (token.tokenType != TOKEN_EOF)
     {
         ++ lines;
         partition_t pi;
 
-        CONSUME (PLL_TOKEN_WHITESPACE | PLL_TOKEN_NEWLINE)
+        CONSUME (TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
 
         /* read partition type */
-        if (token.tokenType != PLL_TOKEN_STRING)
+        if (token.tokenType != TOKEN_STRING)
         {
             cerr << "Invalid datatype in partition "<< lines << endl;
             delete partitions;
@@ -476,19 +476,19 @@ static vector<partition_t> * parse_partition (int * inp)
         free (tmpchar);
 
         NEXT_TOKEN
-                CONSUME(PLL_TOKEN_WHITESPACE)
+                CONSUME(TOKEN_WHITESPACE)
 
-                if (token.tokenType != PLL_TOKEN_COMMA)
+                if (token.tokenType != TOKEN_COMMA)
         {
             cerr << "Expecting ',' after datatype in partition " << lines << endl;
             delete partitions;
             return 0;
         }
         NEXT_TOKEN
-                CONSUME(PLL_TOKEN_WHITESPACE)
+                CONSUME(TOKEN_WHITESPACE)
 
                 /* read partition name */
-                if (token.tokenType != PLL_TOKEN_STRING)
+                if (token.tokenType != TOKEN_STRING)
         {
             cerr << "Expecting partition name in partition "<< lines << endl;
             delete partitions;
@@ -502,22 +502,22 @@ static vector<partition_t> * parse_partition (int * inp)
         free (tmpchar);
 
         NEXT_TOKEN
-                CONSUME(PLL_TOKEN_WHITESPACE)
+                CONSUME(TOKEN_WHITESPACE)
 
                 /* read equal sign */
-                if (token.tokenType != PLL_TOKEN_EQUAL)
+                if (token.tokenType != TOKEN_EQUAL)
         {
             cerr << "Expecting '=' in partition " << lines << endl;
             delete partitions;
             return 0;
         }
         NEXT_TOKEN
-                CONSUME(PLL_TOKEN_WHITESPACE)
+                CONSUME(TOKEN_WHITESPACE)
 
                 /* read rhs */
                 while (1)
         {
-            if (token.tokenType != PLL_TOKEN_NUMBER)
+            if (token.tokenType != TOKEN_NUMBER)
             {
                 cerr << "Invalid numerical character (region start) in partition " << lines << endl;
                 delete partitions;
@@ -526,13 +526,13 @@ static vector<partition_t> * parse_partition (int * inp)
             region.start  = region.end = atoi (token.lexeme);
             region.stride = 1;
             NEXT_TOKEN
-                    CONSUME(PLL_TOKEN_WHITESPACE)
+                    CONSUME(TOKEN_WHITESPACE)
 
-                    if  (token.tokenType == PLL_TOKEN_DASH)
+                    if  (token.tokenType == TOKEN_DASH)
             {
                 NEXT_TOKEN
-                        CONSUME(PLL_TOKEN_WHITESPACE)
-                        if (token.tokenType != PLL_TOKEN_NUMBER)
+                        CONSUME(TOKEN_WHITESPACE)
+                        if (token.tokenType != TOKEN_NUMBER)
                 {
                     cerr << "Invalid numerical character (region end) in partition " << lines << endl;
                     delete partitions;
@@ -546,12 +546,12 @@ static vector<partition_t> * parse_partition (int * inp)
                     return 0;
                 }
                 NEXT_TOKEN
-                        CONSUME(PLL_TOKEN_WHITESPACE)
-                        if (token.tokenType == PLL_TOKEN_SLASH)
+                        CONSUME(TOKEN_WHITESPACE)
+                        if (token.tokenType == TOKEN_SLASH)
                 {
                     NEXT_TOKEN
-                            CONSUME(PLL_TOKEN_WHITESPACE)
-                            if (token.tokenType != PLL_TOKEN_NUMBER)
+                            CONSUME(TOKEN_WHITESPACE)
+                            if (token.tokenType != TOKEN_NUMBER)
                     {
                         cerr << "Invalid stride in partition " << lines << endl;
                         delete partitions;
@@ -560,15 +560,15 @@ static vector<partition_t> * parse_partition (int * inp)
                     region.stride = atoi (token.lexeme);
                     NEXT_TOKEN
                 }
-                CONSUME(PLL_TOKEN_WHITESPACE)
+                CONSUME(TOKEN_WHITESPACE)
             }
             pi.regions.push_back(region);
 
-            if (token.tokenType != PLL_TOKEN_COMMA) break;
+            if (token.tokenType != TOKEN_COMMA) break;
             NEXT_TOKEN
-                    CONSUME(PLL_TOKEN_WHITESPACE)
+                    CONSUME(TOKEN_WHITESPACE)
         }
-        CONSUME(PLL_TOKEN_WHITESPACE | PLL_TOKEN_NEWLINE)
+        CONSUME(TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
         partitions->push_back(pi);
     }
