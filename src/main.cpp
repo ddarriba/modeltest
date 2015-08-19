@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <ctime>
 #include <sstream>
+#include <cerrno>
 #include <getopt.h>
 
 using namespace std;
@@ -387,11 +388,15 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
+        if (!mt.build_instance(opts, tree_user_fixed))
+        {
+            cerr << modeltest::mt_errmsg << endl;
+            return(modeltest::mt_errno);
+        }
+
         cout << endl;
         modeltest::Utils::print_options(opts, cout);
         cout << endl;
-
-        mt.build_instance(opts, tree_user_fixed);
 
         //mt.evaluate_models();
         cur_model = 0;

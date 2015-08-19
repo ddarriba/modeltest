@@ -6,9 +6,11 @@
 #include <iostream>
 #include <cassert>
 #include <algorithm>
-#include <cerrno>
 
 namespace modeltest {
+
+unsigned int mt_errno;
+char mt_errmsg[200] = {0};
 
 using namespace std;
 
@@ -77,7 +79,12 @@ static bool build_models(mt_options & options,
 
     int freq_params = options.model_params & MOD_MASK_FREQ_PARAMS;
     int rate_params = options.model_params & MOD_MASK_RATE_PARAMS;
-    if (!freq_params) return false;
+    if (!freq_params)
+    {
+        mt_errno = MT_ERROR_MODELS;
+         snprintf(mt_errmsg, 200, "Model frequencies is empty");
+        return false;
+    }
 
     int it_model_params = rate_params;
     while (it_model_params)
@@ -177,6 +184,64 @@ bool ModelTest::test_tree(std::string const& tree_filename,
     return TreePll::test_tree(tree_filename, n_tips);
 }
 
+bool ModelTest::test_link(Msa const *msa,
+                          Tree const *tree)
+{
+    mt_index_t i, j;
+    mt_index_t n_tips;
+    mt_size_t tree_taxa_found = 0;
+
+    /* number of sequences and tips must agree */
+    if (msa->get_n_sequences() == tree->get_n_tips())
+        n_tips = msa->get_n_sequences();
+    else
+        return false;
+
+    /* find sequences and link them with the corresponding taxa */
+    for (i = 0; i < n_tips; ++i)
+    {
+        bool found = false;
+        const char * header = msa->get_header (i);
+        for (j = 0; j < n_tips; ++j)
+        {
+            if (!tree->get_label(j).compare(header))
+            {
+                if (tree_taxa_found &= 1<<j)
+                {
+                    mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
+                     snprintf(mt_errmsg, 200, "Duplicated sequence %s", header);
+                    return false;
+                }
+                tree_taxa_found |= 1<<j;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            mt_errno = MT_ERROR_TREE_MISSING;
+             snprintf(mt_errmsg, 200, "Missing taxon %s in tree", header);
+            return false;
+        }
+    }
+
+    i = 1;
+    mt_index_t limit = (mt_index_t)1<<n_tips;
+    while (i <= limit)
+    {
+        if (!(tree_taxa_found | i ))
+        {
+            mt_errno = MT_ERROR_ALIGNMENT_MISSING;
+             snprintf(mt_errmsg, 200, "Missing sequence %s in MSA",tree->get_label(i).c_str());
+            return false;
+        }
+        i = i<<1;
+    }
+
+    return true;
+}
+
 bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
 {
     free_stuff ();
@@ -188,14 +253,24 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
     switch (options.starting_tree)
     {
     case tree_user_fixed:
-        if( options.tree_filename.compare (""))
+        if( options.tree_filename.compare ("") )
       {
         current_instance->tree = new TreePll (options.starting_tree, options.tree_filename, number_of_threads);
+        if (!test_link(current_instance->msa, current_instance->tree))
+        {
+            /* clean memory */
+            delete current_instance->msa;
+            current_instance->msa = 0;
+            delete current_instance->tree;
+            current_instance->tree = 0;
+            return false;
+        }
       }
     else
       {
         /* unimplemented */
-        errno = MT_ERROR_UNIMPLEMENTED;
+        mt_errno = MT_ERROR_TREE;
+        snprintf(mt_errmsg, 200, "User tree is not defined");
         return false;
       }
         break;
@@ -206,16 +281,19 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
         current_instance->tree->print();
         break;
     case tree_ml:
-        errno = MT_ERROR_UNIMPLEMENTED;
+        mt_errno = MT_ERROR_UNIMPLEMENTED;
+        snprintf(mt_errmsg, 200, "Per-model ML tree is not implemented yet");
         return false;
     }
 
     if (current_instance->msa->get_n_sequences() !=
 	current_instance->tree->get_n_tips())
       {
-	cerr << "Tips do not agree! " << current_instance->msa->get_n_sequences() << " sequences vs "
-	    << current_instance->tree->get_n_tips() << " tips" << endl;
-	return false;
+        mt_errno = MT_ERROR_TREE;
+         snprintf(mt_errmsg, 200, "Tips do not agree! %d sequences vs %d tips",
+                 current_instance->msa->get_n_sequences(),
+                 current_instance->tree->get_n_tips());
+        return false;
       }
     current_instance->n_tips = current_instance->msa->get_n_sequences();
 

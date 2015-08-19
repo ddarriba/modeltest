@@ -32,7 +32,8 @@ namespace modeltest
     virtual ~Tree ();
 
     mt_size_t get_n_tips( void ) const { return n_tips; }
-    virtual void print(mt_index_t thread_number = 0) = 0;
+    virtual const std::string get_label( mt_index_t index, mt_index_t thread_number = 0 ) const = 0;
+    virtual void print( mt_index_t thread_number = 0 ) const = 0;
     bool is_bl_optimized( void ) { return bl_optimized; }
     void set_bl_optimized( void ) { bl_optimized = true; }
   protected:

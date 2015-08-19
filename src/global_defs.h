@@ -46,14 +46,21 @@ extern int mpi_numprocs;
 #define MINE(x) (true)
 #endif
 
+/* general errors */
 #define MT_ERROR_IO              900
 #define MT_ERROR_IO_FORMAT       910
 #define MT_ERROR_UNIMPLEMENTED 10000
 #define MT_ERROR_LIBPLL        10100
 #define MT_ERROR_ALIGNMENT     10200
 #define MT_ERROR_TREE          10300
-#define MT_ERROR_INSTANCE      10400
-#define MT_ERROR_OPTIMIZE      10500
+#define MT_ERROR_MODELS        10400
+#define MT_ERROR_INSTANCE      10500
+#define MT_ERROR_OPTIMIZE      10600
+
+/* fine grain errors */
+#define MT_ERROR_ALIGNMENT_DUPLICATED  10201
+#define MT_ERROR_ALIGNMENT_MISSING     10202
+#define MT_ERROR_TREE_MISSING          10301
 
 typedef enum {
     dt_dna,

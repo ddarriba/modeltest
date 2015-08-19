@@ -56,13 +56,13 @@ namespace modeltest
     free (tipnames);
   }
 
-  const char * MsaPll::get_header (mt_index_t index)
+  const char * MsaPll::get_header (mt_index_t index) const
   {
     assert(index < n_sequences);
     return tipnames[index];
   }
 
-  const char * MsaPll::get_sequence (mt_index_t index)
+  const char * MsaPll::get_sequence (mt_index_t index) const
   {
     assert(index < n_sequences);
     return sequences[index];

@@ -2,6 +2,9 @@
 #define UTILS_H
 
 #include "global_defs.h"
+#include "msa.h"
+#include "tree.h"
+
 #include <string>
 #include <vector>
 #include <iostream>

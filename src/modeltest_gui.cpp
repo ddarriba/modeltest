@@ -1,7 +1,10 @@
-#include "utils.h"
+﻿#include "utils.h"
+#include "global_defs.h"
 #include "modeltest_gui.h"
 #include "ui_modeltest_gui.h"
 #include "progressdialog.h"
+
+#include <unistd.h>
 
 #include <iostream>
 #include <QtGui/QFileDialog>
@@ -18,6 +21,29 @@
 #define TABLE_MODELS_WIDTH 905
 
 namespace modeltest {
+
+static char amino_acids[20] = {'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
+                               'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y'};
+
+jModelTest::jModelTest(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::jModelTest)
+{
+    models_table_items = 0;
+    state = STATE_INITIAL;
+
+    ui->setupUi(this);
+
+    QPixmap gearPix("IMG/gear.png");
+    ui->lblGear->setPixmap(gearPix.scaled(ui->lblGear->width(),ui->lblGear->height(),Qt::KeepAspectRatio));
+    ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
+    ui->sliderNThreads->setValue(QThread::idealThreadCount());
+
+    n_seqs = 0;
+    seq_len = 0;
+
+    updateGUI();
+}
 
 void jModelTest::clear_table(QTableView * result_table)
 {
@@ -67,54 +93,6 @@ void jModelTest::fill_results(QTableView * result_table, ModelSelection &model_s
         cum_weight += model_selection.get_model(i).weight;
         results_table_items->setItem(i, 6, new QStandardItem(QString::number(cum_weight, 'f', 2)));
     }
-}
-
-jModelTest::jModelTest(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::jModelTest)
-{
-    state = STATE_INITIAL;
-
-    ui->setupUi(this);
-
-    QPixmap gearPix("IMG/gear.png");
-    ui->lblGear->setPixmap(gearPix.scaled(ui->lblGear->width(),ui->lblGear->height(),Qt::KeepAspectRatio));
-    ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
-    ui->sliderNThreads->setValue(QThread::idealThreadCount());
-
-//    models_table_items = new QStandardItemModel(modelsPtr.size(),19, this);
-    models_table_items = new QStandardItemModel(0,19, this);
-    int cur_column = 0;
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("K")));
-
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("lnL")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("AIC")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("AICc")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("BIC")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("DT")));
-
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("p-inv")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("alpha")));
-
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(a)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(c)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(g)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(t)")));
-
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->c)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->g)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->t)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(c->g)")));
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(c->t)")));
-
-    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Time")));
-    ui->tblModels->setModel(models_table_items);
-
-    n_seqs = 0;
-    seq_len = 0;
-
-    updateGUI();
 }
 
 size_t jModelTest::compute_size(int n_cats, int n_threads)
@@ -233,14 +211,7 @@ void jModelTest::updateGUI()
         ui->lblNumModels->setStyleSheet("");
     }
 
-    ui->tblModels->setColumnHidden(7, !ui->cbShowHetParams->isChecked());
-    ui->tblModels->setColumnHidden(8, !ui->cbShowHetParams->isChecked());
-    for (int cur_column=9;cur_column<13; cur_column++)
-        ui->tblModels->setColumnHidden(cur_column, !ui->cbShowFreqs->isChecked());
-    for (int cur_column=13;cur_column<18; cur_column++)
-        ui->tblModels->setColumnHidden(cur_column, !ui->cbShowRates->isChecked());
-
-    ui->tblModels->resizeColumnsToContents();
+    set_tablemodels_visibility();
 
     int n_cats = ui->sliderNCat->value();
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
@@ -286,7 +257,7 @@ void jModelTest::resetSettings()
     c_models.clear();
 
     /* reset tables */
-    models_table_items->clear();
+//    models_table_items->clear();
     clear_table(ui->tblResultsBic);
     clear_table(ui->tblResultsAic);
     clear_table(ui->tblResultsAicc);
@@ -673,41 +644,7 @@ void jModelTest::evalmodels(int i, int thread_id)
     if (!model->is_optimized())
         mtest->evaluate_single_model(model, thread_id, tolerance, epsilon);
 
-    int cur_column = 0;
-
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString(model->get_name().c_str())));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_n_free_variables())));
-
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_lnl(), 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_aic(), 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_aicc(), 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_bic(), 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_dt(), 'f', 2)));
-
-    if (model->is_I())
-      models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_prop_inv(), 'f', 2)));
-    else
-      models_table_items->setItem(i, cur_column++, new QStandardItem(QString("-")));
-
-    if (model->is_G())
-      models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_alpha(), 'f', 2)));
-    else
-      models_table_items->setItem(i, cur_column++, new QStandardItem(QString("-")));
-
-    const double * frequencies = model->get_frequencies();
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(frequencies[0], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(frequencies[1], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(frequencies[2], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(frequencies[3], 'f', 2)));
-
-    const double * rates = model->get_subst_rates();
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(rates[0], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(rates[1], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(rates[2], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(rates[3], 'f', 2)));
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(rates[4], 'f', 2)));
-
-    models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_exec_time())));
+    set_tablemodels_line(i, model);
 
     emit finishedModel(modelsPtr[i]);
 }
@@ -757,16 +694,18 @@ struct ModOptWrapper {
 
   void operator()(int &i) {
       UNUSED(i);
+      usleep(1000*(rand()%100));
       while (!test_and_set(&lock))
-      {
-      }
+          usleep(1000*(rand()%100));
 
       if (thread_map.find(QThread::currentThreadId()) == thread_map.end())
       {
           thread_map[QThread::currentThreadId()] = cur_thread++;
       }
       int thread_id = thread_map[QThread::currentThreadId()];
+
       assert(thread_id < number_of_threads);
+
       unlock(&lock);
       instance->evalmodels(cur_model++, thread_id);
   }
@@ -801,6 +740,8 @@ void jModelTest::on_btnRun_clicked()
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
 
+    set_tablemodels_header();
+
     mtest = new ModelTest(number_of_threads);
 
     int model_params = 0;
@@ -816,6 +757,9 @@ void jModelTest::on_btnRun_clicked()
         model_params += MOD_PARAM_INV_GAMMA;
     if (ui->cbMlFreq->isChecked())
         model_params += MOD_PARAM_ESTIMATED_FREQ;
+
+    ui->cbShowRates->setEnabled(ui->radDatatypeDna->isChecked());
+    ui->cbShowRates->setVisible(ui->radDatatypeDna->isChecked());
 
     std::vector<mt_index_t> matrices;
     if (ui->radDatatypeProt->isChecked())
@@ -850,6 +794,7 @@ void jModelTest::on_btnRun_clicked()
     opts.n_catg = ui->sliderNCat->value();
     opts.msa_filename = msa_filename;
     opts.tree_filename = utree_filename;
+    opts.partitions_filename = "";
     opts.candidate_models = matrices;
     opts.starting_tree = start_tree;
     opts.datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
@@ -939,14 +884,127 @@ void jModelTest::on_cbAdvanced_clicked()
     updateGUI();
 }
 
+#define TABLE_WIDTH (ui->radDatatypeDna->isChecked()?19:30)
+#define TABLE_INI_SELECTION 3
+#define TABLE_INI_HET_PARAMS 7
+#define TABLE_INI_FREQS 9
+#define N_FREQS (ui->radDatatypeDna->isChecked()?4:20)
+#define TABLE_INI_RATES 13 /* DNA only */
 
+void jModelTest::set_tablemodels_visibility()
+{
+    if (models_table_items)
+    {
+        ui->tblModels->setColumnHidden(7, !ui->cbShowHetParams->isChecked());
+        ui->tblModels->setColumnHidden(8, !ui->cbShowHetParams->isChecked());
+        for (int cur_column=TABLE_INI_FREQS;cur_column<TABLE_INI_FREQS+N_FREQS; cur_column++)
+            ui->tblModels->setColumnHidden(cur_column, !ui->cbShowFreqs->isChecked());
+        if (ui->radDatatypeDna->isChecked())
+        {
+            for (int cur_column=TABLE_INI_RATES;cur_column<TABLE_INI_RATES+5; cur_column++)
+             ui->tblModels->setColumnHidden(cur_column, !ui->cbShowRates->isChecked());
+        }
+        ui->tblModels->resizeColumnsToContents();
+    }
 }
 
-void modeltest::jModelTest::updateModelsTableSize()
+void jModelTest::set_tablemodels_line(int line_id, Model * model)
+{
+    mt_index_t cur_column = 0;
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString(model->get_name().c_str())));
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_n_free_variables())));
+
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_lnl(), 'f', 2)));
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_aic(), 'f', 2)));
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_aicc(), 'f', 2)));
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_bic(), 'f', 2)));
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_dt(), 'f', 2)));
+
+    if (model->is_I())
+      models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_prop_inv(), 'f', 2)));
+    else
+      models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString("-")));
+
+    if (model->is_G())
+      models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_alpha(), 'f', 2)));
+    else
+      models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString("-")));
+
+    assert(model->get_n_states() == N_FREQS);
+    const double * frequencies = model->get_frequencies();
+    for (int i=0; i<N_FREQS; i++)
+    {
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(frequencies[i], 'f', 4)));
+    }
+
+    if (ui->radDatatypeDna->isChecked())
+    {
+    const double * rates = model->get_subst_rates();
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(rates[0], 'f', 2)));
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(rates[1], 'f', 2)));
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(rates[2], 'f', 2)));
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(rates[3], 'f', 2)));
+        models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(rates[4], 'f', 2)));
+    }
+
+    models_table_items->setItem(line_id, cur_column++, new QStandardItem(QString::number(model->get_exec_time())));
+
+    assert(cur_column == TABLE_WIDTH);
+}
+
+void jModelTest::set_tablemodels_header()
+{
+    int cur_column = 0;
+
+    if (models_table_items)
+        delete models_table_items;
+
+    models_table_items = new QStandardItemModel(0,TABLE_WIDTH, this);
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("K")));
+
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("lnL")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("AIC")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("AICc")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("BIC")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("DT")));
+
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("p-inv")));
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("alpha")));
+
+    if (ui->radDatatypeDna->isChecked())
+    {
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(a)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(c)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(g)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("f(t)")));
+
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->c)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->g)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(a->t)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(c->g)")));
+        models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("r(c->t)")));
+    }
+    else
+    {
+        for (mt_index_t i=0; i<N_PROT_STATES; i++)
+        {
+            models_table_items->setHorizontalHeaderItem(cur_column, new QStandardItem(QString("f") + QString(amino_acids[i])));
+            cur_column++;
+        }
+    }
+
+    models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Time")));
+    ui->tblModels->setModel(models_table_items);
+
+    assert(cur_column == TABLE_WIDTH);
+}
+
+void jModelTest::updateModelsTableSize()
 {
     QRect rect = ui->tblModels->geometry();
     int totalWidth = 0;
-    for (int i=0; i<20; i++)
+    for (int i=0; i<TABLE_WIDTH; i++)
     {
         if (!ui->tblModels->isColumnHidden(i))
             totalWidth += ui->tblModels->columnWidth(i);
@@ -959,35 +1017,38 @@ void modeltest::jModelTest::updateModelsTableSize()
     ui->tblModels->setGeometry(rect);
 }
 
-void modeltest::jModelTest::on_cbShowFreqs_toggled(bool checked)
+void jModelTest::on_cbShowFreqs_toggled(bool checked)
 {
-    for (int cur_column=9;cur_column<=12; cur_column++)
+    for (int cur_column=TABLE_INI_FREQS;cur_column<TABLE_INI_FREQS+N_FREQS; cur_column++)
         ui->tblModels->setColumnHidden(cur_column, !checked);
     updateModelsTableSize();
 }
 
-void modeltest::jModelTest::on_cbShowRates_toggled(bool checked)
+void jModelTest::on_cbShowRates_toggled(bool checked)
 {
-    for (int cur_column=13;cur_column<=17; cur_column++)
+    if (ui->radDatatypeDna->isChecked())
+    {
+        for (int cur_column=TABLE_INI_RATES;cur_column<TABLE_INI_RATES+5; cur_column++)
+            ui->tblModels->setColumnHidden(cur_column, !checked);
+        updateModelsTableSize();
+    }
+}
+
+void jModelTest::on_cbShowHetParams_toggled(bool checked)
+{
+    ui->tblModels->setColumnHidden(TABLE_INI_HET_PARAMS, !checked);
+    ui->tblModels->setColumnHidden(TABLE_INI_HET_PARAMS+1, !checked);
+    updateModelsTableSize();
+}
+
+void jModelTest::on_cbShowSelection_toggled(bool checked)
+{
+    for (int cur_column=TABLE_INI_SELECTION;cur_column<(TABLE_INI_SELECTION+4); cur_column++)
         ui->tblModels->setColumnHidden(cur_column, !checked);
     updateModelsTableSize();
 }
 
-void modeltest::jModelTest::on_cbShowHetParams_toggled(bool checked)
-{
-    ui->tblModels->setColumnHidden(7, !checked);
-    ui->tblModels->setColumnHidden(8, !checked);
-    updateModelsTableSize();
-}
-
-void modeltest::jModelTest::on_cbShowSelection_toggled(bool checked)
-{
-    for (int cur_column=3;cur_column<=6; cur_column++)
-        ui->tblModels->setColumnHidden(cur_column, !checked);
-    updateModelsTableSize();
-}
-
-void modeltest::jModelTest::on_sliderNThreads_valueChanged(int value)
+void jModelTest::on_sliderNThreads_valueChanged(int value)
 {
     ui->lblNThreads->setText(QString::number(value));
     ui->lblEstimatedMem->setText(
@@ -996,7 +1057,7 @@ void modeltest::jModelTest::on_sliderNThreads_valueChanged(int value)
                                  value)));
 }
 
-void modeltest::jModelTest::on_radDatatypeDna_clicked()
+void jModelTest::on_radDatatypeDna_clicked()
 {
     ui->grpSubstSchemes->setVisible(true);
     ui->grpSubstSchemes->setEnabled(true);
@@ -1018,7 +1079,7 @@ void modeltest::jModelTest::on_radDatatypeDna_clicked()
     on_radSchemes11_clicked();
 }
 
-void modeltest::jModelTest::on_radDatatypeProt_clicked()
+void jModelTest::on_radDatatypeProt_clicked()
 {
     ui->grpSubstSchemes->setVisible(false);
     ui->grpSubstSchemes->setEnabled(false);
@@ -1029,4 +1090,6 @@ void modeltest::jModelTest::on_radDatatypeProt_clicked()
     ui->listMatrices->setMinimumHeight(363);
     ui->listMatrices->setMaximumHeight(363);
     ui->listMatrices->selectAll();
+}
+
 }

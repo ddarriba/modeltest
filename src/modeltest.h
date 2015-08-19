@@ -15,6 +15,9 @@
 
 namespace modeltest {
 
+extern unsigned int mt_errno;
+extern char mt_errmsg[200];
+
 typedef struct
 {
   modeltest::Msa * msa;     //! input MSA
@@ -52,6 +55,15 @@ public:
      */
     static bool test_tree(std::string const& tree_filename,
                   mt_size_t *n_tips);
+
+    /**
+     * @brief Tests whether a tree is compatible with a MSA
+     * @param[in] msa the MSA
+     * @param[in] tree the tree
+     * @return true, if the tree and the MSA are compatible
+     */
+    static bool test_link(const Msa *msa,
+                          const Tree *tree);
 
     /**
      * @brief Creates a model    optimization instance

@@ -138,6 +138,10 @@ private:
     std::vector<Model *> c_models;
     current_state state;
     QStandardItemModel * models_table_items;
+
+    void set_tablemodels_header();
+    void set_tablemodels_visibility();
+    void set_tablemodels_line(int line_id, Model * model);
 };
 
 }

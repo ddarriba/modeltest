@@ -23,8 +23,8 @@ namespace modeltest
     }
     virtual ~Msa ();
 
-    virtual const char * get_header (mt_index_t index) = 0;
-    virtual const char * get_sequence (mt_index_t index) = 0;
+    virtual const char * get_header (mt_index_t index) const = 0;
+    virtual const char * get_sequence (mt_index_t index) const = 0;
 
     mt_size_t get_n_sequences (void) const
     {

@@ -24,12 +24,14 @@ namespace modeltest
     virtual ~TreePll ();
 
     pll_utree_t *get_pll_tree( mt_index_t thread_number = 0) { return pll_tree[thread_number]; }
-    virtual void print(mt_index_t thread_number = 0);
+    virtual void print(mt_index_t thread_number = 0) const;
 
+    virtual const std::string get_label(mt_index_t index, mt_index_t thread_number = 0) const;
     static bool test_tree(std::string const& tree_filename, mt_size_t *n_tips);
 
   private:
     pll_utree_t **pll_tree;
+    pll_utree_t ***pll_tip_nodes;
   };
 
 } /* namespace modeltest */

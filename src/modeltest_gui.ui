@@ -126,6 +126,7 @@ color: #222;</string>
             <property name="font">
              <font>
               <weight>50</weight>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -149,7 +150,7 @@ color: #222;</string>
              <font>
               <family>Arial</family>
               <weight>50</weight>
-              <italic>true</italic>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -170,6 +171,7 @@ color: #222;</string>
              <font>
               <family>Arial</family>
               <weight>50</weight>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -206,7 +208,7 @@ color: #222;</string>
              <font>
               <family>Arial</family>
               <weight>50</weight>
-              <italic>true</italic>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -226,6 +228,7 @@ color: #222;</string>
             <property name="font">
              <font>
               <weight>50</weight>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -249,6 +252,7 @@ color: #222;</string>
              <font>
               <family>Arial</family>
               <weight>50</weight>
+              <italic>false</italic>
               <bold>false</bold>
              </font>
             </property>
@@ -283,7 +287,7 @@ color: #222;</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
@@ -353,6 +357,12 @@ p, li { white-space: pre-wrap; }
                 <width>16777215</width>
                 <height>61</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <italic>false</italic>
+               </font>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color: #e8f5e9; border: 1px solid #e8f5e9;</string>
@@ -470,6 +480,12 @@ p, li { white-space: pre-wrap; }
                 <height>61</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <italic>false</italic>
+               </font>
+              </property>
               <property name="title">
                <string>Starting topology</string>
               </property>
@@ -482,6 +498,12 @@ p, li { white-space: pre-wrap; }
                </property>
                <item>
                 <widget class="QRadioButton" name="radTopo1">
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>Fixed MP</string>
                  </property>
@@ -489,6 +511,12 @@ p, li { white-space: pre-wrap; }
                </item>
                <item>
                 <widget class="QRadioButton" name="radTopo2">
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>Fixed ML (JC)</string>
                  </property>
@@ -496,6 +524,12 @@ p, li { white-space: pre-wrap; }
                </item>
                <item>
                 <widget class="QRadioButton" name="radTopo3">
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>Fixed ML (GTR)</string>
                  </property>
@@ -503,6 +537,12 @@ p, li { white-space: pre-wrap; }
                </item>
                <item>
                 <widget class="QRadioButton" name="radTopo4">
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>Maximum-Likelihood</string>
                  </property>
@@ -513,6 +553,12 @@ p, li { white-space: pre-wrap; }
                </item>
                <item>
                 <widget class="QRadioButton" name="radTopoU">
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>User defined</string>
                  </property>
@@ -535,6 +581,12 @@ p, li { white-space: pre-wrap; }
                 <height>61</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <italic>false</italic>
+               </font>
+              </property>
               <property name="title">
                <string>Data type</string>
               </property>
@@ -546,6 +598,12 @@ p, li { white-space: pre-wrap; }
                  <width>91</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
                </property>
                <property name="text">
                 <string>DNA</string>
@@ -562,6 +620,12 @@ p, li { white-space: pre-wrap; }
                  <width>91</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
                </property>
                <property name="text">
                 <string>Protein</string>
@@ -583,6 +647,12 @@ p, li { white-space: pre-wrap; }
                 <height>61</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <italic>false</italic>
+               </font>
+              </property>
               <property name="title">
                <string>Subst. Schemes</string>
               </property>
@@ -594,6 +664,12 @@ p, li { white-space: pre-wrap; }
                  <width>51</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
                </property>
                <property name="text">
                 <string>3</string>
@@ -608,6 +684,12 @@ p, li { white-space: pre-wrap; }
                  <height>22</height>
                 </rect>
                </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
+               </property>
                <property name="text">
                 <string>5</string>
                </property>
@@ -621,6 +703,12 @@ p, li { white-space: pre-wrap; }
                  <height>22</height>
                 </rect>
                </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
+               </property>
                <property name="text">
                 <string>7</string>
                </property>
@@ -633,6 +721,12 @@ p, li { white-space: pre-wrap; }
                  <width>51</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
                </property>
                <property name="text">
                 <string>11</string>
@@ -650,6 +744,12 @@ p, li { white-space: pre-wrap; }
                  <height>22</height>
                 </rect>
                </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
+               </property>
                <property name="text">
                 <string>203</string>
                </property>
@@ -665,6 +765,12 @@ p, li { white-space: pre-wrap; }
                  <width>131</width>
                  <height>22</height>
                 </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Arial</family>
+                 <italic>false</italic>
+                </font>
                </property>
                <property name="text">
                 <string>User defined</string>
@@ -694,6 +800,12 @@ p, li { white-space: pre-wrap; }
                   <height>22</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <italic>false</italic>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Number of models:</string>
                 </property>
@@ -712,6 +824,12 @@ p, li { white-space: pre-wrap; }
                   <width>16777215</width>
                   <height>22</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <italic>false</italic>
+                 </font>
                 </property>
                 <property name="text">
                  <string>0</string>
@@ -741,6 +859,12 @@ p, li { white-space: pre-wrap; }
                   <width>200</width>
                   <height>212</height>
                  </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <italic>false</italic>
+                 </font>
                 </property>
                 <property name="showDropIndicator" stdset="0">
                  <bool>false</bool>
@@ -807,12 +931,18 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QTextBrowser" name="textBrowser">
+                <property name="font">
+                 <font>
+                  <family>Arial</family>
+                  <italic>false</italic>
+                 </font>
+                </property>
                 <property name="html">
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;HELLO MODELS!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arial'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Ubuntu';&quot;&gt;HELLO MODELS!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -1214,6 +1344,7 @@ p, li { white-space: pre-wrap; }
               <property name="font">
                <font>
                 <family>Arial</family>
+                <italic>false</italic>
                </font>
               </property>
               <property name="text">
@@ -1238,6 +1369,7 @@ p, li { white-space: pre-wrap; }
               <property name="font">
                <font>
                 <family>Arial</family>
+                <italic>false</italic>
                </font>
               </property>
               <property name="text">
@@ -1265,6 +1397,7 @@ p, li { white-space: pre-wrap; }
               <property name="font">
                <font>
                 <family>Arial</family>
+                <italic>false</italic>
                </font>
               </property>
               <property name="text">
@@ -1290,6 +1423,11 @@ p, li { white-space: pre-wrap; }
                 <height>30</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <italic>false</italic>
+               </font>
+              </property>
               <property name="text">
                <string>Reset</string>
               </property>
@@ -1311,6 +1449,11 @@ p, li { white-space: pre-wrap; }
                 <width>150</width>
                 <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <italic>false</italic>
+               </font>
               </property>
               <property name="text">
                <string>Run</string>
@@ -1346,11 +1489,17 @@ p, li { white-space: pre-wrap; }
           <widget class="QCheckBox" name="cbShowHetParams">
            <property name="geometry">
             <rect>
-             <x>310</x>
+             <x>135</x>
              <y>0</y>
              <width>121</width>
              <height>22</height>
             </rect>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <italic>false</italic>
+            </font>
            </property>
            <property name="text">
             <string>Het. params</string>
@@ -1359,11 +1508,17 @@ p, li { white-space: pre-wrap; }
           <widget class="QCheckBox" name="cbShowRates">
            <property name="geometry">
             <rect>
-             <x>230</x>
+             <x>385</x>
              <y>0</y>
-             <width>81</width>
+             <width>121</width>
              <height>22</height>
             </rect>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <italic>false</italic>
+            </font>
            </property>
            <property name="text">
             <string>Rates</string>
@@ -1372,11 +1527,17 @@ p, li { white-space: pre-wrap; }
           <widget class="QCheckBox" name="cbShowFreqs">
            <property name="geometry">
             <rect>
-             <x>110</x>
+             <x>260</x>
              <y>0</y>
              <width>121</width>
              <height>22</height>
             </rect>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <italic>false</italic>
+            </font>
            </property>
            <property name="text">
             <string>Frequencies</string>
@@ -1387,9 +1548,15 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>10</x>
              <y>0</y>
-             <width>101</width>
+             <width>121</width>
              <height>22</height>
             </rect>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <italic>false</italic>
+            </font>
            </property>
            <property name="text">
             <string>Selection</string>
@@ -1429,6 +1596,11 @@ p, li { white-space: pre-wrap; }
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QTabWidget" name="tabWidget">
+          <property name="font">
+           <font>
+            <family>Arial</family>
+           </font>
+          </property>
           <property name="toolTip">
            <string/>
           </property>
@@ -1577,6 +1749,11 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Load alignment</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -1590,15 +1767,36 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Quit</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
   </action>
   <action name="menuSaveData">
    <property name="text">
     <string>Save data</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionReset">
    <property name="text">
     <string>Reset</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -1608,6 +1806,11 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Load tree</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
    </property>
@@ -1615,6 +1818,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionNewMenu">
    <property name="text">
     <string>NewMenu</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+    </font>
    </property>
   </action>
  </widget>

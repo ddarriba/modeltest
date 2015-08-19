@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <cerrno>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
