@@ -17,12 +17,13 @@
 #define TAB_RESULTS 3
 
 enum current_state {
-    STATE_INITIAL,
-    STATE_ALIGNMENT_LOADED,
-    STATE_TREE_LOADED,
-    STATE_MODELS_OPTIMIZING,
-    STATE_MODELS_OPTIMIZED,
-    STATE_DONE
+    STATE_INITIAL            = 0,
+    STATE_ALIGNMENT_LOADED   = 1<<0,
+    STATE_TREE_LOADED        = 1<<1,
+    STATE_PARTITIONS_LOADED  = 1<<2,
+    STATE_MODELS_OPTIMIZING  = 1<<3,
+    STATE_MODELS_OPTIMIZED   = 1<<4,
+    STATE_DONE               = 1<<5
 };
 
 enum msg_level {
@@ -52,6 +53,8 @@ signals:
 
 private slots:
     void on_btnLoadAlignment_clicked();
+    void on_btnLoadTree_clicked();
+    void on_btnLoadParts_clicked();
 
     void on_radSchemes3_clicked();
     void on_radSchemes5_clicked();
@@ -61,6 +64,10 @@ private slots:
     //void on_listMatrices_clicked();
 
     void on_radTopoU_clicked();
+    void on_radTopoFixedMp_clicked();
+    void on_radTopoFixedGtr_clicked();
+    void on_radTopoFixedJc_clicked();
+    void on_radTopoML_clicked();
 
     void on_radSetModelTest_clicked();
     void on_radSetMrbayes_clicked();
@@ -79,6 +86,10 @@ private slots:
     void on_actionReset_triggered();
     void on_menuFileLoad_triggered();
     void on_menuTreeLoad_triggered();
+    void on_actionConsole_triggered();
+    void on_actionConfigure_triggered();
+    void on_actionProgress_triggered();
+    void on_actionResults_triggered();
 
     void on_cbEqualFreq_toggled(bool checked);
     void on_cbMlFreq_toggled(bool checked);
@@ -101,10 +112,7 @@ private slots:
     void on_cbShowHetParams_toggled(bool checked);
     void on_cbShowSelection_toggled(bool checked);
 
-    void on_btnLoadTree_clicked();
-
     void on_radDatatypeDna_clicked();
-
     void on_radDatatypeProt_clicked();
 
 public slots:
@@ -122,12 +130,19 @@ private:
     void fill_results(QTableView * result_table, ModelSelection &model_selection);
     void clear_table(QTableView * result_table);
 
+    bool check_state(current_state st);
+    void set_state(current_state st);
+    void unset_state(current_state st);
+    void clear_state() { state = STATE_INITIAL; }
+
     size_t compute_size(int n_cats, int n_threads);
 
     std::string msa_filename;
     std::string msa_basename;
     std::string utree_filename;
     std::string utree_basename;
+    std::string partitions_filename;
+    std::string partitions_basename;
 
     tree_type start_tree;
 

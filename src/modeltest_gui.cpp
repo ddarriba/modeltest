@@ -22,6 +22,7 @@
 
 namespace modeltest {
 
+
 static char amino_acids[20] = {'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
                                'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y'};
 
@@ -30,7 +31,7 @@ jModelTest::jModelTest(QWidget *parent) :
     ui(new Ui::jModelTest)
 {
     models_table_items = 0;
-    state = STATE_INITIAL;
+    set_state(STATE_INITIAL);
 
     ui->setupUi(this);
 
@@ -114,22 +115,24 @@ void jModelTest::updateGUI()
     char txt[30];
     int n_model_sets, n_matrices, n_models;
 
-    ui->lblLoadAlignText->setVisible( state >= STATE_ALIGNMENT_LOADED );
-    ui->lblLoadTreeText->setVisible( state >= STATE_TREE_LOADED );
+    ui->lblLoadAlignText->setVisible( check_state(STATE_ALIGNMENT_LOADED) );
+    ui->lblLoadTreeText->setVisible( check_state(STATE_TREE_LOADED) && utree_filename.compare(""));
+    ui->lblTree->setVisible(check_state(STATE_ALIGNMENT_LOADED));
+    ui->lblLoadPartsText->setVisible(check_state(STATE_PARTITIONS_LOADED) && partitions_filename.compare(""));
+    ui->lblParts->setVisible(check_state(STATE_ALIGNMENT_LOADED));
 
-    if (ui->radTopo1->isChecked())
+    if (ui->radTopoFixedMp->isChecked())
         start_tree = tree_mp;
-    else if (ui->radTopo2->isChecked())
+    else if (ui->radTopoFixedJc->isChecked())
         start_tree = tree_ml_jc_fixed;
-    else if (ui->radTopo3->isChecked())
+    else if (ui->radTopoFixedGtr->isChecked())
         start_tree = tree_ml_gtr_fixed;
-    else if (ui->radTopo4->isChecked())
+    else if (ui->radTopoML->isChecked())
         start_tree = tree_ml;
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
 
-    ui->lblTree->setVisible(state >= STATE_TREE_LOADED);
-    if (state >= STATE_TREE_LOADED)
+    if (check_state(STATE_ALIGNMENT_LOADED))
     {
         if (start_tree == tree_user_fixed)
             ui->lblTree->setStyleSheet("");
@@ -156,7 +159,16 @@ void jModelTest::updateGUI()
         }
     }
 
-    ui->btnLoadTree->setEnabled( state >= STATE_ALIGNMENT_LOADED );
+    ui->btnLoadTree->setEnabled(check_state(STATE_ALIGNMENT_LOADED));
+    if (ui->btnLoadTree->isEnabled())
+        ui->btnLoadTree->setStyleSheet("");
+    else
+        ui->btnLoadTree->setStyleSheet("color: #999;");
+    ui->btnLoadParts->setEnabled(check_state(STATE_ALIGNMENT_LOADED));
+    if (ui->btnLoadParts->isEnabled())
+        ui->btnLoadParts->setStyleSheet("");
+    else
+        ui->btnLoadParts->setStyleSheet("color: #999;");
 
     ui->listMatrices->setEnabled(
                 ui->radDatatypeProt->isChecked() ||
@@ -178,10 +190,16 @@ void jModelTest::updateGUI()
 
     ui->grpAdvanced->setVisible(ui->cbAdvanced->isChecked());
 
-    ui->tabView->setTabEnabled(TAB_CONFIG, state >= STATE_ALIGNMENT_LOADED );
-    ui->grpOptions->setEnabled( state == STATE_ALIGNMENT_LOADED || state == STATE_TREE_LOADED );
-    ui->tabView->setTabEnabled(TAB_RUN, state >= STATE_MODELS_OPTIMIZING);
-    ui->tabView->setTabEnabled(TAB_RESULTS, state >= STATE_MODELS_OPTIMIZED);
+    bool tabConfigEnabled = check_state(STATE_ALIGNMENT_LOADED);
+    bool tabRunEnabled = check_state(STATE_MODELS_OPTIMIZING);
+    bool tabResultsEnabled = check_state(STATE_MODELS_OPTIMIZED);
+    ui->actionConfigure->setEnabled(tabConfigEnabled);
+    ui->tabView->setTabEnabled(TAB_CONFIG, tabConfigEnabled);
+    ui->grpOptions->setEnabled(check_state(STATE_ALIGNMENT_LOADED));
+    ui->actionProgress->setEnabled(tabRunEnabled);
+    ui->tabView->setTabEnabled(TAB_RUN, tabRunEnabled);
+    ui->actionResults->setEnabled(tabResultsEnabled);
+    ui->tabView->setTabEnabled(TAB_RESULTS, tabResultsEnabled);
 
     ui->lblNThreads->setText(QString::number(ui->sliderNThreads->value()));
 
@@ -234,19 +252,20 @@ void jModelTest::resetSettings()
     ui->cbGModels->setChecked(true);
     ui->cbIGModels->setChecked(true);
     ui->sliderNCat->setValue(4);
-    ui->radTopo4->setChecked(true);
+    ui->radTopoFixedGtr->setChecked(true);
 
     ui->cbAdvanced->setChecked(false);
 
+    clear_state();
     if (msa_filename.compare(""))
-        state = STATE_ALIGNMENT_LOADED;
+        set_state(STATE_ALIGNMENT_LOADED);
         if (utree_filename.compare(""))
         {
-            state = STATE_TREE_LOADED;
+            set_state(STATE_TREE_LOADED);
         }
     else
     {
-        state = STATE_INITIAL;
+        set_state(STATE_INITIAL);
     }
 
     on_sliderNCat_sliderMoved(4);
@@ -279,10 +298,10 @@ static QString to_qstring(const char * msg, msg_level level)
 
     switch(level)
     {
-        case msg_error: line = "<font color=\"Red\">ERROR:</font> " + line; break;
-        case msg_alert: line = "<font color=\"DeepPing\">ALERT:</font> " + line; break;
-        case msg_notify: line = "<font color=\"Lime\">NOTIFY:</font> " + line; break;
-        case msg_info: line  = "<font color=\"DarkGreen\"> " + line; break;
+        case msg_error: line = "<font color=\"Red\">" + line + "</font>"; break;
+        case msg_alert: line = "<font color=\"DeepPink\">" + line + "</font>"; break;
+        case msg_notify: line = "<font color=\"DarkGreen\">" + line + "</font>"; break;
+        case msg_info: line  = "<font color=\"Black\">" + line + "</font>"; break;
         default: break;
     }
 
@@ -292,7 +311,7 @@ static QString to_qstring(const char * msg, msg_level level)
 
 void jModelTest::on_btnLoadAlignment_clicked()
 {
-    QString filters = "MSA (*.phy *.nex *.fas *)";
+    QString filters = "Multiple Sequence Alignment (*.phy *.nex *.fas *) ;; All files (*)";
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
                                                     "",
@@ -303,31 +322,31 @@ void jModelTest::on_btnLoadAlignment_clicked()
     if ( loaded_file.compare(""))
     {
         msa_filename = loaded_file;
-        //ModelTest mtest;
         if (ModelTest::test_msa(msa_filename,
                                  &n_seqs,
                                  &seq_len))
         {
             char text[250];
 
-            ui->txtMessages->append(to_qstring("Loaded alignment %1", msg_info).arg(msa_filename.c_str()));
+            ui->txtMessages->append(to_qstring("Loaded alignment %1", msg_notify).arg(msa_filename.c_str()));
             sprintf(text, "Num.Sequences:   %d", n_seqs);
             ui->txtMessages->append(to_qstring(text, msg_info));
             sprintf(text, "Sequence Length: %d", seq_len);
             ui->txtMessages->append(to_qstring(text, msg_info));
 
             utree_filename = "";
-            state = STATE_ALIGNMENT_LOADED;
+            clear_state();
+            set_state(STATE_ALIGNMENT_LOADED);
             ui->tabView->setCurrentIndex(TAB_CONFIG);
             on_radSchemes11_clicked();
         }
         else
         {
-            ui->txtMessages->append(to_qstring("Cannot load alignment", msg_error));
+            ui->txtMessages->append(to_qstring("Error: Cannot load alignment %1", msg_error).arg(msa_filename.c_str()));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             msa_filename   = "";
             utree_filename = "";
-            state = STATE_INITIAL;
+            set_state(STATE_INITIAL);
         }
     }
 
@@ -337,7 +356,7 @@ void jModelTest::on_btnLoadAlignment_clicked()
 
 void jModelTest::on_btnLoadTree_clicked()
 {
-    QString filters = "MSA (*.phy *.nex *.fas *)";
+    QString filters = "Newick tree (*.tree *.newick) ;; All files (*)";
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
                                                     "",
@@ -354,32 +373,61 @@ void jModelTest::on_btnLoadTree_clicked()
         {
             if (n_tips == n_seqs)
             {
-                ui->txtMessages->append(to_qstring("Loaded tree", msg_info));
+                ui->txtMessages->append(to_qstring("Loaded tree %1", msg_notify).arg(utree_filename.c_str()));
                 ui->tabView->setCurrentIndex(TAB_CONFIG);
-                if (state == STATE_ALIGNMENT_LOADED)
-                    state = STATE_TREE_LOADED;
+                if (check_state(STATE_ALIGNMENT_LOADED))
+                    set_state(STATE_TREE_LOADED);
             }
             else
             {
-                ui->txtMessages->append(to_qstring("Tip number does not match", msg_error));
+                ui->txtMessages->append(to_qstring("Error: Tip number does not match in %1", msg_error).arg(utree_filename.c_str()));
                 ui->tabView->setCurrentIndex(TAB_CONSOLE);
                 utree_filename = "";
+                unset_state(STATE_TREE_LOADED);
             }
         }
         else
         {
-            ui->txtMessages->append(to_qstring("Cannot read tree", msg_error));
+            ui->txtMessages->append(to_qstring("Error: Cannot read tree %1", msg_error).arg(utree_filename.c_str()));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             utree_filename = "";
+            unset_state(STATE_TREE_LOADED);
         }
 
         if (ui->radTopoU->isChecked())
-            ui->radTopo4->setChecked(!utree_filename.compare(""));
+            ui->radTopoFixedGtr->setChecked(!check_state(STATE_TREE_LOADED));
         else
-            ui->radTopoU->setChecked(utree_filename.compare(""));
+            ui->radTopoU->setChecked(check_state(STATE_TREE_LOADED));
     }
 
     ui->lblTree->setText(QString(Utils::getBaseName(utree_filename).c_str()));
+    updateGUI();
+}
+
+void jModelTest::on_btnLoadParts_clicked()
+{
+    QString filters = "Partitions file (*.model *.parts) ;; All files (*)";
+    QString file_name = QFileDialog::getOpenFileName(this,
+                                                    tr("Open File"),
+                                                    "",
+                                                    filters);
+    const std::string loaded_file = file_name.toStdString();
+
+    if ( loaded_file .compare(""))
+    {
+        partitions_filename = loaded_file;
+
+        /*TODO: validate */
+        ui->txtMessages->append(to_qstring("Loaded partitions %1", msg_notify).arg(partitions_filename.c_str()));
+        ui->tabView->setCurrentIndex(TAB_CONFIG);
+        if (check_state(STATE_ALIGNMENT_LOADED))
+          set_state(STATE_PARTITIONS_LOADED);
+    }
+    else
+    {
+        unset_state(STATE_PARTITIONS_LOADED);
+    }
+    ui->lblTree->setText(QString(Utils::getBaseName(partitions_filename).c_str()));
     updateGUI();
 }
 
@@ -454,7 +502,50 @@ void jModelTest::on_radSchemes203_clicked()
 
 void jModelTest::on_radTopoU_clicked()
 {
-    /* SKIP */
+    assert(ui->btnLoadTree->isEnabled());
+    on_btnLoadTree_clicked();
+
+    if (!utree_basename.compare(""))
+    {
+        ui->radTopoFixedGtr->setChecked(true);
+    }
+    updateGUI();
+}
+
+void jModelTest::on_radTopoFixedMp_clicked()
+{
+    utree_filename = "";
+    utree_basename = "";
+    ui->lblTree->setStyleSheet("color: #007;");
+    ui->lblTree->setText("Fixed Maximum Parsimony");
+    updateGUI();
+}
+
+void jModelTest::on_radTopoFixedGtr_clicked()
+{
+    utree_filename = "";
+    utree_basename = "";
+    ui->lblTree->setStyleSheet("color: #007;");
+    ui->lblTree->setText("Fixed Maximum Likelihood (GTR)");
+    updateGUI();
+}
+
+void jModelTest::on_radTopoFixedJc_clicked()
+{
+    utree_filename = "";
+    utree_basename = "";
+    ui->lblTree->setStyleSheet("color: #007;");
+    ui->lblTree->setText("Fixed Maximum Likelihood (JC)");
+    updateGUI();
+}
+
+void jModelTest::on_radTopoML_clicked()
+{
+    utree_filename = "";
+    utree_basename = "";
+    ui->lblTree->setStyleSheet("color: #007;");
+    ui->lblTree->setText("Maximum Likelihood");
+    updateGUI();
 }
 
 void jModelTest::on_radSetModelTest_clicked()
@@ -567,12 +658,41 @@ void jModelTest::on_actionReset_triggered()
     int ret = msgBox.exec();
     if (ret == QMessageBox::Reset)
     {
-        state = STATE_INITIAL;
+        set_state(STATE_INITIAL);
         ui->lblAlignment->setText("");
         ui->lblTree->setText("");
         msa_filename = "";
         resetSettings();
+        ui->txtMessages->append(to_qstring("\nReset\n", msg_alert));
     }
+}
+
+void jModelTest::on_actionConsole_triggered()
+{
+    /* if tab is disabled, the menu should be as well */
+    assert(ui->tabView->isTabEnabled(TAB_CONSOLE));
+    ui->tabView->setCurrentIndex(TAB_CONSOLE);
+}
+
+void jModelTest::on_actionConfigure_triggered()
+{
+    /* if tab is disabled, the menu should be as well */
+    assert(ui->tabView->isTabEnabled(TAB_CONFIG));
+    ui->tabView->setCurrentIndex(TAB_CONFIG);
+}
+
+void jModelTest::on_actionProgress_triggered()
+{
+    /* if tab is disabled, the menu should be as well */
+    assert(ui->tabView->isTabEnabled(TAB_RUN));
+    ui->tabView->setCurrentIndex(TAB_RUN);
+}
+
+void jModelTest::on_actionResults_triggered()
+{
+    /* if tab is disabled, the menu should be as well */
+    assert(ui->tabView->isTabEnabled(TAB_RESULTS));
+    ui->tabView->setCurrentIndex(TAB_RESULTS);
 }
 
 void jModelTest::on_cbEqualFreq_toggled(bool checked)
@@ -614,7 +734,10 @@ void jModelTest::on_cbIGModels_toggled(bool checked)
 void jModelTest::on_btnResetConfig_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setText("If you change the settings, current results will be discarded.");
+    if (c_models.size())
+        msgBox.setText("If you reset the settings, results will be discarded.");
+    else
+        msgBox.setText("Current settings will be discarded.");
     msgBox.setInformativeText("Are you sure?");
     msgBox.setStandardButtons(QMessageBox::Reset | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
@@ -729,13 +852,13 @@ void jModelTest::on_btnRun_clicked()
     if (ret != QMessageBox::Ok)
         return;
 
-    if (ui->radTopo1->isChecked())
+    if (ui->radTopoFixedMp->isChecked())
         start_tree = tree_mp;
-    else if (ui->radTopo2->isChecked())
+    else if (ui->radTopoFixedJc->isChecked())
         start_tree = tree_ml_jc_fixed;
-    else if (ui->radTopo3->isChecked())
+    else if (ui->radTopoFixedGtr->isChecked())
         start_tree = tree_ml_gtr_fixed;
-    else if (ui->radTopo4->isChecked())
+    else if (ui->radTopoML->isChecked())
         start_tree = tree_ml;
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
@@ -806,7 +929,8 @@ void jModelTest::on_btnRun_clicked()
         mtest->set_models(c_models);
     }
 
-    state = STATE_MODELS_OPTIMIZING;
+    unset_state(STATE_MODELS_OPTIMIZED);
+    set_state(STATE_MODELS_OPTIMIZING);
     ui->tabView->setCurrentIndex(TAB_RUN);
     updateGUI();
 
@@ -848,7 +972,7 @@ void jModelTest::on_btnRun_clicked()
 
     on_run = true;
     futureWatcher.setFuture(QtConcurrent::map(models, wrap));//&jModelTest::evalmodels);
-    state = STATE_MODELS_OPTIMIZED;
+    set_state(STATE_MODELS_OPTIMIZED);
 
     dialog.exec();
     futureWatcher.waitForFinished();
@@ -1090,6 +1214,24 @@ void jModelTest::on_radDatatypeProt_clicked()
     ui->listMatrices->setMinimumHeight(363);
     ui->listMatrices->setMaximumHeight(363);
     ui->listMatrices->selectAll();
+}
+
+bool jModelTest::check_state(current_state st)
+{
+    return (state & st);
+}
+
+void jModelTest::set_state(current_state st)
+{
+    if (st == STATE_INITIAL)
+        state = STATE_INITIAL;
+    else
+        state = (current_state)(state | st);
+}
+
+void jModelTest::unset_state(current_state st)
+{
+    state = (current_state)(state & ~st);
 }
 
 }

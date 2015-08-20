@@ -115,6 +115,9 @@ color: #222;</string>
             <string notr="true"/>
            </property>
            <widget class="QPushButton" name="btnLoadAlignment">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -125,13 +128,15 @@ color: #222;</string>
             </property>
             <property name="font">
              <font>
-              <weight>50</weight>
+              <family>Arial</family>
               <italic>false</italic>
-              <bold>false</bold>
              </font>
             </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load multiple sequence alignment in &lt;span style=&quot; font-weight:600;&quot;&gt;FASTA&lt;/span&gt; format&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>Load Alignment</string>
@@ -182,10 +187,6 @@ color: #222;</string>
              <string>Loaded:</string>
             </property>
            </widget>
-           <zorder>btnLoadAlignment</zorder>
-           <zorder>lblAlignment</zorder>
-           <zorder>lblLoadAlignText</zorder>
-           <zorder>btnLoadTree</zorder>
           </widget>
          </item>
          <item>
@@ -221,6 +222,9 @@ color: #222;</string>
             </property>
            </widget>
            <widget class="QPushButton" name="btnLoadTree">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -231,9 +235,8 @@ color: #222;</string>
             </property>
             <property name="font">
              <font>
-              <weight>50</weight>
+              <family>Arial</family>
               <italic>false</italic>
-              <bold>false</bold>
              </font>
             </property>
             <property name="toolTip">
@@ -302,6 +305,9 @@ color: #222;</string>
             </property>
            </widget>
            <widget class="QPushButton" name="btnLoadParts">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -312,13 +318,15 @@ color: #222;</string>
             </property>
             <property name="font">
              <font>
-              <weight>50</weight>
+              <family>Arial</family>
               <italic>false</italic>
-              <bold>false</bold>
              </font>
             </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load tree file in &lt;span style=&quot; font-weight:600;&quot;&gt;NEWICK&lt;/span&gt; format&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>Load Partitions</string>
@@ -372,7 +380,7 @@ color: #222;</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="iconSize">
        <size>
@@ -423,7 +431,7 @@ p, li { white-space: pre-wrap; }
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-341</y>
              <width>994</width>
              <height>838</height>
             </rect>
@@ -582,7 +590,7 @@ p, li { white-space: pre-wrap; }
                 <number>9</number>
                </property>
                <item>
-                <widget class="QRadioButton" name="radTopo1">
+                <widget class="QRadioButton" name="radTopoFixedMp">
                  <property name="font">
                   <font>
                    <family>Arial</family>
@@ -595,7 +603,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="radTopo2">
+                <widget class="QRadioButton" name="radTopoFixedJc">
                  <property name="font">
                   <font>
                    <family>Arial</family>
@@ -608,7 +616,7 @@ p, li { white-space: pre-wrap; }
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="radTopo3">
+                <widget class="QRadioButton" name="radTopoFixedGtr">
                  <property name="font">
                   <font>
                    <family>Arial</family>
@@ -618,10 +626,13 @@ p, li { white-space: pre-wrap; }
                  <property name="text">
                   <string>Fixed ML (GTR)</string>
                  </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="radTopo4">
+                <widget class="QRadioButton" name="radTopoML">
                  <property name="font">
                   <font>
                    <family>Arial</family>
@@ -632,7 +643,7 @@ p, li { white-space: pre-wrap; }
                   <string>Maximum-Likelihood</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -1155,7 +1166,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>160</width>
+                   <width>180</width>
                    <height>16777215</height>
                   </size>
                  </property>
@@ -1215,7 +1226,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>160</width>
+                   <width>180</width>
                    <height>16777215</height>
                   </size>
                  </property>
@@ -1801,7 +1812,7 @@ p, li { white-space: pre-wrap; }
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuJModelTest_2_2">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
@@ -1838,9 +1849,9 @@ p, li { white-space: pre-wrap; }
     </widget>
     <addaction name="menuTab"/>
    </widget>
-   <addaction name="menuJModelTest_2_2"/>
-   <addaction name="menuWhat_is_this"/>
+   <addaction name="menuFile"/>
    <addaction name="menuWindow"/>
+   <addaction name="menuWhat_is_this"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -1973,9 +1984,9 @@ p, li { white-space: pre-wrap; }
   <tabstop>radSetRaxml</tabstop>
   <tabstop>radSetPhyml</tabstop>
   <tabstop>radSetPAUP</tabstop>
-  <tabstop>radTopo2</tabstop>
-  <tabstop>radTopo3</tabstop>
-  <tabstop>radTopo4</tabstop>
+  <tabstop>radTopoFixedJc</tabstop>
+  <tabstop>radTopoFixedGtr</tabstop>
+  <tabstop>radTopoML</tabstop>
   <tabstop>radTopoU</tabstop>
   <tabstop>radSchemes3</tabstop>
   <tabstop>radSchemes5</tabstop>
