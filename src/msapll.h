@@ -22,11 +22,12 @@ namespace modeltest
 
     virtual const char * get_header (mt_index_t index) const;
     virtual const char * get_sequence (mt_index_t index) const;
+    virtual bool reorder_sites(partitioning_scheme_t & scheme);
+    virtual void print() const;
 
     static bool test(std::string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites);
-
   private:
     char **sequences;
     char **tipnames;

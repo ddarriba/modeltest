@@ -92,7 +92,24 @@ public:
     static void * c_allocate(mt_size_t n, mt_size_t size);
     static void exit_with_error(const char * message, ...) __attribute__ ((noreturn));
 
-    static std::vector<partition_t> * parse_partitions_file (std::string filename);
+    /**
+     * @brief Parses a file containing a set of partitions
+     * @param[in] filename The file to parse
+     * @return The set of partitions sorted by starting site
+     */
+    static partitioning_scheme_t * parse_partitions_file (std::string filename);
+
+    /**
+     * @brief Sorts a partitioning scheme according to the starting sites
+     * @param[in, out] scheme The scheme to sort
+     */
+    static void sort_partitioning_scheme(partitioning_scheme_t & scheme);
+
+    /**
+     * @brief Prints the execution options
+     * @param[in] opts      The execution options
+     * @param[in, out] out  The output stream
+     */
     static void print_options(mt_options & opts, std::ostream  &out = std::cout);
 };
 

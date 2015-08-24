@@ -32,7 +32,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     exec_opt.model_params    = 0;
     exec_opt.datatype        = dt_dna;
     exec_opt.subst_schemes   = ss_undef;
-    exec_opt.partitions_desc = 0;
+    exec_opt.partitions_desc = NULL;
+    exec_opt.partitions_eff  = NULL;
+    exec_opt.verbose         = VERBOSITY_DEFAULT;
 
     static struct option long_options[] =
     {
@@ -49,11 +51,12 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
         { "output", required_argument, 0, 'o' },
+        { "verbose", no_argument, 0, 'v' },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:t:q:r:S:o:", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:q:r:S:t:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
@@ -178,6 +181,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             exec_opt.tree_filename = optarg;
             exec_opt.starting_tree = tree_user_fixed;
             break;
+        case 'v':
+            exec_opt.verbose = VERBOSITY_HIGH;
+            break;
         default:
             cerr << "Unrecognised argument -" << opt << endl;
             return false;
@@ -224,6 +230,20 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         /* Overlapping:         FATAL */
         /* Uncovered sites:     WARN  */
         /* Sites out of bounds: FATAL */
+    }
+    else
+    {
+        /* create single partition / single region */
+        exec_opt.partitions_desc = new vector<partition_t>();
+        partition_region_t region;
+        partition_t partition;
+        region.start = 1;
+        region.end = exec_opt.n_sites;
+        region.stride = 1;
+        partition.datatype = exec_opt.datatype;
+        partition.partition_name = "DATA";
+        partition.regions.push_back(region);
+        exec_opt.partitions_desc->push_back(partition);
     }
 
     if (exec_opt.datatype == dt_protein)
@@ -404,7 +424,11 @@ int main(int argc, char *argv[])
         {
             modeltest::Model *model = mt.get_models()[cur_model];
             time_t ini_t = time(NULL);
-            if (!mt.evaluate_single_model(model, 0, opts.epsilon_param, opts.epsilon_opt))
+            if (!mt.evaluate_single_model(model,
+                                          opts.partitions_eff->at(0),
+                                          0,
+                                          opts.epsilon_param,
+                                          opts.epsilon_opt))
             {
                 cerr << "ERROR OPTIMIZING MODEL" << endl;
                 return(MT_ERROR_OPTIMIZE);
@@ -436,6 +460,8 @@ int main(int argc, char *argv[])
         /* clean */
         if (opts.partitions_desc)
             delete opts.partitions_desc;
+        if (opts.partitions_eff)
+            delete opts.partitions_eff;
     }
     else
     {

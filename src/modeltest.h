@@ -77,23 +77,27 @@ public:
     /**
      * @brief Optimizes the parameters for one single model
      * @param model          model to optimize
+     * @param partition      partition to optimize
      * @param thread_number  number of the current thread
      * @param tolerance      tolerance for parameter optimization
      * @param epsilon        tolerance for global optimization
      * @return true, if the optimization is OK
      */
     bool evaluate_single_model(Model * model,
+                               partition_t &partition,
                                mt_index_t thread_number = 0,
                                double tolerance = 0.0001,
                                double epsilon = 0.001);
 
     /**
      * @brief Optimizes the whole candidate models set
+     * @param partition      partition to optimize
      * @return true, if the optimization is OK
      */
-    bool evaluate_models();
+    bool evaluate_models(partition_t & partition);
 
     ModelOptimizer * get_model_optimizer(Model * model,
+                                         partition_t & partition,
                                          mt_index_t thread_number = 0) const;
 
     /**

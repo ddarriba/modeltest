@@ -6,6 +6,7 @@
  */
 
 #include "model_optimizer_pll.h"
+#include "utils.h"
 
 #include <cassert>
 #include <iostream>
@@ -39,9 +40,12 @@ ModelOptimizer::~ModelOptimizer() {}
 ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       TreePll *_tree,
                                       Model *_model,
+                                      partition_t & _partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
-    : ModelOptimizer(_model), msa(_msa), tree(_tree),
+    : ModelOptimizer(_model, _partition),
+      msa(_msa),
+      tree(_tree),
       thread_number(_thread_number)
 {
     params = NULL;
@@ -50,11 +54,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     matrix_indices = NULL;
 
     mt_size_t n_tips = tree->get_n_tips ();
+    mt_size_t n_sites = 0;
+    for (partition_region_t & region : partition.regions)
+    {
+        n_sites += (region.end - region.start + 1)/region.stride;
+    }
     pll_partition = pll_partition_create (
                 n_tips,                           /* tips */
                 (n_tips - 2),                     /* clv buffers */
                 model->get_n_states(),            /* states */
-                (mt_size_t) msa->get_n_sites (),  /* sites */
+                n_sites,                          /* sites */
                 1,                                /* rate matrices */
                 (2 * n_tips - 3),                 /* prob matrices */
                 model->is_G () ? _n_cat_g : 1,    /* rate cats */
@@ -67,7 +76,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
     pll_utree_t ** tipnodes = (pll_utree_t **) calloc (n_tips,
                                                        sizeof(pll_utree_t *));
-    assert(pll_utree_query_tipnodes (pll_tree, tipnodes));
+    if (!pll_utree_query_tipnodes (pll_tree, tipnodes))
+    {
+        assert(0);
+    }
 
     /* find sequences and link them with the corresponding taxa */
     for (mt_index_t i = 0; i < n_tips; ++i)
@@ -89,10 +101,43 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         assert(tip_clv_index != MT_SIZE_UNDEF);
 
         //TODO: keep tip states between models
+        char *seq;
+        const char *c_seq;
+        if (partition.regions.size() > 1 || partition.regions[0].stride > 1)
+        {
+            /* complex partition */
+            seq = (char *) Utils::allocate(n_sites, sizeof(char));
+            c_seq = seq;
+            for (partition_region_t & region : partition.regions)
+            {
+                mt_size_t region_sites = (region.end - region.start + 1)/region.stride;
+                if (region.stride == 1)
+                {
+                    /* copy consecutive sites in sequence */
+                    memcpy(seq, msa->get_sequence (i) + region.start - 1, region_sites);
+                }
+                else
+                {
+                    /* copy strided sites in sequence */
+                    mt_index_t k = 0;
+                    const char * f_seq = msa->get_sequence (i);
+                    for (mt_index_t s = region.start; s <= region.end && s < n_sites; s+=region.stride)
+                    {
+                        seq[k++] = f_seq[s];
+                    }
+                }
+                seq += region_sites;
+            }
+        }
+        else
+        {
+            /* simple partition */
+            c_seq = msa->get_sequence (i);
+        }
         if (!pll_set_tip_states (pll_partition,
                             (unsigned int)tip_clv_index,
                             (model->get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
-                             msa->get_sequence (i)))
+                             c_seq))
         {
             /* data type and tip states should be validated beforehand */
             std::cerr << "ERROR: Sequence does not match the datatype" << std::endl;
@@ -108,9 +153,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 (2 * n_tips - 2) * sizeof(pll_utree_t *));
 
     /* additional stuff */
-    mt_size_t traversal_size = (mt_size_t) pll_utree_traverse (pll_tree,
-                                                               cb_reset_branches,
-                                                               travbuffer);
+    mt_size_t traversal_size;
+    if (!pll_utree_traverse (pll_tree,
+                             cb_reset_branches,
+                             travbuffer,
+                             &traversal_size))
+    {
+      std::cerr << 
+        "ERROR: PLL returned an error computing tree traversal" <<
+        std::endl;
+      assert(0);
+    }
 
     assert(traversal_size > 0);
 
@@ -158,9 +211,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
           pll_utree_t ** travbuffer = (pll_utree_t **) malloc(
                       (2*tree->get_n_tips() - 2) * sizeof(pll_utree_t *));
-          mt_size_t traversal_size = (mt_size_t) pll_utree_traverse (pll_tree,
-                                                            cb_full_traversal,
-                                                            travbuffer);
+          mt_size_t traversal_size;
+          if (!pll_utree_traverse (pll_tree,
+                                   cb_full_traversal,
+                                   travbuffer,
+                                   &traversal_size))
+          {
+            assert(0);
+          }
+
           mt_index_t matrix_count, ops_count;
           pll_utree_create_operations(travbuffer,
                                       traversal_size,

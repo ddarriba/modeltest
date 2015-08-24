@@ -118,7 +118,7 @@ void Utils::exit_with_error(const char * message, ...) {
     exit(EXIT_FAILURE);
 }
 
-vector<partition_t> * Utils::parse_partitions_file (string filename)
+partitioning_scheme_t *Utils::parse_partitions_file(string filename)
 {
   long n;
   char * rawdata;
@@ -138,11 +138,32 @@ vector<partition_t> * Utils::parse_partitions_file (string filename)
   input = get_next_symbol();
 
   partitions = parse_partition (&input);
-  if (!partitions)
+  if (partitions)
+      Utils::sort_partitioning_scheme(*partitions);
+  else
       errno = MT_ERROR_IO_FORMAT;
 
   free (rawdata);
   return partitions;
+}
+
+static bool sort_partitions(partition_t p1, partition_t p2)
+{
+    return p1.regions[0].start < p2.regions[0].start;
+}
+
+static bool sort_regions(partition_region_t r1, partition_region_t r2)
+{
+    return r1.start < r2.start;
+}
+
+void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
+{
+    for (partition_t & partition : scheme)
+    {
+        sort(partition.regions.begin(), partition.regions.end(), sort_regions);
+    }
+    sort(scheme.begin(), scheme.end(), sort_partitions);
 }
 
 void Utils::print_options(mt_options & opts, ostream  &out)
@@ -159,24 +180,61 @@ void Utils::print_options(mt_options & opts, ostream  &out)
         out << left << setw(15) << "" << opts.partitions_desc->size() << " partitions" << endl;
         mt_size_t n_prot_parts = 0;
         mt_size_t n_dna_parts = 0;
-        for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
+        if (opts.verbose > VERBOSITY_DEFAULT)
         {
-            switch (opts.partitions_desc->at(i).datatype)
+            out << setw(15) << " " << setw(10) << setfill('-') << ""
+                << setfill(' ') << endl;
+            for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
             {
-            case dt_dna:
-                n_dna_parts++;
-                break;
-            case dt_protein:
-                n_prot_parts++;
-                break;
+                out << left << setw(15) << " "
+                    << setw(4) << right << i+1 << " ";
+                switch (opts.partitions_desc->at(i).datatype)
+                {
+                case dt_dna:
+                    out << "[NT] ";
+                    n_dna_parts++;
+                    break;
+                case dt_protein:
+                    out << "[AA] ";
+                    n_prot_parts++;
+                    break;
+                }
+                out << opts.partitions_desc->at(i).partition_name << " : ";
+                for (partition_region_t & region : opts.partitions_desc->at(i).regions)
+                {
+                    out << region.start << "-" << region.end;
+                    if (region.stride != 1)
+                        out << "/" << region.stride;
+                    out << " ";
+                }
+                out << endl;
+            }
+            out << setw(15) << " " << setw(10) << setfill('-') << ""
+                << setfill(' ') << endl;
+        }
+        else
+        {
+            for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
+            {
+                switch (opts.partitions_desc->at(i).datatype)
+                {
+                case dt_dna:
+                    n_dna_parts++;
+                    break;
+                case dt_protein:
+                    n_prot_parts++;
+                    break;
+                }
             }
         }
         if (n_dna_parts)
-            out << "  " << left << setw(15) << " "
-                << n_dna_parts << " DNA partitions" << endl;
+            out << left << setw(15) << " "
+                << setw(4) << right << n_dna_parts
+                << " DNA partitions" << endl;
         if (n_prot_parts)
-            out << "  " << left << setw(15) << " "
-                << n_prot_parts << " protein partitions" << endl;
+            out << left << setw(15) << " "
+                << setw(4) << right << n_prot_parts
+                << " protein partitions" << endl;
     }
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }

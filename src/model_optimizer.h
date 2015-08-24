@@ -18,7 +18,10 @@ namespace modeltest
   class ModelOptimizer
   {
   public:
-    ModelOptimizer (Model *_model) : model(_model)
+    ModelOptimizer (Model *_model,
+                    partition_t & _partition)
+        : model(_model),
+          partition(_partition)
     {
         optimized = false;
     }
@@ -51,6 +54,7 @@ namespace modeltest
   protected:
     bool optimized; //! optimization state
     Model *model;   //! the model to optimize
+    partition_t partition;
   };
 
 } /* namespace modeltest */

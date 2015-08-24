@@ -42,6 +42,7 @@ jModelTest::jModelTest(QWidget *parent) :
 
     n_seqs = 0;
     seq_len = 0;
+    scheme = 0;
 
     updateGUI();
 }
@@ -752,7 +753,9 @@ void jModelTest::evaluate_models(ModelTest &mtest)
     for (size_t i=0; i<models.size(); i++)
     {
         Model * model = models[i];
-        mtest.evaluate_single_model(model);
+        //TODO: Get actual partition
+        partition_t part;
+        mtest.evaluate_single_model(model, part);
             updateGUI();
     }
 }
@@ -764,8 +767,12 @@ void jModelTest::evalmodels(int i, int thread_id)
     double tolerance = ui->txtParEpsilon->text().toDouble();
     double epsilon = ui->txtOptEpsilon->text().toDouble();
 
+    //TODO: Get actual partition
+    partition_t part;
     if (!model->is_optimized())
-        mtest->evaluate_single_model(model, thread_id, tolerance, epsilon);
+        mtest->evaluate_single_model(model, part,
+                                     thread_id,
+                                     tolerance, epsilon);
 
     set_tablemodels_line(i, model);
 
@@ -921,8 +928,25 @@ void jModelTest::on_btnRun_clicked()
     opts.candidate_models = matrices;
     opts.starting_tree = start_tree;
     opts.datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+    if (!scheme)
+    {
+        /* create single partition / single region */
+        scheme = new partitioning_scheme_t();
+        partition_region_t region;
+        partition_t partition;
+        region.start = 1;
+        region.end = seq_len;
+        region.stride = 1;
+        partition.datatype = opts.datatype;
+        partition.partition_name = "DATA";
+        partition.regions.push_back(region);
+        scheme->push_back(partition);
+    }
+    opts.partitions_desc = scheme;
 
     bool ok_inst = mtest->build_instance(opts, ui->radSchemes203->isChecked());
+    if (!ok_inst)
+        ui->txtMessages->append(to_qstring("Error building instance", msg_error));
 
     if (c_models.size())
     {

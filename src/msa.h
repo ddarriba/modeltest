@@ -23,8 +23,31 @@ namespace modeltest
     }
     virtual ~Msa ();
 
+    /**
+     * @brief Gets the header of a certain sequence
+     * @param[in] index The index of the sequence
+     * @return
+     */
     virtual const char * get_header (mt_index_t index) const = 0;
+
+    /**
+     * @brief Gets the sequence at a certain position
+     * @param[in] index The sequence to recover
+     * @return
+     */
     virtual const char * get_sequence (mt_index_t index) const = 0;
+
+    /**
+     * @brief Reorder the sites according to a partitioning scheme
+     * @param[in,out] scheme valid partitioning scheme
+     * @return true, if success
+     */
+    virtual bool reorder_sites(partitioning_scheme_t & scheme) = 0;
+
+    /**
+     * @brief Prints the sequence
+     */
+    virtual void print() const = 0;
 
     mt_size_t get_n_sequences (void) const
     {

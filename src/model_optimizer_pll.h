@@ -24,6 +24,7 @@ namespace modeltest
     ModelOptimizerPll (MsaPll *_msa,
                        TreePll *_tree,
                        Model *_model,
+                       partition_t & partition,
                        mt_size_t _n_cat_g = DEFAULT_GAMMA_RATE_CATS,
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();

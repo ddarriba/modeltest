@@ -172,13 +172,18 @@ namespace modeltest
 
   TreePll::~TreePll ()
   {
+    if (pll_tree)
+    {
       for (mt_index_t i=0; i<number_of_threads; i++)
       {
-        pll_utree_destroy(pll_tree[i]);
-        free(pll_tip_nodes[i]);
+        if (pll_tree[i])
+          pll_utree_destroy(pll_tree[i]);
+        if (pll_tip_nodes[i])
+          free(pll_tip_nodes[i]);
       }
       free( pll_tree );
       free(pll_tip_nodes);
+    }
   }
 
   bool TreePll::test_tree(std::string const& tree_filename, mt_size_t *n_tips)

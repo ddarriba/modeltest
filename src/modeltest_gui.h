@@ -157,6 +157,8 @@ private:
     void set_tablemodels_header();
     void set_tablemodels_visibility();
     void set_tablemodels_line(int line_id, Model * model);
+
+    partitioning_scheme_t * scheme;
 };
 
 }

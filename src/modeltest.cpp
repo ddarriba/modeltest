@@ -35,7 +35,6 @@ void ModelTest::create_instance()
 
 static bool sort_forwards(Model * m1, Model * m2)
 {
-    fflush(stdout);
     mt_size_t p1 = m1->get_n_free_variables();
     mt_size_t p2 = m2->get_n_free_variables();
     if (m1->is_G())
@@ -47,13 +46,11 @@ static bool sort_forwards(Model * m1, Model * m2)
     if (m2->is_I())
         p2 += 10;
 
-    fflush(stdout);
     return p1 < p2;
 }
 
 static bool sort_backwards(Model * m1, Model * m2)
 {
-    fflush(stdout);
     mt_size_t p1 = m1->get_n_free_variables();
     mt_size_t p2 = m2->get_n_free_variables();
     if (m1->is_G())
@@ -65,7 +62,6 @@ static bool sort_backwards(Model * m1, Model * m2)
     if (m2->is_I())
         p2 += 10;
 
-    fflush(stdout);
     return p1 > p2;
 }
 
@@ -137,6 +133,7 @@ static bool build_models(mt_options & options,
 }
 
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
+                                     partition_t & partition,
                                      mt_index_t thread_number) const
 {
     if( thread_number > number_of_threads)
@@ -145,12 +142,20 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     }
     MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-    return new ModelOptimizerPll(msa, tree, model, current_instance->n_catg, thread_number);
+    return new ModelOptimizerPll(msa, tree, model, partition,
+                                 current_instance->n_catg,
+                                 thread_number);
 }
 
-bool ModelTest::evaluate_single_model(Model * model, mt_index_t thread_number, double tolerance, double epsilon)
+bool ModelTest::evaluate_single_model(Model * model,
+                                      partition_t & partition,
+                                      mt_index_t thread_number,
+                                      double tolerance,
+                                      double epsilon)
 {
-    ModelOptimizer * mopt = get_model_optimizer(model, thread_number);
+    ModelOptimizer * mopt = get_model_optimizer(model,
+                                                partition,
+                                                thread_number);
     assert(mopt);
 
     bool result = mopt->run(epsilon, tolerance);
@@ -159,14 +164,14 @@ bool ModelTest::evaluate_single_model(Model * model, mt_index_t thread_number, d
     return result;
 }
 
-bool ModelTest::evaluate_models()
+bool ModelTest::evaluate_models(partition_t & partition)
 {
     assert(current_instance);
 
     for (size_t i=0; i<current_instance->c_models.size(); i++)
     {
         Model * model = current_instance->c_models[i];
-        evaluate_single_model(model);
+        evaluate_single_model(model, partition);
     }
     return true;
 }
@@ -250,6 +255,14 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
     current_instance->msa = new MsaPll (options.msa_filename);
     current_instance->start_tree = options.starting_tree;
 
+    if (options.partitions_desc)
+    {
+        if (options.partitions_eff)
+            delete options.partitions_eff;
+        options.partitions_eff = new std::vector<partition_t>(*options.partitions_desc);
+        current_instance->msa->reorder_sites(*options.partitions_eff);
+        //current_instance->msa->print();
+    }
     switch (options.starting_tree)
     {
     case tree_user_fixed:

@@ -10,13 +10,17 @@
 
 #include <cerrno>
 #include <cassert>
+#include <vector>
+#include <iomanip>
+
+using namespace std;
 
 namespace modeltest
 {
 
   Msa::~Msa (){}
 
-  MsaPll::MsaPll (std::string msa_filename)
+  MsaPll::MsaPll (string msa_filename)
       : Msa(msa_filename)
   {
     char *hdr = NULL;
@@ -68,7 +72,7 @@ namespace modeltest
     return sequences[index];
   }
 
-  bool MsaPll::test(std::string const& msa_filename,
+  bool MsaPll::test(string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites)
   {
@@ -136,4 +140,66 @@ namespace modeltest
       return true;
   }
 
+  static void swap_sites(char **s,
+                         mt_index_t n_sequences,
+                         vector<mt_index_t> &r,
+                         mt_index_t p1,
+                         mt_index_t p2)
+  {
+      for (mt_index_t i=0; i<n_sequences; i++)
+      {
+        char s_aux = s[i][p1];
+        s[i][p1] = s[i][p2];
+        s[i][p2] = s_aux;
+      }
+      mt_index_t p = r[p1];
+      r[p1] = r[p2];
+      r[p2] = p;
+  }
+
+  bool MsaPll::reorder_sites(partitioning_scheme_t & scheme)
+  {
+      /* sort partitioning scheme */
+      Utils::sort_partitioning_scheme(scheme);
+
+      /* initialize reindex vector */
+      vector<mt_index_t> reindex(n_sites);
+      for (mt_index_t i=0; i<n_sites; i++)
+          reindex[i] = i;
+
+      mt_index_t cur = 0;
+      for (partition_t & partition : scheme)
+      {
+          partition_region_t new_region;
+          new_region.start = cur+1;
+          for (partition_region_t & region : partition.regions)
+          {
+              for (mt_index_t j=(region.start-1); j<region.end; j+=region.stride)
+              {
+                  if (reindex[cur] != j)
+                  {
+                      mt_index_t k = j;
+                      while(reindex[k] != j) k = reindex[k];
+
+                      /* swap */
+                      swap_sites(sequences, n_sequences, reindex, cur, k);
+                  }
+                  cur++;
+              }
+          }
+          new_region.end = cur;
+          new_region.stride = 1;
+          partition.regions.clear();
+          partition.regions.push_back(new_region);
+      }
+
+    return true;
+  }
+
+  void MsaPll::print() const
+  {
+      for (mt_index_t i=0; i<n_sequences; i++)
+          cout << setw(20) << tipnames[i] << " " << sequences[i] << endl;
+
+  }
 } /* namespace modeltest */
