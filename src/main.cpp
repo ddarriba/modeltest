@@ -226,10 +226,24 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 assert(0);
             return false;
         }
-        /* TODO: Validate sites */
-        /* Overlapping:         FATAL */
-        /* Uncovered sites:     WARN  */
-        /* Sites out of bounds: FATAL */
+
+        if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
+                                                   exec_opt.n_sites))
+        {
+            cerr << "Error in partitions file: "
+                 << exec_opt.partitions_filename << endl;
+            cerr << modeltest::mt_errmsg << endl;
+            return false;
+        }
+        else
+        {
+            if (modeltest::mt_errno)
+            {
+                cerr << "WARNING: "
+                     << modeltest::mt_errmsg << endl;
+                modeltest::mt_errno = 0;
+            }
+        }
     }
     else
     {
@@ -459,6 +473,8 @@ int main(int argc, char *argv[])
             modeltest::ModelSelection aicc_selection(mt.get_models(part_id),
                                                     modeltest::ic_aicc);
             aicc_selection.print(cout, 10);
+
+            /* TODO: Ignore DT if topology is fixed */
             modeltest::ModelSelection dt_selection(mt.get_models(part_id),
                                                     modeltest::ic_dt);
             dt_selection.print(cout, 10);

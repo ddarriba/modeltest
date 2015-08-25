@@ -18,7 +18,6 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
                                ic_type type)
 {
     double sum_exp = 0.0;
-
     models.resize(c_models.size());
     for (size_t i=0; i<c_models.size(); i++)
     {
@@ -48,6 +47,80 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         }
     }
 
+    if (type == ic_dt)
+    {
+        /* exactly as in DT-ModSel.pl */
+        double * bicLike = new double[c_models.size()];
+        double minBIC = c_models[0]->get_bic();
+        double minDT;
+        double denom = 0.0;
+        double sum, sumReciprocal;
+
+        /* get minimum BIC */
+        for (size_t i=0; i<c_models.size(); i++)
+        {
+            if (c_models[i]->get_bic() < minBIC)
+                minBIC = c_models[i]->get_bic();
+        }
+
+        for (size_t i=0; i<c_models.size(); i++)
+        {
+            bicLike[i] = exp(-0.5*(c_models[i]->get_bic() - minBIC));
+            denom += bicLike[i];
+        }
+
+        /* TODO: set to DOUBLE_MAX */
+        minDT = 999999999999;
+        for (size_t i=0; i<c_models.size(); i++)
+        {
+            Model * model1 = models[i].model;
+            sum = 0.0;
+            for (size_t j=0; j<c_models.size(); j++)
+            {
+                Model * model2 = models[j].model;
+
+                double distance = 2.0;
+                /* TODO: compute distance between trees */
+                // distance = distances.getDistance(model1.getTree(), model2.getTree());
+
+                assert(distance >= 0);
+                /* TODO: actually useless 'if'. If distance == 0, sum is not affected */
+                /*       also if distance < 0, there is an error */
+                if (distance > 0 && i!=j)
+                {
+                    sum += distance * bicLike[j];
+                }
+            }
+            models[i].score = sum / denom;
+            if (models[i].score < minDT)
+            {
+                minDT = models[i].score;
+            }
+        }
+
+        // Calculate DT differences
+        sumReciprocal = sum = 0;
+        for (size_t i=0; i<c_models.size(); i++)
+        {
+            models[i].delta = models[i].score - minDT;
+            sumReciprocal += 1.0 / models[i].score;
+        }
+
+        // DP we need to do it in a different way?: i think so...
+        for (size_t i=0; i<c_models.size(); i++)
+        {
+            if (models[i].delta > 1000)
+                models[i].weight = 0.0;
+            else
+                models[i].weight = (1.0 / models[i].score) / sumReciprocal;
+        }
+
+        delete bicLike;
+    }
+    else
+    {
+
+    }
     sort(models.begin(), models.end(), compare_score);
 
     for (size_t i=0; i<models.size(); i++)
