@@ -26,14 +26,14 @@ namespace modeltest
     /**
      * @brief Gets the header of a certain sequence
      * @param[in] index The index of the sequence
-     * @return
+     * @return the header at 'index'
      */
     virtual const char * get_header (mt_index_t index) const = 0;
 
     /**
      * @brief Gets the sequence at a certain position
      * @param[in] index The sequence to recover
-     * @return
+     * @return the sequence at 'index'
      */
     virtual const char * get_sequence (mt_index_t index) const = 0;
 

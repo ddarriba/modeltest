@@ -128,7 +128,8 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   rawdata = read_file (filename, &n);
   if (!rawdata)
    {
-     errno = MT_ERROR_IO;
+     mt_errno = MT_ERROR_IO;
+     snprintf(mt_errmsg, 200, "Cannot read file %s", filename.c_str());
      return 0;
    }
 
@@ -141,7 +142,10 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   if (partitions)
       Utils::sort_partitioning_scheme(*partitions);
   else
-      errno = MT_ERROR_IO_FORMAT;
+  {
+      mt_errno = MT_ERROR_IO_FORMAT;
+      snprintf(mt_errmsg, 200, "Wrong format in %s", filename.c_str());
+  }
 
   free (rawdata);
   return partitions;
@@ -582,7 +586,7 @@ static vector<partition_t> * parse_partition (int * inp)
                 delete partitions;
                 return 0;
             }
-            region.start  = region.end = atoi (token.lexeme);
+            region.start  = region.end = (mt_index_t) atoi (token.lexeme);
             region.stride = 1;
             NEXT_TOKEN
                     CONSUME(TOKEN_WHITESPACE)
@@ -597,7 +601,7 @@ static vector<partition_t> * parse_partition (int * inp)
                     delete partitions;
                     return 0;
                 }
-                region.end = atoi (token.lexeme);
+                region.end = (mt_index_t) atoi (token.lexeme);
                 if (region.end < region.start)
                 {
                     cerr << "End is smaller than Start in partition " << lines << endl;
@@ -616,7 +620,7 @@ static vector<partition_t> * parse_partition (int * inp)
                         delete partitions;
                         return 0;
                     }
-                    region.stride = atoi (token.lexeme);
+                    region.stride = (mt_index_t) atoi (token.lexeme);
                     NEXT_TOKEN
                 }
                 CONSUME(TOKEN_WHITESPACE)

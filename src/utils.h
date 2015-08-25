@@ -101,14 +101,14 @@ public:
 
     /**
      * @brief Sorts a partitioning scheme according to the starting sites
-     * @param[in, out] scheme The scheme to sort
+     * @param[in,out] scheme The scheme to sort
      */
     static void sort_partitioning_scheme(partitioning_scheme_t & scheme);
 
     /**
      * @brief Prints the execution options
      * @param[in] opts      The execution options
-     * @param[in, out] out  The output stream
+     * @param[in,out] out  The output stream
      */
     static void print_options(mt_options & opts, std::ostream  &out = std::cout);
 };

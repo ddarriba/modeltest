@@ -25,12 +25,12 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     dna_subst_schemes default_ss = ss_11;
 
     /* set default options */
+    data_type arg_datatype   = dt_dna;
     exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
-    exec_opt.datatype        = dt_dna;
     exec_opt.subst_schemes   = ss_undef;
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
@@ -65,11 +65,11 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         case 'd':
             if (!strcasecmp(optarg, "nt"))
             {
-                exec_opt.datatype = dt_dna;
+                arg_datatype = dt_dna;
             }
             else if (!strcasecmp(optarg, "aa"))
             {
-                exec_opt.datatype = dt_protein;
+                arg_datatype = dt_protein;
             }
             else
             {
@@ -240,13 +240,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         region.start = 1;
         region.end = exec_opt.n_sites;
         region.stride = 1;
-        partition.datatype = exec_opt.datatype;
+        partition.datatype = arg_datatype;
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         exec_opt.partitions_desc->push_back(partition);
     }
 
-    if (exec_opt.datatype == dt_protein)
+    if (arg_datatype == dt_protein)
     {
         if (dna_ss != ss_undef)
             cerr << "Warning: Substitution schemes will be ignored" << endl;
@@ -408,10 +408,10 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
-        if (!mt.build_instance(opts, tree_user_fixed))
+        if (!mt.build_instance(opts))
         {
             cerr << modeltest::mt_errmsg << endl;
-            return(modeltest::mt_errno);
+            return (int)modeltest::mt_errno;
         }
 
         cout << endl;
@@ -419,44 +419,50 @@ int main(int argc, char *argv[])
         cout << endl;
 
         //mt.evaluate_models();
-        cur_model = 0;
-        for (cur_model=0; cur_model<mt.get_models().size(); cur_model++)
+        for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
-            modeltest::Model *model = mt.get_models()[cur_model];
-            time_t ini_t = time(NULL);
-            if (!mt.evaluate_single_model(model,
-                                          opts.partitions_eff->at(0),
-                                          0,
-                                          opts.epsilon_param,
-                                          opts.epsilon_opt))
+
+            cout << endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << endl << endl;
+
+            partition_id_t part_id = {i};
+            cur_model = 0;
+            for (cur_model=0; cur_model<mt.get_models().size(); cur_model++)
             {
-                cerr << "ERROR OPTIMIZING MODEL" << endl;
-                return(MT_ERROR_OPTIMIZE);
+                modeltest::Model *model = mt.get_models(part_id)[cur_model];
+                time_t ini_t = time(NULL);
+                if (!mt.evaluate_single_model(model,
+                                              part_id,
+                                              0,
+                                              opts.epsilon_param,
+                                              opts.epsilon_opt))
+                {
+                    cerr << "ERROR OPTIMIZING MODEL" << endl;
+                    return(MT_ERROR_OPTIMIZE);
+                }
+
+                /* print progress */
+                cout << setw(5) << right << (cur_model+1) << "/"
+                     << setw(5) << left << mt.get_models().size()
+                     << setw(15) << left << model->get_name()
+                     << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+                     << model->get_lnl()
+                     << setw(8) << time(NULL) - ini_t
+                     << setw(8) << time(NULL) - ini_global_time << endl;
             }
 
-            /* print progress */
-            cout << setw(5) << right << (cur_model+1) << "/"
-                 << setw(5) << left << mt.get_models().size()
-                 << setw(15) << left << model->get_name()
-                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-                 << model->get_lnl()
-                 << setw(8) << time(NULL) - ini_t
-                 << setw(8) << time(NULL) - ini_global_time << endl;
+            modeltest::ModelSelection bic_selection(mt.get_models(part_id),
+                                                    modeltest::ic_bic);
+            bic_selection.print(cout);
+            modeltest::ModelSelection aic_selection(mt.get_models(part_id),
+                                                    modeltest::ic_aic);
+            aic_selection.print(cout, 10);
+            modeltest::ModelSelection aicc_selection(mt.get_models(part_id),
+                                                    modeltest::ic_aicc);
+            aicc_selection.print(cout, 10);
+            modeltest::ModelSelection dt_selection(mt.get_models(part_id),
+                                                    modeltest::ic_dt);
+            dt_selection.print(cout, 10);
         }
-
-        modeltest::ModelSelection bic_selection(mt.get_models(),
-                                                modeltest::ic_bic);
-        bic_selection.print(cout);
-        modeltest::ModelSelection aic_selection(mt.get_models(),
-                                                modeltest::ic_aic);
-        aic_selection.print(cout, 10);
-        modeltest::ModelSelection aicc_selection(mt.get_models(),
-                                                modeltest::ic_aicc);
-        aicc_selection.print(cout, 10);
-        modeltest::ModelSelection dt_selection(mt.get_models(),
-                                                modeltest::ic_dt);
-        dt_selection.print(cout, 10);
-
         /* clean */
         if (opts.partitions_desc)
             delete opts.partitions_desc;

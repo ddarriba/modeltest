@@ -1,29 +1,30 @@
 #ifndef MODELTEST_H
 #define MODELTEST_H
 
+#include "global_defs.h"
 #include "msa.h"
 #include "tree.h"
 #include "tree.h"
 #include "model.h"
 #include "model_selection.h"
 #include "model_optimizer_pll.h"
+#include "partition.h"
 
-#include <string>
-#include <vector>
+#include <map>
 
 #include "plldefs.h"
 
 namespace modeltest {
 
-extern unsigned int mt_errno;
-extern char mt_errmsg[200];
+typedef std::map<partition_id_t, Partition *> partitions_map_t;
 
 typedef struct
 {
-  modeltest::Msa * msa;     //! input MSA
-  modeltest::Tree * tree;   //! user defined tree (optional)
-  tree_type start_tree;     //! starting tree type
-  std::vector<modeltest::Model *> c_models; //! candidate models
+  modeltest::Msa * msa;                       //! input MSA
+  modeltest::Tree * tree;                     //! user defined tree (optional)
+  std::vector<partition_t> * partitions_eff;  //! partitioning
+
+  tree_type start_tree;           //! starting tree type
   mt_size_t sample_size;          //! sample size for model selection
 
   mt_size_t n_tips;               //! number of tips
@@ -66,62 +67,73 @@ public:
                           const Tree *tree);
 
     /**
+     * @brief Tests whether a partitioning scheme is valid
+     * @param[in] scheme the partitioning scheme
+     * @param[in] n_sites the number of sites
+     * @return true, if the partitioning scheme is valid for the msa
+     */
+    static bool test_partitions(const partitioning_scheme_t &scheme,
+                                mt_size_t n_sites);
+
+    /**
      * @brief Creates a model    optimization instance
      * @param options            general optimization options
-     * @param eval_all_matrices  evaluate 203 model matrices
      * @return true, if everything was OK, false in case of error
      */
-    bool build_instance(mt_options & options,
-                        bool eval_all_matrices);
+    bool build_instance(mt_options & options);
 
     /**
      * @brief Optimizes the parameters for one single model
      * @param model          model to optimize
-     * @param partition      partition to optimize
+     * @param part_id        partition to optimize
      * @param thread_number  number of the current thread
      * @param tolerance      tolerance for parameter optimization
      * @param epsilon        tolerance for global optimization
      * @return true, if the optimization is OK
      */
     bool evaluate_single_model(Model * model,
-                               partition_t &partition,
+                               const partition_id_t &part_id,
                                mt_index_t thread_number = 0,
                                double tolerance = 0.0001,
                                double epsilon = 0.001);
 
     /**
      * @brief Optimizes the whole candidate models set
-     * @param partition      partition to optimize
+     * @param[in] part_id      partition to optimize
      * @return true, if the optimization is OK
      */
-    bool evaluate_models(partition_t & partition);
+    bool evaluate_models(const partition_id_t &part_id);
 
     ModelOptimizer * get_model_optimizer(Model * model,
-                                         partition_t & partition,
-                                         mt_index_t thread_number = 0) const;
+                                         const partition_id_t &part_id,
+                                         mt_index_t thread_number = 0);
 
     /**
      * @brief Gets the set of candidate models
+     * @param[in] part_id  the partition id
      * @return the set of candidate models
      */
-    std::vector<Model *> const& get_models() const;
+    const std::vector<Model *> & get_models(const partition_id_t &part_id = {0});
 
     /**
      * @brief Updates the existing models with the values of another set
-     * @param c_models candidate models
+     * @param[in] c_models candidate models
+     * @param[in] part_id  the partition id
      * @return false if the models cannot be updated
      */
-    bool set_models(const std::vector<Model *> &c_models);
+    bool set_models(const std::vector<Model *> &c_models,
+                    const partition_id_t &part_id = {0});
 
 private:
     mt_size_t number_of_threads;            //! number of threads
     selection_instance * current_instance;  //! model optimization parameters
+    partitions_map_t partitions;            //! partitions
 
     /**
      * @brief Creates a new set of model optimization parameters
      */
-
     void create_instance();
+
     /**
      * @brief Deallocates all the memory
      */

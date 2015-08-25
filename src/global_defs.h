@@ -37,8 +37,17 @@
 #define VERBOSITY_MID             2
 #define VERBOSITY_HIGH            3
 
+namespace modeltest
+{
+  extern unsigned int mt_errno;
+  extern char mt_errmsg[200];
+}
+
 typedef unsigned int mt_size_t;
 typedef mt_size_t mt_index_t;
+typedef mt_size_t mt_mask_t;
+
+typedef std::vector<mt_index_t> partition_id_t;
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -58,14 +67,19 @@ extern int mpi_numprocs;
 #define MT_ERROR_LIBPLL        10100
 #define MT_ERROR_ALIGNMENT     10200
 #define MT_ERROR_TREE          10300
-#define MT_ERROR_MODELS        10400
-#define MT_ERROR_INSTANCE      10500
-#define MT_ERROR_OPTIMIZE      10600
+#define MT_ERROR_PARTITIONS    10400
+#define MT_ERROR_MODELS        10500
+#define MT_ERROR_INSTANCE      10600
+#define MT_ERROR_OPTIMIZE      10700
 
 /* fine grain errors */
 #define MT_ERROR_ALIGNMENT_DUPLICATED  10201
 #define MT_ERROR_ALIGNMENT_MISSING     10202
 #define MT_ERROR_TREE_MISSING          10301
+#define MT_ERROR_PARTITIONS_OUTBOUNDS  10401
+#define MT_ERROR_PARTITIONS_OVERLAP    10402
+
+#define MT_WARN_PARTITIONS_UNASIGNED   10410
 
 typedef enum {
     dt_dna,
@@ -92,9 +106,9 @@ typedef enum {
 
 typedef struct
 {
-    unsigned int start;
-    unsigned int end;
-    unsigned int stride;
+    mt_index_t start;
+    mt_index_t end;
+    mt_index_t stride;
 } partition_region_t;
 
 typedef struct
@@ -107,14 +121,13 @@ typedef struct
 typedef std::vector<partition_t> partitioning_scheme_t;
 
 typedef struct {
-    data_type datatype;                         /** Global datatype */
     std::string msa_filename;                   /** Input MSA filename */
     std::string tree_filename;                  /** User tree filename */
     std::string partitions_filename;            /** Partitions filename */
     std::string output_filename;                /** Output filename */
     tree_type starting_tree;                    /** Starting tree type */
     std::vector<mt_index_t> candidate_models;   /** Candidate models */
-    int model_params;                           /** Model parameters to opt */
+    mt_mask_t model_params;                     /** Model parameters to opt */
     mt_size_t n_catg;                           /** Number of gamma rate cats */
     std::vector<partition_t> * partitions_desc; /** Original partitioning */
     std::vector<partition_t> * partitions_eff;  /** Effective partitioning */

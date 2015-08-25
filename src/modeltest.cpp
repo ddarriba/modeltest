@@ -1,5 +1,6 @@
 #include "modeltest.h"
 
+#include "utils.h"
 #include "msapll.h"
 #include "treepll.h"
 
@@ -33,108 +34,9 @@ void ModelTest::create_instance()
     current_instance->tree = 0;
 }
 
-static bool sort_forwards(Model * m1, Model * m2)
-{
-    mt_size_t p1 = m1->get_n_free_variables();
-    mt_size_t p2 = m2->get_n_free_variables();
-    if (m1->is_G())
-        p1 += 20;
-    if (m2->is_G())
-        p2 += 20;
-    if (m1->is_I())
-        p1 += 10;
-    if (m2->is_I())
-        p2 += 10;
-
-    return p1 < p2;
-}
-
-static bool sort_backwards(Model * m1, Model * m2)
-{
-    mt_size_t p1 = m1->get_n_free_variables();
-    mt_size_t p2 = m2->get_n_free_variables();
-    if (m1->is_G())
-        p1 += 20;
-    if (m2->is_G())
-        p2 += 20;
-    if (m1->is_I())
-        p1 += 10;
-    if (m2->is_I())
-        p2 += 10;
-
-    return p1 > p2;
-}
-
-static bool build_models(mt_options & options,
-                         vector<Model *> &c_models,
-                         bool eval_all_matrices)
-{
-    UNUSED(eval_all_matrices);
-    mt_size_t n_matrices = (mt_size_t) options.candidate_models.size();
-    mt_size_t n_models = 0;
-
-    int freq_params = options.model_params & MOD_MASK_FREQ_PARAMS;
-    int rate_params = options.model_params & MOD_MASK_RATE_PARAMS;
-    if (!freq_params)
-    {
-        mt_errno = MT_ERROR_MODELS;
-         snprintf(mt_errmsg, 200, "Model frequencies is empty");
-        return false;
-    }
-
-    int it_model_params = rate_params;
-    while (it_model_params)
-    {
-        if (it_model_params & 1) n_models += n_matrices;
-        it_model_params >>= 1;
-    }
-
-    if (freq_params == 3)
-        n_models *= 2;
-    c_models.reserve(n_models);
-
-    for (int i=1; i<64; i*=2)
-    {
-        int cur_rate_param = rate_params & i;
-        if (cur_rate_param)
-        {
-            for (mt_index_t j=0; j<n_matrices; j++)
-            {
-                if (options.datatype == dt_dna)
-                {
-                    if (freq_params & MOD_PARAM_FIXED_FREQ)
-                        c_models.push_back(
-                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
-                                    );
-                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
-                        c_models.push_back(
-                                    new DnaModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
-                                    );
-                }
-                else if (options.datatype == dt_protein)
-                {
-                    if (freq_params & MOD_PARAM_FIXED_FREQ)
-                        c_models.push_back(
-                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
-                                    );
-                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
-                        c_models.push_back(
-                                    new ProtModel(options.candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
-                                    );
-                }
-                else
-                    assert(0);
-            }
-        }
-    }
-    assert(c_models.size() == n_models);
-
-    return true;
-}
-
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
-                                     partition_t & partition,
-                                     mt_index_t thread_number) const
+                                     const partition_id_t &part_id,
+                                     mt_index_t thread_number)
 {
     if( thread_number > number_of_threads)
     {
@@ -142,19 +44,21 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     }
     MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-    return new ModelOptimizerPll(msa, tree, model, partition,
+    const Partition * partition = partitions[part_id];
+    return new ModelOptimizerPll(msa, tree, model,
+                                 partition->get_descriptor(),
                                  current_instance->n_catg,
                                  thread_number);
 }
 
 bool ModelTest::evaluate_single_model(Model * model,
-                                      partition_t & partition,
+                                      const partition_id_t &part_id,
                                       mt_index_t thread_number,
                                       double tolerance,
                                       double epsilon)
 {
     ModelOptimizer * mopt = get_model_optimizer(model,
-                                                partition,
+                                                part_id,
                                                 thread_number);
     assert(mopt);
 
@@ -164,14 +68,16 @@ bool ModelTest::evaluate_single_model(Model * model,
     return result;
 }
 
-bool ModelTest::evaluate_models(partition_t & partition)
+bool ModelTest::evaluate_models(const partition_id_t &part_id)
 {
-    assert(current_instance);
+    assert(partitions.size());
+    Partition * partition = partitions[part_id];
+    assert(partition);
 
-    for (size_t i=0; i<current_instance->c_models.size(); i++)
+    vector<Model *> models = partition->get_models();
+    for (Model * model : models)
     {
-        Model * model = current_instance->c_models[i];
-        evaluate_single_model(model, partition);
+        evaluate_single_model(model, part_id);
     }
     return true;
 }
@@ -247,7 +153,56 @@ bool ModelTest::test_link(Msa const *msa,
     return true;
 }
 
-bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
+bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
+                                mt_size_t n_sites)
+{
+    /* Overlapping:         FATAL */
+    /* Uncovered sites:     WARN  */
+    /* Sites out of bounds: FATAL */
+
+    mt_errno = 0;
+    char * sites = (char *) Utils::c_allocate(n_sites, sizeof(char));
+    for (const partition_t &partition : scheme)
+        for (const partition_region_t &region : partition.regions)
+        {
+            if (region.start < 1 || region.start > n_sites ||
+                region.end < region.start || region.end > n_sites ||
+                region.stride < 1)
+            {
+                /* out of bounds */
+                mt_errno = MT_ERROR_PARTITIONS_OUTBOUNDS;
+                snprintf(mt_errmsg, 200, "Partition %s is out of bounds",partition.partition_name.c_str());
+                free(sites);
+                return false;
+            }
+            for (mt_index_t i=(region.start-1); i<region.end; i+=region.stride)
+            {
+                if (sites[i])
+                {
+                    /* overlapping */
+                    mt_errno = MT_ERROR_PARTITIONS_OVERLAP;
+                    snprintf(mt_errmsg, 200, "Partition %s overlaps another partition",partition.partition_name.c_str());
+                    free(sites);
+                    return false;
+                }
+                sites[i] = 1;
+            }
+        }
+    for (mt_index_t i=0; i<n_sites; i++)
+    {
+        if (!sites[i])
+        {
+            /* uncovered site */
+            mt_errno = MT_WARN_PARTITIONS_UNASIGNED;
+            snprintf(mt_errmsg, 200, "Site %d is not assigned to any partition", i);
+            break;
+        }
+    }
+    free(sites);
+    return true;
+}
+
+bool ModelTest::build_instance(mt_options & options)
 {
     free_stuff ();
     create_instance ();
@@ -261,8 +216,10 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
             delete options.partitions_eff;
         options.partitions_eff = new std::vector<partition_t>(*options.partitions_desc);
         current_instance->msa->reorder_sites(*options.partitions_eff);
+        current_instance->partitions_eff = options.partitions_eff;
         //current_instance->msa->print();
     }
+
     switch (options.starting_tree)
     {
     case tree_user_fixed:
@@ -321,60 +278,51 @@ bool ModelTest::build_instance(mt_options & options, bool eval_all_matrices)
     else
       current_instance->n_catg = 1;
 
-    if (!build_models (options,
-               current_instance->c_models, eval_all_matrices))
-      {
-        return false;
-      }
-
-    /*
-     * sort candidate models by
-     * estimated computational needs
-     */
-    bool (*fsort)(Model *, Model *);
-    if (number_of_threads == 1)
-        fsort = &sort_forwards;
-    else
-        fsort = &sort_backwards;
-    sort(current_instance->c_models.begin(),
-         current_instance->c_models.end(),
-         fsort);
-
-    return true;
-}
-
-vector<Model *> const& ModelTest::get_models() const
-{
-    return current_instance->c_models;
-}
-
-bool ModelTest::set_models(const std::vector<modeltest::Model *> &c_models)
-{
-    /* validate */
-    if (!current_instance || current_instance->c_models.size() != c_models.size())
-        return false;
-    for (size_t i=0; i<c_models.size(); i++)
-        if (c_models[i]->get_name().compare(current_instance->c_models[i]->get_name()))
-            return false;
-    for (size_t i=0; i<c_models.size(); i++)
+    mt_index_t cur_part_id = 0;
+    for (partition_t & partition : (*current_instance->partitions_eff))
     {
-        current_instance->c_models[i]->clone(c_models[i]);
+        partition_id_t part_id(1);
+        part_id[0] = cur_part_id;
+        Partition * new_part = new Partition(current_instance->msa,
+                                             current_instance->tree,
+                                             partition,
+                                             options.candidate_models,
+                                             options.model_params);
+        /*
+         * sort candidate models by
+         * estimated computational needs
+         */
+        new_part->sort_models(number_of_threads == 1);
+
+        partitions[part_id] = new_part;
+        cur_part_id++;
     }
+
     return true;
+}
+
+const vector<Model *> & ModelTest::get_models(const partition_id_t &part_id)
+{
+    return partitions[part_id]->get_models();
+}
+
+bool ModelTest::set_models(const std::vector<Model *> &c_models,
+                           const partition_id_t &part_id)
+{
+    return partitions[part_id]->set_models(c_models);
 }
 
 void ModelTest::free_stuff()
 {
     if (current_instance)
     {
-        for (size_t i=0; i<current_instance->c_models.size(); i++)
-            delete current_instance->c_models[i];
-
         if (current_instance->msa)
             delete current_instance->msa;
         if (current_instance->tree)
             delete current_instance->tree;
-
+        for (partitions_map_t::iterator it=partitions.begin(); it!=partitions.end(); ++it)
+            delete it->second;
+        partitions.clear();
         delete current_instance;
     }
 }

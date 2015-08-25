@@ -150,6 +150,7 @@ private:
     mt_size_t seq_len;
 
     ModelTest *mtest;
+    mt_options opts;
     std::vector<Model *> c_models;
     current_state state;
     QStandardItemModel * models_table_items;

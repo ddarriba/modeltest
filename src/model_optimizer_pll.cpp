@@ -40,7 +40,7 @@ ModelOptimizer::~ModelOptimizer() {}
 ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       TreePll *_tree,
                                       Model *_model,
-                                      partition_t & _partition,
+                                      const partition_t &_partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_model, _partition),
@@ -55,7 +55,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
     mt_size_t n_tips = tree->get_n_tips ();
     mt_size_t n_sites = 0;
-    for (partition_region_t & region : partition.regions)
+    for (const partition_region_t & region : partition.regions)
     {
         n_sites += (region.end - region.start + 1)/region.stride;
     }
@@ -108,7 +108,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             /* complex partition */
             seq = (char *) Utils::allocate(n_sites, sizeof(char));
             c_seq = seq;
-            for (partition_region_t & region : partition.regions)
+            for (const partition_region_t & region : partition.regions)
             {
                 mt_size_t region_sites = (region.end - region.start + 1)/region.stride;
                 if (region.stride == 1)

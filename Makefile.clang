@@ -2,8 +2,8 @@ CC = clang++
 
 INSTALLDIR = $(PWD)
 
-CFLAGS = -DCONSOLE -g -O3 -Weverything -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -std=c++11 
-CPPFLAGS = -DCONSOLE -g -O3 -Weverything -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -std=c++11 
+CFLAGS = -DCONSOLE -g -O3 -Weverything -Wno-c++98-compat -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -std=c++11 
+CPPFLAGS = -DCONSOLE -g -O3 -Weverything -Wno-c++98-compat -Wno-padded -Wno-exit-time-destructors -Wno-global-constructors -std=c++11 
 CPPLIBS = -lpll_optimize -lpll -lm
 
 CPPFILES = $(wildcard **/*.cpp)
@@ -13,6 +13,7 @@ OBJFILES = src/modeltest.o \
 	   src/model.o \
 	   src/msapll.o \
 	   src/treepll.o \
+	   src/partition.o \
 	   src/model_optimizer_pll.o \
 	   src/model_selection.o \
 		 src/main.o

@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     treepll.cpp \
     model_selection.cpp \
     main_console.cpp \
-    modeltest_gui.cpp
+    modeltest_gui.cpp \
+    partition.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -38,7 +39,8 @@ HEADERS  += \
     treepll.h \
     model_selection.h \
     global_defs.h \
-    modeltest_gui.h
+    modeltest_gui.h \
+    partition.h
 
 FORMS    += \
     compute_options.ui \

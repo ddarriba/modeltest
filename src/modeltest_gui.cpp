@@ -312,7 +312,7 @@ static QString to_qstring(const char * msg, msg_level level)
 
 void jModelTest::on_btnLoadAlignment_clicked()
 {
-    QString filters = "Multiple Sequence Alignment (*.phy *.nex *.fas *) ;; All files (*)";
+    QString filters = tr("Multiple Sequence Alignment(*.phy *.nex *.fas);; All files(*)");
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
                                                     "",
@@ -357,7 +357,7 @@ void jModelTest::on_btnLoadAlignment_clicked()
 
 void jModelTest::on_btnLoadTree_clicked()
 {
-    QString filters = "Newick tree (*.tree *.newick) ;; All files (*)";
+    QString filters = tr("Newick tree(*.tree *.newick);; All files(*)");
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
                                                     "",
@@ -407,29 +407,66 @@ void jModelTest::on_btnLoadTree_clicked()
 
 void jModelTest::on_btnLoadParts_clicked()
 {
-    QString filters = "Partitions file (*.model *.parts) ;; All files (*)";
+    QString filters = tr("Partitions file(*.model *.parts *.conf);; All files (*)");
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
                                                     "",
                                                     filters);
     const std::string loaded_file = file_name.toStdString();
 
-    if ( loaded_file .compare(""))
+    if (loaded_file.compare(""))
     {
         partitions_filename = loaded_file;
 
         /*TODO: validate */
-        ui->txtMessages->append(to_qstring("Loaded partitions %1", msg_notify).arg(partitions_filename.c_str()));
-        ui->tabView->setCurrentIndex(TAB_CONFIG);
-        if (check_state(STATE_ALIGNMENT_LOADED))
-          set_state(STATE_PARTITIONS_LOADED);
+        scheme = Utils::parse_partitions_file(partitions_filename);
+        if (!scheme)
+        {
+            partitions_filename = "";
+            ui->txtMessages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
+            ui->txtMessages->append(to_qstring(mt_errmsg, msg_error));
+            ui->tabView->setCurrentIndex(TAB_CONSOLE);
+            if (scheme)
+            {
+                delete scheme;
+                scheme = 0;
+            }
+            unset_state(STATE_PARTITIONS_LOADED);
+        }
+        else
+        {
+            if (!ModelTest::test_partitions(*scheme, seq_len))
+            {
+                ui->txtMessages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
+                ui->txtMessages->append(to_qstring(mt_errmsg, msg_error));
+                ui->tabView->setCurrentIndex(TAB_CONSOLE);
+                partitions_filename = "";
+                delete scheme;
+                scheme = 0;
+                unset_state(STATE_PARTITIONS_LOADED);
+            }
+            else
+            {
+                ui->txtMessages->append(to_qstring("Loaded partitions %1", msg_notify).arg(partitions_filename.c_str()));
+                if (mt_errno)
+                {
+                    /* there are warnings */
+                    ui->txtMessages->append("Warning: " + to_qstring(mt_errmsg, msg_error));
+                    ui->tabView->setCurrentIndex(TAB_CONSOLE);
+                }
+                else
+                    ui->tabView->setCurrentIndex(TAB_CONFIG);
+                set_state(STATE_PARTITIONS_LOADED);
+            }
+        }
+
+        ui->lblParts->setText(QString(Utils::getBaseName(partitions_filename).c_str()));
+        if (partitions_filename.compare(""))
+            ui->lblLoadPartsText->setText("Loaded");
+        else
+            ui->lblLoadPartsText->setText("None");
+        updateGUI();
     }
-    else
-    {
-        unset_state(STATE_PARTITIONS_LOADED);
-    }
-    ui->lblTree->setText(QString(Utils::getBaseName(partitions_filename).c_str()));
-    updateGUI();
 }
 
 void jModelTest::autoSelectSchemes(const int schemes[], int n)
@@ -754,8 +791,8 @@ void jModelTest::evaluate_models(ModelTest &mtest)
     {
         Model * model = models[i];
         //TODO: Get actual partition
-        partition_t part;
-        mtest.evaluate_single_model(model, part);
+        partition_id_t part_id = {0};
+        mtest.evaluate_single_model(model, part_id);
             updateGUI();
     }
 }
@@ -768,9 +805,9 @@ void jModelTest::evalmodels(int i, int thread_id)
     double epsilon = ui->txtOptEpsilon->text().toDouble();
 
     //TODO: Get actual partition
-    partition_t part;
+    partition_id_t part_id = {0};
     if (!model->is_optimized())
-        mtest->evaluate_single_model(model, part,
+        mtest->evaluate_single_model(model, part_id,
                                      thread_id,
                                      tolerance, epsilon);
 
@@ -919,7 +956,6 @@ void jModelTest::on_btnRun_clicked()
         }
     }
 
-    mt_options opts;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
     opts.msa_filename = msa_filename;
@@ -927,7 +963,9 @@ void jModelTest::on_btnRun_clicked()
     opts.partitions_filename = "";
     opts.candidate_models = matrices;
     opts.starting_tree = start_tree;
-    opts.datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+    opts.partitions_desc = NULL;
+    opts.partitions_eff = NULL;
+    data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
     if (!scheme)
     {
         /* create single partition / single region */
@@ -937,14 +975,14 @@ void jModelTest::on_btnRun_clicked()
         region.start = 1;
         region.end = seq_len;
         region.stride = 1;
-        partition.datatype = opts.datatype;
+        partition.datatype = datatype;
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         scheme->push_back(partition);
     }
     opts.partitions_desc = scheme;
 
-    bool ok_inst = mtest->build_instance(opts, ui->radSchemes203->isChecked());
+    bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
         ui->txtMessages->append(to_qstring("Error building instance", msg_error));
 
