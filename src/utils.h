@@ -94,7 +94,9 @@ public:
 
     /**
      * @brief Parses a file containing a set of partitions
-     * @param[in] filename The file to parse
+     * @param[in] filename             The file to parse
+     * @param[out] exist_dna_parts     Sets the flag if there is DNA data
+     * @param[out] exist_protein_parts Sets the flag if there is AA data
      * @return The set of partitions sorted by starting site
      */
     static partitioning_scheme_t * parse_partitions_file (std::string filename);

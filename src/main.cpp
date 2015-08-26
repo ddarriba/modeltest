@@ -18,6 +18,8 @@ using namespace std;
 static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 {
     bool input_file_ok = false;
+    bool exist_dna_models = false;
+    bool exist_protein_models = false;
     dna_subst_schemes dna_ss = ss_undef;
     string user_candidate_models = "";
 
@@ -216,14 +218,19 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                     exec_opt.partitions_filename);
         if (!exec_opt.partitions_desc)
         {
-            if (errno == MT_ERROR_IO)
+            switch (modeltest::mt_errno)
+            {
+            case MT_ERROR_IO:
                 cerr << "Error: Cannot read partitions file: "
                      << exec_opt.partitions_filename << endl;
-            else if (errno == MT_ERROR_IO_FORMAT)
+                break;
+            case MT_ERROR_IO_FORMAT:
                 cerr << "Error parsing partitions: "
                      << exec_opt.partitions_filename << endl;
-            else
+                break;
+            default:
                 assert(0);
+            }
             return false;
         }
 
@@ -244,6 +251,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 modeltest::mt_errno = 0;
             }
         }
+
+        assert(exec_opt.partitions_desc);
+        for (partition_t & partition : (*exec_opt.partitions_desc))
+        {
+            exist_dna_models     |= (partition.datatype == dt_dna);
+            exist_protein_models |= (partition.datatype == dt_protein);
+        }
     }
     else
     {
@@ -255,14 +269,16 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         region.end = exec_opt.n_sites;
         region.stride = 1;
         partition.datatype = arg_datatype;
+        exist_dna_models     = (arg_datatype == dt_dna);
+        exist_protein_models = (arg_datatype == dt_protein);
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         exec_opt.partitions_desc->push_back(partition);
     }
 
-    if (arg_datatype == dt_protein)
+    if (exist_protein_models)
     {
-        if (dna_ss != ss_undef)
+        if (!exist_dna_models && (dna_ss != ss_undef))
             cerr << "Warning: Substitution schemes will be ignored" << endl;
 
         if (user_candidate_models.compare(""))
@@ -292,7 +308,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             {
                 if (prot_matrices_bitv&1)
                 {
-                    exec_opt.candidate_models.push_back(i);
+                    exec_opt.aa_candidate_models.push_back(i);
                 }
                 prot_matrices_bitv >>= 1;
             }
@@ -301,10 +317,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         {
             /* the whole set is used */
             for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
-                exec_opt.candidate_models.push_back(i);
+                exec_opt.aa_candidate_models.push_back(i);
         }
     }
-    else
+    if (exist_dna_models)
     {
         if (user_candidate_models.compare("") && (dna_ss == ss_undef))
         {
@@ -330,11 +346,11 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 }
                 dna_matrices_bitv |= 1<<c_matrix;
             }
-            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
             {
                 if (dna_matrices_bitv&1)
                 {
-                    exec_opt.candidate_models.push_back(
+                    exec_opt.nt_candidate_models.push_back(
                                 dna_model_matrices_indices[i]);
                 }
                 dna_matrices_bitv >>= 1;
@@ -353,34 +369,34 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         {
         case ss_11:
             for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
-                exec_opt.candidate_models.push_back(dna_model_matrices_indices[i]);
+                exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[i]);
             break;
         case ss_7:
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[6]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[9]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[6]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[9]);
 
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[2]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[3]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
             break;
         case ss_5:
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[2]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[3]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
 
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
             break;
         case ss_3:
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.candidate_models.push_back(dna_model_matrices_indices[10]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
             break;
         case ss_203:
             for (mt_index_t i=0; i<203; i++)
-                exec_opt.candidate_models.push_back(i);
+                exec_opt.nt_candidate_models.push_back(i);
             break;
         case ss_undef:
             /* ignore */
@@ -388,16 +404,19 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         }
     }
 
-    assert(exec_opt.candidate_models.size() > 0);
+    assert(exec_opt.nt_candidate_models.size() > 0 ||
+           exec_opt.aa_candidate_models.size() > 0);
 
     /* if there are no model specifications, include all */
-    if (!exec_opt.model_params)
+    if (!(exec_opt.model_params &
+          ~(MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
         exec_opt.model_params =
                 MOD_PARAM_NO_RATE_VAR |
                 MOD_PARAM_INV |
                 MOD_PARAM_GAMMA |
                 MOD_PARAM_INV_GAMMA;
 
+    /* if there are no frequencies specifications, include all */
     if (!(exec_opt.model_params &
          (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
         exec_opt.model_params |= MOD_PARAM_FIXED_FREQ;
@@ -440,7 +459,7 @@ int main(int argc, char *argv[])
 
             partition_id_t part_id = {i};
             cur_model = 0;
-            for (cur_model=0; cur_model<mt.get_models().size(); cur_model++)
+            for (cur_model=0; cur_model<mt.get_models(part_id).size(); cur_model++)
             {
                 modeltest::Model *model = mt.get_models(part_id)[cur_model];
                 time_t ini_t = time(NULL);
@@ -456,7 +475,7 @@ int main(int argc, char *argv[])
 
                 /* print progress */
                 cout << setw(5) << right << (cur_model+1) << "/"
-                     << setw(5) << left << mt.get_models().size()
+                     << setw(5) << left << mt.get_models(part_id).size()
                      << setw(15) << left << model->get_name()
                      << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
                      << model->get_lnl()
@@ -467,17 +486,38 @@ int main(int argc, char *argv[])
             modeltest::ModelSelection bic_selection(mt.get_models(part_id),
                                                     modeltest::ic_bic);
             bic_selection.print(cout);
+            cout << "Best model according to BIC" << endl;
+            cout << "---------------------------" << endl;
+            bic_selection.print_best_model(cout);
+            cout << endl;
+
             modeltest::ModelSelection aic_selection(mt.get_models(part_id),
                                                     modeltest::ic_aic);
             aic_selection.print(cout, 10);
+            cout << "Best model according to AIC" << endl;
+            cout << "---------------------------" << endl;
+            aic_selection.print_best_model(cout);
+            cout << endl;
+
             modeltest::ModelSelection aicc_selection(mt.get_models(part_id),
                                                     modeltest::ic_aicc);
             aicc_selection.print(cout, 10);
+            cout << "Best model according to AICc" << endl;
+            cout << "----------------------------" << endl;
+            aicc_selection.print_best_model(cout);
+            cout << endl;
 
-            /* TODO: Ignore DT if topology is fixed */
-            modeltest::ModelSelection dt_selection(mt.get_models(part_id),
+            /* ignore DT if topology is fixed */
+            if (opts.starting_tree == tree_ml)
+            {
+                modeltest::ModelSelection dt_selection(mt.get_models(part_id),
                                                     modeltest::ic_dt);
-            dt_selection.print(cout, 10);
+                dt_selection.print(cout, 10);
+                cout << "Best model according to DT" << endl;
+                cout << "--------------------------" << endl;
+                dt_selection.print_best_model(cout);
+                cout << endl;
+            }
         }
         /* clean */
         if (opts.partitions_desc)

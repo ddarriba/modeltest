@@ -380,7 +380,7 @@ color: #222;</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="iconSize">
        <size>
@@ -1691,7 +1691,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QTabWidget" name="tabWidget">
+         <widget class="QTabWidget" name="results_content">
           <property name="font">
            <font>
             <family>Arial</family>
@@ -2010,7 +2010,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>cbShowRates</tabstop>
   <tabstop>cbShowHetParams</tabstop>
   <tabstop>tblModels</tabstop>
-  <tabstop>tabWidget</tabstop>
+  <tabstop>results_content</tabstop>
   <tabstop>tblResultsBic</tabstop>
   <tabstop>tblResultsAic</tabstop>
   <tabstop>tblResultsAicc</tabstop>

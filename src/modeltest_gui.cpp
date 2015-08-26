@@ -19,6 +19,7 @@
 #include <QProgressDialog>
 
 #define TABLE_MODELS_WIDTH 905
+#define TABLE_COL_DT 6
 
 namespace modeltest {
 
@@ -543,7 +544,7 @@ void jModelTest::on_radTopoU_clicked()
     assert(ui->btnLoadTree->isEnabled());
     on_btnLoadTree_clicked();
 
-    if (!utree_basename.compare(""))
+    if (!utree_filename.compare(""))
     {
         ui->radTopoFixedGtr->setChecked(true);
     }
@@ -553,7 +554,6 @@ void jModelTest::on_radTopoU_clicked()
 void jModelTest::on_radTopoFixedMp_clicked()
 {
     utree_filename = "";
-    utree_basename = "";
     ui->lblTree->setStyleSheet("color: #007;");
     ui->lblTree->setText("Fixed Maximum Parsimony");
     updateGUI();
@@ -562,7 +562,6 @@ void jModelTest::on_radTopoFixedMp_clicked()
 void jModelTest::on_radTopoFixedGtr_clicked()
 {
     utree_filename = "";
-    utree_basename = "";
     ui->lblTree->setStyleSheet("color: #007;");
     ui->lblTree->setText("Fixed Maximum Likelihood (GTR)");
     updateGUI();
@@ -571,7 +570,6 @@ void jModelTest::on_radTopoFixedGtr_clicked()
 void jModelTest::on_radTopoFixedJc_clicked()
 {
     utree_filename = "";
-    utree_basename = "";
     ui->lblTree->setStyleSheet("color: #007;");
     ui->lblTree->setText("Fixed Maximum Likelihood (JC)");
     updateGUI();
@@ -580,7 +578,6 @@ void jModelTest::on_radTopoFixedJc_clicked()
 void jModelTest::on_radTopoML_clicked()
 {
     utree_filename = "";
-    utree_basename = "";
     ui->lblTree->setStyleSheet("color: #007;");
     ui->lblTree->setText("Maximum Likelihood");
     updateGUI();
@@ -786,12 +783,12 @@ void jModelTest::on_btnResetConfig_clicked()
 
 void jModelTest::evaluate_models(ModelTest &mtest)
 {
-    const std::vector<Model *> models = mtest.get_models();
+    //TODO: Get actual partition
+    partition_id_t part_id = {0};
+    const std::vector<Model *> models = mtest.get_models(part_id);
     for (size_t i=0; i<models.size(); i++)
     {
         Model * model = models[i];
-        //TODO: Get actual partition
-        partition_id_t part_id = {0};
         mtest.evaluate_single_model(model, part_id);
             updateGUI();
     }
@@ -799,13 +796,14 @@ void jModelTest::evaluate_models(ModelTest &mtest)
 
 void jModelTest::evalmodels(int i, int thread_id)
 {
-    const std::vector<Model *> modelsPtr = mtest->get_models();
+    //TODO: Get actual partition
+    partition_id_t part_id = {0};
+
+    const std::vector<Model *> modelsPtr = mtest->get_models(part_id);
     Model * model = modelsPtr[i];
     double tolerance = ui->txtParEpsilon->text().toDouble();
     double epsilon = ui->txtOptEpsilon->text().toDouble();
 
-    //TODO: Get actual partition
-    partition_id_t part_id = {0};
     if (!model->is_optimized())
         mtest->evaluate_single_model(model, part_id,
                                      thread_id,
@@ -885,7 +883,9 @@ void jModelTest::cancel_jobs()
 
 void jModelTest::on_btnRun_clicked()
 {
-    int number_of_threads = ui->sliderNThreads->value();
+    //TODO: Get actual partition
+    partition_id_t part_id = {0};
+    int number_of_threads  = ui->sliderNThreads->value();
 
     QMessageBox msgBox;
     msgBox.setText("Start models optimizaion");
@@ -961,7 +961,10 @@ void jModelTest::on_btnRun_clicked()
     opts.msa_filename = msa_filename;
     opts.tree_filename = utree_filename;
     opts.partitions_filename = "";
-    opts.candidate_models = matrices;
+    if (ui->radDatatypeDna->isChecked())
+        opts.nt_candidate_models = matrices;
+    else
+        opts.aa_candidate_models = matrices;
     opts.starting_tree = start_tree;
     opts.partitions_desc = NULL;
     opts.partitions_eff = NULL;
@@ -988,12 +991,18 @@ void jModelTest::on_btnRun_clicked()
 
     if (c_models.size())
     {
-        mtest->set_models(c_models);
+        mtest->set_models(c_models, part_id);
     }
 
     unset_state(STATE_MODELS_OPTIMIZED);
     set_state(STATE_MODELS_OPTIMIZING);
     ui->tabView->setCurrentIndex(TAB_RUN);
+
+    /* hide DT tabs/columns if the tree is fixed */
+    ui->results_content->setTabEnabled(TAB_RESULTS_DT,
+                                       opts.starting_tree == tree_ml);
+    ui->tblModels->setColumnHidden(TABLE_COL_DT,
+                                   (opts.starting_tree != tree_ml));
     updateGUI();
 
     QThreadPool::globalInstance()->setMaxThreadCount(number_of_threads);
@@ -1012,7 +1021,7 @@ void jModelTest::on_btnRun_clicked()
     }
 
     //QFuture<void> fut = QtConcurrent::run(evalmodels, mtest, ui);
-    const std::vector<Model *> & modelsPtr = mtest->get_models();
+    const std::vector<Model *> & modelsPtr = mtest->get_models(part_id);
     QVector<int> models;
     for (int i=0; (size_t)i < modelsPtr.size(); i++)
         models.append(i);
@@ -1046,8 +1055,16 @@ void jModelTest::on_btnRun_clicked()
     fill_results(ui->tblResultsAic, aic_selection);
     ModelSelection aicc_selection(modelsPtr, ic_aicc);
     fill_results(ui->tblResultsAicc, aicc_selection);
-    ModelSelection dt_selection(modelsPtr, ic_dt);
-    fill_results(ui->tblResultsDt, dt_selection);
+    if (opts.starting_tree == tree_ml)
+    {
+        ui->tabResultsDt->setVisible(true);
+        ModelSelection dt_selection(modelsPtr, ic_dt);
+        fill_results(ui->tblResultsDt, dt_selection);
+    }
+    else
+    {
+        ui->tabResultsDt->setVisible(false);
+    }
 
     /* clear and clone models */
     for (size_t i=0; i<c_models.size(); i++)

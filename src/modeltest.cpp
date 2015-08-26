@@ -194,7 +194,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
         {
             /* uncovered site */
             mt_errno = MT_WARN_PARTITIONS_UNASIGNED;
-            snprintf(mt_errmsg, 200, "Site %d is not assigned to any partition", i);
+            snprintf(mt_errmsg, 200, "Site %d is not assigned to any partition", i+1);
             break;
         }
     }
@@ -283,11 +283,22 @@ bool ModelTest::build_instance(mt_options & options)
     {
         partition_id_t part_id(1);
         part_id[0] = cur_part_id;
-        Partition * new_part = new Partition(current_instance->msa,
-                                             current_instance->tree,
-                                             partition,
-                                             options.candidate_models,
-                                             options.model_params);
+        Partition * new_part;
+        if (partition.datatype == dt_dna)
+            new_part = new Partition(current_instance->msa,
+                                     current_instance->tree,
+                                     partition,
+                                     options.nt_candidate_models,
+                                     options.model_params);
+        else if (partition.datatype == dt_protein)
+            new_part = new Partition(current_instance->msa,
+                                     current_instance->tree,
+                                     partition,
+                                     options.aa_candidate_models,
+                                     options.model_params);
+        else
+            assert(0);
+
         /*
          * sort candidate models by
          * estimated computational needs

@@ -47,8 +47,15 @@ public:
     /**
      * @brief Prints the selection results
      * @param[in] out the output stream to print to
+     * @param[in] limit the number of models to print
      */
     void print(std::ostream  &out = std::cout, mt_size_t limit = 0);
+
+    /**
+     * @brief Prints the best model
+     * @param[in] out the output stream to print to
+     */
+    void print_best_model(std::ostream  &out = std::cout);
 
 private:
     std::vector<selection_model> models; //! selection wrappers

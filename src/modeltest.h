@@ -113,7 +113,7 @@ public:
      * @param[in] part_id  the partition id
      * @return the set of candidate models
      */
-    const std::vector<Model *> & get_models(const partition_id_t &part_id = {0});
+    const std::vector<Model *> & get_models(const partition_id_t &part_id);
 
     /**
      * @brief Updates the existing models with the values of another set
@@ -122,7 +122,7 @@ public:
      * @return false if the models cannot be updated
      */
     bool set_models(const std::vector<Model *> &c_models,
-                    const partition_id_t &part_id = {0});
+                    const partition_id_t &part_id);
 
 private:
     mt_size_t number_of_threads;            //! number of threads

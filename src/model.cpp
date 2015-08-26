@@ -1,7 +1,7 @@
 #include "model.h"
 #include "utils.h"
 
-#include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <cstring>
@@ -357,6 +357,29 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
+void DnaModel::print(std::ostream  &out)
+{
+    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << get_name() << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << get_lnl() << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    out << endl;
+    out << setw(PRINTMODEL_TABSIZE) << left << "Subst. Rates:";
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+        out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
+    out << endl;
+    out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
+    if (is_I())
+        out << prop_inv << endl;
+    else
+        out << "-" << endl;
+    out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
+    if (is_G())
+        out << alpha << endl;
+    else
+        out << "-" << endl;
+}
 
 
 /* PROTEIN MODELS */
@@ -452,4 +475,29 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
     exit(EXIT_FAILURE);
 }
 
+void ProtModel::print(std::ostream  &out)
+{
+    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << get_name() << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << get_lnl() << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+    for (mt_index_t i=0; i<N_PROT_STATES; i++)
+    {
+        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+        if ((i+1)<N_PROT_STATES && !((i+1)%5))
+        {
+            out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+        }
+    }
+    out << endl;
+    out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
+    if (is_I())
+        out << prop_inv << endl;
+    else
+        out << "-" << endl;
+    out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
+    if (is_G())
+        out << alpha << endl;
+    else
+        out << "-" << endl;
+}
 }

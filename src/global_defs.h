@@ -121,26 +121,27 @@ typedef struct
 typedef std::vector<partition_t> partitioning_scheme_t;
 
 typedef struct {
-    std::string msa_filename;                   /** Input MSA filename */
-    std::string tree_filename;                  /** User tree filename */
-    std::string partitions_filename;            /** Partitions filename */
-    std::string output_filename;                /** Output filename */
-    tree_type starting_tree;                    /** Starting tree type */
-    std::vector<mt_index_t> candidate_models;   /** Candidate models */
-    mt_mask_t model_params;                     /** Model parameters to opt */
-    mt_size_t n_catg;                           /** Number of gamma rate cats */
-    std::vector<partition_t> * partitions_desc; /** Original partitioning */
-    std::vector<partition_t> * partitions_eff;  /** Effective partitioning */
+    std::string msa_filename;                   //! Input MSA filename
+    std::string tree_filename;                  //! User tree filename
+    std::string partitions_filename;            //! Partitions filename
+    std::string output_filename;                //! Output filename
+    tree_type starting_tree;                    //! Starting tree type
+    std::vector<mt_index_t> nt_candidate_models;   //! Candidate models for DNA
+    std::vector<mt_index_t> aa_candidate_models;   //! Candidate models for AA
+    mt_mask_t model_params;                     //! Model parameters to opt
+    mt_size_t n_catg;                           //! Number of gamma rate cats
+    std::vector<partition_t> * partitions_desc; //! Original partitioning
+    std::vector<partition_t> * partitions_eff;  //! Effective partitioning
 
-    mt_size_t n_taxa;        /** Number of taxa */
-    mt_size_t n_sites;       /** Number of sites */
+    mt_size_t n_taxa;        //! Number of taxa
+    mt_size_t n_sites;       //! Number of sites
 
-    double epsilon_param;    /** Parameter optimization epsilon */
-    double epsilon_opt;      /** Global optimization epsilon */
+    double epsilon_param;    //! Parameter optimization epsilon
+    double epsilon_opt;      //! Global optimization epsilon
 
-    dna_subst_schemes subst_schemes;        /** DNA substitution schemes */
-    unsigned int rnd_seed;                  /** RNG seed */
-    int verbose;                            /** verbosity level */
+    dna_subst_schemes subst_schemes;        //! DNA substitution schemes
+    unsigned int rnd_seed;                  //! RNG seed
+    int verbose;                            //! Verbosity level
 } mt_options;
 
 #endif // GLOBAL_DEFS_H

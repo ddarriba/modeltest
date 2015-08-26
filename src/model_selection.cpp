@@ -175,4 +175,12 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }
 
+void ModelSelection::print_best_model(std::ostream  &out)
+{
+    selection_model &best_sel_model = models[0];
+    Model * best_model = best_sel_model.model;
+    best_model->print(out);
+    out << setw(PRINTMODEL_TABSIZE) << left << "Score:" << best_sel_model.score << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Weight" << best_sel_model.weight << endl;
+}
 }

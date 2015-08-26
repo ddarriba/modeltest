@@ -16,6 +16,11 @@
 #define TAB_RUN     2
 #define TAB_RESULTS 3
 
+#define TAB_RESULTS_BIC  0
+#define TAB_RESULTS_AIC  1
+#define TAB_RESULTS_AICC 2
+#define TAB_RESULTS_DT   3
+
 enum current_state {
     STATE_INITIAL            = 0,
     STATE_ALIGNMENT_LOADED   = 1<<0,
@@ -138,9 +143,7 @@ private:
     size_t compute_size(int n_cats, int n_threads);
 
     std::string msa_filename;
-    std::string msa_basename;
     std::string utree_filename;
-    std::string utree_basename;
     std::string partitions_filename;
     std::string partitions_basename;
 

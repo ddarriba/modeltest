@@ -34,6 +34,7 @@ namespace modeltest
 {
 
 bool on_run = true;
+static bool keep_branch_lengths = false;
 
 ModelOptimizer::~ModelOptimizer() {}
 
@@ -406,7 +407,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               cur_parameter_index %= params_to_optimize.size();
           }
           /* TODO: if bl are reoptimized */
-          //tree->set_bl_optimized();
+          if (keep_branch_lengths)
+            tree->set_bl_optimized();
       }
       cur_logl *= -1;
 
