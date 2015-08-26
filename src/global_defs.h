@@ -139,9 +139,11 @@ typedef struct {
     double epsilon_param;    //! Parameter optimization epsilon
     double epsilon_opt;      //! Global optimization epsilon
 
-    dna_subst_schemes subst_schemes;        //! DNA substitution schemes
-    unsigned int rnd_seed;                  //! RNG seed
-    int verbose;                            //! Verbosity level
+    dna_subst_schemes subst_schemes;  //! DNA substitution schemes
+    unsigned int rnd_seed;            //! RNG seed
+    int verbose;                      //! Verbosity level
+
+    mt_size_t n_threads;              //! Number of threads for optimiz.
 } mt_options;
 
 #endif // GLOBAL_DEFS_H

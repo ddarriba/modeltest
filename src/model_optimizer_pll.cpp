@@ -18,14 +18,15 @@ static int cb_full_traversal(pll_utree_t * node)
     return 1;
 }
 
-/* a callback function for performing a full traversal */
+/* a callback function for resetting all branches */
 static int cb_reset_branches(pll_utree_t * node)
 {
 
     UNUSED(node);
+
     /* reset branches */
-//    node->length = 0.1;
-//    node->back->length = 0.1;
+    node->length = 0.1;
+    node->back->length = 0.1;
 
     return 1;
 }

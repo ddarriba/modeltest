@@ -15,6 +15,9 @@
 
 using namespace std;
 
+/** number of parallel processes */
+static mt_size_t n_procs = 1;
+
 static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 {
     bool input_file_ok = false;
@@ -37,6 +40,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
     exec_opt.verbose         = VERBOSITY_DEFAULT;
+    exec_opt.n_threads       = 1;
 
     static struct option long_options[] =
     {
@@ -52,17 +56,18 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
+        { "processes", required_argument, 0, 'p' },
         { "output", required_argument, 0, 'o' },
         { "verbose", no_argument, 0, 'v' },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:q:r:S:t:v", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:p:q:r:S:t:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
-            exec_opt.n_catg = (mt_index_t) atoi(optarg);
+            exec_opt.n_catg = (mt_size_t) atoi(optarg);
             break;
         case 'd':
             if (!strcasecmp(optarg, "nt"))
@@ -129,7 +134,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                     exec_opt.model_params  |= MOD_PARAM_INV_GAMMA;
                     break;
                 default:
-                    cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
+                    cerr << "Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
                     return false;
                 }
             }
@@ -145,6 +150,14 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         }
         case 'o':
             exec_opt.output_filename = optarg;
+            break;
+        case 'p':
+            n_procs = (mt_size_t) atoi(optarg);
+            if (n_procs <= 0)
+            {
+                cerr <<"Invalid number of parallel processes: " << optarg << endl;
+                return false;
+            }
             break;
         case 'q':
             exec_opt.partitions_filename = optarg;
@@ -221,7 +234,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             switch (modeltest::mt_errno)
             {
             case MT_ERROR_IO:
-                cerr << "Error: Cannot read partitions file: "
+                cerr << "Cannot read partitions file: "
                      << exec_opt.partitions_filename << endl;
                 break;
             case MT_ERROR_IO_FORMAT:
@@ -433,13 +446,14 @@ int main(int argc, char *argv[])
     {
         /* command line */
         mt_options opts;
-        modeltest::ModelTest mt;
         mt_index_t cur_model;
 
         if (!parse_arguments(argc, argv, opts))
         {
             return(EXIT_FAILURE);
         }
+
+        modeltest::ModelTest mt(n_procs);
 
         if (!mt.build_instance(opts))
         {
