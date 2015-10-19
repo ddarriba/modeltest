@@ -66,6 +66,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 (n_tips - 2),                     /* clv buffers */
                 model->get_n_states(),            /* states */
                 n_sites,                          /* sites */
+                0,                                /* mixture model */
                 1,                                /* rate matrices */
                 (2 * n_tips - 3),                 /* prob matrices */
                 model->is_G () ? _n_cat_g : 1,    /* rate cats */
@@ -206,14 +207,40 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       if (which_parameter == PLL_PARAMETER_BRANCHES_ITERATIVE)
       {
-          params->which_parameters = PLL_PARAMETER_BRANCHES_SINGLE;
+          int smoothings = 2;
+          mt_index_t matrix_count, ops_count;
           pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
-
-          cur_logl = pll_optimize_branch_lengths_iterative (params, pll_tree, 5);
-
           pll_utree_t ** travbuffer = (pll_utree_t **) malloc(
                       (2*tree->get_n_tips() - 2) * sizeof(pll_utree_t *));
           mt_size_t traversal_size;
+
+          params->which_parameters = PLL_PARAMETER_BRANCHES_SINGLE;
+
+          if (!pll_utree_traverse (pll_tree,
+                                   cb_full_traversal,
+                                   travbuffer,
+                                   &traversal_size))
+          {
+            assert(0);
+          }
+          pll_utree_create_operations(travbuffer,
+                                        traversal_size,
+                                        branch_lengths,
+                                        matrix_indices,
+                                        operations,
+                                        &matrix_count,
+                                        &ops_count);
+          pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
+                                      2 * tree->get_n_tips() - 3);
+          pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
+
+          cur_logl = pll_optimize_branch_lengths_iterative (pll_partition,
+                                                            pll_tree,
+                                                            params->params_index,
+                                                            params->lk_params.freqs_index,
+                                                            params->pgtol,
+                                                            smoothings);
+
           if (!pll_utree_traverse (pll_tree,
                                    cb_full_traversal,
                                    travbuffer,
@@ -222,7 +249,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             assert(0);
           }
 
-          mt_index_t matrix_count, ops_count;
           pll_utree_create_operations(travbuffer,
                                       traversal_size,
                                       branch_lengths,
@@ -237,20 +263,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           params->lk_params.where.unrooted_t.child_scaler_index = pll_tree->back->scaler_index;
           params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
       }
-      else if (which_parameter == PLL_PARAMETER_FREQUENCIES)
+      else if (which_parameter == PLL_PARAMETER_ALPHA || which_parameter == PLL_PARAMETER_PINV)
       {
-          params->freq_ratios = (double *) calloc ((size_t) N_DNA_STATES - 1,
-                                                  sizeof(double));
-          for (int i = 0; i < (N_DNA_STATES - 1); i++)
-          {
-              params->freq_ratios[i] =
-                      pll_partition->frequencies[params->lk_params.freqs_index][i]
-                      / pll_partition->frequencies[params->lk_params.freqs_index][N_DNA_STATES
-                      - 1];
-          }
-          params->which_parameters = PLL_PARAMETER_FREQUENCIES;
-          cur_logl = pll_optimize_parameters_lbfgsb (params);
-          free (params->freq_ratios);
+          params->which_parameters = which_parameter;
+          cur_logl = pll_optimize_parameters_brent (params);
       }
       else
       {
@@ -287,6 +303,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
 
       /* optimization parameters */
+      params->mixture_index = 0;
       params->params_index = 0;
       if (model->get_n_subst_rates() == N_DNA_SUBST_RATES)
       {
@@ -329,9 +346,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           assert( pll_partition->rate_cats == 1);
           rate_cats[0] = 1.0;
       }
-      /* TODO: Use empirical frequencies with prot data */
-      pll_set_frequencies (pll_partition, 0, model->get_frequencies());
-      pll_set_subst_params (pll_partition, 0, model->get_subst_rates());
+
+      if (model->is_F())
+      {
+          //TODO: Keep empirical frequencies in cache
+         double * empirical_freqs = pll_compute_empirical_frequencies(pll_partition);
+         model->set_frequencies(empirical_freqs);
+         free(empirical_freqs);
+      }
+
+      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
+      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
       pll_set_category_rates (pll_partition, rate_cats);
       free(rate_cats);
 
