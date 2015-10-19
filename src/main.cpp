@@ -13,10 +13,75 @@
 #include <cerrno>
 #include <getopt.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE "modeltest"
+#define VERSION "1.0.1"
+#endif
+#define MAX_OPT_LENGTH 40
+#define SHORT_OPT_LENGTH 6
+#define COMPL_OPT_LENGTH MAX_OPT_LENGTH-SHORT_OPT_LENGTH
+
 using namespace std;
 
 /** number of parallel processes */
 static mt_size_t n_procs = 1;
+
+static void print_version(std::ostream& out)
+{
+    out << "Version: " << PACKAGE << " " << VERSION << endl;
+}
+
+static void print_usage(std::ostream& out)
+{
+    out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
+        out
+                << "            [-i configFile] [-d nt|aa] [-F] [-h] [-N] [-O findModel|gtr]"
+                << endl;
+        out
+                << "            [-p numberOfThreads] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
+                << endl;
+        out << "            [-S greedy|greedyext|hcluster|random|exhaustive]"
+                << endl;
+        out << "            [-t mp|fixed|user] [-u treeFile]" << endl;
+        out << "            [--config-help] [--config-template]" << endl;
+        out << endl;
+        out << "Selects the best-fit model of amino acid or nucleotide replacement."
+                << endl << endl;
+        out
+                << "Mandatory arguments for long options are also mandatory for short options."
+                << endl;
+        out << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -c, --categories num_cat"
+                << "Sets the number of gamma rate categories" << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type"
+                << "Sets the data type" << endl;
+        out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+                << "--datatype nt"
+                << "Nucleotide" << endl;
+        out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+                << "--datatype aa"
+                << "Amino acid" << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
+                << "Shows this help message" << endl;
+        out << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
+                << "Sets the input alignment file (FASTA format, required)" << endl;
+        out << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
+                << "Run in verbose mode" << endl;
+        out << endl;
+
+        out << setw(MAX_OPT_LENGTH) << left << "  -V, --version"
+                << "Output version information and exit" << endl;
+        out << endl;
+}
 
 static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 {
@@ -59,11 +124,12 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "processes", required_argument, 0, 'p' },
         { "output", required_argument, 0, 'o' },
         { "verbose", no_argument, 0, 'v' },
+        { "version", no_argument, 0, 'V' },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:p:q:r:S:t:v", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:p:q:r:S:t:vV", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 'c':
@@ -110,7 +176,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             break;
         case 'h':
-            cerr << "ModelTest Help:" << endl;
+            print_usage(cerr);
             return false;
         case 'H':
             for (mt_index_t i=0; i<strlen(optarg); i++)
@@ -199,9 +265,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         case 'v':
             exec_opt.verbose = VERBOSITY_HIGH;
             break;
-        default:
-            cerr << "Unrecognised argument -" << opt << endl;
+        case 'V':
+            print_version(cerr);
             return false;
+        default:
+            exit(1);
+            //cerr << "Unrecognised argument -" << opt << endl;
+            //return false;
         }
     }
 
@@ -421,18 +491,21 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
            exec_opt.aa_candidate_models.size() > 0);
 
     /* if there are no model specifications, include all */
+    int all_params = MOD_PARAM_NO_RATE_VAR |
+            MOD_PARAM_INV |
+            MOD_PARAM_GAMMA |
+            MOD_PARAM_INV_GAMMA;
     if (!(exec_opt.model_params &
-          ~(MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
-        exec_opt.model_params =
-                MOD_PARAM_NO_RATE_VAR |
-                MOD_PARAM_INV |
-                MOD_PARAM_GAMMA |
-                MOD_PARAM_INV_GAMMA;
+          all_params))
+        exec_opt.model_params |=
+                all_params;
 
     /* if there are no frequencies specifications, include all */
+    printf(" FREQS EST = %d %d %d\n", exec_opt.model_params, (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ), (exec_opt.model_params &
+                                 (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)));
     if (!(exec_opt.model_params &
          (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
-        exec_opt.model_params |= MOD_PARAM_FIXED_FREQ;
+        exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
 
     return true;
 }
