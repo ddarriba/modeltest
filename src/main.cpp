@@ -501,8 +501,6 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 all_params;
 
     /* if there are no frequencies specifications, include all */
-    printf(" FREQS EST = %d %d %d\n", exec_opt.model_params, (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ), (exec_opt.model_params &
-                                 (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)));
     if (!(exec_opt.model_params &
          (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
         exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
