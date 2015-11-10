@@ -63,20 +63,47 @@ static void print_usage(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type"
         << "sets the data type" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-        << "--datatype nt"
+        << "           nt"
         << "nucleotide" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-        << "--datatype aa"
+        << "           aa"
         << "amino acid" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -e, --epsilon epsilon_value"
+        << "sets the model optimization epsilon" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
         << "sets the input alignment file (FASTA format, required)" << endl;
 
+    out << setw(MAX_OPT_LENGTH) << left << "  -o, --output output_file"
+        << "pipes the output into a file" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -p, --processes n_procs"
+        << "sets the number of processors to use (shared memory)" << endl;
+
     out << setw(MAX_OPT_LENGTH) << left << "  -q, --partitions partitions_file"
         << "sets a partitioning scheme" << endl;
 
-    out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology topology type"
+    out << setw(MAX_OPT_LENGTH) << left << "  -r, --rngseed seed"
+        << "sets the seed for the random number generator" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology type"
         << "sets the starting topology" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           ml"
+        << "maximum likelihood" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           mp"
+        << "maximum parsimony" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           fixed-ml"
+        << "fixed maximum likelihood" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           fixed-mp"
+        << "fixed maximum parsimony" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           user"
+        << "fixed user defined (requires -u argument)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -u, --utree tree_file"
         << "sets a user tree" << endl;
@@ -106,6 +133,26 @@ static void print_usage(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "f: both +I and +G (+I+G)" << endl;
 
+    /************************************************************/
+
+    out << endl << " Partitioning scheme search:" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --psearch algorithm"
+        << "sets the partitioning scheme search algorithm" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "          kn"
+        << "k=n" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "          hcluster"
+        << "hierarchical clustering (req. 2n operations)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "          greedy"
+        << "greedy search (req. up to n^2 operations)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "          kmeans"
+        << "additive kmeans algorithm (unavailable)" << endl;
+
+    /************************************************************/
+
     out << endl << " Other options:" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
         << "run in verbose mode" << endl;
@@ -116,12 +163,13 @@ static void print_usage(std::ostream& out)
         << "output version information and exit" << endl;
     out << endl;
 
+
     out << "Exit status:" << endl;
     out << " 0  if OK," << endl;
     out << " 1  if minor problems (e.g., invalid arguments or data)," << endl;
     out << " 2  if serious trouble (e.g., execution crashed)." << endl;
     out << endl;
-    out << "Report " << PACKAGE << " bugs to ddarriba@h-its.org" << endl;
+    out << "Report " << PACKAGE << " bugs to diego.darriba@h-its.org" << endl;
     out << "ModelTest home page: <http://www.github.com/ddarriba/modeltest/>" << endl;
 }
 
@@ -164,6 +212,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
+        { "psearch", required_argument, 0, 1 },
         { "tree", required_argument, 0, 't' },
         { "utree", required_argument, 0, 'u' },
         { "verbose", no_argument, 0, 'v' },
@@ -175,12 +224,38 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v?", long_options,
                               &long_index)) != -1) {
         switch (opt) {
-        case 0:
-            print_version(cerr);
-            return false;
         case '?':
             print_usage(cerr);
             return false;
+        case 0:
+            print_version(cerr);
+            return false;
+        case 1:
+            /* partitioning search */
+            //TODO
+            if (!strcasecmp(optarg, "kn"))
+            {
+                cerr << "Search K=N" << endl;
+            }
+            else if (!strcasecmp(optarg, "hcluster"))
+            {
+                cerr << "Search hierarchical clustering" << endl;
+            }
+            else if (!strcasecmp(optarg, "greedy"))
+            {
+                cerr << "Search greedy" << endl;
+            }
+            else if (!strcasecmp(optarg, "kn"))
+            {
+                cerr << "Search K=N" << endl;
+            }
+            else
+            {
+                cerr << "ERROR: Invalid scheme search algorithm: " << optarg << endl;
+                return false;
+            }
+            return false;
+            break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
             if (exec_opt.n_catg <= 0)
