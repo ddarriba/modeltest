@@ -8,15 +8,11 @@
 #include "model.h"
 #include "model_selection.h"
 #include "model_optimizer_pll.h"
-#include "partition.h"
-
-#include <map>
+#include "partitioning_scheme.h"
 
 #include "plldefs.h"
 
 namespace modeltest {
-
-typedef std::map<partition_id_t, Partition *> partitions_map_t;
 
 typedef struct
 {

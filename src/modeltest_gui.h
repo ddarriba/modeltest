@@ -11,10 +11,10 @@
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
-#define TAB_CONSOLE 0
-#define TAB_CONFIG  1
-#define TAB_RUN     2
-#define TAB_RESULTS 3
+#define TAB_CONSOLE         0
+#define TAB_CONFIG          1
+#define TAB_RUN             2
+#define TAB_RESULTS         3
 
 #define TAB_RESULTS_BIC  0
 #define TAB_RESULTS_AIC  1
@@ -90,6 +90,7 @@ private slots:
     /* MENU */
     void on_actionReset_triggered();
     void on_menuFileLoad_triggered();
+    void on_menuFileQuit_triggered();
     void on_menuTreeLoad_triggered();
     void on_actionConsole_triggered();
     void on_actionConfigure_triggered();
@@ -163,6 +164,8 @@ private:
     void set_tablemodels_line(int line_id, Model * model);
 
     partitioning_scheme_t * scheme;
+
+    bool tabs_multi_shown;
 };
 
 }

@@ -13,6 +13,7 @@ OBJFILES = src/modeltest.o \
 	   src/model.o \
 	   src/msapll.o \
 	   src/partition.o \
+	   src/partitioning_scheme.o \
 	   src/treepll.o \
 	   src/model_optimizer_pll.o \
 	   src/model_selection.o \

@@ -30,57 +30,99 @@ static mt_size_t n_procs = 1;
 
 static void print_version(std::ostream& out)
 {
-    out << "Version: " << PACKAGE << " " << VERSION << endl;
+    out << PACKAGE << " " << VERSION << endl;
+    out << "Copyright (C) 2015 Diego Darriba" << endl;
+    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
+    out << "This is free software: you are free to change and redistribute it." << endl;
+    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
+    out << endl << "Written by Diego Darriba." << endl;
 }
 
 static void print_usage(std::ostream& out)
 {
     out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
-        out
-                << "            [-i configFile] [-d nt|aa] [-F] [-h] [-N] [-O findModel|gtr]"
-                << endl;
-        out
-                << "            [-p numberOfThreads] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
-                << endl;
-        out << "            [-S greedy|greedyext|hcluster|random|exhaustive]"
-                << endl;
-        out << "            [-t mp|fixed|user] [-u treeFile]" << endl;
-        out << "            [--config-help] [--config-template]" << endl;
-        out << endl;
-        out << "Selects the best-fit model of amino acid or nucleotide replacement."
-                << endl << endl;
-        out
-                << "Mandatory arguments for long options are also mandatory for short options."
-                << endl;
-        out << endl;
+    out << "            [-?] [-c n_categories] [-d nt|aa] [-F] [-N] [-O findModel|gtr]"
+        << endl;
+    out << "            [-p numberOfThreads] [-q configFile] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
+        << endl;
+    out << "            [-S greedy|greedyext|hcluster|random|exhaustive]"
+        << endl;
+    out << "            [-t mp|fixed|user] [-u treeFile] [-v] [-V]" << endl;
+    out << "            [--config-help] [--config-template]" << endl;
+    out << endl;
+    out << "selects the best-fit model of amino acid or nucleotide replacement."
+        << endl << endl;
+    out
+            << "mandatory arguments for long options are also mandatory for short options."
+            << endl;
+    out << endl;
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -c, --categories num_cat"
-                << "Sets the number of gamma rate categories" << endl;
+    /************************************************************/
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type"
-                << "Sets the data type" << endl;
-        out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-                << "--datatype nt"
-                << "Nucleotide" << endl;
-        out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-                << "--datatype aa"
-                << "Amino acid" << endl;
+    out << endl << " Main arguments:" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type"
+        << "sets the data type" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "--datatype nt"
+        << "nucleotide" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "--datatype aa"
+        << "amino acid" << endl;
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
-                << "Shows this help message" << endl;
-        out << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
+        << "sets the input alignment file (FASTA format, required)" << endl;
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
-                << "Sets the input alignment file (FASTA format, required)" << endl;
-        out << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -q, --partitions partitions_file"
+        << "sets a partitioning scheme" << endl;
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
-                << "Run in verbose mode" << endl;
-        out << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology topology type"
+        << "sets the starting topology" << endl;
 
-        out << setw(MAX_OPT_LENGTH) << left << "  -V, --version"
-                << "Output version information and exit" << endl;
-        out << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -u, --utree tree_file"
+        << "sets a user tree" << endl;
+
+    /************************************************************/
+
+    out << endl << " Candidate models:" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -c, --categories num_cat"
+        << "sets the number of gamma rate categories" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -f, --frequencies [ef]"
+        << "sets the candidate models frequencies" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "e: equal (DNA) / empirical (AA)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "f: maximum likelihood (DNA) / model defined (AA)" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -h, --model-het [uigf]"
+        << "sets the candidate models rate heterogeneity" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "u: uniform" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "i: proportion of invariant sites (+I)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "g: discrite Gamma rate categories (+G)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "f: both +I and +G (+I+G)" << endl;
+
+    out << endl << " Other options:" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
+        << "run in verbose mode" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -?, --help"
+        << "display this help message and exit" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --version"
+        << "output version information and exit" << endl;
+    out << endl;
+
+    out << "Exit status:" << endl;
+    out << " 0  if OK," << endl;
+    out << " 1  if minor problems (e.g., invalid arguments or data)," << endl;
+    out << " 2  if serious trouble (e.g., execution crashed)." << endl;
+    out << endl;
+    out << "Report " << PACKAGE << " bugs to ddarriba@h-its.org" << endl;
+    out << "ModelTest home page: <http://www.github.com/ddarriba/modeltest/>" << endl;
 }
 
 static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
@@ -112,28 +154,40 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "categories", required_argument, 0, 'c' },
         { "datatype", required_argument, 0, 'd' },
         { "epsilon", required_argument, 0, 'e' },
-        { "model-freqs", required_argument, 0, 'F' },
-        { "help", no_argument, 0, 'h' },
-        { "model-het", required_argument, 0, 'H' },
+        { "model-freqs", required_argument, 0, 'f' },
+        { "help", no_argument, 0, '?' },
+        { "model-het", required_argument, 0, 'h' },
         { "input", required_argument, 0, 'i' },
         { "models", required_argument, 0, 'm' },
-        { "tree", required_argument, 0, 't' },
+        { "output", required_argument, 0, 'o' },
+        { "processes", required_argument, 0, 'p' },
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
-        { "processes", required_argument, 0, 'p' },
-        { "output", required_argument, 0, 'o' },
+        { "tree", required_argument, 0, 't' },
+        { "utree", required_argument, 0, 'u' },
         { "verbose", no_argument, 0, 'v' },
-        { "version", no_argument, 0, 'V' },
+        { "version", no_argument, 0, 0 },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:F:hH:i:m:o:p:q:r:S:t:vV", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v?", long_options,
                               &long_index)) != -1) {
         switch (opt) {
+        case 0:
+            print_version(cerr);
+            return false;
+        case '?':
+            print_usage(cerr);
+            return false;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
+            if (exec_opt.n_catg <= 0)
+            {
+                cerr << "Invalid number of categories: " << exec_opt.n_catg << endl;
+                return false;
+            }
             break;
         case 'd':
             if (!strcasecmp(optarg, "nt"))
@@ -154,7 +208,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             exec_opt.epsilon_opt = atof(optarg);
             exec_opt.epsilon_param = atof(optarg);
             break;
-        case 'F':
+        case 'f':
             for (mt_index_t i=0; i<strlen(optarg); i++)
             {
                 switch(optarg[i])
@@ -176,9 +230,6 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             break;
         case 'h':
-            print_usage(cerr);
-            return false;
-        case 'H':
             for (mt_index_t i=0; i<strlen(optarg); i++)
             {
                 switch(optarg[i])
@@ -259,15 +310,35 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             break;
         case 't':
+            if (!strcasecmp(optarg, "user"))
+            {
+                exec_opt.starting_tree = tree_user_fixed;
+            }
+            else if (!strcasecmp(optarg, "mp"))
+            {
+                exec_opt.starting_tree = tree_mp;
+            }
+            else if (!strcasecmp(optarg, "ml"))
+            {
+                exec_opt.starting_tree = tree_ml;
+            }
+            else if (!strcasecmp(optarg, "fixed-ml-gtr"))
+            {
+                exec_opt.starting_tree = tree_ml_gtr_fixed;
+            }
+            else
+            {
+                cerr << "ERROR: Invalid starting topology " << optarg << endl;
+                return false;
+            }
+            break;
+        case 'u':
             exec_opt.tree_filename = optarg;
             exec_opt.starting_tree = tree_user_fixed;
             break;
         case 'v':
             exec_opt.verbose = VERBOSITY_HIGH;
             break;
-        case 'V':
-            print_version(cerr);
-            return false;
         default:
             exit(1);
             //cerr << "Unrecognised argument -" << opt << endl;
@@ -604,6 +675,7 @@ int main(int argc, char *argv[])
                 cout << endl;
             }
         }
+
         /* clean */
         if (opts.partitions_desc)
             delete opts.partitions_desc;

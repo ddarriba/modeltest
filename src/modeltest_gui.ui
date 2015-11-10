@@ -380,7 +380,7 @@ color: #222;</string>
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>
@@ -391,7 +391,7 @@ color: #222;</string>
       <property name="elideMode">
        <enum>Qt::ElideNone</enum>
       </property>
-      <widget class="QWidget" name="tabConsole">
+      <widget class="QWidget" name="tab_console">
        <attribute name="icon">
         <iconset>
          <normaloff>../IMG/console-icon.png</normaloff>../IMG/console-icon.png</iconset>
@@ -401,7 +401,7 @@ color: #222;</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QTextBrowser" name="txtMessages">
+         <widget class="QTextBrowser" name="txt_messages">
           <property name="html">
            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -413,7 +413,7 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_configure">
        <attribute name="icon">
         <iconset>
          <normaloff>../IMG/tool-icon.png</normaloff>../IMG/tool-icon.png</iconset>
@@ -431,7 +431,7 @@ p, li { white-space: pre-wrap; }
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-404</y>
+             <y>0</y>
              <width>994</width>
              <height>838</height>
             </rect>
@@ -1568,7 +1568,7 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_run">
+      <widget class="QWidget" name="tab_runsingle">
        <attribute name="icon">
         <iconset>
          <normaloff>../IMG/run-icon.png</normaloff>../IMG/run-icon.png</iconset>
@@ -1701,7 +1701,7 @@ p, li { white-space: pre-wrap; }
            <string/>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tabResultsBic">
            <attribute name="title">
@@ -2015,7 +2015,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>tblResultsAic</tabstop>
   <tabstop>tblResultsAicc</tabstop>
   <tabstop>tblResultsDt</tabstop>
-  <tabstop>txtMessages</tabstop>
+  <tabstop>txt_messages</tabstop>
  </tabstops>
  <resources/>
  <connections/>

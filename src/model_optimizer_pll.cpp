@@ -239,7 +239,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                                             params->params_index,
                                                             params->lk_params.freqs_index,
                                                             params->pgtol,
-                                                            smoothings);
+                                                            smoothings,
+                                                            true);
 
           if (!pll_utree_traverse (pll_tree,
                                    cb_full_traversal,

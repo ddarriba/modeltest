@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     model_selection.cpp \
     main_console.cpp \
     modeltest_gui.cpp \
-    partition.cpp
+    partition.cpp \
+    partitioning_scheme.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -40,7 +41,8 @@ HEADERS  += \
     model_selection.h \
     global_defs.h \
     modeltest_gui.h \
-    partition.h
+    partition.h \
+    partitioning_scheme.h
 
 FORMS    += \
     compute_options.ui \

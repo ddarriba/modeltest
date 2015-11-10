@@ -44,6 +44,7 @@ jModelTest::jModelTest(QWidget *parent) :
     n_seqs = 0;
     seq_len = 0;
     scheme = 0;
+    tabs_multi_shown = false;
 
     updateGUI();
 }
@@ -122,6 +123,8 @@ void jModelTest::updateGUI()
     ui->lblTree->setVisible(check_state(STATE_ALIGNMENT_LOADED));
     ui->lblLoadPartsText->setVisible(check_state(STATE_PARTITIONS_LOADED) && partitions_filename.compare(""));
     ui->lblParts->setVisible(check_state(STATE_ALIGNMENT_LOADED));
+
+    tabs_multi_shown = check_state(STATE_PARTITIONS_LOADED);
 
     if (ui->radTopoFixedMp->isChecked())
         start_tree = tree_mp;
@@ -330,11 +333,11 @@ void jModelTest::on_btnLoadAlignment_clicked()
         {
             char text[250];
 
-            ui->txtMessages->append(to_qstring("Loaded alignment %1", msg_notify).arg(msa_filename.c_str()));
+            ui->txt_messages->append(to_qstring("Loaded alignment %1", msg_notify).arg(msa_filename.c_str()));
             sprintf(text, "Num.Sequences:   %d", n_seqs);
-            ui->txtMessages->append(to_qstring(text, msg_info));
+            ui->txt_messages->append(to_qstring(text, msg_info));
             sprintf(text, "Sequence Length: %d", seq_len);
-            ui->txtMessages->append(to_qstring(text, msg_info));
+            ui->txt_messages->append(to_qstring(text, msg_info));
 
             utree_filename = "";
             clear_state();
@@ -344,7 +347,7 @@ void jModelTest::on_btnLoadAlignment_clicked()
         }
         else
         {
-            ui->txtMessages->append(to_qstring("Error: Cannot load alignment %1", msg_error).arg(msa_filename.c_str()));
+            ui->txt_messages->append(to_qstring("Error: Cannot load alignment %1", msg_error).arg(msa_filename.c_str()));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             msa_filename   = "";
             utree_filename = "";
@@ -375,14 +378,14 @@ void jModelTest::on_btnLoadTree_clicked()
         {
             if (n_tips == n_seqs)
             {
-                ui->txtMessages->append(to_qstring("Loaded tree %1", msg_notify).arg(utree_filename.c_str()));
+                ui->txt_messages->append(to_qstring("Loaded tree %1", msg_notify).arg(utree_filename.c_str()));
                 ui->tabView->setCurrentIndex(TAB_CONFIG);
                 if (check_state(STATE_ALIGNMENT_LOADED))
                     set_state(STATE_TREE_LOADED);
             }
             else
             {
-                ui->txtMessages->append(to_qstring("Error: Tip number does not match in %1", msg_error).arg(utree_filename.c_str()));
+                ui->txt_messages->append(to_qstring("Error: Tip number does not match in %1", msg_error).arg(utree_filename.c_str()));
                 ui->tabView->setCurrentIndex(TAB_CONSOLE);
                 utree_filename = "";
                 unset_state(STATE_TREE_LOADED);
@@ -390,7 +393,7 @@ void jModelTest::on_btnLoadTree_clicked()
         }
         else
         {
-            ui->txtMessages->append(to_qstring("Error: Cannot read tree %1", msg_error).arg(utree_filename.c_str()));
+            ui->txt_messages->append(to_qstring("Error: Cannot read tree %1", msg_error).arg(utree_filename.c_str()));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             utree_filename = "";
             unset_state(STATE_TREE_LOADED);
@@ -424,8 +427,8 @@ void jModelTest::on_btnLoadParts_clicked()
         if (!scheme)
         {
             partitions_filename = "";
-            ui->txtMessages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
-            ui->txtMessages->append(to_qstring(mt_errmsg, msg_error));
+            ui->txt_messages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
+            ui->txt_messages->append(to_qstring(mt_errmsg, msg_error));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             if (scheme)
             {
@@ -438,8 +441,8 @@ void jModelTest::on_btnLoadParts_clicked()
         {
             if (!ModelTest::test_partitions(*scheme, seq_len))
             {
-                ui->txtMessages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
-                ui->txtMessages->append(to_qstring(mt_errmsg, msg_error));
+                ui->txt_messages->append(to_qstring("Error loading partitions %1", msg_error).arg(partitions_filename.c_str()));
+                ui->txt_messages->append(to_qstring(mt_errmsg, msg_error));
                 ui->tabView->setCurrentIndex(TAB_CONSOLE);
                 partitions_filename = "";
                 delete scheme;
@@ -448,15 +451,13 @@ void jModelTest::on_btnLoadParts_clicked()
             }
             else
             {
-                ui->txtMessages->append(to_qstring("Loaded partitions %1", msg_notify).arg(partitions_filename.c_str()));
+                ui->txt_messages->append(to_qstring("Loaded %1 partitions %2", msg_notify).arg(scheme->size()).arg(partitions_filename.c_str()));
                 if (mt_errno)
                 {
                     /* there are warnings */
-                    ui->txtMessages->append("Warning: " + to_qstring(mt_errmsg, msg_error));
-                    ui->tabView->setCurrentIndex(TAB_CONSOLE);
+                    ui->txt_messages->append("Warning: " + to_qstring(mt_errmsg, msg_error));
                 }
-                else
-                    ui->tabView->setCurrentIndex(TAB_CONFIG);
+                ui->tabView->setCurrentIndex(TAB_CONSOLE);
                 set_state(STATE_PARTITIONS_LOADED);
             }
         }
@@ -683,6 +684,11 @@ void jModelTest::on_menuTreeLoad_triggered()
     on_btnLoadTree_clicked();
 }
 
+void jModelTest::on_menuFileQuit_triggered()
+{
+    exit(EXIT_SUCCESS);
+}
+
 void jModelTest::on_actionReset_triggered()
 {
     QMessageBox msgBox;
@@ -698,7 +704,7 @@ void jModelTest::on_actionReset_triggered()
         ui->lblTree->setText("");
         msa_filename = "";
         resetSettings();
-        ui->txtMessages->append(to_qstring("\nReset\n", msg_alert));
+        ui->txt_messages->append(to_qstring("\nReset\n", msg_alert));
     }
 }
 
@@ -987,7 +993,7 @@ void jModelTest::on_btnRun_clicked()
 
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
-        ui->txtMessages->append(to_qstring("Error building instance", msg_error));
+        ui->txt_messages->append(to_qstring("Error building instance", msg_error));
 
     if (c_models.size())
     {
@@ -1009,15 +1015,15 @@ void jModelTest::on_btnRun_clicked()
 
     /* print settings */
     {
-    ui->txtMessages->append("");
-    ui->txtMessages->append("Execution options:");
-    ui->txtMessages->append(to_qstring("Alignment %1", msg_info).arg(msa_filename.c_str()));
-    ui->txtMessages->append(to_qstring("Tree      %1", msg_info).arg(utree_filename.c_str()));
+    ui->txt_messages->append("");
+    ui->txt_messages->append("Execution options:");
+    ui->txt_messages->append(to_qstring("Alignment %1", msg_info).arg(msa_filename.c_str()));
+    ui->txt_messages->append(to_qstring("Tree      %1", msg_info).arg(utree_filename.c_str()));
     if (ui->radDatatypeDna->isChecked())
-        ui->txtMessages->append("DataType  DNA");
+        ui->txt_messages->append("DataType  DNA");
     else
-        ui->txtMessages->append("DataType  Protein");
-    ui->txtMessages->append(to_qstring("N.Models  %1", msg_info).arg(ui->lblNumModels->text()));
+        ui->txt_messages->append("DataType  Protein");
+    ui->txt_messages->append(to_qstring("N.Models  %1", msg_info).arg(ui->lblNumModels->text()));
     }
 
     //QFuture<void> fut = QtConcurrent::run(evalmodels, mtest, ui);
