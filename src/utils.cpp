@@ -180,12 +180,14 @@ void Utils::print_options(mt_options & opts, ostream  &out)
         out << left << setw(15) << "Tree:" << opts.tree_filename << endl;
     if (opts.partitions_desc)
     {
-        out << left << setw(15) << "Partitions:" << opts.partitions_filename << endl;
-        out << left << setw(15) << "" << opts.partitions_desc->size() << " partitions" << endl;
-        mt_size_t n_prot_parts = 0;
-        mt_size_t n_dna_parts = 0;
-        if (opts.verbose > VERBOSITY_DEFAULT)
+        if (opts.partitions_filename.compare(""))
         {
+          out << left << setw(15) << "Partitions:" << opts.partitions_filename << endl;
+          out << left << setw(15) << "" << opts.partitions_desc->size() << " partitions" << endl;
+          mt_size_t n_prot_parts = 0;
+          mt_size_t n_dna_parts = 0;
+          if (opts.verbose > VERBOSITY_DEFAULT)
+          {
             out << setw(15) << " " << setw(10) << setfill('-') << ""
                 << setfill(' ') << endl;
             for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
@@ -215,9 +217,9 @@ void Utils::print_options(mt_options & opts, ostream  &out)
             }
             out << setw(15) << " " << setw(10) << setfill('-') << ""
                 << setfill(' ') << endl;
-        }
-        else
-        {
+          }
+          else
+          {
             for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
             {
                 switch (opts.partitions_desc->at(i).datatype)
@@ -230,15 +232,16 @@ void Utils::print_options(mt_options & opts, ostream  &out)
                     break;
                 }
             }
-        }
-        if (n_dna_parts)
+          }
+          if (n_dna_parts)
             out << left << setw(15) << " "
                 << setw(4) << right << n_dna_parts
                 << " DNA partitions" << endl;
-        if (n_prot_parts)
+          if (n_prot_parts)
             out << left << setw(15) << " "
                 << setw(4) << right << n_prot_parts
                 << " protein partitions" << endl;
+        }
     }
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }

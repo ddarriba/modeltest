@@ -100,13 +100,14 @@ bool ModelTest::test_link(Msa const *msa,
 {
     mt_index_t i, j;
     mt_index_t n_tips;
-    mt_size_t tree_taxa_found = 0;
 
     /* number of sequences and tips must agree */
     if (msa->get_n_sequences() == tree->get_n_tips())
         n_tips = msa->get_n_sequences();
     else
         return false;
+
+    vector<bool> tree_taxa_found(n_tips);
 
     /* find sequences and link them with the corresponding taxa */
     for (i = 0; i < n_tips; ++i)
@@ -117,13 +118,13 @@ bool ModelTest::test_link(Msa const *msa,
         {
             if (!tree->get_label(j).compare(header))
             {
-                if (tree_taxa_found &= 1<<j)
+                if (tree_taxa_found[j])
                 {
                     mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
                      snprintf(mt_errmsg, 200, "Duplicated sequence %s", header);
                     return false;
                 }
-                tree_taxa_found |= 1<<j;
+                tree_taxa_found[j] = true;
                 found = true;
                 break;
             }
@@ -132,22 +133,19 @@ bool ModelTest::test_link(Msa const *msa,
         if (!found)
         {
             mt_errno = MT_ERROR_TREE_MISSING;
-             snprintf(mt_errmsg, 200, "Missing taxon %s in tree", header);
+            snprintf(mt_errmsg, 200, "Missing taxon %s in tree", header);
             return false;
         }
     }
 
-    i = 1;
-    mt_index_t limit = (mt_index_t)1<<n_tips;
-    while (i <= limit)
+    for (i=0;i<n_tips;i++)
     {
-        if (!(tree_taxa_found | i ))
+        if (!(tree_taxa_found[i] ))
         {
             mt_errno = MT_ERROR_ALIGNMENT_MISSING;
              snprintf(mt_errmsg, 200, "Missing sequence %s in MSA",tree->get_label(i).c_str());
             return false;
         }
-        i = i<<1;
     }
 
     return true;

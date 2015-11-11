@@ -203,7 +203,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "datatype", required_argument, 0, 'd' },
         { "epsilon", required_argument, 0, 'e' },
         { "model-freqs", required_argument, 0, 'f' },
-        { "help", no_argument, 0, '?' },
+        { "help", no_argument, 0, 0 },
         { "model-het", required_argument, 0, 'h' },
         { "input", required_argument, 0, 'i' },
         { "models", required_argument, 0, 'm' },
@@ -212,11 +212,11 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
-        { "psearch", required_argument, 0, 1 },
+        { "psearch", required_argument, 0, 2 },
         { "tree", required_argument, 0, 't' },
         { "utree", required_argument, 0, 'u' },
         { "verbose", no_argument, 0, 'v' },
-        { "version", no_argument, 0, 0 },
+        { "version", no_argument, 0, 1 },
         { 0, 0, 0, 0 }
     };
 
@@ -224,13 +224,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v?", long_options,
                               &long_index)) != -1) {
         switch (opt) {
-        case '?':
+        case 0:
             print_usage(cerr);
             return false;
-        case 0:
+        case 1:
             print_version(cerr);
             return false;
-        case 1:
+        case 2:
             /* partitioning search */
             //TODO
             if (!strcasecmp(optarg, "kn"))
