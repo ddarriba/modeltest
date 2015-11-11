@@ -41,7 +41,7 @@ static void print_version(std::ostream& out)
 static void print_usage(std::ostream& out)
 {
     out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
-    out << "            [-?] [-c n_categories] [-d nt|aa] [-F] [-N] [-O findModel|gtr]"
+    out << "            [-c n_categories] [-d nt|aa] [-F] [-N] [-O findModel|gtr]"
         << endl;
     out << "            [-p numberOfThreads] [-q configFile] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
         << endl;
@@ -157,7 +157,7 @@ static void print_usage(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
         << "run in verbose mode" << endl;
 
-    out << setw(MAX_OPT_LENGTH) << left << "  -?, --help"
+    out << setw(MAX_OPT_LENGTH) << left << "      --help"
         << "display this help message and exit" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --version"
         << "output version information and exit" << endl;
@@ -221,7 +221,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v?", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
