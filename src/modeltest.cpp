@@ -105,7 +105,13 @@ bool ModelTest::test_link(Msa const *msa,
     if (msa->get_n_sequences() == tree->get_n_tips())
         n_tips = msa->get_n_sequences();
     else
+    {
+        mt_errno = MT_ERROR_IO;
+        snprintf(mt_errmsg, 200,
+                 "Number of sequences/taxa differs: %d tips / %d sequences",
+                 msa->get_n_sequences(), tree->get_n_tips());
         return false;
+    }
 
     vector<bool> tree_taxa_found(n_tips);
 
@@ -121,7 +127,7 @@ bool ModelTest::test_link(Msa const *msa,
                 if (tree_taxa_found[j])
                 {
                     mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
-                     snprintf(mt_errmsg, 200, "Duplicated sequence %s", header);
+                    snprintf(mt_errmsg, 200, "Duplicated sequence %s", header);
                     return false;
                 }
                 tree_taxa_found[j] = true;

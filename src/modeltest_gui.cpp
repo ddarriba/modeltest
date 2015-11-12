@@ -194,6 +194,7 @@ void jModelTest::updateGUI()
     ui->btnRun->setEnabled(ui->tabView->isEnabled());
 
     ui->grpAdvanced->setVisible(ui->cbAdvanced->isChecked());
+    ui->listMatrices->setVisible(ui->cbShowMatrices->isChecked());
 
     bool tabConfigEnabled = check_state(STATE_ALIGNMENT_LOADED);
     bool tabRunEnabled = check_state(STATE_MODELS_OPTIMIZING);
@@ -218,10 +219,14 @@ void jModelTest::updateGUI()
     else
         n_matrices = ui->listMatrices->selectedItems().size();
 
+    printf("SEL %d %d %d %d %d\n", ui->radDatatypeDna->isChecked(), ui->radSchemes3->isChecked(), ui->radSchemes5->isChecked(), ui->radSchemes11->isChecked(), ui->radSchemes203->isChecked());
+
     n_models = n_matrices * n_model_sets *
             (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
     sprintf(txt, "%d", n_models);
     ui->lblNumModels->setText(QString(txt));
+
+    printf("MAT %d %d\n", n_matrices, n_models);
 
     if (n_models == 0)
     {
@@ -260,6 +265,7 @@ void jModelTest::resetSettings()
     ui->radTopoFixedGtr->setChecked(true);
 
     ui->cbAdvanced->setChecked(false);
+    ui->cbShowMatrices->setChecked(false);
 
     clear_state();
     if (msa_filename.compare(""))
@@ -536,7 +542,7 @@ void jModelTest::on_radSchemes203_clicked()
     {
         ui->listMatrices->clearSelection();
         ui->radSchemes203->setChecked(true);
-        // updateGUI();
+        updateGUI();
     }
 }
 
@@ -1093,6 +1099,11 @@ void jModelTest::on_cbAdvanced_clicked()
     updateGUI();
 }
 
+void jModelTest::on_cbShowMatrices_clicked()
+{
+    updateGUI();
+}
+
 #define TABLE_WIDTH (ui->radDatatypeDna->isChecked()?19:30)
 #define TABLE_INI_SELECTION 3
 #define TABLE_INI_HET_PARAMS 7
@@ -1268,7 +1279,7 @@ void jModelTest::on_sliderNThreads_valueChanged(int value)
 
 void jModelTest::on_radDatatypeDna_clicked()
 {
-    ui->grpSubstSchemes->setVisible(true);
+    //ui->grpSubstSchemes->setVisible(true);
     ui->grpSubstSchemes->setEnabled(true);
     ui->cbMlFreq->setText("ML frequencies");
     ui->listMatrices->clear();
@@ -1290,7 +1301,7 @@ void jModelTest::on_radDatatypeDna_clicked()
 
 void jModelTest::on_radDatatypeProt_clicked()
 {
-    ui->grpSubstSchemes->setVisible(false);
+    //ui->grpSubstSchemes->setVisible(false);
     ui->grpSubstSchemes->setEnabled(false);
     ui->cbMlFreq->setText("Empirical frequencies");
     ui->listMatrices->clear();
@@ -1317,6 +1328,12 @@ void jModelTest::set_state(current_state st)
 void jModelTest::unset_state(current_state st)
 {
     state = (current_state)(state & ~st);
+}
+
+void jModelTest::on_radSchemesUser_clicked()
+{
+    ui->cbShowMatrices->setChecked(true);
+    on_cbShowMatrices_clicked();
 }
 
 }

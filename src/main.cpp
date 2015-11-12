@@ -196,6 +196,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     exec_opt.partitions_eff  = NULL;
     exec_opt.verbose         = VERBOSITY_DEFAULT;
     exec_opt.n_threads       = 1;
+    exec_opt.starting_tree   = tree_mp;
 
     static struct option long_options[] =
     {
@@ -762,8 +763,10 @@ int main(int argc, char *argv[])
         #ifndef CONSOLE
         /* launch GUI */
         QApplication a(argc, argv);
+
         modeltest::jModelTest w;
         w.show();
+
         return_val = a.exec();
         #endif
     }

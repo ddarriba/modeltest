@@ -54,7 +54,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/loca
 else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
 
 CONFIG += c++11
-CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11
 
 INCLUDEPATH += $$PWD/../../../../../usr/local/lib
 DEPENDPATH += $$PWD/../../../../../usr/local/lib

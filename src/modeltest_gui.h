@@ -11,10 +11,10 @@
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
-#define TAB_CONSOLE         0
-#define TAB_CONFIG          1
-#define TAB_RUN             2
-#define TAB_RESULTS         3
+#define TAB_CONFIG          0
+#define TAB_RUN             1
+#define TAB_RESULTS         2
+#define TAB_CONSOLE         4
 
 #define TAB_RESULTS_BIC  0
 #define TAB_RESULTS_AIC  1
@@ -120,6 +120,10 @@ private slots:
 
     void on_radDatatypeDna_clicked();
     void on_radDatatypeProt_clicked();
+
+    void on_cbShowMatrices_clicked();
+
+    void on_radSchemesUser_clicked();
 
 public slots:
     void cancel_jobs();
