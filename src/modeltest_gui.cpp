@@ -219,14 +219,10 @@ void jModelTest::updateGUI()
     else
         n_matrices = ui->listMatrices->selectedItems().size();
 
-    printf("SEL %d %d %d %d %d\n", ui->radDatatypeDna->isChecked(), ui->radSchemes3->isChecked(), ui->radSchemes5->isChecked(), ui->radSchemes11->isChecked(), ui->radSchemes203->isChecked());
-
     n_models = n_matrices * n_model_sets *
             (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
     sprintf(txt, "%d", n_models);
     ui->lblNumModels->setText(QString(txt));
-
-    printf("MAT %d %d\n", n_matrices, n_models);
 
     if (n_models == 0)
     {
