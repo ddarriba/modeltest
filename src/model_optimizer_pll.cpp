@@ -306,7 +306,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       /* optimization parameters */
       params->mixture_index = 0;
       params->params_index = 0;
-      if (model->get_n_subst_rates() == N_DNA_SUBST_RATES)
+      if (partition.datatype == dt_dna)
       {
         int *symmetries = new int[N_DNA_SUBST_RATES];
         memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
@@ -324,6 +324,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   bool ModelOptimizerPll::run(double epsilon,
                               double tolerance)
   {
+#ifdef VERBOSE //TODO: Verbosity medium
+      std::cout << "Optimizing model " << model->get_name() << std::endl;
+#endif
       time_t start_time = time(NULL);
 
       if (params == NULL)
@@ -336,6 +339,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       else
           pll_update_invariant_sites_proportion(pll_partition, 0, 0.5);
 
+      if (model->is_F())
+      {
+          //TODO: Keep empirical frequencies in cache
+         double * empirical_freqs = pll_compute_empirical_frequencies(pll_partition);
+         model->set_frequencies(empirical_freqs);
+         free(empirical_freqs);
+      }
+
+      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
+      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+ //     pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
       if (model->is_G())
       {
           pll_compute_gamma_cats (params->lk_params.alpha_value,
@@ -348,18 +362,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           rate_cats[0] = 1.0;
       }
 
-      if (model->is_F())
-      {
-          //TODO: Keep empirical frequencies in cache
-         double * empirical_freqs = pll_compute_empirical_frequencies(pll_partition);
-         model->set_frequencies(empirical_freqs);
-         free(empirical_freqs);
-      }
-
-      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
-      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
       pll_set_category_rates (pll_partition, rate_cats);
       free(rate_cats);
+
+#ifdef VERBOSE //TODO: Verbosity high
+      std::cout << "Initial Frequencies:   " << pll_partition->frequencies[0][0] << " " << pll_partition->frequencies[0][1] << " "
+                << pll_partition->frequencies[0][2] << " " << pll_partition->frequencies[0][3] << std::endl;
+      std::cout << "Initial Subst. Params: " <<  pll_partition->subst_params[0][0] << " " << pll_partition->subst_params[0][1] << " " << pll_partition->subst_params[0][2] << " "
+           << pll_partition->subst_params[0][3] << " " << pll_partition->subst_params[0][4] << " " << pll_partition->subst_params[0][5] << std::endl;
+#endif
 
       pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
                                 2 * tree->get_n_tips() - 3);
@@ -402,6 +413,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       if (params_to_optimize.size())
       {
+          mt_size_t iters_hard_limit = 200;
           while (n_iters < params_to_optimize.size() || (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
           {
               n_iters++;
@@ -432,6 +444,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
               cur_parameter_index++;
               cur_parameter_index %= params_to_optimize.size();
+
+              iters_hard_limit--;
+              assert(iters_hard_limit);
           }
           /* TODO: if bl are reoptimized */
           if (keep_branch_lengths)

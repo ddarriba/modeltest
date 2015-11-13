@@ -41,7 +41,7 @@ PartitioningScheme::~PartitioningScheme()
     partitions.clear();
 }
 
-const mt_index_t PartitioningScheme::get_size( void ) const
+mt_index_t PartitioningScheme::get_size( void ) const
 {
     return partitions.size();
 }

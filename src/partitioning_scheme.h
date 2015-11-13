@@ -24,7 +24,7 @@ public:
                        mt_mask_t model_params);
     ~PartitioningScheme();
 
-    const mt_index_t get_size( void ) const;
+    mt_index_t get_size( void ) const;
     Partition & get_partition( mt_index_t id );
 private:
     partitions_map_t partitions;

@@ -13,6 +13,12 @@
 #include <cerrno>
 #include <getopt.h>
 
+
+#include <vector>
+#include <chrono>
+
+#include "thread/threadpool.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
@@ -658,13 +664,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 int main(int argc, char *argv[])
 {
     int return_val = EXIT_SUCCESS;
-    time_t ini_global_time = time(NULL);
 
     if (argc > 1)
     {
         /* command line */
         mt_options opts;
         mt_index_t cur_model;
+        time_t ini_global_time = time(NULL);
 
         if (!parse_arguments(argc, argv, opts))
         {
@@ -691,29 +697,75 @@ int main(int argc, char *argv[])
 
             partition_id_t part_id = {i};
             cur_model = 0;
-            for (cur_model=0; cur_model<mt.get_models(part_id).size(); cur_model++)
+
+            {
+
+            std::cout << "Creating pool with " << n_procs << " threads" << std::endl;
+            modeltest::ThreadPool pool(n_procs);
+            std::vector< std::future<int> > results;
+            for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
             {
                 modeltest::Model *model = mt.get_models(part_id)[cur_model];
-                time_t ini_t = time(NULL);
-                if (!mt.evaluate_single_model(model,
-                                              part_id,
-                                              0,
-                                              opts.epsilon_param,
-                                              opts.epsilon_opt))
-                {
-                    cerr << "ERROR OPTIMIZING MODEL" << endl;
-                    return(MT_ERROR_OPTIMIZE);
-                }
 
-                /* print progress */
-                cout << setw(5) << right << (cur_model+1) << "/"
-                     << setw(5) << left << mt.get_models(part_id).size()
-                     << setw(15) << left << model->get_name()
-                     << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-                     << model->get_lnl()
-                     << setw(8) << time(NULL) - ini_t
-                     << setw(8) << time(NULL) - ini_global_time << endl;
+
+                    results.emplace_back(
+                        pool.enqueue([cur_model, model, part_id, opts, &mt, ini_global_time] {
+                        time_t ini_t = time(NULL);
+                        int res = mt.evaluate_single_model(model,
+                                                           part_id,
+                                                           0,
+                                                           opts.epsilon_param,
+                                                           opts.epsilon_opt);
+
+                        if (!res)
+                        {
+                            cerr << "ERROR OPTIMIZING MODEL" << endl;
+                            return(MT_ERROR_OPTIMIZE);
+                        }
+
+                        /* print progress */
+                        cout << setw(5) << right << (cur_model+1) << "/"
+                             << setw(5) << left << mt.get_models(part_id).size()
+                             << setw(15) << left << model->get_name()
+                             << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+                             << model->get_lnl()
+                             << setw(8) << time(NULL) - ini_t
+                             << setw(8) << time(NULL) - ini_global_time << endl;
+
+                            return res;
+                        })
+                    );
             }
+            }
+
+//for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
+//{
+//    modeltest::Model *model = mt.get_models(part_id)[cur_model];
+//            time_t ini_t = time(NULL);
+//            int res = mt.evaluate_single_model(model,
+//                                               part_id,
+//                                               0,
+//                                               opts.epsilon_param,
+//                                               opts.epsilon_opt);
+
+//            if (!res)
+//            {
+//                cerr << "ERROR OPTIMIZING MODEL" << endl;
+//                return(MT_ERROR_OPTIMIZE);
+//            }
+
+//            /* print progress */
+//            cout << setw(5) << right << (cur_model+1) << "/"
+//                 << setw(5) << left << mt.get_models(part_id).size()
+//                 << setw(15) << left << model->get_name()
+//                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+//                 << model->get_lnl()
+//                 << setw(8) << time(NULL) - ini_t
+//                 << setw(8) << time(NULL) - ini_global_time << endl;
+//}
+
+
+            std::cout << "DONE" << std::endl;
 
             modeltest::ModelSelection bic_selection(mt.get_models(part_id),
                                                     modeltest::ic_bic);

@@ -15,6 +15,8 @@
 #include <QFutureWatcher>
 #include <QVector>
 #include <pthread.h>
+#include <thread>
+#include <atomic>
 
 #include <QProgressDialog>
 
@@ -823,6 +825,8 @@ void jModelTest::evalmodels(int i, int thread_id)
 }
 
 static pthread_mutex_t mutex;
+static bool lock = false;
+static bool acq_id = false;
 
 static bool test_and_set(bool *lock)
 {
@@ -850,37 +854,46 @@ struct ModOptWrapper {
   std::map<Qt::HANDLE, int> thread_map;
   int cur_model;
   int cur_thread;
-  bool lock;
+//  std::atomic_flag lock = ATOMIC_FLAG_INIT;
 
   ModOptWrapper(jModelTest *w, int number_of_threads):
       instance(w), number_of_threads(number_of_threads)
   {
       cur_model = 0;
       cur_thread = 0;
-      lock = false;
+
       assert(!pthread_mutex_init(&mutex, NULL));
   }
+
   ~ModOptWrapper()
   {
       pthread_mutex_destroy(&mutex);
   }
 
   void operator()(int &i) {
-      UNUSED(i);
-      usleep(1000*(rand()%100));
-      while (!test_and_set(&lock))
-          usleep(1000*(rand()%100));
+          UNUSED(i);
 
-      if (thread_map.find(QThread::currentThreadId()) == thread_map.end())
-      {
-          thread_map[QThread::currentThreadId()] = cur_thread++;
-      }
-      int thread_id = thread_map[QThread::currentThreadId()];
+//          while (lock.test_and_set(std::memory_order_acquire))  // acquire lock
+//                       ; // spin
+          if (!acq_id)
+            usleep(1000*(rand()%800));
+          while (!test_and_set(&lock))
+        ;//      usleep(1000*(rand()%500));
 
-      assert(thread_id < number_of_threads);
+          if (thread_map.find(QThread::currentThreadId()) == thread_map.end())
+          {
+              thread_map[QThread::currentThreadId()] = cur_thread++;
+          } else
+              acq_id = true;
+          int thread_id = thread_map[QThread::currentThreadId()];
 
-      unlock(&lock);
-      instance->evalmodels(cur_model++, thread_id);
+          assert(thread_id < number_of_threads);
+std::cout << "MY THREAD IS " << thread_id << std::endl;
+          int my_model = cur_model++;
+
+//          lock.clear(std::memory_order_release);               // release lock
+          unlock(&lock);
+          instance->evalmodels(my_model, thread_id);
   }
 };
 

@@ -42,7 +42,8 @@ HEADERS  += \
     global_defs.h \
     modeltest_gui.h \
     partition.h \
-    partitioning_scheme.h
+    partitioning_scheme.h \
+    thread/threadpool.h
 
 FORMS    += \
     compute_options.ui \
