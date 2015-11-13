@@ -1,8 +1,8 @@
-CC = clang++
+CC = g++
 
 INSTALLDIR = $(PWD)
 
-CPPFLAGS = -D_NO_GUI_ -g -O3 -Weverything -Wno-padded -std=c++11 \
+CPPFLAGS = -D_NO_GUI_ -g -O3 -Wall -std=c++11 \
            -m64 -pipe
 CPPLIBS = -lpll_optimize -lpll -lm
 
