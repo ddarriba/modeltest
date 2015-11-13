@@ -4,7 +4,7 @@ INSTALLDIR = $(PWD)
 
 CPPFLAGS = -D_NO_GUI_ -g -O3 -Wall -std=c++11 \
            -m64 -pipe
-CPPLIBS = -lpll_optimize -lpll -lm
+CPPLIBS = -lpll_optimize -lpll -lm -lpthread
 
 OBJFILES = src/modeltest.o \
 	   src/utils.o \
