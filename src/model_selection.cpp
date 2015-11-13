@@ -73,11 +73,11 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         minDT = 999999999999;
         for (size_t i=0; i<c_models.size(); i++)
         {
-            Model * model1 = models[i].model;
+            //Model * model1 = models[i].model;
             sum = 0.0;
             for (size_t j=0; j<c_models.size(); j++)
             {
-                Model * model2 = models[j].model;
+                //Model * model2 = models[j].model;
 
                 double distance = 2.0;
                 /* TODO: compute distance between trees */

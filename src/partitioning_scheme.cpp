@@ -43,7 +43,7 @@ PartitioningScheme::~PartitioningScheme()
 
 mt_index_t PartitioningScheme::get_size( void ) const
 {
-    return partitions.size();
+    return (mt_index_t) partitions.size();
 }
 
 Partition & PartitioningScheme::get_partition( mt_index_t id )

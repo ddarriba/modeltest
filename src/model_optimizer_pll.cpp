@@ -77,7 +77,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
     pll_utree_t* pll_tree = tree->get_pll_tree (_thread_number);
 
-    pll_utree_t ** tipnodes = (pll_utree_t **) calloc (n_tips,
+    pll_utree_t ** tipnodes = (pll_utree_t **) Utils::c_allocate (n_tips,
                                                        sizeof(pll_utree_t *));
     if (!pll_utree_query_tipnodes (pll_tree, tipnodes))
     {
@@ -152,8 +152,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
     /* allocate a buffer for storing pointers to nodes of the tree in postorder
      traversal */
-    pll_utree_t ** travbuffer = (pll_utree_t **) malloc (
-                (2 * n_tips - 2) * sizeof(pll_utree_t *));
+    pll_utree_t ** travbuffer = (pll_utree_t **) Utils::allocate(
+                2 * n_tips - 2, sizeof(pll_utree_t *));
 
     /* additional stuff */
     mt_size_t traversal_size;
@@ -210,8 +210,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           int smoothings = 2;
           mt_index_t matrix_count, ops_count;
           pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
-          pll_utree_t ** travbuffer = (pll_utree_t **) malloc(
-                      (2*tree->get_n_tips() - 2) * sizeof(pll_utree_t *));
+          pll_utree_t ** travbuffer = (pll_utree_t **) Utils::allocate (
+                      2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
           mt_size_t traversal_size;
 
           params->which_parameters = PLL_PARAMETER_BRANCHES_SINGLE;
@@ -332,7 +332,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (params == NULL)
         build_parameters();
 
-      double * rate_cats = (double *) calloc( pll_partition->rate_cats, sizeof(double));
+      double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
 
       if (!model->is_I())
           pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);

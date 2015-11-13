@@ -82,21 +82,51 @@ class Utils
 {
 public:
     Utils();
+
+    /**
+     * @brief Gets the base file of a path+filename
+     * @param[in] filename The filename
+     * @return The name of the file, excluding the path
+     */
     static std::string getBaseName(std::string const& filename);
+
+    /**
+     * @brief Estimates the required memory
+     * @param[in] n_taxa The number of taxa
+     * @param[in] n_sites The sequence length
+     * @param[in] n_categories The number of gamma rate categories
+     * @param[in] n_states The number of states (e.g., 4 nt, 20 aa)
+     * @return The estimated required memory, in bytes
+     */
     static size_t mem_size(unsigned int n_taxa,
                            unsigned int n_sites,
                            unsigned int n_categories,
                            unsigned int n_states);
 
+    /**
+     * @brief Allocates an uninitialized chunk of memory and checks the return value
+     * @param[in] n    The number of elements
+     * @param[in] size The size of each element
+     */
     static void * allocate(mt_size_t n, mt_size_t size);
+
+    /**
+     * @brief Allocates a chunk of memory initialized to zero and checks the return value
+     * @param[in] n    The number of elements
+     * @param[in] size The size of each element
+     */
     static void * c_allocate(mt_size_t n, mt_size_t size);
+
+    /**
+     * @brief Exits modeltest and prints an error message
+     * @param[in] message The error message
+     * @param[in] ...     Formatting arguments
+     */
     static void exit_with_error(const char * message, ...) __attribute__ ((noreturn));
 
     /**
      * @brief Parses a file containing a set of partitions
-     * @param[in] filename             The file to parse
-     * @param[out] exist_dna_parts     Sets the flag if there is DNA data
-     * @param[out] exist_protein_parts Sets the flag if there is AA data
+     * @param[in] filename The file to parse
      * @return The set of partitions sorted by starting site
      */
     static partitioning_scheme_t * parse_partitions_file (std::string filename);

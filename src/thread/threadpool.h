@@ -16,13 +16,13 @@ namespace modeltest {
 
 class ThreadPool {
 public:
-  ThreadPool(size_t);
+  ThreadPool(mt_size_t);
   template<class F, class... Args>
   auto enqueue(F&& f, Args&&... args)
   -> std::future<typename std::result_of<F(Args...)>::type>;
   ~ThreadPool();
   std::map< std::thread::id, mt_index_t > worker_ids;
-  size_t ready;
+  mt_size_t ready;
 private:
   // need to keep track of threads so we can join them
   std::vector< std::thread > workers;
@@ -36,7 +36,7 @@ private:
 };
 
 // the constructor just launches some amount of workers
-inline ThreadPool::ThreadPool(size_t threads)
+inline ThreadPool::ThreadPool(mt_size_t threads)
   :   ready(threads), stop(false)
 {
   for(size_t i = 0;i<threads;++i)

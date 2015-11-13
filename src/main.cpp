@@ -270,7 +270,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 cerr <<  PACKAGE << ": Invalid scheme search algorithm: " << optarg << endl;
                 return false;
             }
-            return false;
+            assert(0);
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
@@ -653,10 +653,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
            exec_opt.aa_candidate_models.size() > 0);
 
     /* if there are no model specifications, include all */
-    int all_params = MOD_PARAM_NO_RATE_VAR |
-            MOD_PARAM_INV |
-            MOD_PARAM_GAMMA |
-            MOD_PARAM_INV_GAMMA;
+    mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
+                           MOD_PARAM_INV |
+                           MOD_PARAM_GAMMA |
+                           MOD_PARAM_INV_GAMMA;
     if (!(exec_opt.model_params &
           all_params))
         exec_opt.model_params |=
