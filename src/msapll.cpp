@@ -47,6 +47,9 @@ namespace modeltest
     }
 
     pll_fasta_close(fp);
+
+    /* reset pll errno */
+    pll_errno = 0;
   }
 
   MsaPll::~MsaPll ()

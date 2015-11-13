@@ -1,6 +1,8 @@
 #include "utils.h"
+#include "model_defs.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>
@@ -173,11 +175,55 @@ void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
 void Utils::print_options(mt_options & opts, ostream  &out)
 {
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    out << left << setw(15) << "MSA:" << opts.msa_filename << endl;
-    out << left << setw(15) << "#taxa:" << opts.n_taxa << endl;
-    out << left << setw(15) << "#sites:" << opts.n_sites << endl;
+
+    out << "Input data:" << endl;
+    out << "  " << left << setw(10) << "MSA:" << opts.msa_filename << endl;
     if (opts.tree_filename.compare(""))
-        out << left << setw(15) << "Tree:" << opts.tree_filename << endl;
+        out << "  " << left << setw(10) << "Tree:" << opts.tree_filename << endl;
+    out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
+    out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;
+
+    out << endl << "Selection options:" << endl;
+    if (opts.nt_candidate_models.size())
+        out << "  " << left << setw(20) << "# dna schemes:" << opts.nt_candidate_models.size() << endl;
+    if (opts.aa_candidate_models.size())
+        out << "  " << left << setw(20) << "# protein matrices:" << opts.aa_candidate_models.size() << endl;
+    out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
+    out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
+    out << "  " << left << setw(20) << "include model parameters:" << endl;
+    out << "    " << left << setw(17) << "Uniform:" << ((opts.model_params&MOD_PARAM_NO_RATE_VAR)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "p-inv (+I):" << ((opts.model_params&MOD_PARAM_INV)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "gamma (+G):" << ((opts.model_params&MOD_PARAM_GAMMA)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "both (+I+G):" << ((opts.model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "fixed freqs:" << ((opts.model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "estimated freqs:" << ((opts.model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
+    if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+        out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
+
+    out << endl << "Additional options:" << endl;
+    out << "  " << left << setw(14) << "verbosity:";
+    switch (opts.verbose)
+    {
+    case 0:
+        out << "very low" << endl;
+        break;
+    case VERBOSITY_LOW:
+        out << "low" << endl;
+        break;
+    case VERBOSITY_MID:
+        out << "medium" << endl;
+        break;
+    case VERBOSITY_HIGH:
+        out << "high" << endl;
+        break;
+    default:
+        assert(0);
+    }
+    out << "  " << left << setw(14) << "threads:" << opts.n_threads << endl;
+    out << "  " << left << setw(14) << "RNG seed:" << opts.rnd_seed << endl;
+    if (opts.verbose == VERBOSITY_MID)
+        out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
+
     if (opts.partitions_desc)
     {
         if (opts.partitions_filename.compare(""))

@@ -1,4 +1,4 @@
-#ifndef CONSOLE
+#ifndef _NO_GUI_
 #include "modeltest_gui.h"
 #include <QApplication>
 #else
@@ -55,7 +55,10 @@ static void print_usage(std::ostream& out)
         << endl;
     out << "            [-t mp|fixed|user] [-u treeFile] [-v] [-V]" << endl;
     out << "            [--config-help] [--config-template]" << endl;
-    out << endl;
+}
+
+static void print_help(std::ostream& out)
+{
     out << "selects the best-fit model of amino acid or nucleotide replacement."
         << endl << endl;
     out
@@ -210,7 +213,6 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "datatype", required_argument, 0, 'd' },
         { "epsilon", required_argument, 0, 'e' },
         { "model-freqs", required_argument, 0, 'f' },
-        { "help", no_argument, 0, 0 },
         { "model-het", required_argument, 0, 'h' },
         { "input", required_argument, 0, 'i' },
         { "models", required_argument, 0, 'm' },
@@ -219,11 +221,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
         { "schemes", required_argument, 0, 'S' },
-        { "psearch", required_argument, 0, 2 },
         { "tree", required_argument, 0, 't' },
         { "utree", required_argument, 0, 'u' },
         { "verbose", no_argument, 0, 'v' },
-        { "version", no_argument, 0, 1 },
+        { "help", no_argument, 0, 0 },
+        { "usage", no_argument, 0, 1 },
+        { "version", no_argument, 0, 2 },
+        { "psearch", required_argument, 0, 3 },
         { 0, 0, 0, 0 }
     };
 
@@ -232,12 +236,17 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
-            print_usage(cerr);
+            print_usage(cout);
+            cout << endl;
+            print_help(cout);
             return false;
         case 1:
-            print_version(cerr);
+            print_usage(cout);
             return false;
         case 2:
+            print_version(cout);
+            return false;
+        case 3:
             /* partitioning search */
             //TODO
             if (!strcasecmp(optarg, "kn"))
@@ -258,7 +267,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             else
             {
-                cerr << "ERROR: Invalid scheme search algorithm: " << optarg << endl;
+                cerr <<  PACKAGE << ": Invalid scheme search algorithm: " << optarg << endl;
                 return false;
             }
             return false;
@@ -267,7 +276,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
             if (exec_opt.n_catg <= 0)
             {
-                cerr << "Invalid number of categories: " << exec_opt.n_catg << endl;
+                cerr << PACKAGE << ": Invalid number of categories: " << exec_opt.n_catg << endl;
                 return false;
             }
             break;
@@ -282,7 +291,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             else
             {
-                cerr << "ERROR: Invalid datatype " << optarg << endl;
+                cerr <<  PACKAGE << ": Invalid datatype " << optarg << endl;
                 return false;
             }
             break;
@@ -306,7 +315,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                     exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
                     break;
                 default:
-                    cerr << "ERROR: Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
+                    cerr <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
                     return false;
                 }
             }
@@ -333,7 +342,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                     exec_opt.model_params  |= MOD_PARAM_INV_GAMMA;
                     break;
                 default:
-                    cerr << "Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
+                    cerr <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
                     return false;
                 }
             }
@@ -354,7 +363,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             n_procs = (mt_size_t) atoi(optarg);
             if (n_procs <= 0)
             {
-                cerr <<"Invalid number of parallel processes: " << optarg << endl;
+                cerr << PACKAGE << ": Invalid number of parallel processes: " << optarg << endl;
                 return false;
             }
             break;
@@ -387,7 +396,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             else
             {
-                cerr << "Invalid number of substitution schemes " << optarg << endl;
+                cerr << PACKAGE << ": Invalid number of substitution schemes " << optarg << endl;
                 return false;
             }
             break;
@@ -410,7 +419,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             }
             else
             {
-                cerr << "ERROR: Invalid starting topology " << optarg << endl;
+                cerr << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
                 return false;
             }
             break;
@@ -436,13 +445,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                                     &exec_opt.n_taxa,
                                     &exec_opt.n_sites))
         {
-            cerr << "Error parsing alignment: " << exec_opt.msa_filename << endl;
+            cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
             return false;
         }
     }
     else
     {
-        cerr << "Alignment file (-i) is required" << endl;
+        cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
         return false;
     }
 
@@ -457,11 +466,11 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             switch (modeltest::mt_errno)
             {
             case MT_ERROR_IO:
-                cerr << "Cannot read partitions file: "
+                cerr << PACKAGE << ": Cannot read partitions file: "
                      << exec_opt.partitions_filename << endl;
                 break;
             case MT_ERROR_IO_FORMAT:
-                cerr << "Error parsing partitions: "
+                cerr << PACKAGE << ": Cannot parse partitions: "
                      << exec_opt.partitions_filename << endl;
                 break;
             default:
@@ -473,7 +482,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
                                                    exec_opt.n_sites))
         {
-            cerr << "Error in partitions file: "
+            cerr << PACKAGE << ": Error in partitions file: "
                  << exec_opt.partitions_filename << endl;
             cerr << modeltest::mt_errmsg << endl;
             return false;
@@ -515,7 +524,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     if (exist_protein_models)
     {
         if (!exist_dna_models && (dna_ss != ss_undef))
-            cerr << "Warning: Substitution schemes will be ignored" << endl;
+            cerr << PACKAGE << ": Warning: Substitution schemes will be ignored" << endl;
 
         if (user_candidate_models.compare(""))
         {
@@ -535,7 +544,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 }
                 if (i == N_PROT_MODEL_MATRICES)
                 {
-                    cerr << "Invalid protein matrix: " << s << endl;
+                    cerr << PACKAGE << ": Invalid protein matrix: " << s << endl;
                     return false;
                 }
                 prot_matrices_bitv |= 1<<c_matrix;
@@ -577,7 +586,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 }
                 if (i == N_DNA_MODEL_MATRICES)
                 {
-                    cerr << "Invalid dna matrix: " << s << endl;
+                    cerr << PACKAGE << ": Invalid dna matrix: " << s << endl;
                     return false;
                 }
                 dna_matrices_bitv |= 1<<c_matrix;
@@ -698,24 +707,60 @@ int main(int argc, char *argv[])
             partition_id_t part_id = {i};
             cur_model = 0;
 
+            if (n_procs == 1)
+            {
+                for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
+                {
+                    modeltest::Model *model = mt.get_models(part_id)[cur_model];
+                            time_t ini_t = time(NULL);
+                            int res = mt.evaluate_single_model(model,
+                                                               part_id,
+                                                               0,
+                                                               opts.epsilon_param,
+                                                               opts.epsilon_opt);
+
+                            if (!res)
+                            {
+                                cerr << "ERROR OPTIMIZING MODEL" << endl;
+                                return(MT_ERROR_OPTIMIZE);
+                            }
+
+                            /* print progress */
+                            cout << setw(5) << right << (cur_model+1) << "/"
+                                 << setw(5) << left << mt.get_models(part_id).size()
+                                 << setw(15) << left << model->get_name()
+                                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+                                 << model->get_lnl()
+                                 << setw(8) << time(NULL) - ini_t
+                                 << setw(8) << time(NULL) - ini_global_time << endl;
+                }
+            }
+            else
             {
 
             std::cout << "Creating pool with " << n_procs << " threads" << std::endl;
             modeltest::ThreadPool pool(n_procs);
             std::vector< std::future<int> > results;
+            std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
+            std::map<mt_index_t, mt_index_t> testmap;
+            testmap[15] = 27;
+
+            double epsilon_param = opts.epsilon_param;
+            double epsilon_opt   = opts.epsilon_opt;
             for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
             {
                 modeltest::Model *model = mt.get_models(part_id)[cur_model];
 
 
                     results.emplace_back(
-                        pool.enqueue([cur_model, model, part_id, opts, &mt, ini_global_time] {
+                        pool.enqueue([cur_model, model, part_id, epsilon_param, epsilon_opt, &mt, ini_global_time, &thread_map] {
                         time_t ini_t = time(NULL);
+                        thread::id my_id(__gthread_self());
                         int res = mt.evaluate_single_model(model,
                                                            part_id,
-                                                           0,
-                                                           opts.epsilon_param,
-                                                           opts.epsilon_opt);
+                                                           thread_map[my_id],
+                                                           epsilon_param,
+                                                           epsilon_opt);
 
                         if (!res)
                         {
@@ -737,33 +782,6 @@ int main(int argc, char *argv[])
                     );
             }
             }
-
-//for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
-//{
-//    modeltest::Model *model = mt.get_models(part_id)[cur_model];
-//            time_t ini_t = time(NULL);
-//            int res = mt.evaluate_single_model(model,
-//                                               part_id,
-//                                               0,
-//                                               opts.epsilon_param,
-//                                               opts.epsilon_opt);
-
-//            if (!res)
-//            {
-//                cerr << "ERROR OPTIMIZING MODEL" << endl;
-//                return(MT_ERROR_OPTIMIZE);
-//            }
-
-//            /* print progress */
-//            cout << setw(5) << right << (cur_model+1) << "/"
-//                 << setw(5) << left << mt.get_models(part_id).size()
-//                 << setw(15) << left << model->get_name()
-//                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-//                 << model->get_lnl()
-//                 << setw(8) << time(NULL) - ini_t
-//                 << setw(8) << time(NULL) - ini_global_time << endl;
-//}
-
 
             std::cout << "DONE" << std::endl;
 
@@ -812,7 +830,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        #ifndef CONSOLE
+        #ifndef _NO_GUI_
         /* launch GUI */
         QApplication a(argc, argv);
 
@@ -820,6 +838,9 @@ int main(int argc, char *argv[])
         w.show();
 
         return_val = a.exec();
+        #else
+        cerr << PACKAGE << " was compiled without GUI support" << endl;
+        cerr << "Try '" << PACKAGE << " --help' or '" << PACKAGE << " --usage' for more information" << endl;
         #endif
     }
 
