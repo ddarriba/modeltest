@@ -1,6 +1,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
+#include <unistd.h>
 #include <vector>
 #include <queue>
 #include <memory>
@@ -65,7 +66,13 @@ inline ThreadPool::ThreadPool(mt_size_t threads)
     }
   );
   /* wait for initialization */
-  while(ready);
+  while(1)
+  {
+    std::unique_lock<std::mutex> lock(this->queue_mutex);
+    if(!ready) break;
+  }
+
+  ;
 }
 
 // add new work item to the pool
