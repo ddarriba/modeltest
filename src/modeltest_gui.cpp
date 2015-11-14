@@ -888,7 +888,6 @@ struct ModOptWrapper {
           int thread_id = thread_map[QThread::currentThreadId()];
 
           assert(thread_id < number_of_threads);
-std::cout << "MY THREAD IS " << thread_id << std::endl;
           int my_model = cur_model++;
 
 //          lock.clear(std::memory_order_release);               // release lock
