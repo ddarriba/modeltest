@@ -26,7 +26,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../IMG/mt-icon.png</normaloff>../IMG/mt-icon.png</iconset>
+    <normaloff>IMG/mt-icon.png</normaloff>IMG/mt-icon.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
@@ -436,7 +436,7 @@ color: #222;</string>
         <widget class="QWidget" name="tab_configure">
          <attribute name="icon">
           <iconset>
-           <normaloff>../IMG/tool-icon.png</normaloff>../IMG/tool-icon.png</iconset>
+           <normaloff>IMG/tool-icon.png</normaloff>IMG/tool-icon.png</iconset>
          </attribute>
          <attribute name="title">
           <string>Configure</string>
@@ -1790,7 +1790,7 @@ color: #222;</string>
         <widget class="QWidget" name="tab_runsingle">
          <attribute name="icon">
           <iconset>
-           <normaloff>../IMG/run-icon.png</normaloff>../IMG/run-icon.png</iconset>
+           <normaloff>IMG/run-icon.png</normaloff>IMG/run-icon.png</iconset>
          </attribute>
          <attribute name="title">
           <string>Progress</string>
@@ -1903,7 +1903,7 @@ color: #222;</string>
         <widget class="QWidget" name="tab_results">
          <attribute name="icon">
           <iconset>
-           <normaloff>../IMG/results-icon.png</normaloff>../IMG/results-icon.png</iconset>
+           <normaloff>IMG/results-icon.png</normaloff>IMG/results-icon.png</iconset>
          </attribute>
          <attribute name="title">
           <string>Results</string>
@@ -2021,7 +2021,7 @@ color: #222;</string>
         <widget class="QWidget" name="tab_console">
          <attribute name="icon">
           <iconset>
-           <normaloff>../IMG/console-icon.png</normaloff>../IMG/console-icon.png</iconset>
+           <normaloff>IMG/console-icon.png</normaloff>IMG/console-icon.png</iconset>
          </attribute>
          <attribute name="title">
           <string>Debug Console</string>

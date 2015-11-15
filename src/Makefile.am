@@ -54,4 +54,7 @@ pkginclude_HEADERS= \
 	progressdialog.h \
 	msapll.h \
 	global_defs.h \
-	modeltest.h
+	modeltest.h \
+	ui_compute_options.h \
+	ui_modeltest_gui.h \
+	ui_progressdialog.h
