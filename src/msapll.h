@@ -23,12 +23,16 @@ namespace modeltest
     virtual const char * get_header (mt_index_t index) const;
     virtual const char * get_sequence (mt_index_t index) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme);
+    virtual bool compute_empirical_frequencies(partition_t &partition,
+                                               bool smooth = false,
+                                               bool force_recompute = false);
     virtual void print() const;
 
     static bool test(std::string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites);
   private:
+    std::vector <pll_partition_t *> pll_partitions;
     char **sequences;
     char **tipnames;
   };

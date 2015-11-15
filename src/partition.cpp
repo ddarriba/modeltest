@@ -83,6 +83,16 @@ Partition::Partition(Msa * _msa,
     msa(_msa), tree(_tree),
     descriptor(_descriptor)
 {
+    switch(descriptor.datatype)
+    {
+    case dt_dna:
+        emp_freqs.resize(N_DNA_STATES);
+        break;
+    case dt_protein:
+        emp_freqs.resize(N_PROT_STATES);
+        break;
+    }
+
     build_models(descriptor.datatype, candidate_models, model_params, c_models);
 }
 

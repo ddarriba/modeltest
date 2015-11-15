@@ -83,6 +83,7 @@ public:
      * @param[in] value the model state frequencies
      */
     void set_frequencies(const double value[]);
+    void set_frequencies(const std::vector<double> & value);
 
     /**
      * @brief Gets the substitution rates

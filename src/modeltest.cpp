@@ -219,10 +219,18 @@ bool ModelTest::build_instance(mt_options & options)
         if (options.partitions_eff)
             delete options.partitions_eff;
         options.partitions_eff = new std::vector<partition_t>(*options.partitions_desc);
-        current_instance->msa->reorder_sites(*options.partitions_eff);
+        if (!current_instance->msa->reorder_sites(*options.partitions_eff))
+            return false;
         current_instance->partitions_eff = options.partitions_eff;
-        //current_instance->msa->print();
     }
+
+    /* compute empirical frequencies */
+    for (partition_t & partition : *options.partitions_eff)
+        if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
+        {
+            std::cerr << "Error in " << partition.partition_name << std::endl;
+            return false;
+        }
 
     switch (options.starting_tree)
     {

@@ -340,16 +340,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           pll_update_invariant_sites_proportion(pll_partition, 0, 0.5);
 
       if (model->is_F())
-      {
-          //TODO: Keep empirical frequencies in cache
-         double * empirical_freqs = pll_compute_empirical_frequencies(pll_partition);
-         model->set_frequencies(empirical_freqs);
-         free(empirical_freqs);
-      }
+          model->set_frequencies(partition.empirical_freqs);
 
       pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
       pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
- //     pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+
       if (model->is_G())
       {
           pll_compute_gamma_cats (params->lk_params.alpha_value,
@@ -366,10 +361,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       free(rate_cats);
 
 #ifdef VERBOSE //TODO: Verbosity high
-      std::cout << "Initial Frequencies:   " << pll_partition->frequencies[0][0] << " " << pll_partition->frequencies[0][1] << " "
-                << pll_partition->frequencies[0][2] << " " << pll_partition->frequencies[0][3] << std::endl;
-      std::cout << "Initial Subst. Params: " <<  pll_partition->subst_params[0][0] << " " << pll_partition->subst_params[0][1] << " " << pll_partition->subst_params[0][2] << " "
-           << pll_partition->subst_params[0][3] << " " << pll_partition->subst_params[0][4] << " " << pll_partition->subst_params[0][5] << std::endl;
+      std::cout << "Initial Frequencies:   ";
+      for (mt_index_t i=0; i<pll_partition->states; i++)
+        std::cout << pll_partition->frequencies[0][i] << " ";
+      std::cout << std::endl;
 #endif
 
       pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,

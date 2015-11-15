@@ -37,6 +37,8 @@
 #define VERBOSITY_MID             2
 #define VERBOSITY_HIGH            3
 
+#define MT_MIN_SMOOTH_FREQ        0.02
+
 namespace modeltest
 {
   extern unsigned int mt_errno;
@@ -114,7 +116,9 @@ typedef struct
 typedef struct
 {
     std::vector<partition_region_t> regions;
+    std::vector<double> empirical_freqs;
     data_type datatype;
+    mt_size_t states;
     std::string partition_name;
 } partition_t;
 
@@ -139,6 +143,7 @@ typedef struct {
     double epsilon_param;    //! Parameter optimization epsilon
     double epsilon_opt;      //! Global optimization epsilon
 
+    bool smooth_freqs;                //! Force frequencies smoothing
     dna_subst_schemes subst_schemes;  //! DNA substitution schemes
     unsigned int rnd_seed;            //! RNG seed
     int verbose;                      //! Verbosity level

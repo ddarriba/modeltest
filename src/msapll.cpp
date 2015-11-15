@@ -61,6 +61,10 @@ namespace modeltest
     for (mt_index_t i = 0; i < n_sequences; i++)
       free (tipnames[i]);
     free (tipnames);
+
+    for (pll_partition_t *pll_part : pll_partitions)
+        if (pll_part)
+            pll_partition_destroy(pll_part);
   }
 
   const char * MsaPll::get_header (mt_index_t index) const
@@ -199,10 +203,83 @@ namespace modeltest
     return true;
   }
 
+  bool MsaPll::compute_empirical_frequencies(partition_t & partition,
+                                             bool smooth,
+                                             bool force_recompute)
+  {
+      mt_size_t states = partition.states;
+
+      if (partition.empirical_freqs.size())
+          if(!force_recompute || partition.empirical_freqs.size() != states)
+              return false;
+
+      partition.empirical_freqs.resize(states);
+      for (mt_index_t i=0; i<states; i++)
+          partition.empirical_freqs[i] = 0;
+
+      mt_size_t count = 0;
+      for (mt_index_t i = 0; i < n_sequences; i++)
+      {
+          for (partition_region_t region : partition.regions)
+          {
+              for (mt_index_t j = region.start; j < region.end; j++)
+              {
+                  mt_size_t ind = pll_map_nt[(int)sequences[i][j]];
+                  for (mt_index_t k=0; k<states; k++)
+                  {
+                      if ( ind & 1)
+                      {
+                          count++;
+                          partition.empirical_freqs[k]++;
+                      }
+                      ind >>= 1;
+                  }
+              }
+          }
+      }
+      /* validate */
+      double checksum = 0.0;
+      for (mt_index_t i=0; i<states; i++)
+      {
+          partition.empirical_freqs[i] /= count;
+          checksum += partition.empirical_freqs[i];
+      }
+      assert( fabs(1-checksum) < 1e-10 );
+
+      mt_size_t missing_states = 0;
+
+      /* check missing states */
+      for (mt_index_t i=0; i<states; i++)
+          if (partition.empirical_freqs[i] == 0.0)
+          {
+             missing_states++;
+             if (smooth)
+                  partition.empirical_freqs[i] = MT_MIN_SMOOTH_FREQ;
+          }
+
+      if (missing_states)
+      {
+          if (smooth)
+          {
+              std::cerr << "WARNING: Temporary forced freq. smoothing" << std::endl;
+              for (mt_index_t i=0; i<states; i++)
+                 partition.empirical_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
+          }
+          else
+          {
+              std::cerr << "There are "<< missing_states << " missing states." << std::endl;
+              return false;
+          }
+      }
+
+      return true;
+  }
+
   void MsaPll::print() const
   {
       for (mt_index_t i=0; i<n_sequences; i++)
           cout << setw(20) << tipnames[i] << " " << sequences[i] << endl;
 
   }
+
 } /* namespace modeltest */

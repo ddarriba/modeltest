@@ -28,6 +28,7 @@ private:
     Msa * msa;                       //! input MSA
     Tree * tree;                     //! user defined tree (optional)
     partition_t descriptor;          //! partition descriptor
+    std::vector<double> emp_freqs;   //! empirical frequencies
 
     std::vector<Model *> c_models; //! candidate models
 };

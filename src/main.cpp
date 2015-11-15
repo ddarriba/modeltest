@@ -163,6 +163,10 @@ static void print_help(std::ostream& out)
     /************************************************************/
 
     out << endl << " Other options:" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
+        << "forces frequencies smoothing" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << PACKAGE << " ignores if there are missing states" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
         << "run in verbose mode" << endl;
 
@@ -200,6 +204,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
+    exec_opt.smooth_freqs    = false;
     exec_opt.subst_schemes   = ss_undef;
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
@@ -228,6 +233,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "usage", no_argument, 0, 1 },
         { "version", no_argument, 0, 2 },
         { "psearch", required_argument, 0, 3 },
+        { "smooth-frequencies", no_argument, 0, 4 },
         { 0, 0, 0, 0 }
     };
 
@@ -271,6 +277,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 return false;
             }
             assert(0);
+            break;
+        case 4:
+            /* force frequencies smoothing */
+            exec_opt.smooth_freqs = true;
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
@@ -500,6 +510,8 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         assert(exec_opt.partitions_desc);
         for (partition_t & partition : (*exec_opt.partitions_desc))
         {
+            partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
+                                                             N_PROT_STATES);
             exist_dna_models     |= (partition.datatype == dt_dna);
             exist_protein_models |= (partition.datatype == dt_protein);
         }
@@ -514,6 +526,8 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         region.end = exec_opt.n_sites;
         region.stride = 1;
         partition.datatype = arg_datatype;
+        partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
+                                                         N_PROT_STATES);
         exist_dna_models     = (arg_datatype == dt_dna);
         exist_protein_models = (arg_datatype == dt_protein);
         partition.partition_name = "DATA";

@@ -178,6 +178,11 @@ void Model::set_frequencies(const double value[])
     memcpy(frequencies, value, n_frequencies * sizeof(double));
 }
 
+void Model::set_frequencies(const vector<double> & value)
+{
+    memcpy(frequencies, &(value[0]), n_frequencies * sizeof(double));
+}
+
 const double * Model::get_subst_rates( void ) const
 {
     return subst_rates;
