@@ -79,8 +79,7 @@ subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in COPYING compile depcomp install-sh \
-	missing
+	$(srcdir)/config.h.in COPYING compile install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_mpi.m4 \
 	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/configure.ac
@@ -191,13 +190,13 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/diego/Repositories/modeltest/missing aclocal-1.14
+ACLOCAL = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/missing aclocal-1.14
 ALLOCA = 
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
-AUTOCONF = ${SHELL} /home/diego/Repositories/modeltest/missing autoconf
-AUTOHEADER = ${SHELL} /home/diego/Repositories/modeltest/missing autoheader
-AUTOMAKE = ${SHELL} /home/diego/Repositories/modeltest/missing automake-1.14
+AUTOCONF = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/missing autoconf
+AUTOHEADER = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/missing autoheader
+AUTOMAKE = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/missing automake-1.14
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -227,7 +226,7 @@ LIBOBJS =
 LIBS = -lpthread -lm 
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/diego/Repositories/modeltest/missing makeinfo
+MAKEINFO = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/missing makeinfo
 MKDIR_P = /bin/mkdir -p
 MOC = /usr/bin/moc-qt4
 MPICXX = mpic++
@@ -253,10 +252,10 @@ SHELL = /bin/bash
 STRIP = 
 UIC = /usr/bin/uic-qt4
 VERSION = 1.0.0
-abs_builddir = /home/diego/Repositories/modeltest
-abs_srcdir = /home/diego/Repositories/modeltest
-abs_top_builddir = /home/diego/Repositories/modeltest
-abs_top_srcdir = /home/diego/Repositories/modeltest
+abs_builddir = /home/diego/Repositories/phylogenetics/modeltest
+abs_srcdir = /home/diego/Repositories/phylogenetics/modeltest
+abs_top_builddir = /home/diego/Repositories/phylogenetics/modeltest
+abs_top_srcdir = /home/diego/Repositories/phylogenetics/modeltest
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
@@ -276,7 +275,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/diego/Repositories/modeltest/install-sh
+install_sh = ${SHELL} /home/diego/Repositories/phylogenetics/modeltest/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
