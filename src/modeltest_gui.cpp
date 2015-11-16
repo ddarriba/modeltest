@@ -999,11 +999,14 @@ void jModelTest::on_btnRun_clicked()
         region.end = seq_len;
         region.stride = 1;
         partition.datatype = datatype;
+        partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         scheme->push_back(partition);
     }
     opts.partitions_desc = scheme;
+    //TODO: Create option for smoothing
+    opts.smooth_freqs = false;
 
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)

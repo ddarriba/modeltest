@@ -208,6 +208,7 @@ namespace modeltest
                                              bool force_recompute)
   {
       mt_size_t states = partition.states;
+      assert (states);
 
       if (partition.empirical_freqs.size())
           if(!force_recompute || partition.empirical_freqs.size() != states)
@@ -237,11 +238,12 @@ namespace modeltest
               }
           }
       }
+
       /* validate */
       double checksum = 0.0;
       for (mt_index_t i=0; i<states; i++)
       {
-          partition.empirical_freqs[i] /= count;
+          partition.empirical_freqs[i] /= (double)count;
           checksum += partition.empirical_freqs[i];
       }
       assert( fabs(1-checksum) < 1e-10 );
@@ -261,7 +263,7 @@ namespace modeltest
       {
           if (smooth)
           {
-              std::cerr << "WARNING: Temporary forced freq. smoothing" << std::endl;
+              std::cerr << "WARNING: Forced freq. smoothing" << std::endl;
               for (mt_index_t i=0; i<states; i++)
                  partition.empirical_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
           }
