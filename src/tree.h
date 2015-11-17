@@ -11,6 +11,11 @@
 #include "global_defs.h"
 #include <string>
 
+/* exceptions */
+#define EXCEPTION_TREE_SCRIPT  101
+#define EXCEPTION_TREE_MISSING 102
+#define EXCEPTION_TREE_USER    103
+
 namespace modeltest
 {
 
@@ -32,6 +37,10 @@ namespace modeltest
     virtual ~Tree ();
 
     mt_size_t get_n_tips( void ) const { return n_tips; }
+    mt_size_t get_n_inner( void ) const { return n_inner; }
+    mt_size_t get_n_branches( void ) const { return 2*n_tips-3; }
+    mt_size_t get_n_nodes( void ) const { return 2*n_tips-2; }
+
     virtual const std::string get_label( mt_index_t index, mt_index_t thread_number = 0 ) const = 0;
 
     /**

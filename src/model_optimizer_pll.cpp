@@ -11,6 +11,8 @@
 #include <cassert>
 #include <iostream>
 
+#define CHECK_LOCAL_CONVERGENCE 0
+
 /* a callback function for performing a full traversal */
 static int cb_full_traversal(pll_utree_t * node)
 {
@@ -56,21 +58,25 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     matrix_indices = NULL;
 
     mt_size_t n_tips = tree->get_n_tips ();
+    mt_size_t n_inner = tree->get_n_inner ();
+    mt_size_t n_branches = tree->get_n_branches ();
+    mt_size_t n_nodes = tree->get_n_nodes ();
     mt_size_t n_sites = 0;
+
     for (const partition_region_t & region : partition.regions)
     {
         n_sites += (region.end - region.start + 1)/region.stride;
     }
     pll_partition = pll_partition_create (
                 n_tips,                           /* tips */
-                (n_tips - 2),                     /* clv buffers */
+                n_inner,                          /* clv buffers */
                 model->get_n_states(),            /* states */
                 n_sites,                          /* sites */
                 0,                                /* mixture model */
                 1,                                /* rate matrices */
-                (2 * n_tips - 3),                 /* prob matrices */
+                n_branches,                       /* prob matrices */
                 model->is_G () ? _n_cat_g : 1,    /* rate cats */
-                n_tips - 2,                       /* scale buffers */
+                n_inner,                          /* scale buffers */
                 PLL_ATTRIB_ARCH_SSE               /* attributes */
                 );
     assert(pll_partition);
@@ -153,7 +159,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     /* allocate a buffer for storing pointers to nodes of the tree in postorder
      traversal */
     pll_utree_t ** travbuffer = (pll_utree_t **) Utils::allocate(
-                2 * n_tips - 2, sizeof(pll_utree_t *));
+                n_nodes, sizeof(pll_utree_t *));
 
     /* additional stuff */
     mt_size_t traversal_size;
@@ -170,9 +176,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
     assert(traversal_size > 0);
 
-    branch_lengths = new double[2 * n_tips - 3];
-    matrix_indices = new mt_index_t[2 * n_tips - 3];
-    operations = new pll_operation_t[n_tips - 2];
+    branch_lengths = new double[n_branches];
+    matrix_indices = new mt_index_t[n_branches];
+    operations = new pll_operation_t[n_inner];
     mt_size_t matrix_count;
     mt_size_t ops_count;
 
@@ -224,7 +230,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                        matrix_indices, operations, &matrix_count,
                                        &ops_count);
           pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
-                                    2 * tree->get_n_tips() - 3);
+                                    tree->get_n_branches());
           pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
           params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
@@ -312,6 +318,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       std::cout << "Optimizing model " << model->get_name() << std::endl;
 #endif
       time_t start_time = time(NULL);
+      mt_size_t n_branches = tree->get_n_branches();
 
       if (params == NULL)
         build_parameters();
@@ -355,11 +362,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
 
       tree->set_branches(0.15, thread_number);
-      for (int i=0; i<2 * tree->get_n_tips() - 3; i++)
+      for (mt_index_t i=0; i<n_branches; i++)
           branch_lengths[i] = 0.15;
-      pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
-                                2 * tree->get_n_tips() - 3);
-      pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
+      pll_update_prob_matrices (pll_partition,
+                                0,
+                                matrix_indices,
+                                branch_lengths,
+                                n_branches);
+      pll_update_partials (pll_partition,
+                           operations,
+                           tree->get_n_inner());
 
       double logl = pll_compute_edge_loglikelihood (pll_partition,
                                                     pll_tree->clv_index,
@@ -377,8 +389,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       logl = cur_logl + 10;
       mt_index_t n_iters = 0;       /* iterations counter */
 
+#if(CHECK_LOCAL_CONVERGENCE)
       double test_logl;         /* temporary variable */
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
+#endif
 
       std::vector<mt_index_t> params_to_optimize;
 
@@ -398,7 +412,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (params_to_optimize.size())
       {
           mt_size_t iters_hard_limit = 200;
-          while (n_iters < params_to_optimize.size() || (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+          while (n_iters < params_to_optimize.size() ||
+                (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
           {
               n_iters++;
               logl = cur_logl;
@@ -418,13 +433,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               }
 
               mt_index_t cur_parameter = params_to_optimize[cur_parameter_index];
+#if(CHECK_LOCAL_CONVERGENCE)
               if (!(converged & cur_parameter))
               {
                   test_logl = cur_logl;
+#endif
                   cur_logl = opt_single_parameter(cur_parameter, tolerance);
-//                  if (fabs(test_logl - cur_logl) < tolerance)
-//                      converged |= cur_parameter;
+#if(CHECK_LOCAL_CONVERGENCE)
+                  if (fabs(test_logl - cur_logl) < tolerance)
+                      converged |= cur_parameter;
               }
+#endif
 
               cur_parameter_index++;
               cur_parameter_index %= params_to_optimize.size();
@@ -456,7 +475,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         model->set_subst_rates(pll_partition->subst_params[0]);
       }
 
-      model->evaluate_criteria(2*tree->get_n_tips() - 3, params->lk_params.partition->sites);
+      model->evaluate_criteria(n_branches, params->lk_params.partition->sites);
 
       return true;
   }

@@ -105,8 +105,11 @@ static void print_help(std::ostream& out)
         << "           mp"
         << "maximum parsimony" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-        << "           fixed-ml"
-        << "fixed maximum likelihood" << endl;
+        << "           fixed-ml-jc"
+        << "fixed maximum likelihood (JC)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           fixed-ml-gtr"
+        << "fixed maximum likelihood (GTR)" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           fixed-mp"
         << "fixed maximum parsimony" << endl;
@@ -426,6 +429,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             else if (!strcasecmp(optarg, "fixed-ml-gtr"))
             {
                 exec_opt.starting_tree = tree_ml_gtr_fixed;
+            }
+            else if (!strcasecmp(optarg, "fixed-ml-jc"))
+            {
+                exec_opt.starting_tree = tree_ml_jc_fixed;
             }
             else
             {
@@ -764,7 +771,6 @@ int main(int argc, char *argv[])
             for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
             {
                 modeltest::Model *model = mt.get_models(part_id)[cur_model];
-
 
                     results.emplace_back(
                         pool.enqueue([cur_model, model, part_id, epsilon_param, epsilon_opt, &mt, ini_global_time, &thread_map] {

@@ -402,7 +402,7 @@ void jModelTest::on_btnLoadTree_clicked()
         }
         else
         {
-            ui->txt_messages->append(to_qstring("Error: Cannot read tree %1", msg_error).arg(utree_filename.c_str()));
+            ui->txt_messages->append(to_qstring("%1", msg_error).arg(mt_errmsg));
             ui->tabView->setCurrentIndex(TAB_CONSOLE);
             utree_filename = "";
             unset_state(STATE_TREE_LOADED);
@@ -934,6 +934,7 @@ void jModelTest::on_btnRun_clicked()
 
     mtest = new ModelTest(number_of_threads);
 
+
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
         model_params += MOD_PARAM_FIXED_FREQ;
@@ -1013,7 +1014,11 @@ void jModelTest::on_btnRun_clicked()
 
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
-        ui->txt_messages->append(to_qstring("Error building instance", msg_error));
+    {
+        ui->txt_messages->append(to_qstring("Error building instance [%1]", msg_error).arg(mt_errno));
+        ui->txt_messages->append(to_qstring(mt_errmsg, msg_error));
+        return;
+    }
 
     if (c_models.size())
     {

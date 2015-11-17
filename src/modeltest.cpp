@@ -11,7 +11,7 @@
 namespace modeltest {
 
 unsigned int mt_errno;
-char mt_errmsg[200] = {0};
+char mt_errmsg[MT_ERROR_LENGTH] = {0};
 
 using namespace std;
 
@@ -237,7 +237,14 @@ bool ModelTest::build_instance(mt_options & options)
     case tree_user_fixed:
         if( options.tree_filename.compare ("") )
       {
-        current_instance->tree = new TreePll (options.starting_tree, options.tree_filename, number_of_threads);
+        try {
+                current_instance->tree = new TreePll (options.starting_tree, options.tree_filename, number_of_threads);
+            }
+            catch(int e)
+            {
+                free_stuff();
+                return false;
+            }
         if (!test_link(current_instance->msa, current_instance->tree))
         {
             /* clean memory */
@@ -259,7 +266,28 @@ bool ModelTest::build_instance(mt_options & options)
     case tree_mp:
     case tree_ml_gtr_fixed:
     case tree_ml_jc_fixed:
-        current_instance->tree = new TreePll (options.starting_tree, options.msa_filename, number_of_threads);
+        try {
+          current_instance->tree = new TreePll (options.starting_tree, options.msa_filename, number_of_threads);
+        }
+        catch(int e)
+        {
+            switch (e)
+            {
+            case EXCEPTION_TREE_MISSING:
+                mt_errno = MT_ERROR_TREE;
+                break;
+            case EXCEPTION_TREE_SCRIPT:
+                mt_errno = MT_ERROR_IO;
+                break;
+            case EXCEPTION_TREE_USER:
+                mt_errno = MT_ERROR_TREE;
+                break;
+            default:
+                assert(0);
+            }
+            free_stuff();
+            return false;
+        }
         current_instance->tree->print();
         break;
     case tree_ml:
@@ -347,6 +375,7 @@ void ModelTest::free_stuff()
             delete it->second;
         partitions.clear();
         delete current_instance;
+        current_instance = 0;
     }
 }
 }

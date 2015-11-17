@@ -81,7 +81,6 @@ namespace modeltest
               }
               else
               {
-                  cout << "Error " << pll_errno << " reading tree: " << pll_errmsg << endl;
                   free (pll_tree);
                   free (pll_start_tree);
                   free (pll_tip_nodes);
@@ -90,8 +89,9 @@ namespace modeltest
                   pll_start_tree = 0;
                   pll_tip_nodes = 0;
                   pll_inner_nodes = 0;
-                  errno = pll_errno;
-                  return;
+                  mt_errno = pll_errno;
+                  snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_USER;
               }
           }
       }
@@ -106,17 +106,33 @@ namespace modeltest
           int retval = system(command);
           if (retval)
           {
-              cout << "ERROR: Command failed: " << command << endl;
+              snprintf(mt_errmsg, 400, "External script failed: %s", command);
+              throw EXCEPTION_TREE_SCRIPT;
           }
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
               pll_start_tree[i] = pll_tree[i];
-              if (!pll_tree[i])
+              if (pll_tree[i])
               {
-                  cout << "Error " << pll_errno << " reading tree: " << pll_errmsg << endl;
-                  errno = pll_errno;
-                  return;
+                  pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+                  pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+                  pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+                  pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+              }
+              else
+              {
+                  free (pll_tree);
+                  free (pll_start_tree);
+                  free (pll_tip_nodes);
+                  free (pll_inner_nodes);
+                  pll_tree = 0;
+                  pll_start_tree = 0;
+                  pll_tip_nodes = 0;
+                  pll_inner_nodes = 0;
+                  mt_errno = pll_errno;
+                  snprintf(mt_errmsg, 400, "PLL Error %d parsing MP tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_MISSING;
               }
           }
       }
@@ -125,23 +141,39 @@ namespace modeltest
       {
           /* Temporary call to RAxML */
           cout << "Testing ML GTR starting tree!" << endl;
-          string mp_tree_filename = "mtTempMpTree";
+          string ml_tree_filename = "mtTempMpTree";
           char command[500];
-          sprintf(command, "scripts/makeGtrML.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
+          sprintf(command, "scripts/makeGtrML.sh %s %s %d", filename.c_str(), ml_tree_filename.c_str(), random_seed);
           int retval = system(command);
           if (retval)
           {
-              cout << "ERROR: Command failed: " << command << endl;
+              snprintf(mt_errmsg, 400, "External script failed: %s", command);
+              throw EXCEPTION_TREE_SCRIPT;
           }
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
-              pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
+              pll_tree[i] = pll_utree_parse_newick (ml_tree_filename.c_str(), &(n_tips));
               pll_start_tree[i] = pll_tree[i];
-              if (!pll_tree[i])
+              if (pll_tree[i])
               {
-                  cout << "Error " << pll_errno << " reading tree: " << pll_errmsg << endl;
-                  errno = pll_errno;
-                  return;
+                  pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+                  pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+                  pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+                  pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+              }
+              else
+              {
+                  free (pll_tree);
+                  free (pll_start_tree);
+                  free (pll_tip_nodes);
+                  free (pll_inner_nodes);
+                  pll_tree = 0;
+                  pll_start_tree = 0;
+                  pll_tip_nodes = 0;
+                  pll_inner_nodes = 0;
+                  mt_errno = pll_errno;
+                  snprintf(mt_errmsg, 400, "PLL Error %d parsing ML/GTR tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_MISSING;
               }
           }
       }
@@ -150,23 +182,39 @@ namespace modeltest
       {
           /* Temporary call to RAxML */
           cout << "Testing ML GTR starting tree!" << endl;
-          string mp_tree_filename = "mtTempMpTree";
+          string ml_tree_filename = "mtTempMpTree";
           char command[500];
-          sprintf(command, "scripts/makeJcML.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
+          sprintf(command, "scripts/makeJcML.sh %s %s %d", filename.c_str(), ml_tree_filename.c_str(), random_seed);
           int retval = system(command);
           if (retval)
           {
-              cout << "ERROR: Command failed: " << command << endl;
+              snprintf(mt_errmsg, 400, "External script failed: %s", command);
+              throw EXCEPTION_TREE_SCRIPT;
           }
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
-              pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
+              pll_tree[i] = pll_utree_parse_newick (ml_tree_filename.c_str(), &(n_tips));
               pll_start_tree[i] = pll_tree[i];
-              if (!pll_tree[i])
+              if (pll_tree[i])
               {
-                  cout << "Error " << pll_errno << " reading tree: " << pll_errmsg << endl;
-                  errno = pll_errno;
-                  return;
+                  pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+                  pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+                  pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+                  pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+              }
+              else
+              {
+                  free (pll_tree);
+                  free (pll_start_tree);
+                  free (pll_tip_nodes);
+                  free (pll_inner_nodes);
+                  pll_tree = 0;
+                  pll_start_tree = 0;
+                  pll_tip_nodes = 0;
+                  pll_inner_nodes = 0;
+                  mt_errno = pll_errno;
+                  snprintf(mt_errmsg, 400, "PLL Error %d parsing ML/JC tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_MISSING;
               }
           }
       }
@@ -209,11 +257,15 @@ namespace modeltest
 
   void TreePll::reroot_random(mt_index_t thread_number)
   {
+      if (!pll_inner_nodes)
+          cerr << "INER NODES FAIL" << endl;
       assert(pll_inner_nodes);
       /* move to random node */
       int inner_index = rand () % n_inner;
 //      int tip_index = rand () % n_tips;
 
+      if (!pll_inner_nodes[thread_number])
+          cerr << "INER NODES THREAD FAIL " << thread_number << " " << number_of_threads << endl;
       pll_tree[thread_number] = pll_inner_nodes[thread_number][inner_index];
 //      pll_tree[thread_number] = pll_tip_nodes[thread_number][inner_index];
       assert(pll_tree[thread_number]);
@@ -235,7 +287,8 @@ namespace modeltest
         pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str(), n_tips);
         if (!tree)
         {
-                errno = pll_errno;
+                mt_errno = pll_errno;
+                snprintf(mt_errmsg, 400, "PLL Error %d testing tree: %s", pll_errno, pll_errmsg);
                 return false;
         }
         else

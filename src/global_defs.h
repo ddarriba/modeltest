@@ -39,10 +39,12 @@
 
 #define MT_MIN_SMOOTH_FREQ        0.02
 
+#define MT_ERROR_LENGTH 400
+
 namespace modeltest
 {
   extern unsigned int mt_errno;
-  extern char mt_errmsg[200];
+  extern char mt_errmsg[MT_ERROR_LENGTH];
 }
 
 typedef unsigned int mt_size_t;
