@@ -48,6 +48,7 @@ jModelTest::jModelTest(QWidget *parent) :
     scheme = 0;
     tabs_multi_shown = false;
 
+    on_radDatatypeDna_clicked();
     updateGUI();
 }
 
@@ -177,7 +178,7 @@ void jModelTest::updateGUI()
     else
         ui->btnLoadParts->setStyleSheet("color: #999;");
 
-    ui->listMatrices->setEnabled(
+    ui->modelsListView->setEnabled(
                 ui->radDatatypeProt->isChecked() ||
                 ui->radSetModelTest->isChecked() ||
                 ui->radSetPhyml->isChecked());
@@ -196,7 +197,7 @@ void jModelTest::updateGUI()
     ui->btnRun->setEnabled(ui->tabView->isEnabled());
 
     ui->grpAdvanced->setVisible(ui->cbAdvanced->isChecked());
-    ui->listMatrices->setVisible(ui->cbShowMatrices->isChecked());
+    ui->modelsListView->setVisible(ui->cbShowMatrices->isChecked());
 
     bool tabConfigEnabled = check_state(STATE_ALIGNMENT_LOADED);
     bool tabRunEnabled = check_state(STATE_MODELS_OPTIMIZING);
@@ -216,10 +217,13 @@ void jModelTest::updateGUI()
             ui->cbGModels->isChecked() +
             ui->cbIGModels->isChecked();
 
+    n_matrices = 0;
     if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
         n_matrices = N_DNA_ALLMATRIX_COUNT;
     else
-        n_matrices = ui->listMatrices->selectedItems().size();
+        for (int i=0; i < ui->modelsListView->count(); i++)
+            if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
+                n_matrices++;
 
     n_models = n_matrices * n_model_sets *
             (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
@@ -252,7 +256,8 @@ void jModelTest::resetSettings()
 {
     ui->radSetModelTest->setChecked(true);
     ui->radSchemes11->setChecked(true);
-    ui->listMatrices->selectAll();
+    for (int i=0; i < ui->modelsListView->count(); i++)
+        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
     ui->cbEqualFreq->setChecked(true);
     ui->cbMlFreq->setChecked(true);
     ui->cbNoRateVarModels->setChecked(true);
@@ -477,17 +482,13 @@ void jModelTest::on_btnLoadParts_clicked()
 
 void jModelTest::autoSelectSchemes(const int schemes[], int n)
 {
-    ui->listMatrices->clearSelection();
+
+    for (int i=0; i < ui->modelsListView->count(); i++)
+        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
 
     for (int i=0; i<n; i++)
-        ui->listMatrices->item( schemes[i] )->setSelected(true);
+        ui->modelsListView->item(schemes[i])->setCheckState(Qt::CheckState::Checked);
 
-    updateGUI();
-}
-
-void jModelTest::on_listMatrices_itemSelectionChanged()
-{
-    ui->radSchemesUser->setChecked(true);
     updateGUI();
 }
 
@@ -528,7 +529,8 @@ void jModelTest::on_radSchemes11_clicked()
 {
     if (ui->radDatatypeDna->isChecked())
     {
-        ui->listMatrices->selectAll();
+        for (int i=0; i < ui->modelsListView->count(); i++)
+            ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
         ui->radSchemes11->setChecked(true);
         // updateGUI();
     }
@@ -538,7 +540,8 @@ void jModelTest::on_radSchemes203_clicked()
 {
     if (ui->radDatatypeDna->isChecked())
     {
-        ui->listMatrices->clearSelection();
+        for (int i=0; i < ui->modelsListView->count(); i++)
+            ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
         ui->radSchemes203->setChecked(true);
         updateGUI();
     }
@@ -951,9 +954,9 @@ void jModelTest::on_btnRun_clicked()
     std::vector<mt_index_t> matrices;
     if (ui->radDatatypeProt->isChecked())
     {
-        for (int i=0; i < ui->listMatrices->count(); i++)
+        for (int i=0; i < ui->modelsListView->count(); i++)
         {
-            if (ui->listMatrices->item(i)->isSelected())
+            if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
                 matrices.push_back(i);
         }
     }
@@ -961,9 +964,9 @@ void jModelTest::on_btnRun_clicked()
     {
         if (!ui->radSchemes203->isChecked())
         {
-            for (int i=0; i < ui->listMatrices->count(); i++)
+            for (int i=0; i < ui->modelsListView->count(); i++)
             {
-                if (ui->listMatrices->item(i)->isSelected())
+                if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
                     matrices.push_back(dna_model_matrices_indices[i]);
             }
         }
@@ -1293,34 +1296,41 @@ void jModelTest::on_radDatatypeDna_clicked()
     //ui->grpSubstSchemes->setVisible(true);
     ui->grpSubstSchemes->setEnabled(true);
     ui->cbMlFreq->setText("ML frequencies");
-    ui->listMatrices->clear();
-    ui->listMatrices->addItem("000000  JC / F81");
-    ui->listMatrices->addItem("010010  K80 / HKY85");
-    ui->listMatrices->addItem("010020  TrNef / TrN");
-    ui->listMatrices->addItem("012210  TPM1 / TPM1uf");
-    ui->listMatrices->addItem("010212  TPM2 / TPM2uf");
-    ui->listMatrices->addItem("012012  TPM3 / TPM3uf");
-    ui->listMatrices->addItem("012230  TIM1ef / TIM1");
-    ui->listMatrices->addItem("010232  TIM2ef / TIM2");
-    ui->listMatrices->addItem("012032  TIM3ef / TIM3");
-    ui->listMatrices->addItem("012314  TVMef / TVM");
-    ui->listMatrices->addItem("012345  SYM / GTR");
-    ui->listMatrices->setMinimumHeight(211);
-    ui->listMatrices->setMaximumHeight(211);
+    ui->modelsListView->clear();
+
+    ui->modelsListView->addItem("000000  JC / F81");
+    ui->modelsListView->addItem("010010  K80 / HKY85");
+    ui->modelsListView->addItem("010020  TrNef / TrN");
+    ui->modelsListView->addItem("012210  TPM1 / TPM1uf");
+    ui->modelsListView->addItem("010212  TPM2 / TPM2uf");
+    ui->modelsListView->addItem("012012  TPM3 / TPM3uf");
+    ui->modelsListView->addItem("012230  TIM1ef / TIM1");
+    ui->modelsListView->addItem("010232  TIM2ef / TIM2");
+    ui->modelsListView->addItem("012032  TIM3ef / TIM3");
+    ui->modelsListView->addItem("012314  TVMef / TVM");
+    ui->modelsListView->addItem("012345  SYM / GTR");
+
+    ui->modelsListView->setMinimumHeight(250);
+    ui->modelsListView->setMaximumHeight(250);
     on_radSchemes11_clicked();
 }
 
 void jModelTest::on_radDatatypeProt_clicked()
 {
+
     //ui->grpSubstSchemes->setVisible(false);
     ui->grpSubstSchemes->setEnabled(false);
     ui->cbMlFreq->setText("Empirical frequencies");
-    ui->listMatrices->clear();
+    ui->modelsListView->clear();
     for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
-        ui->listMatrices->addItem(prot_model_names[i].c_str());
-    ui->listMatrices->setMinimumHeight(363);
-    ui->listMatrices->setMaximumHeight(363);
-    ui->listMatrices->selectAll();
+    {
+        ui->modelsListView->addItem(prot_model_names[i].c_str());
+        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+    }
+
+    ui->modelsListView->setMinimumHeight(363);
+    ui->modelsListView->setMaximumHeight(363);
+    ui->modelsListView->selectAll();
 }
 
 bool jModelTest::check_state(current_state st)
@@ -1345,6 +1355,12 @@ void jModelTest::on_radSchemesUser_clicked()
 {
     ui->cbShowMatrices->setChecked(true);
     on_cbShowMatrices_clicked();
+}
+
+void jModelTest::on_modelsListView_itemClicked(QListWidgetItem *item)
+{
+    ui->radSchemesUser->setChecked(true);
+    updateGUI();
 }
 
 }

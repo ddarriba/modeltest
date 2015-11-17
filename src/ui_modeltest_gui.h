@@ -14,6 +14,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
+#include <QtGui/QFrame>
 #include <QtGui/QGridLayout>
 #include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
@@ -56,10 +57,10 @@ public:
     QAction *actionResults;
     QWidget *layout_main;
     QVBoxLayout *verticalLayout_2;
-    QGroupBox *groupBox_3;
-    QHBoxLayout *horizontalLayout_8;
+    QFrame *frameHeader;
+    QHBoxLayout *horizontalLayout_7;
     QLabel *lblGear;
-    QGridLayout *gridLayout_5;
+    QGridLayout *gridData;
     QLabel *lblAlignment;
     QLabel *lblTree;
     QLabel *lblLoadAlignText;
@@ -78,52 +79,70 @@ public:
     QScrollArea *grpOptions;
     QWidget *scrollAreaWidgetContents;
     QVBoxLayout *verticalLayout_8;
-    QGroupBox *grpSetOptions;
-    QHBoxLayout *horizontalLayout_4;
+    QFrame *frameData;
+    QVBoxLayout *verticalLayout;
+    QFrame *frame_5;
+    QHBoxLayout *horizontalLayout_9;
+    QLabel *label_6;
+    QRadioButton *radDatatypeDna;
+    QRadioButton *radDatatypeProt;
+    QSpacerItem *horizontalSpacer_8;
+    QFrame *frame_settings_1;
+    QHBoxLayout *horizontalLayout_13;
+    QLabel *label;
     QRadioButton *radSetModelTest;
     QRadioButton *radSetMrbayes;
     QRadioButton *radSetRaxml;
     QRadioButton *radSetPhyml;
     QRadioButton *radSetPAUP;
     QSpacerItem *horizontalSpacer_2;
-    QGroupBox *grpTopology;
-    QHBoxLayout *horizontalLayout_5;
+    QLabel *label_2;
+    QFrame *frame_settings_2;
+    QHBoxLayout *horizontalLayout_4;
     QRadioButton *radTopoFixedMp;
     QRadioButton *radTopoFixedJc;
     QRadioButton *radTopoFixedGtr;
     QRadioButton *radTopoML;
     QRadioButton *radTopoU;
     QSpacerItem *horizontalSpacer;
-    QHBoxLayout *horizontalLayout_9;
-    QGroupBox *grpDataType;
-    QRadioButton *radDatatypeDna;
-    QRadioButton *radDatatypeProt;
-    QGroupBox *grpSubstSchemes;
+    QFrame *line;
+    QLabel *label_3;
+    QFrame *frameModels;
+    QVBoxLayout *verticalLayout_11;
+    QFrame *grpSubstSchemes;
+    QHBoxLayout *horizontalLayout_5;
     QRadioButton *radSchemes3;
     QRadioButton *radSchemes5;
     QRadioButton *radSchemes7;
     QRadioButton *radSchemes11;
     QRadioButton *radSchemes203;
     QRadioButton *radSchemesUser;
+    QSpacerItem *horizontalSpacer_5;
+    QLabel *label_4;
+    QFrame *frame_3;
+    QGridLayout *gridLayout_6;
+    QCheckBox *cbNoRateVarModels;
+    QCheckBox *cbIGModels;
+    QCheckBox *cbIModels;
+    QSpacerItem *horizontalSpacer_6;
+    QLabel *lblNCat;
+    QCheckBox *cbGModels;
+    QSlider *sliderNCat;
+    QLabel *label_5;
+    QFrame *frame_4;
+    QHBoxLayout *horizontalLayout_6;
+    QCheckBox *cbEqualFreq;
+    QCheckBox *cbMlFreq;
+    QSpacerItem *horizontalSpacer_7;
+    QFrame *frame;
     QHBoxLayout *horizontalLayout_3;
     QLabel *lblTextNModels;
     QLabel *lblNumModels;
-    QCheckBox *cbShowMatrices;
     QSpacerItem *horizontalSpacer_3;
-    QHBoxLayout *horizontalLayout_7;
-    QListWidget *listMatrices;
-    QGroupBox *grpModelSets;
-    QGridLayout *gridLayout;
-    QCheckBox *cbGModels;
-    QCheckBox *cbNoRateVarModels;
-    QSlider *sliderNCat;
-    QLabel *lblNCat;
-    QCheckBox *cbIModels;
-    QCheckBox *cbIGModels;
-    QCheckBox *cbEqualFreq;
-    QCheckBox *cbMlFreq;
+    QCheckBox *cbShowMatrices;
+    QListWidget *modelsListView;
     QCheckBox *cbAdvanced;
-    QGroupBox *grpAdvanced;
+    QFrame *grpAdvanced;
     QGridLayout *gridLayout_2;
     QLineEdit *txtOptEpsilon;
     QLineEdit *txtParEpsilon;
@@ -226,36 +245,39 @@ public:
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-        groupBox_3 = new QGroupBox(layout_main);
-        groupBox_3->setObjectName(QString::fromUtf8("groupBox_3"));
-        groupBox_3->setMinimumSize(QSize(0, 130));
-        groupBox_3->setMaximumSize(QSize(16777215, 130));
+        frameHeader = new QFrame(layout_main);
+        frameHeader->setObjectName(QString::fromUtf8("frameHeader"));
+        frameHeader->setMinimumSize(QSize(0, 100));
+        frameHeader->setMaximumSize(QSize(16777215, 100));
+        frameHeader->setFrameShape(QFrame::StyledPanel);
+        frameHeader->setFrameShadow(QFrame::Raised);
+        horizontalLayout_7 = new QHBoxLayout(frameHeader);
+        horizontalLayout_7->setSpacing(6);
+        horizontalLayout_7->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+        lblGear = new QLabel(frameHeader);
+        lblGear->setObjectName(QString::fromUtf8("lblGear"));
+        lblGear->setMinimumSize(QSize(50, 50));
+        lblGear->setMaximumSize(QSize(100, 100));
         QFont font1;
         font1.setFamily(QString::fromUtf8("Arial"));
         font1.setPointSize(10);
-        groupBox_3->setFont(font1);
-        groupBox_3->setStyleSheet(QString::fromUtf8("background: #aaa;"));
-        horizontalLayout_8 = new QHBoxLayout(groupBox_3);
-        horizontalLayout_8->setSpacing(6);
-        horizontalLayout_8->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
-        horizontalLayout_8->setContentsMargins(0, 0, -1, 10);
-        lblGear = new QLabel(groupBox_3);
-        lblGear->setObjectName(QString::fromUtf8("lblGear"));
-        lblGear->setMinimumSize(QSize(100, 100));
-        lblGear->setMaximumSize(QSize(100, 100));
         lblGear->setFont(font1);
-        lblGear->setStyleSheet(QString::fromUtf8("background: #fff;"));
-        lblGear->setFrameShape(QFrame::NoFrame);
-        lblGear->setFrameShadow(QFrame::Plain);
+        lblGear->setStyleSheet(QString::fromUtf8(""));
+        lblGear->setFrameShape(QFrame::WinPanel);
+        lblGear->setFrameShadow(QFrame::Raised);
+        lblGear->setLineWidth(2);
+        lblGear->setAlignment(Qt::AlignCenter);
 
-        horizontalLayout_8->addWidget(lblGear);
+        horizontalLayout_7->addWidget(lblGear);
 
-        gridLayout_5 = new QGridLayout();
-        gridLayout_5->setSpacing(6);
-        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
-        lblAlignment = new QLabel(groupBox_3);
+        gridData = new QGridLayout();
+        gridData->setSpacing(6);
+        gridData->setObjectName(QString::fromUtf8("gridData"));
+        lblAlignment = new QLabel(frameHeader);
         lblAlignment->setObjectName(QString::fromUtf8("lblAlignment"));
+        lblAlignment->setMinimumSize(QSize(0, 20));
+        lblAlignment->setMaximumSize(QSize(16777215, 20));
         QFont font2;
         font2.setFamily(QString::fromUtf8("Arial"));
         font2.setPointSize(10);
@@ -263,52 +285,56 @@ public:
         font2.setItalic(false);
         font2.setWeight(50);
         lblAlignment->setFont(font2);
-        lblAlignment->setStyleSheet(QString::fromUtf8("background: #99d;"));
+        lblAlignment->setStyleSheet(QString::fromUtf8(""));
         lblAlignment->setMargin(5);
 
-        gridLayout_5->addWidget(lblAlignment, 0, 1, 1, 1);
+        gridData->addWidget(lblAlignment, 0, 1, 1, 1);
 
-        lblTree = new QLabel(groupBox_3);
+        lblTree = new QLabel(frameHeader);
         lblTree->setObjectName(QString::fromUtf8("lblTree"));
+        lblTree->setMinimumSize(QSize(0, 20));
+        lblTree->setMaximumSize(QSize(16777215, 20));
         lblTree->setFont(font2);
-        lblTree->setStyleSheet(QString::fromUtf8("background: #99d;"));
+        lblTree->setStyleSheet(QString::fromUtf8(""));
         lblTree->setMargin(5);
 
-        gridLayout_5->addWidget(lblTree, 1, 1, 1, 1);
+        gridData->addWidget(lblTree, 1, 1, 1, 1);
 
-        lblLoadAlignText = new QLabel(groupBox_3);
+        lblLoadAlignText = new QLabel(frameHeader);
         lblLoadAlignText->setObjectName(QString::fromUtf8("lblLoadAlignText"));
         lblLoadAlignText->setMaximumSize(QSize(70, 16777215));
         lblLoadAlignText->setFont(font2);
         lblLoadAlignText->setStyleSheet(QString::fromUtf8("color: #060;"));
 
-        gridLayout_5->addWidget(lblLoadAlignText, 0, 0, 1, 1);
+        gridData->addWidget(lblLoadAlignText, 0, 0, 1, 1);
 
-        lblParts = new QLabel(groupBox_3);
+        lblParts = new QLabel(frameHeader);
         lblParts->setObjectName(QString::fromUtf8("lblParts"));
+        lblParts->setMinimumSize(QSize(0, 20));
+        lblParts->setMaximumSize(QSize(16777215, 20));
         lblParts->setFont(font2);
-        lblParts->setStyleSheet(QString::fromUtf8("background: #99d;"));
+        lblParts->setStyleSheet(QString::fromUtf8(""));
         lblParts->setMargin(5);
 
-        gridLayout_5->addWidget(lblParts, 2, 1, 1, 1);
+        gridData->addWidget(lblParts, 2, 1, 1, 1);
 
-        lblLoadTreeText = new QLabel(groupBox_3);
+        lblLoadTreeText = new QLabel(frameHeader);
         lblLoadTreeText->setObjectName(QString::fromUtf8("lblLoadTreeText"));
         lblLoadTreeText->setMaximumSize(QSize(70, 16777215));
         lblLoadTreeText->setFont(font2);
         lblLoadTreeText->setStyleSheet(QString::fromUtf8("color: #060;"));
 
-        gridLayout_5->addWidget(lblLoadTreeText, 1, 0, 1, 1);
+        gridData->addWidget(lblLoadTreeText, 1, 0, 1, 1);
 
-        lblLoadPartsText = new QLabel(groupBox_3);
+        lblLoadPartsText = new QLabel(frameHeader);
         lblLoadPartsText->setObjectName(QString::fromUtf8("lblLoadPartsText"));
         lblLoadPartsText->setMaximumSize(QSize(70, 16777215));
         lblLoadPartsText->setFont(font2);
         lblLoadPartsText->setStyleSheet(QString::fromUtf8("color: #060;"));
 
-        gridLayout_5->addWidget(lblLoadPartsText, 2, 0, 1, 1);
+        gridData->addWidget(lblLoadPartsText, 2, 0, 1, 1);
 
-        btnLoadParts = new QPushButton(groupBox_3);
+        btnLoadParts = new QPushButton(frameHeader);
         btnLoadParts->setObjectName(QString::fromUtf8("btnLoadParts"));
         btnLoadParts->setEnabled(true);
         btnLoadParts->setMinimumSize(QSize(30, 0));
@@ -320,18 +346,18 @@ public:
         btnLoadParts->setFont(font3);
         btnLoadParts->setStyleSheet(QString::fromUtf8(""));
 
-        gridLayout_5->addWidget(btnLoadParts, 2, 2, 1, 1);
+        gridData->addWidget(btnLoadParts, 2, 2, 1, 1);
 
-        btnLoadTree = new QPushButton(groupBox_3);
+        btnLoadTree = new QPushButton(frameHeader);
         btnLoadTree->setObjectName(QString::fromUtf8("btnLoadTree"));
         btnLoadTree->setEnabled(true);
         btnLoadTree->setMinimumSize(QSize(30, 0));
         btnLoadTree->setMaximumSize(QSize(30, 16777215));
         btnLoadTree->setFont(font3);
 
-        gridLayout_5->addWidget(btnLoadTree, 1, 2, 1, 1);
+        gridData->addWidget(btnLoadTree, 1, 2, 1, 1);
 
-        btnLoadAlignment = new QPushButton(groupBox_3);
+        btnLoadAlignment = new QPushButton(frameHeader);
         btnLoadAlignment->setObjectName(QString::fromUtf8("btnLoadAlignment"));
         btnLoadAlignment->setEnabled(true);
         btnLoadAlignment->setMinimumSize(QSize(30, 0));
@@ -339,13 +365,13 @@ public:
         btnLoadAlignment->setFont(font3);
         btnLoadAlignment->setStyleSheet(QString::fromUtf8(""));
 
-        gridLayout_5->addWidget(btnLoadAlignment, 0, 2, 1, 1);
+        gridData->addWidget(btnLoadAlignment, 0, 2, 1, 1);
 
 
-        horizontalLayout_8->addLayout(gridLayout_5);
+        horizontalLayout_7->addLayout(gridData);
 
 
-        verticalLayout_2->addWidget(groupBox_3);
+        verticalLayout_2->addWidget(frameHeader);
 
         splitter = new QSplitter(layout_main);
         splitter->setObjectName(QString::fromUtf8("splitter"));
@@ -378,269 +404,355 @@ public:
         grpOptions->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 913, 773));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -75, 913, 550));
         verticalLayout_8 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_8->setSpacing(6);
         verticalLayout_8->setContentsMargins(11, 11, 11, 11);
         verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
-        grpSetOptions = new QGroupBox(scrollAreaWidgetContents);
-        grpSetOptions->setObjectName(QString::fromUtf8("grpSetOptions"));
-        grpSetOptions->setMinimumSize(QSize(0, 61));
-        grpSetOptions->setMaximumSize(QSize(16777215, 61));
-        grpSetOptions->setFont(font3);
-        grpSetOptions->setStyleSheet(QString::fromUtf8("background-color: #99d; "));
-        grpSetOptions->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
-        horizontalLayout_4 = new QHBoxLayout(grpSetOptions);
-        horizontalLayout_4->setSpacing(6);
-        horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
-        horizontalLayout_4->setContentsMargins(-1, 20, -1, -1);
-        radSetModelTest = new QRadioButton(grpSetOptions);
+        frameData = new QFrame(scrollAreaWidgetContents);
+        frameData->setObjectName(QString::fromUtf8("frameData"));
+        frameData->setMinimumSize(QSize(0, 100));
+        frameData->setMaximumSize(QSize(16777215, 140));
+        frameData->setFrameShape(QFrame::StyledPanel);
+        frameData->setFrameShadow(QFrame::Plain);
+        frameData->setLineWidth(0);
+        verticalLayout = new QVBoxLayout(frameData);
+        verticalLayout->setSpacing(2);
+        verticalLayout->setContentsMargins(11, 11, 11, 11);
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        verticalLayout->setContentsMargins(2, 2, 2, 2);
+        frame_5 = new QFrame(frameData);
+        frame_5->setObjectName(QString::fromUtf8("frame_5"));
+        frame_5->setMinimumSize(QSize(0, 20));
+        frame_5->setMaximumSize(QSize(16777215, 30));
+        frame_5->setFrameShape(QFrame::NoFrame);
+        frame_5->setFrameShadow(QFrame::Raised);
+        frame_5->setLineWidth(0);
+        horizontalLayout_9 = new QHBoxLayout(frame_5);
+        horizontalLayout_9->setSpacing(6);
+        horizontalLayout_9->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
+        horizontalLayout_9->setContentsMargins(-1, 0, -1, 0);
+        label_6 = new QLabel(frame_5);
+        label_6->setObjectName(QString::fromUtf8("label_6"));
+        label_6->setMinimumSize(QSize(100, 0));
+        QFont font4;
+        font4.setFamily(QString::fromUtf8("Courier"));
+        font4.setPointSize(10);
+        font4.setBold(true);
+        font4.setWeight(75);
+        label_6->setFont(font4);
+
+        horizontalLayout_9->addWidget(label_6);
+
+        radDatatypeDna = new QRadioButton(frame_5);
+        radDatatypeDna->setObjectName(QString::fromUtf8("radDatatypeDna"));
+        QFont font5;
+        font5.setFamily(QString::fromUtf8("Courier"));
+        font5.setPointSize(10);
+        font5.setBold(true);
+        font5.setItalic(false);
+        font5.setWeight(75);
+        radDatatypeDna->setFont(font5);
+        radDatatypeDna->setChecked(true);
+
+        horizontalLayout_9->addWidget(radDatatypeDna);
+
+        radDatatypeProt = new QRadioButton(frame_5);
+        radDatatypeProt->setObjectName(QString::fromUtf8("radDatatypeProt"));
+        radDatatypeProt->setFont(font5);
+
+        horizontalLayout_9->addWidget(radDatatypeProt);
+
+        horizontalSpacer_8 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_9->addItem(horizontalSpacer_8);
+
+
+        verticalLayout->addWidget(frame_5);
+
+        frame_settings_1 = new QFrame(frameData);
+        frame_settings_1->setObjectName(QString::fromUtf8("frame_settings_1"));
+        frame_settings_1->setMinimumSize(QSize(0, 20));
+        frame_settings_1->setMaximumSize(QSize(16777215, 30));
+        frame_settings_1->setFrameShape(QFrame::NoFrame);
+        frame_settings_1->setFrameShadow(QFrame::Raised);
+        horizontalLayout_13 = new QHBoxLayout(frame_settings_1);
+        horizontalLayout_13->setSpacing(6);
+        horizontalLayout_13->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_13->setObjectName(QString::fromUtf8("horizontalLayout_13"));
+        horizontalLayout_13->setContentsMargins(-1, 0, -1, 0);
+        label = new QLabel(frame_settings_1);
+        label->setObjectName(QString::fromUtf8("label"));
+        label->setMinimumSize(QSize(100, 0));
+        label->setFont(font4);
+
+        horizontalLayout_13->addWidget(label);
+
+        radSetModelTest = new QRadioButton(frame_settings_1);
         radSetModelTest->setObjectName(QString::fromUtf8("radSetModelTest"));
-        radSetModelTest->setFont(font3);
+        radSetModelTest->setFont(font5);
         radSetModelTest->setStyleSheet(QString::fromUtf8("border: none;"));
         radSetModelTest->setChecked(true);
 
-        horizontalLayout_4->addWidget(radSetModelTest);
+        horizontalLayout_13->addWidget(radSetModelTest);
 
-        radSetMrbayes = new QRadioButton(grpSetOptions);
+        radSetMrbayes = new QRadioButton(frame_settings_1);
         radSetMrbayes->setObjectName(QString::fromUtf8("radSetMrbayes"));
-        radSetMrbayes->setFont(font3);
+        radSetMrbayes->setFont(font5);
         radSetMrbayes->setStyleSheet(QString::fromUtf8("border: none;"));
 
-        horizontalLayout_4->addWidget(radSetMrbayes);
+        horizontalLayout_13->addWidget(radSetMrbayes);
 
-        radSetRaxml = new QRadioButton(grpSetOptions);
+        radSetRaxml = new QRadioButton(frame_settings_1);
         radSetRaxml->setObjectName(QString::fromUtf8("radSetRaxml"));
-        radSetRaxml->setFont(font3);
+        radSetRaxml->setFont(font5);
         radSetRaxml->setStyleSheet(QString::fromUtf8("border: none;"));
 
-        horizontalLayout_4->addWidget(radSetRaxml);
+        horizontalLayout_13->addWidget(radSetRaxml);
 
-        radSetPhyml = new QRadioButton(grpSetOptions);
+        radSetPhyml = new QRadioButton(frame_settings_1);
         radSetPhyml->setObjectName(QString::fromUtf8("radSetPhyml"));
-        radSetPhyml->setFont(font3);
+        radSetPhyml->setFont(font5);
         radSetPhyml->setStyleSheet(QString::fromUtf8("border: none;"));
 
-        horizontalLayout_4->addWidget(radSetPhyml);
+        horizontalLayout_13->addWidget(radSetPhyml);
 
-        radSetPAUP = new QRadioButton(grpSetOptions);
+        radSetPAUP = new QRadioButton(frame_settings_1);
         radSetPAUP->setObjectName(QString::fromUtf8("radSetPAUP"));
-        radSetPAUP->setFont(font3);
+        radSetPAUP->setFont(font5);
         radSetPAUP->setStyleSheet(QString::fromUtf8("border: none;"));
 
-        horizontalLayout_4->addWidget(radSetPAUP);
+        horizontalLayout_13->addWidget(radSetPAUP);
 
         horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        horizontalLayout_4->addItem(horizontalSpacer_2);
+        horizontalLayout_13->addItem(horizontalSpacer_2);
 
 
-        verticalLayout_8->addWidget(grpSetOptions);
+        verticalLayout->addWidget(frame_settings_1);
 
-        grpTopology = new QGroupBox(scrollAreaWidgetContents);
-        grpTopology->setObjectName(QString::fromUtf8("grpTopology"));
-        grpTopology->setMinimumSize(QSize(0, 61));
-        grpTopology->setMaximumSize(QSize(16777215, 61));
-        grpTopology->setFont(font3);
-        horizontalLayout_5 = new QHBoxLayout(grpTopology);
-        horizontalLayout_5->setSpacing(20);
-        horizontalLayout_5->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
-        horizontalLayout_5->setContentsMargins(-1, 10, -1, -1);
-        radTopoFixedMp = new QRadioButton(grpTopology);
+        label_2 = new QLabel(frameData);
+        label_2->setObjectName(QString::fromUtf8("label_2"));
+        label_2->setMinimumSize(QSize(0, 20));
+        label_2->setMaximumSize(QSize(16777215, 30));
+        label_2->setFont(font4);
+
+        verticalLayout->addWidget(label_2);
+
+        frame_settings_2 = new QFrame(frameData);
+        frame_settings_2->setObjectName(QString::fromUtf8("frame_settings_2"));
+        frame_settings_2->setMinimumSize(QSize(0, 20));
+        frame_settings_2->setMaximumSize(QSize(16777215, 30));
+        frame_settings_2->setFrameShape(QFrame::NoFrame);
+        frame_settings_2->setFrameShadow(QFrame::Raised);
+        frame_settings_2->setLineWidth(0);
+        horizontalLayout_4 = new QHBoxLayout(frame_settings_2);
+        horizontalLayout_4->setSpacing(6);
+        horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
+        horizontalLayout_4->setContentsMargins(-1, 0, -1, 0);
+        radTopoFixedMp = new QRadioButton(frame_settings_2);
         radTopoFixedMp->setObjectName(QString::fromUtf8("radTopoFixedMp"));
-        radTopoFixedMp->setFont(font3);
+        radTopoFixedMp->setFont(font5);
 
-        horizontalLayout_5->addWidget(radTopoFixedMp);
+        horizontalLayout_4->addWidget(radTopoFixedMp);
 
-        radTopoFixedJc = new QRadioButton(grpTopology);
+        radTopoFixedJc = new QRadioButton(frame_settings_2);
         radTopoFixedJc->setObjectName(QString::fromUtf8("radTopoFixedJc"));
-        radTopoFixedJc->setFont(font3);
+        radTopoFixedJc->setFont(font5);
 
-        horizontalLayout_5->addWidget(radTopoFixedJc);
+        horizontalLayout_4->addWidget(radTopoFixedJc);
 
-        radTopoFixedGtr = new QRadioButton(grpTopology);
+        radTopoFixedGtr = new QRadioButton(frame_settings_2);
         radTopoFixedGtr->setObjectName(QString::fromUtf8("radTopoFixedGtr"));
-        radTopoFixedGtr->setFont(font3);
+        radTopoFixedGtr->setFont(font5);
         radTopoFixedGtr->setChecked(true);
 
-        horizontalLayout_5->addWidget(radTopoFixedGtr);
+        horizontalLayout_4->addWidget(radTopoFixedGtr);
 
-        radTopoML = new QRadioButton(grpTopology);
+        radTopoML = new QRadioButton(frame_settings_2);
         radTopoML->setObjectName(QString::fromUtf8("radTopoML"));
-        radTopoML->setFont(font3);
+        radTopoML->setFont(font5);
         radTopoML->setChecked(false);
 
-        horizontalLayout_5->addWidget(radTopoML);
+        horizontalLayout_4->addWidget(radTopoML);
 
-        radTopoU = new QRadioButton(grpTopology);
+        radTopoU = new QRadioButton(frame_settings_2);
         radTopoU->setObjectName(QString::fromUtf8("radTopoU"));
-        radTopoU->setFont(font3);
+        radTopoU->setFont(font5);
 
-        horizontalLayout_5->addWidget(radTopoU);
+        horizontalLayout_4->addWidget(radTopoU);
 
-        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        horizontalSpacer = new QSpacerItem(162, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        horizontalLayout_5->addItem(horizontalSpacer);
+        horizontalLayout_4->addItem(horizontalSpacer);
 
 
-        verticalLayout_8->addWidget(grpTopology);
+        verticalLayout->addWidget(frame_settings_2);
 
-        horizontalLayout_9 = new QHBoxLayout();
-        horizontalLayout_9->setSpacing(6);
-        horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
-        horizontalLayout_9->setContentsMargins(-1, 0, -1, -1);
-        grpDataType = new QGroupBox(scrollAreaWidgetContents);
-        grpDataType->setObjectName(QString::fromUtf8("grpDataType"));
-        grpDataType->setMinimumSize(QSize(0, 61));
-        grpDataType->setMaximumSize(QSize(200, 61));
-        grpDataType->setFont(font3);
-        radDatatypeDna = new QRadioButton(grpDataType);
-        radDatatypeDna->setObjectName(QString::fromUtf8("radDatatypeDna"));
-        radDatatypeDna->setGeometry(QRect(0, 30, 91, 22));
-        radDatatypeDna->setFont(font3);
-        radDatatypeDna->setChecked(true);
-        radDatatypeProt = new QRadioButton(grpDataType);
-        radDatatypeProt->setObjectName(QString::fromUtf8("radDatatypeProt"));
-        radDatatypeProt->setGeometry(QRect(90, 30, 91, 22));
-        radDatatypeProt->setFont(font3);
 
-        horizontalLayout_9->addWidget(grpDataType);
+        verticalLayout_8->addWidget(frameData);
 
-        grpSubstSchemes = new QGroupBox(scrollAreaWidgetContents);
+        line = new QFrame(scrollAreaWidgetContents);
+        line->setObjectName(QString::fromUtf8("line"));
+        line->setMinimumSize(QSize(0, 10));
+        line->setFrameShadow(QFrame::Sunken);
+        line->setLineWidth(1);
+        line->setFrameShape(QFrame::HLine);
+
+        verticalLayout_8->addWidget(line);
+
+        label_3 = new QLabel(scrollAreaWidgetContents);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+        label_3->setMinimumSize(QSize(0, 20));
+        label_3->setMaximumSize(QSize(16777215, 20));
+        QFont font6;
+        font6.setFamily(QString::fromUtf8("Courier"));
+        font6.setPointSize(11);
+        font6.setBold(true);
+        font6.setWeight(75);
+        label_3->setFont(font6);
+        label_3->setStyleSheet(QString::fromUtf8("border-bottom: 2px dashed;"));
+
+        verticalLayout_8->addWidget(label_3);
+
+        frameModels = new QFrame(scrollAreaWidgetContents);
+        frameModels->setObjectName(QString::fromUtf8("frameModels"));
+        frameModels->setStyleSheet(QString::fromUtf8("background: #fee;"));
+        verticalLayout_11 = new QVBoxLayout(frameModels);
+        verticalLayout_11->setSpacing(2);
+        verticalLayout_11->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_11->setObjectName(QString::fromUtf8("verticalLayout_11"));
+        verticalLayout_11->setContentsMargins(2, 2, 2, 2);
+        grpSubstSchemes = new QFrame(frameModels);
         grpSubstSchemes->setObjectName(QString::fromUtf8("grpSubstSchemes"));
-        grpSubstSchemes->setMinimumSize(QSize(0, 61));
-        grpSubstSchemes->setMaximumSize(QSize(16777215, 61));
-        grpSubstSchemes->setFont(font3);
+        grpSubstSchemes->setEnabled(true);
+        grpSubstSchemes->setMinimumSize(QSize(0, 20));
+        grpSubstSchemes->setFrameShape(QFrame::NoFrame);
+        grpSubstSchemes->setFrameShadow(QFrame::Plain);
+        grpSubstSchemes->setLineWidth(0);
+        horizontalLayout_5 = new QHBoxLayout(grpSubstSchemes);
+        horizontalLayout_5->setSpacing(6);
+        horizontalLayout_5->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
+        horizontalLayout_5->setContentsMargins(-1, 2, -1, 2);
         radSchemes3 = new QRadioButton(grpSubstSchemes);
         radSchemes3->setObjectName(QString::fromUtf8("radSchemes3"));
-        radSchemes3->setGeometry(QRect(0, 30, 51, 22));
-        radSchemes3->setFont(font3);
+        radSchemes3->setFont(font5);
+
+        horizontalLayout_5->addWidget(radSchemes3);
+
         radSchemes5 = new QRadioButton(grpSubstSchemes);
         radSchemes5->setObjectName(QString::fromUtf8("radSchemes5"));
-        radSchemes5->setGeometry(QRect(60, 30, 51, 22));
-        radSchemes5->setFont(font3);
+        radSchemes5->setFont(font5);
+
+        horizontalLayout_5->addWidget(radSchemes5);
+
         radSchemes7 = new QRadioButton(grpSubstSchemes);
         radSchemes7->setObjectName(QString::fromUtf8("radSchemes7"));
-        radSchemes7->setGeometry(QRect(120, 30, 51, 22));
-        radSchemes7->setFont(font3);
+        radSchemes7->setFont(font5);
+
+        horizontalLayout_5->addWidget(radSchemes7);
+
         radSchemes11 = new QRadioButton(grpSubstSchemes);
         radSchemes11->setObjectName(QString::fromUtf8("radSchemes11"));
-        radSchemes11->setGeometry(QRect(180, 30, 51, 22));
-        radSchemes11->setFont(font3);
+        radSchemes11->setFont(font5);
         radSchemes11->setChecked(true);
+
+        horizontalLayout_5->addWidget(radSchemes11);
+
         radSchemes203 = new QRadioButton(grpSubstSchemes);
         radSchemes203->setObjectName(QString::fromUtf8("radSchemes203"));
-        radSchemes203->setGeometry(QRect(240, 30, 61, 22));
-        radSchemes203->setFont(font3);
+        radSchemes203->setFont(font5);
         radSchemes203->setChecked(false);
+
+        horizontalLayout_5->addWidget(radSchemes203);
+
         radSchemesUser = new QRadioButton(grpSubstSchemes);
         radSchemesUser->setObjectName(QString::fromUtf8("radSchemesUser"));
-        radSchemesUser->setGeometry(QRect(310, 30, 131, 22));
-        radSchemesUser->setFont(font3);
+        radSchemesUser->setFont(font5);
         radSchemesUser->setChecked(false);
 
-        horizontalLayout_9->addWidget(grpSubstSchemes);
+        horizontalLayout_5->addWidget(radSchemesUser);
+
+        horizontalSpacer_5 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_5->addItem(horizontalSpacer_5);
 
 
-        verticalLayout_8->addLayout(horizontalLayout_9);
+        verticalLayout_11->addWidget(grpSubstSchemes);
 
-        horizontalLayout_3 = new QHBoxLayout();
-        horizontalLayout_3->setSpacing(0);
-        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
-        lblTextNModels = new QLabel(scrollAreaWidgetContents);
-        lblTextNModels->setObjectName(QString::fromUtf8("lblTextNModels"));
-        lblTextNModels->setMinimumSize(QSize(150, 22));
-        lblTextNModels->setMaximumSize(QSize(150, 22));
-        lblTextNModels->setFont(font3);
+        label_4 = new QLabel(frameModels);
+        label_4->setObjectName(QString::fromUtf8("label_4"));
+        label_4->setMinimumSize(QSize(0, 20));
+        label_4->setFont(font4);
 
-        horizontalLayout_3->addWidget(lblTextNModels);
+        verticalLayout_11->addWidget(label_4);
 
-        lblNumModels = new QLabel(scrollAreaWidgetContents);
-        lblNumModels->setObjectName(QString::fromUtf8("lblNumModels"));
-        lblNumModels->setMinimumSize(QSize(100, 22));
-        lblNumModels->setMaximumSize(QSize(16777215, 22));
-        lblNumModels->setFont(font3);
-
-        horizontalLayout_3->addWidget(lblNumModels);
-
-        cbShowMatrices = new QCheckBox(scrollAreaWidgetContents);
-        cbShowMatrices->setObjectName(QString::fromUtf8("cbShowMatrices"));
-        QFont font4;
-        font4.setFamily(QString::fromUtf8("Arial"));
-        font4.setPointSize(10);
-        font4.setItalic(true);
-        cbShowMatrices->setFont(font4);
-
-        horizontalLayout_3->addWidget(cbShowMatrices);
-
-        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        horizontalLayout_3->addItem(horizontalSpacer_3);
-
-
-        verticalLayout_8->addLayout(horizontalLayout_3);
-
-        horizontalLayout_7 = new QHBoxLayout();
-        horizontalLayout_7->setSpacing(6);
-        horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-        horizontalLayout_7->setContentsMargins(-1, 5, -1, 5);
-        listMatrices = new QListWidget(scrollAreaWidgetContents);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        new QListWidgetItem(listMatrices);
-        listMatrices->setObjectName(QString::fromUtf8("listMatrices"));
-        listMatrices->setMinimumSize(QSize(200, 212));
-        listMatrices->setMaximumSize(QSize(200, 212));
-        listMatrices->setFont(font3);
-        listMatrices->setProperty("showDropIndicator", QVariant(false));
-        listMatrices->setSelectionMode(QAbstractItemView::MultiSelection);
-
-        horizontalLayout_7->addWidget(listMatrices);
-
-
-        verticalLayout_8->addLayout(horizontalLayout_7);
-
-        grpModelSets = new QGroupBox(scrollAreaWidgetContents);
-        grpModelSets->setObjectName(QString::fromUtf8("grpModelSets"));
-        grpModelSets->setMinimumSize(QSize(755, 125));
-        grpModelSets->setMaximumSize(QSize(16777215, 125));
-        grpModelSets->setFont(font1);
-        gridLayout = new QGridLayout(grpModelSets);
-        gridLayout->setSpacing(6);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        cbGModels = new QCheckBox(grpModelSets);
-        cbGModels->setObjectName(QString::fromUtf8("cbGModels"));
-        cbGModels->setMinimumSize(QSize(220, 22));
-        cbGModels->setMaximumSize(QSize(220, 16777215));
-        cbGModels->setFont(font1);
-        cbGModels->setChecked(true);
-
-        gridLayout->addWidget(cbGModels, 2, 2, 1, 1);
-
-        cbNoRateVarModels = new QCheckBox(grpModelSets);
+        frame_3 = new QFrame(frameModels);
+        frame_3->setObjectName(QString::fromUtf8("frame_3"));
+        frame_3->setMinimumSize(QSize(0, 50));
+        frame_3->setMaximumSize(QSize(16777215, 60));
+        frame_3->setFrameShape(QFrame::NoFrame);
+        frame_3->setFrameShadow(QFrame::Plain);
+        frame_3->setLineWidth(0);
+        gridLayout_6 = new QGridLayout(frame_3);
+        gridLayout_6->setSpacing(6);
+        gridLayout_6->setContentsMargins(11, 11, 11, 11);
+        gridLayout_6->setObjectName(QString::fromUtf8("gridLayout_6"));
+        gridLayout_6->setContentsMargins(-1, 2, -1, 2);
+        cbNoRateVarModels = new QCheckBox(frame_3);
         cbNoRateVarModels->setObjectName(QString::fromUtf8("cbNoRateVarModels"));
-        cbNoRateVarModels->setMinimumSize(QSize(160, 22));
+        cbNoRateVarModels->setMinimumSize(QSize(0, 22));
         cbNoRateVarModels->setMaximumSize(QSize(160, 16777215));
-        cbNoRateVarModels->setFont(font1);
+        cbNoRateVarModels->setFont(font4);
         cbNoRateVarModels->setChecked(true);
 
-        gridLayout->addWidget(cbNoRateVarModels, 2, 0, 1, 1);
+        gridLayout_6->addWidget(cbNoRateVarModels, 0, 0, 1, 1);
 
-        sliderNCat = new QSlider(grpModelSets);
+        cbIGModels = new QCheckBox(frame_3);
+        cbIGModels->setObjectName(QString::fromUtf8("cbIGModels"));
+        cbIGModels->setMinimumSize(QSize(0, 22));
+        cbIGModels->setFont(font4);
+        cbIGModels->setChecked(true);
+
+        gridLayout_6->addWidget(cbIGModels, 0, 3, 1, 1);
+
+        cbIModels = new QCheckBox(frame_3);
+        cbIModels->setObjectName(QString::fromUtf8("cbIModels"));
+        cbIModels->setMinimumSize(QSize(0, 22));
+        cbIModels->setMaximumSize(QSize(180, 16777215));
+        cbIModels->setFont(font4);
+        cbIModels->setChecked(true);
+
+        gridLayout_6->addWidget(cbIModels, 0, 2, 1, 1);
+
+        horizontalSpacer_6 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        gridLayout_6->addItem(horizontalSpacer_6, 0, 6, 1, 1);
+
+        lblNCat = new QLabel(frame_3);
+        lblNCat->setObjectName(QString::fromUtf8("lblNCat"));
+        lblNCat->setMinimumSize(QSize(100, 20));
+        lblNCat->setMaximumSize(QSize(100, 20));
+        lblNCat->setFont(font4);
+
+        gridLayout_6->addWidget(lblNCat, 1, 2, 1, 1);
+
+        cbGModels = new QCheckBox(frame_3);
+        cbGModels->setObjectName(QString::fromUtf8("cbGModels"));
+        cbGModels->setMinimumSize(QSize(0, 22));
+        cbGModels->setMaximumSize(QSize(220, 16777215));
+        cbGModels->setFont(font4);
+        cbGModels->setChecked(true);
+
+        gridLayout_6->addWidget(cbGModels, 0, 1, 1, 1);
+
+        sliderNCat = new QSlider(frame_3);
         sliderNCat->setObjectName(QString::fromUtf8("sliderNCat"));
-        sliderNCat->setMinimumSize(QSize(220, 30));
-        sliderNCat->setMaximumSize(QSize(220, 16777215));
+        sliderNCat->setMinimumSize(QSize(100, 20));
+        sliderNCat->setMaximumSize(QSize(100, 20));
         sliderNCat->setFont(font1);
         sliderNCat->setAutoFillBackground(false);
         sliderNCat->setMinimum(2);
@@ -648,65 +760,132 @@ public:
         sliderNCat->setValue(4);
         sliderNCat->setOrientation(Qt::Horizontal);
 
-        gridLayout->addWidget(sliderNCat, 3, 2, 1, 1);
+        gridLayout_6->addWidget(sliderNCat, 1, 1, 1, 1);
 
-        lblNCat = new QLabel(grpModelSets);
-        lblNCat->setObjectName(QString::fromUtf8("lblNCat"));
-        lblNCat->setMinimumSize(QSize(100, 26));
-        lblNCat->setMaximumSize(QSize(100, 16777215));
-        lblNCat->setFont(font1);
+        cbNoRateVarModels->raise();
+        cbIModels->raise();
+        cbIModels->raise();
+        cbNoRateVarModels->raise();
+        cbGModels->raise();
+        cbIGModels->raise();
+        sliderNCat->raise();
+        lblNCat->raise();
 
-        gridLayout->addWidget(lblNCat, 3, 3, 1, 1);
+        verticalLayout_11->addWidget(frame_3);
 
-        cbIModels = new QCheckBox(grpModelSets);
-        cbIModels->setObjectName(QString::fromUtf8("cbIModels"));
-        cbIModels->setMinimumSize(QSize(160, 22));
-        cbIModels->setMaximumSize(QSize(180, 16777215));
-        cbIModels->setFont(font1);
-        cbIModels->setChecked(true);
+        label_5 = new QLabel(frameModels);
+        label_5->setObjectName(QString::fromUtf8("label_5"));
+        label_5->setMinimumSize(QSize(0, 20));
+        label_5->setMaximumSize(QSize(16777215, 20));
+        label_5->setFont(font4);
 
-        gridLayout->addWidget(cbIModels, 2, 1, 1, 1);
+        verticalLayout_11->addWidget(label_5);
 
-        cbIGModels = new QCheckBox(grpModelSets);
-        cbIGModels->setObjectName(QString::fromUtf8("cbIGModels"));
-        cbIGModels->setMinimumSize(QSize(100, 22));
-        cbIGModels->setFont(font1);
-        cbIGModels->setChecked(true);
-
-        gridLayout->addWidget(cbIGModels, 2, 3, 1, 1);
-
-        cbEqualFreq = new QCheckBox(grpModelSets);
+        frame_4 = new QFrame(frameModels);
+        frame_4->setObjectName(QString::fromUtf8("frame_4"));
+        frame_4->setMinimumSize(QSize(0, 25));
+        frame_4->setMaximumSize(QSize(16777215, 30));
+        frame_4->setFrameShape(QFrame::NoFrame);
+        frame_4->setFrameShadow(QFrame::Plain);
+        frame_4->setLineWidth(0);
+        horizontalLayout_6 = new QHBoxLayout(frame_4);
+        horizontalLayout_6->setSpacing(6);
+        horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
+        horizontalLayout_6->setContentsMargins(-1, 2, -1, 2);
+        cbEqualFreq = new QCheckBox(frame_4);
         cbEqualFreq->setObjectName(QString::fromUtf8("cbEqualFreq"));
         cbEqualFreq->setMinimumSize(QSize(160, 22));
         cbEqualFreq->setMaximumSize(QSize(160, 16777215));
-        cbEqualFreq->setFont(font1);
+        cbEqualFreq->setFont(font4);
         cbEqualFreq->setChecked(true);
 
-        gridLayout->addWidget(cbEqualFreq, 1, 0, 1, 1);
+        horizontalLayout_6->addWidget(cbEqualFreq);
 
-        cbMlFreq = new QCheckBox(grpModelSets);
+        cbMlFreq = new QCheckBox(frame_4);
         cbMlFreq->setObjectName(QString::fromUtf8("cbMlFreq"));
         cbMlFreq->setMinimumSize(QSize(160, 22));
         cbMlFreq->setMaximumSize(QSize(180, 16777215));
-        cbMlFreq->setFont(font1);
+        cbMlFreq->setFont(font4);
         cbMlFreq->setChecked(true);
 
-        gridLayout->addWidget(cbMlFreq, 1, 1, 1, 1);
+        horizontalLayout_6->addWidget(cbMlFreq);
+
+        horizontalSpacer_7 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_6->addItem(horizontalSpacer_7);
 
 
-        verticalLayout_8->addWidget(grpModelSets);
+        verticalLayout_11->addWidget(frame_4);
+
+        frame = new QFrame(frameModels);
+        frame->setObjectName(QString::fromUtf8("frame"));
+        frame->setMinimumSize(QSize(0, 30));
+        frame->setMaximumSize(QSize(16777215, 50));
+        horizontalLayout_3 = new QHBoxLayout(frame);
+        horizontalLayout_3->setSpacing(0);
+        horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
+        horizontalLayout_3->setContentsMargins(-1, 2, -1, 2);
+        lblTextNModels = new QLabel(frame);
+        lblTextNModels->setObjectName(QString::fromUtf8("lblTextNModels"));
+        lblTextNModels->setMinimumSize(QSize(150, 22));
+        lblTextNModels->setMaximumSize(QSize(150, 22));
+        lblTextNModels->setFont(font5);
+
+        horizontalLayout_3->addWidget(lblTextNModels);
+
+        lblNumModels = new QLabel(frame);
+        lblNumModels->setObjectName(QString::fromUtf8("lblNumModels"));
+        lblNumModels->setMinimumSize(QSize(100, 22));
+        lblNumModels->setMaximumSize(QSize(16777215, 22));
+        lblNumModels->setFont(font5);
+
+        horizontalLayout_3->addWidget(lblNumModels);
+
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_3);
+
+
+        verticalLayout_11->addWidget(frame);
+
+        cbShowMatrices = new QCheckBox(frameModels);
+        cbShowMatrices->setObjectName(QString::fromUtf8("cbShowMatrices"));
+        QFont font7;
+        font7.setFamily(QString::fromUtf8("Courier"));
+        font7.setPointSize(10);
+        font7.setBold(true);
+        font7.setItalic(true);
+        font7.setWeight(75);
+        cbShowMatrices->setFont(font7);
+
+        verticalLayout_11->addWidget(cbShowMatrices);
+
+        modelsListView = new QListWidget(frameModels);
+        modelsListView->setObjectName(QString::fromUtf8("modelsListView"));
+        modelsListView->setFont(font4);
+        modelsListView->setFrameShape(QFrame::NoFrame);
+        modelsListView->setFrameShadow(QFrame::Plain);
+        modelsListView->setLineWidth(0);
+        modelsListView->setSelectionMode(QAbstractItemView::NoSelection);
+
+        verticalLayout_11->addWidget(modelsListView, 0, Qt::AlignHCenter|Qt::AlignVCenter);
+
+
+        verticalLayout_8->addWidget(frameModels);
 
         cbAdvanced = new QCheckBox(scrollAreaWidgetContents);
         cbAdvanced->setObjectName(QString::fromUtf8("cbAdvanced"));
         cbAdvanced->setMinimumSize(QSize(205, 22));
         cbAdvanced->setMaximumSize(QSize(16777215, 22));
-        cbAdvanced->setFont(font4);
+        cbAdvanced->setFont(font7);
 
         verticalLayout_8->addWidget(cbAdvanced);
 
-        grpAdvanced = new QGroupBox(scrollAreaWidgetContents);
+        grpAdvanced = new QFrame(scrollAreaWidgetContents);
         grpAdvanced->setObjectName(QString::fromUtf8("grpAdvanced"));
-        grpAdvanced->setMinimumSize(QSize(0, 135));
+        grpAdvanced->setMinimumSize(QSize(0, 70));
         grpAdvanced->setMaximumSize(QSize(16777215, 135));
         grpAdvanced->setFont(font1);
         grpAdvanced->setStyleSheet(QString::fromUtf8("background-color: #99d;"));
@@ -714,12 +893,14 @@ public:
         gridLayout_2->setSpacing(6);
         gridLayout_2->setContentsMargins(11, 11, 11, 11);
         gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-        gridLayout_2->setContentsMargins(-1, 0, -1, 10);
+        gridLayout_2->setVerticalSpacing(0);
+        gridLayout_2->setContentsMargins(-1, 0, -1, 0);
         txtOptEpsilon = new QLineEdit(grpAdvanced);
         txtOptEpsilon->setObjectName(QString::fromUtf8("txtOptEpsilon"));
-        txtOptEpsilon->setMinimumSize(QSize(0, 27));
-        txtOptEpsilon->setMaximumSize(QSize(150, 16777215));
-        txtOptEpsilon->setFont(font1);
+        txtOptEpsilon->setMinimumSize(QSize(0, 20));
+        txtOptEpsilon->setMaximumSize(QSize(150, 25));
+        txtOptEpsilon->setFont(font5);
+        txtOptEpsilon->setText(QString::fromUtf8("0.01"));
         txtOptEpsilon->setMaxLength(10);
         txtOptEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
@@ -727,9 +908,10 @@ public:
 
         txtParEpsilon = new QLineEdit(grpAdvanced);
         txtParEpsilon->setObjectName(QString::fromUtf8("txtParEpsilon"));
-        txtParEpsilon->setMinimumSize(QSize(0, 27));
-        txtParEpsilon->setMaximumSize(QSize(150, 16777215));
-        txtParEpsilon->setFont(font1);
+        txtParEpsilon->setMinimumSize(QSize(0, 20));
+        txtParEpsilon->setMaximumSize(QSize(150, 25));
+        txtParEpsilon->setFont(font5);
+        txtParEpsilon->setText(QString::fromUtf8("0.001"));
         txtParEpsilon->setMaxLength(10);
         txtParEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
@@ -737,28 +919,32 @@ public:
 
         lblParEpsText = new QLabel(grpAdvanced);
         lblParEpsText->setObjectName(QString::fromUtf8("lblParEpsText"));
-        lblParEpsText->setMinimumSize(QSize(0, 27));
-        lblParEpsText->setFont(font1);
+        lblParEpsText->setMinimumSize(QSize(0, 20));
+        lblParEpsText->setMaximumSize(QSize(16777215, 25));
+        lblParEpsText->setFont(font5);
 
         gridLayout_2->addWidget(lblParEpsText, 1, 0, 1, 1);
 
         lblOptEpsText = new QLabel(grpAdvanced);
         lblOptEpsText->setObjectName(QString::fromUtf8("lblOptEpsText"));
-        lblOptEpsText->setMinimumSize(QSize(0, 27));
-        lblOptEpsText->setFont(font1);
+        lblOptEpsText->setMinimumSize(QSize(0, 20));
+        lblOptEpsText->setMaximumSize(QSize(16777215, 25));
+        lblOptEpsText->setFont(font5);
 
         gridLayout_2->addWidget(lblOptEpsText, 2, 0, 1, 1);
 
         lblNThreads = new QLabel(grpAdvanced);
         lblNThreads->setObjectName(QString::fromUtf8("lblNThreads"));
-        lblNThreads->setMinimumSize(QSize(100, 0));
-        lblNThreads->setFont(font1);
+        lblNThreads->setMinimumSize(QSize(100, 20));
+        lblNThreads->setMaximumSize(QSize(16777215, 25));
+        lblNThreads->setFont(font4);
 
         gridLayout_2->addWidget(lblNThreads, 0, 2, 1, 1);
 
         sliderNThreads = new QSlider(grpAdvanced);
         sliderNThreads->setObjectName(QString::fromUtf8("sliderNThreads"));
-        sliderNThreads->setMaximumSize(QSize(300, 16777215));
+        sliderNThreads->setMinimumSize(QSize(150, 20));
+        sliderNThreads->setMaximumSize(QSize(150, 25));
         sliderNThreads->setFont(font1);
         sliderNThreads->setAutoFillBackground(false);
         sliderNThreads->setMinimum(1);
@@ -770,7 +956,9 @@ public:
 
         lblNThreadText = new QLabel(grpAdvanced);
         lblNThreadText->setObjectName(QString::fromUtf8("lblNThreadText"));
-        lblNThreadText->setFont(font1);
+        lblNThreadText->setMinimumSize(QSize(0, 20));
+        lblNThreadText->setMaximumSize(QSize(16777215, 25));
+        lblNThreadText->setFont(font5);
 
         gridLayout_2->addWidget(lblNThreadText, 0, 0, 1, 1);
 
@@ -860,32 +1048,32 @@ public:
         cbShowHetParams = new QCheckBox(groupBox_4);
         cbShowHetParams->setObjectName(QString::fromUtf8("cbShowHetParams"));
         cbShowHetParams->setGeometry(QRect(135, 0, 121, 22));
-        QFont font5;
-        font5.setFamily(QString::fromUtf8("Arial"));
-        font5.setItalic(false);
-        cbShowHetParams->setFont(font5);
+        QFont font8;
+        font8.setFamily(QString::fromUtf8("Arial"));
+        font8.setItalic(false);
+        cbShowHetParams->setFont(font8);
         cbShowRates = new QCheckBox(groupBox_4);
         cbShowRates->setObjectName(QString::fromUtf8("cbShowRates"));
         cbShowRates->setGeometry(QRect(385, 0, 121, 22));
-        cbShowRates->setFont(font5);
+        cbShowRates->setFont(font8);
         cbShowFreqs = new QCheckBox(groupBox_4);
         cbShowFreqs->setObjectName(QString::fromUtf8("cbShowFreqs"));
         cbShowFreqs->setGeometry(QRect(260, 0, 121, 22));
-        cbShowFreqs->setFont(font5);
+        cbShowFreqs->setFont(font8);
         cbShowSelection = new QCheckBox(groupBox_4);
         cbShowSelection->setObjectName(QString::fromUtf8("cbShowSelection"));
         cbShowSelection->setGeometry(QRect(10, 0, 121, 22));
-        cbShowSelection->setFont(font5);
+        cbShowSelection->setFont(font8);
         cbShowSelection->setChecked(true);
 
         verticalLayout_3->addWidget(groupBox_4);
 
         tblModels = new QTableView(tab_runsingle);
         tblModels->setObjectName(QString::fromUtf8("tblModels"));
-        QFont font6;
-        font6.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font6.setPointSize(10);
-        tblModels->setFont(font6);
+        QFont font9;
+        font9.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font9.setPointSize(10);
+        tblModels->setFont(font9);
         tblModels->setAlternatingRowColors(true);
         tblModels->setSortingEnabled(true);
 
@@ -911,7 +1099,7 @@ public:
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         tblResultsBic = new QTableView(tabResultsBic);
         tblResultsBic->setObjectName(QString::fromUtf8("tblResultsBic"));
-        tblResultsBic->setFont(font6);
+        tblResultsBic->setFont(font9);
         tblResultsBic->setAlternatingRowColors(true);
         tblResultsBic->setSortingEnabled(true);
 
@@ -926,7 +1114,7 @@ public:
         verticalLayout_5->setObjectName(QString::fromUtf8("verticalLayout_5"));
         tblResultsAic = new QTableView(tabResultsAic);
         tblResultsAic->setObjectName(QString::fromUtf8("tblResultsAic"));
-        tblResultsAic->setFont(font6);
+        tblResultsAic->setFont(font9);
         tblResultsAic->setAlternatingRowColors(true);
         tblResultsAic->setSortingEnabled(true);
 
@@ -941,7 +1129,7 @@ public:
         verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
         tblResultsAicc = new QTableView(tabResultsAicc);
         tblResultsAicc->setObjectName(QString::fromUtf8("tblResultsAicc"));
-        tblResultsAicc->setFont(font6);
+        tblResultsAicc->setFont(font9);
         tblResultsAicc->setAlternatingRowColors(true);
         tblResultsAicc->setSortingEnabled(true);
 
@@ -956,7 +1144,7 @@ public:
         verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
         tblResultsDt = new QTableView(tabResultsDt);
         tblResultsDt->setObjectName(QString::fromUtf8("tblResultsDt"));
-        tblResultsDt->setFont(font6);
+        tblResultsDt->setFont(font9);
         tblResultsDt->setAlternatingRowColors(true);
         tblResultsDt->setSortingEnabled(true);
 
@@ -1042,7 +1230,7 @@ public:
 
         retranslateUi(jModelTest);
 
-        tabView->setCurrentIndex(0);
+        tabView->setCurrentIndex(2);
         results_content->setCurrentIndex(3);
 
 
@@ -1072,7 +1260,6 @@ public:
         actionProgress->setShortcut(QApplication::translate("jModelTest", "Alt+3", 0, QApplication::UnicodeUTF8));
         actionResults->setText(QApplication::translate("jModelTest", "Results", 0, QApplication::UnicodeUTF8));
         actionResults->setShortcut(QApplication::translate("jModelTest", "Alt+4", 0, QApplication::UnicodeUTF8));
-        groupBox_3->setTitle(QString());
         lblGear->setText(QString());
         lblAlignment->setText(QString());
         lblTree->setText(QString());
@@ -1092,7 +1279,10 @@ public:
         btnLoadAlignment->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load multiple sequence alignment in <span style=\" font-weight:600;\">FASTA</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         btnLoadAlignment->setText(QApplication::translate("jModelTest", "...", 0, QApplication::UnicodeUTF8));
-        grpSetOptions->setTitle(QApplication::translate("jModelTest", "Options for...", 0, QApplication::UnicodeUTF8));
+        label_6->setText(QApplication::translate("jModelTest", "Data type:", 0, QApplication::UnicodeUTF8));
+        radDatatypeDna->setText(QApplication::translate("jModelTest", "DNA", 0, QApplication::UnicodeUTF8));
+        radDatatypeProt->setText(QApplication::translate("jModelTest", "Protein", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("jModelTest", "Templates:", 0, QApplication::UnicodeUTF8));
         radSetModelTest->setText(QApplication::translate("jModelTest", "ModelTest", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         radSetMrbayes->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Select default options for MrBAYES</p></body></html>", 0, QApplication::UnicodeUTF8));
@@ -1101,64 +1291,32 @@ public:
         radSetRaxml->setText(QApplication::translate("jModelTest", "RAxML", 0, QApplication::UnicodeUTF8));
         radSetPhyml->setText(QApplication::translate("jModelTest", "PhyML", 0, QApplication::UnicodeUTF8));
         radSetPAUP->setText(QApplication::translate("jModelTest", "PAUP*", 0, QApplication::UnicodeUTF8));
-        grpTopology->setTitle(QApplication::translate("jModelTest", "Starting topology", 0, QApplication::UnicodeUTF8));
+        label_2->setText(QApplication::translate("jModelTest", "Starting topology", 0, QApplication::UnicodeUTF8));
         radTopoFixedMp->setText(QApplication::translate("jModelTest", "Fixed MP", 0, QApplication::UnicodeUTF8));
         radTopoFixedJc->setText(QApplication::translate("jModelTest", "Fixed ML (JC)", 0, QApplication::UnicodeUTF8));
         radTopoFixedGtr->setText(QApplication::translate("jModelTest", "Fixed ML (GTR)", 0, QApplication::UnicodeUTF8));
         radTopoML->setText(QApplication::translate("jModelTest", "Maximum-Likelihood", 0, QApplication::UnicodeUTF8));
         radTopoU->setText(QApplication::translate("jModelTest", "User defined", 0, QApplication::UnicodeUTF8));
-        grpDataType->setTitle(QApplication::translate("jModelTest", "Data type", 0, QApplication::UnicodeUTF8));
-        radDatatypeDna->setText(QApplication::translate("jModelTest", "DNA", 0, QApplication::UnicodeUTF8));
-        radDatatypeProt->setText(QApplication::translate("jModelTest", "Protein", 0, QApplication::UnicodeUTF8));
-        grpSubstSchemes->setTitle(QApplication::translate("jModelTest", "Substitution Schemes", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("jModelTest", "Models", 0, QApplication::UnicodeUTF8));
         radSchemes3->setText(QApplication::translate("jModelTest", "3", 0, QApplication::UnicodeUTF8));
         radSchemes5->setText(QApplication::translate("jModelTest", "5", 0, QApplication::UnicodeUTF8));
         radSchemes7->setText(QApplication::translate("jModelTest", "7", 0, QApplication::UnicodeUTF8));
         radSchemes11->setText(QApplication::translate("jModelTest", "11", 0, QApplication::UnicodeUTF8));
         radSchemes203->setText(QApplication::translate("jModelTest", "203", 0, QApplication::UnicodeUTF8));
         radSchemesUser->setText(QApplication::translate("jModelTest", "User defined", 0, QApplication::UnicodeUTF8));
+        label_4->setText(QApplication::translate("jModelTest", "Rate variation", 0, QApplication::UnicodeUTF8));
+        cbNoRateVarModels->setText(QApplication::translate("jModelTest", "uniform", 0, QApplication::UnicodeUTF8));
+        cbIGModels->setText(QApplication::translate("jModelTest", "+I+G", 0, QApplication::UnicodeUTF8));
+        cbIModels->setText(QApplication::translate("jModelTest", "pinv (+I)", 0, QApplication::UnicodeUTF8));
+        lblNCat->setText(QApplication::translate("jModelTest", "4 categories", 0, QApplication::UnicodeUTF8));
+        cbGModels->setText(QApplication::translate("jModelTest", "gamma (+G)", 0, QApplication::UnicodeUTF8));
+        label_5->setText(QApplication::translate("jModelTest", "Frequencies", 0, QApplication::UnicodeUTF8));
+        cbEqualFreq->setText(QApplication::translate("jModelTest", "Equal frequencies", 0, QApplication::UnicodeUTF8));
+        cbMlFreq->setText(QApplication::translate("jModelTest", "ML frequencies", 0, QApplication::UnicodeUTF8));
         lblTextNModels->setText(QApplication::translate("jModelTest", "Number of models:", 0, QApplication::UnicodeUTF8));
         lblNumModels->setText(QApplication::translate("jModelTest", "0", 0, QApplication::UnicodeUTF8));
         cbShowMatrices->setText(QApplication::translate("jModelTest", "Show model matrices", 0, QApplication::UnicodeUTF8));
-
-        const bool __sortingEnabled = listMatrices->isSortingEnabled();
-        listMatrices->setSortingEnabled(false);
-        QListWidgetItem *___qlistwidgetitem = listMatrices->item(0);
-        ___qlistwidgetitem->setText(QApplication::translate("jModelTest", "000000  JC / F81", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem1 = listMatrices->item(1);
-        ___qlistwidgetitem1->setText(QApplication::translate("jModelTest", "010010  K80 / HKY85", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem2 = listMatrices->item(2);
-        ___qlistwidgetitem2->setText(QApplication::translate("jModelTest", "010020  TrNef / TrN", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem3 = listMatrices->item(3);
-        ___qlistwidgetitem3->setText(QApplication::translate("jModelTest", "012210  TPM1 / TPM1uf", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem4 = listMatrices->item(4);
-        ___qlistwidgetitem4->setText(QApplication::translate("jModelTest", "010212  TPM2 / TPM2uf", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem5 = listMatrices->item(5);
-        ___qlistwidgetitem5->setText(QApplication::translate("jModelTest", "012012  TPM3 / TPM3uf", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem6 = listMatrices->item(6);
-        ___qlistwidgetitem6->setText(QApplication::translate("jModelTest", "012230  TIM1ef / TIM1", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem7 = listMatrices->item(7);
-        ___qlistwidgetitem7->setText(QApplication::translate("jModelTest", "010232  TIM2ef / TIM2", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem8 = listMatrices->item(8);
-        ___qlistwidgetitem8->setText(QApplication::translate("jModelTest", "012032  TIM3ef / TIM3", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem9 = listMatrices->item(9);
-        ___qlistwidgetitem9->setText(QApplication::translate("jModelTest", "012314  TVMef / TVM", 0, QApplication::UnicodeUTF8));
-        QListWidgetItem *___qlistwidgetitem10 = listMatrices->item(10);
-        ___qlistwidgetitem10->setText(QApplication::translate("jModelTest", "012345  SYM / GTR", 0, QApplication::UnicodeUTF8));
-        listMatrices->setSortingEnabled(__sortingEnabled);
-
-        grpModelSets->setTitle(QApplication::translate("jModelTest", "Sets", 0, QApplication::UnicodeUTF8));
-        cbGModels->setText(QApplication::translate("jModelTest", "+G - discrete Gamma rates", 0, QApplication::UnicodeUTF8));
-        cbNoRateVarModels->setText(QApplication::translate("jModelTest", "no rate variation", 0, QApplication::UnicodeUTF8));
-        lblNCat->setText(QApplication::translate("jModelTest", "4 categories", 0, QApplication::UnicodeUTF8));
-        cbIModels->setText(QApplication::translate("jModelTest", "+I - invariant sites", 0, QApplication::UnicodeUTF8));
-        cbIGModels->setText(QApplication::translate("jModelTest", "+I+G", 0, QApplication::UnicodeUTF8));
-        cbEqualFreq->setText(QApplication::translate("jModelTest", "Equal frequencies", 0, QApplication::UnicodeUTF8));
-        cbMlFreq->setText(QApplication::translate("jModelTest", "ML frequencies", 0, QApplication::UnicodeUTF8));
         cbAdvanced->setText(QApplication::translate("jModelTest", "Show advanced options", 0, QApplication::UnicodeUTF8));
-        grpAdvanced->setTitle(QString());
-        txtOptEpsilon->setText(QApplication::translate("jModelTest", "0.01", 0, QApplication::UnicodeUTF8));
-        txtParEpsilon->setText(QApplication::translate("jModelTest", "0.001", 0, QApplication::UnicodeUTF8));
         lblParEpsText->setText(QApplication::translate("jModelTest", "Parameter epsilon:", 0, QApplication::UnicodeUTF8));
         lblOptEpsText->setText(QApplication::translate("jModelTest", "Optimization epsilon:", 0, QApplication::UnicodeUTF8));
         lblNThreads->setText(QApplication::translate("jModelTest", "4", 0, QApplication::UnicodeUTF8));

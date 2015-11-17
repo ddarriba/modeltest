@@ -33,6 +33,28 @@ namespace modeltest
 
     mt_size_t get_n_tips( void ) const { return n_tips; }
     virtual const std::string get_label( mt_index_t index, mt_index_t thread_number = 0 ) const = 0;
+
+    /**
+     * @brief place the root at a random node
+     * @param thread_number the thread number
+     */
+    virtual void reroot_random(mt_index_t thread_number = 0) = 0;
+
+    /**
+     * @brief set all branches to a fixed length
+     * @param length the branch length
+     * @param thread_number the thread number
+     * @return true, if OK
+     */
+    virtual bool set_branches(double length, mt_index_t thread_number = 0) = 0;
+
+    /**
+     * @brief reset all branches to the original lengths
+     * @param thread_number the thread number
+     * @return true, if OK
+     */
+    virtual bool reset_branches(mt_index_t thread_number = 0) = 0;
+
     virtual void print( mt_index_t thread_number = 0 ) const = 0;
     bool is_bl_optimized( void ) { return bl_optimized; }
     void set_bl_optimized( void ) { bl_optimized = true; }
@@ -40,6 +62,7 @@ namespace modeltest
     tree_type type;
     const std::string tree_file;
     mt_size_t n_tips;
+    mt_size_t n_inner;
     mt_size_t number_of_threads;
     int random_seed;
 

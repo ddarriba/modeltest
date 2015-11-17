@@ -54,36 +54,36 @@ static const uint qt_meta_data_modeltest__jModelTest[] = {
      537,  496,   22,   22, 0x08,
      568,  496,   22,   22, 0x08,
      597,  496,   22,   22, 0x08,
-     626,   22,   22,   22, 0x08,
-     674,  665,   22,   22, 0x08,
-     705,   22,   22,   22, 0x08,
-     732,   22,   22,   22, 0x08,
-     760,   22,   22,   22, 0x08,
-     788,   22,   22,   22, 0x08,
-     816,   22,   22,   22, 0x08,
-     845,   22,   22,   22, 0x08,
-     876,   22,   22,   22, 0x08,
-     906,   22,   22,   22, 0x08,
-     935,  496,   22,   22, 0x08,
-     964,  496,   22,   22, 0x08,
-     990,  496,   22,   22, 0x08,
-    1025,  496,   22,   22, 0x08,
-    1052,  496,   22,   22, 0x08,
-    1079,  496,   22,   22, 0x08,
-    1107,   22,   22,   22, 0x08,
-    1135,   22,   22,   22, 0x08,
-    1155,   22,   22,   22, 0x08,
-    1185, 1179,   22,   22, 0x08,
-    1221,   22,   22,   22, 0x08,
-    1245,  496,   22,   22, 0x08,
-    1274,  496,   22,   22, 0x08,
-    1303,  496,   22,   22, 0x08,
-    1336,  496,   22,   22, 0x08,
-    1369,   22,   22,   22, 0x08,
-    1397,   22,   22,   22, 0x08,
-    1426,   22,   22,   22, 0x08,
-    1454,   22,   22,   22, 0x08,
-    1482,   22,   22,   22, 0x0a,
+     635,  626,   22,   22, 0x08,
+     666,   22,   22,   22, 0x08,
+     693,   22,   22,   22, 0x08,
+     721,   22,   22,   22, 0x08,
+     749,   22,   22,   22, 0x08,
+     777,   22,   22,   22, 0x08,
+     806,   22,   22,   22, 0x08,
+     837,   22,   22,   22, 0x08,
+     867,   22,   22,   22, 0x08,
+     896,  496,   22,   22, 0x08,
+     925,  496,   22,   22, 0x08,
+     951,  496,   22,   22, 0x08,
+     986,  496,   22,   22, 0x08,
+    1013,  496,   22,   22, 0x08,
+    1040,  496,   22,   22, 0x08,
+    1068,   22,   22,   22, 0x08,
+    1096,   22,   22,   22, 0x08,
+    1116,   22,   22,   22, 0x08,
+    1146, 1140,   22,   22, 0x08,
+    1182,   22,   22,   22, 0x08,
+    1206,  496,   22,   22, 0x08,
+    1235,  496,   22,   22, 0x08,
+    1264,  496,   22,   22, 0x08,
+    1297,  496,   22,   22, 0x08,
+    1330,   22,   22,   22, 0x08,
+    1358,   22,   22,   22, 0x08,
+    1387,   22,   22,   22, 0x08,
+    1415,   22,   22,   22, 0x08,
+    1448, 1443,   22,   22, 0x08,
+    1496,   22,   22,   22, 0x0a,
 
        0        // eod
 };
@@ -110,9 +110,8 @@ static const char qt_meta_stringdata_modeltest__jModelTest[] = {
     "on_radSetModelTest_toggled(bool)\0"
     "on_radSetMrbayes_toggled(bool)\0"
     "on_radSetRaxml_toggled(bool)\0"
-    "on_radSetPhyml_toggled(bool)\0"
-    "on_listMatrices_itemSelectionChanged()\0"
-    "position\0on_sliderNCat_sliderMoved(int)\0"
+    "on_radSetPhyml_toggled(bool)\0position\0"
+    "on_sliderNCat_sliderMoved(int)\0"
     "on_actionReset_triggered()\0"
     "on_menuFileLoad_triggered()\0"
     "on_menuFileQuit_triggered()\0"
@@ -138,7 +137,9 @@ static const char qt_meta_stringdata_modeltest__jModelTest[] = {
     "on_radDatatypeDna_clicked()\0"
     "on_radDatatypeProt_clicked()\0"
     "on_cbShowMatrices_clicked()\0"
-    "on_radSchemesUser_clicked()\0cancel_jobs()\0"
+    "on_radSchemesUser_clicked()\0item\0"
+    "on_modelsListView_itemClicked(QListWidgetItem*)\0"
+    "cancel_jobs()\0"
 };
 
 void modeltest::jModelTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -169,35 +170,35 @@ void modeltest::jModelTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 19: _t->on_radSetMrbayes_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
         case 20: _t->on_radSetRaxml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
         case 21: _t->on_radSetPhyml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 22: _t->on_listMatrices_itemSelectionChanged(); break;
-        case 23: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 24: _t->on_actionReset_triggered(); break;
-        case 25: _t->on_menuFileLoad_triggered(); break;
-        case 26: _t->on_menuFileQuit_triggered(); break;
-        case 27: _t->on_menuTreeLoad_triggered(); break;
-        case 28: _t->on_actionConsole_triggered(); break;
-        case 29: _t->on_actionConfigure_triggered(); break;
-        case 30: _t->on_actionProgress_triggered(); break;
-        case 31: _t->on_actionResults_triggered(); break;
-        case 32: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 33: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 34: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 35: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 36: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 37: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 38: _t->on_btnResetConfig_clicked(); break;
-        case 39: _t->on_btnRun_clicked(); break;
-        case 40: _t->on_cbAdvanced_clicked(); break;
-        case 41: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 42: _t->updateModelsTableSize(); break;
-        case 43: _t->on_cbShowFreqs_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 44: _t->on_cbShowRates_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 45: _t->on_cbShowHetParams_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 46: _t->on_cbShowSelection_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 47: _t->on_radDatatypeDna_clicked(); break;
-        case 48: _t->on_radDatatypeProt_clicked(); break;
-        case 49: _t->on_cbShowMatrices_clicked(); break;
-        case 50: _t->on_radSchemesUser_clicked(); break;
+        case 22: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 23: _t->on_actionReset_triggered(); break;
+        case 24: _t->on_menuFileLoad_triggered(); break;
+        case 25: _t->on_menuFileQuit_triggered(); break;
+        case 26: _t->on_menuTreeLoad_triggered(); break;
+        case 27: _t->on_actionConsole_triggered(); break;
+        case 28: _t->on_actionConfigure_triggered(); break;
+        case 29: _t->on_actionProgress_triggered(); break;
+        case 30: _t->on_actionResults_triggered(); break;
+        case 31: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 32: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 33: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 34: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 35: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 36: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 37: _t->on_btnResetConfig_clicked(); break;
+        case 38: _t->on_btnRun_clicked(); break;
+        case 39: _t->on_cbAdvanced_clicked(); break;
+        case 40: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 41: _t->updateModelsTableSize(); break;
+        case 42: _t->on_cbShowFreqs_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 43: _t->on_cbShowRates_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 44: _t->on_cbShowHetParams_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 45: _t->on_cbShowSelection_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 46: _t->on_radDatatypeDna_clicked(); break;
+        case 47: _t->on_radDatatypeProt_clicked(); break;
+        case 48: _t->on_cbShowMatrices_clicked(); break;
+        case 49: _t->on_radSchemesUser_clicked(); break;
+        case 50: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
         case 51: _t->cancel_jobs(); break;
         default: ;
         }

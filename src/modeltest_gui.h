@@ -4,6 +4,7 @@
 #include "modeltest.h"
 
 #include <QMainWindow>
+#include <QtGui/QListWidgetItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTableView>
 #include <string>
@@ -83,8 +84,6 @@ private slots:
     void on_radSetRaxml_toggled(bool checked);
     void on_radSetPhyml_toggled(bool checked);
 
-    void on_listMatrices_itemSelectionChanged();
-
     void on_sliderNCat_sliderMoved(int position);
 
     /* MENU */
@@ -120,10 +119,9 @@ private slots:
 
     void on_radDatatypeDna_clicked();
     void on_radDatatypeProt_clicked();
-
     void on_cbShowMatrices_clicked();
-
     void on_radSchemesUser_clicked();
+    void on_modelsListView_itemClicked(QListWidgetItem *item);
 
 public slots:
     void cancel_jobs();

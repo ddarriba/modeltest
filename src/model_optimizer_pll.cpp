@@ -75,7 +75,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 );
     assert(pll_partition);
 
-    pll_utree_t* pll_tree = tree->get_pll_tree (_thread_number);
+    pll_utree_t* pll_tree = tree->get_pll_start_tree (_thread_number);
 
     pll_utree_t ** tipnodes = (pll_utree_t **) Utils::c_allocate (n_tips,
                                                        sizeof(pll_utree_t *));
@@ -196,12 +196,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   }
 
   double ModelOptimizerPll::opt_single_parameter(mt_index_t which_parameter,
-                                      double tolerance)
+                                                 double tolerance)
   {
       double cur_logl;
 
       if (params == NULL)
-        build_parameters();
+          build_parameters();
 
       params->pgtol = tolerance;
 
@@ -209,60 +209,44 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       {
           int smoothings = 2;
           mt_index_t matrix_count, ops_count;
-          pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
-          pll_utree_t ** travbuffer = (pll_utree_t **) Utils::allocate (
-                      2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
+          pll_utree_t* pll_tree;
+          pll_utree_t ** travbuffer;
           mt_size_t traversal_size;
 
-          params->which_parameters = PLL_PARAMETER_BRANCHES_SINGLE;
+          /* move to random node */
+          tree->reroot_random(thread_number);
+          pll_tree = tree->get_pll_tree(thread_number);
 
-          if (!pll_utree_traverse (pll_tree,
-                                   cb_full_traversal,
-                                   travbuffer,
-                                   &traversal_size))
-          {
-            assert(0);
-          }
-          pll_utree_create_operations(travbuffer,
-                                        traversal_size,
-                                        branch_lengths,
-                                        matrix_indices,
-                                        operations,
-                                        &matrix_count,
-                                        &ops_count);
+
+          travbuffer = (pll_utree_t **) Utils::allocate (2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
+          pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
+          pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
+                                       matrix_indices, operations, &matrix_count,
+                                       &ops_count);
           pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
-                                      2 * tree->get_n_tips() - 3);
+                                    2 * tree->get_n_tips() - 3);
           pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
-          cur_logl = pll_optimize_branch_lengths_iterative (pll_partition,
-                                                            pll_tree,
-                                                            params->params_index,
-                                                            params->lk_params.freqs_index,
-                                                            params->pgtol,
-                                                            smoothings,
-                                                            true);
+          params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
 
-          if (!pll_utree_traverse (pll_tree,
-                                   cb_full_traversal,
-                                   travbuffer,
-                                   &traversal_size))
-          {
-            assert(0);
-          }
+          cur_logl = pll_optimize_branch_lengths_iterative (
+                      pll_partition, pll_tree, params->params_index, params->lk_params.freqs_index,
+                      params->pgtol, smoothings++, true);
 
-          pll_utree_create_operations(travbuffer,
-                                      traversal_size,
-                                      branch_lengths,
-                                      matrix_indices,
-                                      operations,
-                                      &matrix_count,
-                                      &ops_count);
-          free(travbuffer);
+          pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
+          pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
+                                       matrix_indices, operations, &matrix_count,
+                                       &ops_count);
           params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
-          params->lk_params.where.unrooted_t.parent_scaler_index = pll_tree->scaler_index;
+          params->lk_params.where.unrooted_t.parent_scaler_index =
+                  pll_tree->scaler_index;
           params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
-          params->lk_params.where.unrooted_t.child_scaler_index = pll_tree->back->scaler_index;
-          params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
+          params->lk_params.where.unrooted_t.child_scaler_index =
+                  pll_tree->back->scaler_index;
+          params->lk_params.where.unrooted_t.edge_pmatrix_index =
+                  pll_tree->pmatrix_index;
+
+          free(travbuffer);
       }
       else if (which_parameter == PLL_PARAMETER_ALPHA || which_parameter == PLL_PARAMETER_PINV)
       {
@@ -367,11 +351,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       std::cout << std::endl;
 #endif
 
+//      tree->reroot_random(thread_number);
+      pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
+
+      tree->set_branches(0.15, thread_number);
+      for (int i=0; i<2 * tree->get_n_tips() - 3; i++)
+          branch_lengths[i] = 0.15;
       pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
                                 2 * tree->get_n_tips() - 3);
       pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
-      pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
       double logl = pll_compute_edge_loglikelihood (pll_partition,
                                                     pll_tree->clv_index,
                                                     pll_tree->scaler_index,
@@ -433,8 +422,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               {
                   test_logl = cur_logl;
                   cur_logl = opt_single_parameter(cur_parameter, tolerance);
-                  if (fabs(test_logl - cur_logl) < tolerance)
-                      converged |= cur_parameter;
+//                  if (fabs(test_logl - cur_logl) < tolerance)
+//                      converged |= cur_parameter;
               }
 
               cur_parameter_index++;
