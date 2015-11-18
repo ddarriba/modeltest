@@ -96,9 +96,13 @@ public:
     /**
      * @brief Optimizes the whole candidate models set
      * @param[in] part_id      partition to optimize
+     * @param[in] n_threads    number of threads
      * @return true, if the optimization is OK
      */
-    bool evaluate_models(const partition_id_t &part_id);
+    bool evaluate_models(const partition_id_t &part_id,
+                         mt_size_t n_threads,
+                         double epsilon_param,
+                         double epsilon_opt);
 
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
@@ -134,6 +138,14 @@ private:
      * @brief Deallocates all the memory
      */
     void free_stuff();
+
+    int eval_and_print(const partition_id_t &part_id,
+                              mt_index_t cur_model,
+                              mt_index_t n_models,
+                              modeltest::Model *model,
+                              mt_index_t thread_id,
+                              double epsilon_param,
+                              double epsilon_opt);
 };
 
 }

@@ -7,7 +7,6 @@
 #include "utils.h"
 
 #include <iostream>
-#include <iomanip>
 #include <ctime>
 #include <sstream>
 #include <cerrno>
@@ -508,7 +507,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         {
             if (modeltest::mt_errno)
             {
-                cerr << "WARNING: "
+                cerr << PACKAGE << ": Warning: "
                      << modeltest::mt_errmsg << endl;
                 modeltest::mt_errno = 0;
             }
@@ -700,6 +699,7 @@ int main(int argc, char *argv[])
         /* command line */
         mt_options opts;
         mt_index_t cur_model;
+        mt_size_t num_cores = modeltest::Utils::count_physical_cores();
         time_t ini_global_time = time(NULL);
 
         if (!parse_arguments(argc, argv, opts))
@@ -717,97 +717,40 @@ int main(int argc, char *argv[])
 
         cout << endl;
         modeltest::Utils::print_options(opts, cout);
-        cout << endl;
+        cout << PACKAGE << " was called as follows: " << endl << ">> ";
+        for (int i=0; i<argc; i++)
+            cout << argv[i] << " ";
+        cout << endl << endl;
 
-        //mt.evaluate_models();
+        if (n_procs == 1 && num_cores > 1)
+        {
+            /* We warn only if the number of processors is 1. */
+            /* Otherwise we assume that the user is aware of this feature */
+            cerr << PACKAGE << ": Warning: You are using one single thread out of "
+                    << num_cores << " physical cores." << endl;
+            cerr << PACKAGE
+                 << ":          You can set the number of threads with -p argument."
+                 << endl;
+            cerr << PACKAGE << ": Try '" << PACKAGE << " --help' or '"
+                 << PACKAGE << " --usage' for more information" << endl;
+        }
+
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
 
-            cout << endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << endl << endl;
+            cout << endl << "Partition "
+                 << i+1 << "/" << opts.partitions_eff->size()
+                 << endl << endl;
 
             partition_id_t part_id = {i};
-            cur_model = 0;
-
-            if (n_procs == 1)
-            {
-                for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
-                {
-                    modeltest::Model *model = mt.get_models(part_id)[cur_model];
-                            time_t ini_t = time(NULL);
-                            int res = mt.evaluate_single_model(model,
-                                                               part_id,
-                                                               0,
-                                                               opts.epsilon_param,
-                                                               opts.epsilon_opt);
-
-                            if (!res)
-                            {
-                                cerr << "ERROR OPTIMIZING MODEL" << endl;
-                                return(MT_ERROR_OPTIMIZE);
-                            }
-
-                            /* print progress */
-                            cout << setw(5) << right << (cur_model+1) << "/"
-                                 << setw(5) << left << mt.get_models(part_id).size()
-                                 << setw(15) << left << model->get_name()
-                                 << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-                                 << model->get_lnl()
-                                 << setw(8) << time(NULL) - ini_t
-                                 << setw(8) << time(NULL) - ini_global_time << endl;
-                }
-            }
-            else
-            {
-
-            std::cout << "Creating pool with " << n_procs << " threads" << std::endl;
-            modeltest::ThreadPool pool(n_procs);
-            std::vector< std::future<int> > results;
-            std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
-            std::map<mt_index_t, mt_index_t> testmap;
-            testmap[15] = 27;
-
-            double epsilon_param = opts.epsilon_param;
-            double epsilon_opt   = opts.epsilon_opt;
-            for (cur_model=0; cur_model < mt.get_models(part_id).size(); cur_model++)
-            {
-                modeltest::Model *model = mt.get_models(part_id)[cur_model];
-
-                    results.emplace_back(
-                        pool.enqueue([cur_model, model, part_id, epsilon_param, epsilon_opt, &mt, ini_global_time, &thread_map] {
-                        time_t ini_t = time(NULL);
-                        thread::id my_id(__gthread_self());
-                        int res = mt.evaluate_single_model(model,
-                                                           part_id,
-                                                           thread_map[my_id],
-                                                           epsilon_param,
-                                                           epsilon_opt);
-
-                        if (!res)
-                        {
-                            cerr << "ERROR OPTIMIZING MODEL" << endl;
-                            return(MT_ERROR_OPTIMIZE);
-                        }
-
-                        /* print progress */
-                        cout << setw(5) << right << (cur_model+1) << "/"
-                             << setw(5) << left << mt.get_models(part_id).size()
-                             << setw(15) << left << model->get_name()
-                             << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-                             << model->get_lnl()
-                             << setw(8) << time(NULL) - ini_t
-                             << setw(8) << time(NULL) - ini_global_time << endl;
-
-                            return res;
-                        })
-                    );
-            }
-            }
+            mt.evaluate_models(part_id, n_procs,
+                               opts.epsilon_param, opts.epsilon_opt);
 
             std::cout << "DONE" << std::endl;
 
             modeltest::ModelSelection bic_selection(mt.get_models(part_id),
                                                     modeltest::ic_bic);
-            bic_selection.print(cout);
+            bic_selection.print(cout, 10);
             cout << "Best model according to BIC" << endl;
             cout << "---------------------------" << endl;
             bic_selection.print_best_model(cout);

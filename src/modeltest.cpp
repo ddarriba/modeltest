@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "msapll.h"
 #include "treepll.h"
+#include "thread/threadpool.h"
 
 #include <iostream>
 #include <cassert>
@@ -68,16 +69,82 @@ bool ModelTest::evaluate_single_model(Model * model,
     return result;
 }
 
-bool ModelTest::evaluate_models(const partition_id_t &part_id)
+int ModelTest::eval_and_print(const partition_id_t &part_id,
+                          mt_index_t cur_model,
+                          mt_index_t n_models,
+                          modeltest::Model *model,
+                          mt_index_t thread_id,
+                          double epsilon_param,
+                          double epsilon_opt)
+{
+    time_t ini_t = time(NULL);
+    int res = evaluate_single_model(model,
+                                    part_id,
+                                    thread_id,
+                                    epsilon_param,
+                                    epsilon_opt);
+
+    if (!res)
+    {
+        cerr << "ERROR OPTIMIZING MODEL" << endl;
+        return(MT_ERROR_OPTIMIZE);
+    }
+
+    /* print progress */
+    cout << setw(5) << right << (cur_model+1) << "/"
+         << setw(5) << left << n_models
+         << setw(15) << left << model->get_name()
+         << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+         << model->get_lnl()
+         << setw(8) << time(NULL) - ini_t << endl;
+
+     return res;
+}
+
+bool ModelTest::evaluate_models(const partition_id_t &part_id,
+                                mt_size_t n_procs,
+                                double epsilon_param,
+                                double epsilon_opt)
 {
     assert(partitions.size());
     Partition * partition = partitions[part_id];
     assert(partition);
+    mt_index_t cur_model;
+    mt_size_t n_models = get_models(part_id).size();
 
-    vector<Model *> models = partition->get_models();
-    for (Model * model : models)
+    if (n_procs == 1)
     {
-        evaluate_single_model(model, part_id);
+        for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
+        {
+            modeltest::Model *model = get_models(part_id)[cur_model];
+            eval_and_print(part_id, cur_model, n_models, model, 0,
+                           epsilon_param, epsilon_opt);
+        }
+    }
+    else
+    {
+        std::cout << "Creating pool with " << n_procs << " threads" << std::endl;
+        modeltest::ThreadPool pool(n_procs);
+        std::vector< std::future<int> > results;
+        std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
+        std::map<mt_index_t, mt_index_t> testmap;
+        testmap[15] = 27;
+
+        std::cout << "Starting jobs... (output might be unsorted)" << std::endl;
+        for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
+        {
+            modeltest::Model *model = get_models(part_id)[cur_model];
+
+            results.emplace_back(
+              pool.enqueue([cur_model, model, n_models, part_id, epsilon_param, epsilon_opt, this, &thread_map] {
+                thread::id my_id(__gthread_self());
+                int res = eval_and_print(part_id, cur_model, n_models, model,
+                                         thread_map[my_id],
+                                         epsilon_param, epsilon_opt);
+                return res;
+              })
+            );
+        }
     }
     return true;
 }

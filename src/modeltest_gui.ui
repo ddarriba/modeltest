@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>989</width>
-    <height>967</height>
+    <width>810</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>500</height>
+    <height>600</height>
    </size>
   </property>
   <property name="font">
@@ -228,6 +228,9 @@ color: #222;</string>
            <property name="text">
             <string>MSA:</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
            <property name="margin">
             <number>5</number>
            </property>
@@ -290,6 +293,9 @@ color: #222;</string>
            <property name="text">
             <string>Tree:</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
            <property name="margin">
             <number>5</number>
            </property>
@@ -317,6 +323,9 @@ color: #222;</string>
            </property>
            <property name="text">
             <string>Partitions:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
            <property name="margin">
             <number>5</number>
@@ -473,7 +482,7 @@ color: #222;</string>
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>0</number>
           </property>
           <property name="iconSize">
            <size>
@@ -509,8 +518,8 @@ color: #222;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>913</width>
-                 <height>550</height>
+                 <width>734</width>
+                 <height>558</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -527,6 +536,12 @@ color: #222;</string>
                     <width>16777215</width>
                     <height>140</height>
                    </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Courier 10 Pitch</family>
+                    <pointsize>10</pointsize>
+                   </font>
                   </property>
                   <property name="frameShape">
                    <enum>QFrame::StyledPanel</enum>
@@ -593,10 +608,10 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -608,12 +623,15 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radDatatypeDna">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
+                        </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                         <property name="text">
                          <string>DNA</string>
@@ -627,12 +645,15 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radDatatypeProt">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
+                        </property>
+                        <property name="cursor">
+                         <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                         <property name="text">
                          <string>Protein</string>
@@ -692,10 +713,10 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -707,11 +728,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSetModelTest">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -729,11 +750,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSetMrbayes">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="toolTip">
@@ -751,11 +772,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSetRaxml">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -770,11 +791,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSetPhyml">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -789,11 +810,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSetPAUP">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -836,10 +857,13 @@ color: #222;</string>
                      </property>
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Courier 10 Pitch</family>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <bold>true</bold>
+                       <weight>50</weight>
+                       <italic>true</italic>
+                       <bold>false</bold>
+                       <underline>true</underline>
+                       <kerning>true</kerning>
                       </font>
                      </property>
                      <property name="text">
@@ -881,11 +905,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radTopoFixedMp">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -897,11 +921,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radTopoFixedJc">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -913,11 +937,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radTopoFixedGtr">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -932,11 +956,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radTopoML">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -951,11 +975,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radTopoU">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1017,14 +1041,16 @@ color: #222;</string>
                   </property>
                   <property name="font">
                    <font>
-                    <family>Courier</family>
+                    <family>Courier 10 Pitch</family>
                     <pointsize>11</pointsize>
                     <weight>75</weight>
+                    <italic>true</italic>
                     <bold>true</bold>
+                    <underline>false</underline>
                    </font>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">border-bottom: 2px dashed;</string>
+                   <string notr="true">border-bottom: 1px dotted</string>
                   </property>
                   <property name="text">
                    <string>Models</string>
@@ -1063,6 +1089,12 @@ color: #222;</string>
                        <height>20</height>
                       </size>
                      </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="frameShape">
                       <enum>QFrame::NoFrame</enum>
                      </property>
@@ -1083,11 +1115,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemes3">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1099,11 +1131,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemes5">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1115,11 +1147,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemes7">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1131,11 +1163,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemes11">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1150,11 +1182,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemes203">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1169,11 +1201,11 @@ color: #222;</string>
                        <widget class="QRadioButton" name="radSchemesUser">
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1208,12 +1240,20 @@ color: #222;</string>
                        <height>20</height>
                       </size>
                      </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Courier 10 Pitch</family>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <bold>true</bold>
+                       <weight>50</weight>
+                       <italic>true</italic>
+                       <bold>false</bold>
+                       <underline>true</underline>
                       </font>
                      </property>
                      <property name="text">
@@ -1232,7 +1272,7 @@ color: #222;</string>
                      <property name="maximumSize">
                       <size>
                        <width>16777215</width>
-                       <height>60</height>
+                       <height>50</height>
                       </size>
                      </property>
                      <property name="frameShape">
@@ -1267,10 +1307,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1291,10 +1332,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1321,10 +1363,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1364,10 +1407,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1391,10 +1435,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1421,8 +1466,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Arial</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="autoFillBackground">
@@ -1468,10 +1516,12 @@ color: #222;</string>
                      </property>
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Courier 10 Pitch</family>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <bold>true</bold>
+                       <weight>50</weight>
+                       <italic>true</italic>
+                       <bold>false</bold>
+                       <underline>true</underline>
                       </font>
                      </property>
                      <property name="text">
@@ -1490,7 +1540,7 @@ color: #222;</string>
                      <property name="maximumSize">
                       <size>
                        <width>16777215</width>
-                       <height>30</height>
+                       <height>25</height>
                       </size>
                      </property>
                      <property name="frameShape">
@@ -1525,10 +1575,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1555,10 +1606,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
-                          <bold>true</bold>
+                          <weight>50</weight>
+                          <italic>false</italic>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1596,7 +1648,7 @@ color: #222;</string>
                      <property name="maximumSize">
                       <size>
                        <width>16777215</width>
-                       <height>50</height>
+                       <height>30</height>
                       </size>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1625,11 +1677,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1653,11 +1705,11 @@ color: #222;</string>
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier</family>
+                          <family>Courier 10 Pitch</family>
                           <pointsize>10</pointsize>
-                          <weight>75</weight>
+                          <weight>50</weight>
                           <italic>false</italic>
-                          <bold>true</bold>
+                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="text">
@@ -1683,13 +1735,25 @@ color: #222;</string>
                    </item>
                    <item>
                     <widget class="QCheckBox" name="cbShowMatrices">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Courier 10 Pitch</family>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <italic>true</italic>
-                       <bold>true</bold>
+                       <weight>50</weight>
+                       <italic>false</italic>
+                       <bold>false</bold>
                       </font>
                      </property>
                      <property name="text">
@@ -1722,6 +1786,16 @@ color: #222;</string>
                     </widget>
                    </item>
                   </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="Line" name="line_2">
+                  <property name="frameShadow">
+                   <enum>QFrame::Sunken</enum>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -2416,7 +2490,27 @@ color: #222;</string>
            <attribute name="title">
             <string>Debug Console</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QTextBrowser" name="debugConsole">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="font">
+               <font>
+                <family>Courier 10 Pitch</family>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background: #fff;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -2452,7 +2546,7 @@ color: #222;</string>
          <widget class="QTextBrowser" name="txt_messages">
           <property name="minimumSize">
            <size>
-            <width>400</width>
+            <width>200</width>
             <height>100</height>
            </size>
           </property>
@@ -2467,6 +2561,9 @@ color: #222;</string>
             <family>Arial</family>
             <pointsize>10</pointsize>
            </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background: #fff;</string>
           </property>
           <property name="html">
            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -2488,7 +2585,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>989</width>
+     <width>810</width>
      <height>25</height>
     </rect>
    </property>

@@ -43,7 +43,8 @@ HEADERS  += \
     modeltest_gui.h \
     partition.h \
     partitioning_scheme.h \
-    thread/threadpool.h
+    thread/threadpool.h \
+    gui/qdebugstream.h
 
 FORMS    += \
     compute_options.ui \

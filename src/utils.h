@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 namespace modeltest {
 
@@ -143,6 +144,12 @@ public:
      * @param[in,out] out  The output stream
      */
     static void print_options(mt_options & opts, std::ostream  &out = std::cout);
+
+    /**
+     * @brief count the number of physical CPU cores
+     * @return the number of physical CPU cores
+     */
+    static mt_size_t count_physical_cores( void );
 };
 
 }

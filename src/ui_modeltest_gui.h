@@ -60,6 +60,7 @@ public:
     QFrame *frameHeader;
     QHBoxLayout *horizontalLayout_7;
     QLabel *lblGear;
+    QSpacerItem *horizontalSpacer_9;
     QGridLayout *gridData;
     QLabel *lblAlignment;
     QLabel *lblTree;
@@ -67,9 +68,9 @@ public:
     QLabel *lblParts;
     QLabel *lblLoadTreeText;
     QLabel *lblLoadPartsText;
-    QPushButton *btnLoadParts;
-    QPushButton *btnLoadTree;
     QPushButton *btnLoadAlignment;
+    QPushButton *btnLoadTree;
+    QPushButton *btnLoadParts;
     QSplitter *splitter;
     QWidget *widget_mid;
     QHBoxLayout *horizontalLayout_11;
@@ -141,6 +142,7 @@ public:
     QSpacerItem *horizontalSpacer_3;
     QCheckBox *cbShowMatrices;
     QListWidget *modelsListView;
+    QFrame *line_2;
     QCheckBox *cbAdvanced;
     QFrame *grpAdvanced;
     QGridLayout *gridLayout_2;
@@ -185,6 +187,7 @@ public:
     QTableView *tblResultsDt;
     QWidget *tab_console;
     QHBoxLayout *horizontalLayout_2;
+    QTextBrowser *debugConsole;
     QWidget *widget_footer;
     QHBoxLayout *horizontalLayout_10;
     QTextBrowser *txt_messages;
@@ -200,8 +203,8 @@ public:
     {
         if (jModelTest->objectName().isEmpty())
             jModelTest->setObjectName(QString::fromUtf8("jModelTest"));
-        jModelTest->resize(989, 967);
-        jModelTest->setMinimumSize(QSize(500, 500));
+        jModelTest->resize(810, 800);
+        jModelTest->setMinimumSize(QSize(500, 600));
         QFont font;
         font.setFamily(QString::fromUtf8("Arial"));
         jModelTest->setFont(font);
@@ -255,25 +258,32 @@ public:
         horizontalLayout_7->setSpacing(6);
         horizontalLayout_7->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+        horizontalLayout_7->setContentsMargins(5, 5, 5, 5);
         lblGear = new QLabel(frameHeader);
         lblGear->setObjectName(QString::fromUtf8("lblGear"));
-        lblGear->setMinimumSize(QSize(50, 50));
-        lblGear->setMaximumSize(QSize(100, 100));
+        lblGear->setMinimumSize(QSize(90, 90));
+        lblGear->setMaximumSize(QSize(90, 90));
         QFont font1;
         font1.setFamily(QString::fromUtf8("Arial"));
         font1.setPointSize(10);
         lblGear->setFont(font1);
         lblGear->setStyleSheet(QString::fromUtf8(""));
-        lblGear->setFrameShape(QFrame::WinPanel);
-        lblGear->setFrameShadow(QFrame::Raised);
-        lblGear->setLineWidth(2);
+        lblGear->setFrameShape(QFrame::NoFrame);
+        lblGear->setFrameShadow(QFrame::Plain);
+        lblGear->setLineWidth(0);
         lblGear->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_7->addWidget(lblGear);
 
+        horizontalSpacer_9 = new QSpacerItem(10, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+
+        horizontalLayout_7->addItem(horizontalSpacer_9);
+
         gridData = new QGridLayout();
         gridData->setSpacing(6);
         gridData->setObjectName(QString::fromUtf8("gridData"));
+        gridData->setVerticalSpacing(5);
+        gridData->setContentsMargins(-1, 5, -1, 5);
         lblAlignment = new QLabel(frameHeader);
         lblAlignment->setObjectName(QString::fromUtf8("lblAlignment"));
         lblAlignment->setMinimumSize(QSize(0, 20));
@@ -288,7 +298,7 @@ public:
         lblAlignment->setStyleSheet(QString::fromUtf8(""));
         lblAlignment->setMargin(5);
 
-        gridData->addWidget(lblAlignment, 0, 1, 1, 1);
+        gridData->addWidget(lblAlignment, 0, 3, 1, 1);
 
         lblTree = new QLabel(frameHeader);
         lblTree->setObjectName(QString::fromUtf8("lblTree"));
@@ -298,15 +308,17 @@ public:
         lblTree->setStyleSheet(QString::fromUtf8(""));
         lblTree->setMargin(5);
 
-        gridData->addWidget(lblTree, 1, 1, 1, 1);
+        gridData->addWidget(lblTree, 1, 3, 1, 1);
 
         lblLoadAlignText = new QLabel(frameHeader);
         lblLoadAlignText->setObjectName(QString::fromUtf8("lblLoadAlignText"));
         lblLoadAlignText->setMaximumSize(QSize(70, 16777215));
         lblLoadAlignText->setFont(font2);
         lblLoadAlignText->setStyleSheet(QString::fromUtf8("color: #060;"));
+        lblLoadAlignText->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        lblLoadAlignText->setMargin(5);
 
-        gridData->addWidget(lblLoadAlignText, 0, 0, 1, 1);
+        gridData->addWidget(lblLoadAlignText, 0, 1, 1, 1);
 
         lblParts = new QLabel(frameHeader);
         lblParts->setObjectName(QString::fromUtf8("lblParts"));
@@ -316,56 +328,60 @@ public:
         lblParts->setStyleSheet(QString::fromUtf8(""));
         lblParts->setMargin(5);
 
-        gridData->addWidget(lblParts, 2, 1, 1, 1);
+        gridData->addWidget(lblParts, 2, 3, 1, 1);
 
         lblLoadTreeText = new QLabel(frameHeader);
         lblLoadTreeText->setObjectName(QString::fromUtf8("lblLoadTreeText"));
         lblLoadTreeText->setMaximumSize(QSize(70, 16777215));
         lblLoadTreeText->setFont(font2);
         lblLoadTreeText->setStyleSheet(QString::fromUtf8("color: #060;"));
+        lblLoadTreeText->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        lblLoadTreeText->setMargin(5);
 
-        gridData->addWidget(lblLoadTreeText, 1, 0, 1, 1);
+        gridData->addWidget(lblLoadTreeText, 1, 1, 1, 1);
 
         lblLoadPartsText = new QLabel(frameHeader);
         lblLoadPartsText->setObjectName(QString::fromUtf8("lblLoadPartsText"));
         lblLoadPartsText->setMaximumSize(QSize(70, 16777215));
         lblLoadPartsText->setFont(font2);
         lblLoadPartsText->setStyleSheet(QString::fromUtf8("color: #060;"));
+        lblLoadPartsText->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        lblLoadPartsText->setMargin(5);
 
-        gridData->addWidget(lblLoadPartsText, 2, 0, 1, 1);
-
-        btnLoadParts = new QPushButton(frameHeader);
-        btnLoadParts->setObjectName(QString::fromUtf8("btnLoadParts"));
-        btnLoadParts->setEnabled(true);
-        btnLoadParts->setMinimumSize(QSize(30, 0));
-        btnLoadParts->setMaximumSize(QSize(30, 16777215));
-        QFont font3;
-        font3.setFamily(QString::fromUtf8("Arial"));
-        font3.setPointSize(10);
-        font3.setItalic(false);
-        btnLoadParts->setFont(font3);
-        btnLoadParts->setStyleSheet(QString::fromUtf8(""));
-
-        gridData->addWidget(btnLoadParts, 2, 2, 1, 1);
-
-        btnLoadTree = new QPushButton(frameHeader);
-        btnLoadTree->setObjectName(QString::fromUtf8("btnLoadTree"));
-        btnLoadTree->setEnabled(true);
-        btnLoadTree->setMinimumSize(QSize(30, 0));
-        btnLoadTree->setMaximumSize(QSize(30, 16777215));
-        btnLoadTree->setFont(font3);
-
-        gridData->addWidget(btnLoadTree, 1, 2, 1, 1);
+        gridData->addWidget(lblLoadPartsText, 2, 1, 1, 1);
 
         btnLoadAlignment = new QPushButton(frameHeader);
         btnLoadAlignment->setObjectName(QString::fromUtf8("btnLoadAlignment"));
         btnLoadAlignment->setEnabled(true);
-        btnLoadAlignment->setMinimumSize(QSize(30, 0));
-        btnLoadAlignment->setMaximumSize(QSize(30, 16777215));
+        btnLoadAlignment->setMinimumSize(QSize(50, 0));
+        btnLoadAlignment->setMaximumSize(QSize(50, 16777215));
+        QFont font3;
+        font3.setFamily(QString::fromUtf8("Arial"));
+        font3.setPointSize(10);
+        font3.setItalic(false);
         btnLoadAlignment->setFont(font3);
         btnLoadAlignment->setStyleSheet(QString::fromUtf8(""));
 
-        gridData->addWidget(btnLoadAlignment, 0, 2, 1, 1);
+        gridData->addWidget(btnLoadAlignment, 0, 0, 1, 1);
+
+        btnLoadTree = new QPushButton(frameHeader);
+        btnLoadTree->setObjectName(QString::fromUtf8("btnLoadTree"));
+        btnLoadTree->setEnabled(true);
+        btnLoadTree->setMinimumSize(QSize(50, 0));
+        btnLoadTree->setMaximumSize(QSize(50, 16777215));
+        btnLoadTree->setFont(font3);
+
+        gridData->addWidget(btnLoadTree, 1, 0, 1, 1);
+
+        btnLoadParts = new QPushButton(frameHeader);
+        btnLoadParts->setObjectName(QString::fromUtf8("btnLoadParts"));
+        btnLoadParts->setEnabled(true);
+        btnLoadParts->setMinimumSize(QSize(50, 0));
+        btnLoadParts->setMaximumSize(QSize(50, 16777215));
+        btnLoadParts->setFont(font3);
+        btnLoadParts->setStyleSheet(QString::fromUtf8(""));
+
+        gridData->addWidget(btnLoadParts, 2, 0, 1, 1);
 
 
         horizontalLayout_7->addLayout(gridData);
@@ -404,7 +420,7 @@ public:
         grpOptions->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, -75, 913, 550));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 734, 558));
         verticalLayout_8 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_8->setSpacing(6);
         verticalLayout_8->setContentsMargins(11, 11, 11, 11);
@@ -413,6 +429,10 @@ public:
         frameData->setObjectName(QString::fromUtf8("frameData"));
         frameData->setMinimumSize(QSize(0, 100));
         frameData->setMaximumSize(QSize(16777215, 140));
+        QFont font4;
+        font4.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font4.setPointSize(10);
+        frameData->setFont(font4);
         frameData->setFrameShape(QFrame::StyledPanel);
         frameData->setFrameShadow(QFrame::Plain);
         frameData->setLineWidth(0);
@@ -436,31 +456,33 @@ public:
         label_6 = new QLabel(frame_5);
         label_6->setObjectName(QString::fromUtf8("label_6"));
         label_6->setMinimumSize(QSize(100, 0));
-        QFont font4;
-        font4.setFamily(QString::fromUtf8("Courier"));
-        font4.setPointSize(10);
-        font4.setBold(true);
-        font4.setWeight(75);
-        label_6->setFont(font4);
+        QFont font5;
+        font5.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font5.setPointSize(10);
+        font5.setBold(false);
+        font5.setWeight(50);
+        label_6->setFont(font5);
 
         horizontalLayout_9->addWidget(label_6);
 
         radDatatypeDna = new QRadioButton(frame_5);
         radDatatypeDna->setObjectName(QString::fromUtf8("radDatatypeDna"));
-        QFont font5;
-        font5.setFamily(QString::fromUtf8("Courier"));
-        font5.setPointSize(10);
-        font5.setBold(true);
-        font5.setItalic(false);
-        font5.setWeight(75);
-        radDatatypeDna->setFont(font5);
+        QFont font6;
+        font6.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font6.setPointSize(10);
+        font6.setBold(false);
+        font6.setItalic(false);
+        font6.setWeight(50);
+        radDatatypeDna->setFont(font6);
+        radDatatypeDna->setCursor(QCursor(Qt::PointingHandCursor));
         radDatatypeDna->setChecked(true);
 
         horizontalLayout_9->addWidget(radDatatypeDna);
 
         radDatatypeProt = new QRadioButton(frame_5);
         radDatatypeProt->setObjectName(QString::fromUtf8("radDatatypeProt"));
-        radDatatypeProt->setFont(font5);
+        radDatatypeProt->setFont(font6);
+        radDatatypeProt->setCursor(QCursor(Qt::PointingHandCursor));
 
         horizontalLayout_9->addWidget(radDatatypeProt);
 
@@ -485,13 +507,13 @@ public:
         label = new QLabel(frame_settings_1);
         label->setObjectName(QString::fromUtf8("label"));
         label->setMinimumSize(QSize(100, 0));
-        label->setFont(font4);
+        label->setFont(font5);
 
         horizontalLayout_13->addWidget(label);
 
         radSetModelTest = new QRadioButton(frame_settings_1);
         radSetModelTest->setObjectName(QString::fromUtf8("radSetModelTest"));
-        radSetModelTest->setFont(font5);
+        radSetModelTest->setFont(font6);
         radSetModelTest->setStyleSheet(QString::fromUtf8("border: none;"));
         radSetModelTest->setChecked(true);
 
@@ -499,28 +521,28 @@ public:
 
         radSetMrbayes = new QRadioButton(frame_settings_1);
         radSetMrbayes->setObjectName(QString::fromUtf8("radSetMrbayes"));
-        radSetMrbayes->setFont(font5);
+        radSetMrbayes->setFont(font6);
         radSetMrbayes->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_13->addWidget(radSetMrbayes);
 
         radSetRaxml = new QRadioButton(frame_settings_1);
         radSetRaxml->setObjectName(QString::fromUtf8("radSetRaxml"));
-        radSetRaxml->setFont(font5);
+        radSetRaxml->setFont(font6);
         radSetRaxml->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_13->addWidget(radSetRaxml);
 
         radSetPhyml = new QRadioButton(frame_settings_1);
         radSetPhyml->setObjectName(QString::fromUtf8("radSetPhyml"));
-        radSetPhyml->setFont(font5);
+        radSetPhyml->setFont(font6);
         radSetPhyml->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_13->addWidget(radSetPhyml);
 
         radSetPAUP = new QRadioButton(frame_settings_1);
         radSetPAUP->setObjectName(QString::fromUtf8("radSetPAUP"));
-        radSetPAUP->setFont(font5);
+        radSetPAUP->setFont(font6);
         radSetPAUP->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_13->addWidget(radSetPAUP);
@@ -536,7 +558,15 @@ public:
         label_2->setObjectName(QString::fromUtf8("label_2"));
         label_2->setMinimumSize(QSize(0, 20));
         label_2->setMaximumSize(QSize(16777215, 30));
-        label_2->setFont(font4);
+        QFont font7;
+        font7.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font7.setPointSize(10);
+        font7.setBold(false);
+        font7.setItalic(true);
+        font7.setUnderline(true);
+        font7.setWeight(50);
+        font7.setKerning(true);
+        label_2->setFont(font7);
 
         verticalLayout->addWidget(label_2);
 
@@ -554,33 +584,33 @@ public:
         horizontalLayout_4->setContentsMargins(-1, 0, -1, 0);
         radTopoFixedMp = new QRadioButton(frame_settings_2);
         radTopoFixedMp->setObjectName(QString::fromUtf8("radTopoFixedMp"));
-        radTopoFixedMp->setFont(font5);
+        radTopoFixedMp->setFont(font6);
 
         horizontalLayout_4->addWidget(radTopoFixedMp);
 
         radTopoFixedJc = new QRadioButton(frame_settings_2);
         radTopoFixedJc->setObjectName(QString::fromUtf8("radTopoFixedJc"));
-        radTopoFixedJc->setFont(font5);
+        radTopoFixedJc->setFont(font6);
 
         horizontalLayout_4->addWidget(radTopoFixedJc);
 
         radTopoFixedGtr = new QRadioButton(frame_settings_2);
         radTopoFixedGtr->setObjectName(QString::fromUtf8("radTopoFixedGtr"));
-        radTopoFixedGtr->setFont(font5);
+        radTopoFixedGtr->setFont(font6);
         radTopoFixedGtr->setChecked(true);
 
         horizontalLayout_4->addWidget(radTopoFixedGtr);
 
         radTopoML = new QRadioButton(frame_settings_2);
         radTopoML->setObjectName(QString::fromUtf8("radTopoML"));
-        radTopoML->setFont(font5);
+        radTopoML->setFont(font6);
         radTopoML->setChecked(false);
 
         horizontalLayout_4->addWidget(radTopoML);
 
         radTopoU = new QRadioButton(frame_settings_2);
         radTopoU->setObjectName(QString::fromUtf8("radTopoU"));
-        radTopoU->setFont(font5);
+        radTopoU->setFont(font6);
 
         horizontalLayout_4->addWidget(radTopoU);
 
@@ -607,13 +637,15 @@ public:
         label_3->setObjectName(QString::fromUtf8("label_3"));
         label_3->setMinimumSize(QSize(0, 20));
         label_3->setMaximumSize(QSize(16777215, 20));
-        QFont font6;
-        font6.setFamily(QString::fromUtf8("Courier"));
-        font6.setPointSize(11);
-        font6.setBold(true);
-        font6.setWeight(75);
-        label_3->setFont(font6);
-        label_3->setStyleSheet(QString::fromUtf8("border-bottom: 2px dashed;"));
+        QFont font8;
+        font8.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font8.setPointSize(11);
+        font8.setBold(true);
+        font8.setItalic(true);
+        font8.setUnderline(false);
+        font8.setWeight(75);
+        label_3->setFont(font8);
+        label_3->setStyleSheet(QString::fromUtf8("border-bottom: 1px dotted"));
 
         verticalLayout_8->addWidget(label_3);
 
@@ -629,6 +661,7 @@ public:
         grpSubstSchemes->setObjectName(QString::fromUtf8("grpSubstSchemes"));
         grpSubstSchemes->setEnabled(true);
         grpSubstSchemes->setMinimumSize(QSize(0, 20));
+        grpSubstSchemes->setMaximumSize(QSize(16777215, 20));
         grpSubstSchemes->setFrameShape(QFrame::NoFrame);
         grpSubstSchemes->setFrameShadow(QFrame::Plain);
         grpSubstSchemes->setLineWidth(0);
@@ -639,39 +672,39 @@ public:
         horizontalLayout_5->setContentsMargins(-1, 2, -1, 2);
         radSchemes3 = new QRadioButton(grpSubstSchemes);
         radSchemes3->setObjectName(QString::fromUtf8("radSchemes3"));
-        radSchemes3->setFont(font5);
+        radSchemes3->setFont(font6);
 
         horizontalLayout_5->addWidget(radSchemes3);
 
         radSchemes5 = new QRadioButton(grpSubstSchemes);
         radSchemes5->setObjectName(QString::fromUtf8("radSchemes5"));
-        radSchemes5->setFont(font5);
+        radSchemes5->setFont(font6);
 
         horizontalLayout_5->addWidget(radSchemes5);
 
         radSchemes7 = new QRadioButton(grpSubstSchemes);
         radSchemes7->setObjectName(QString::fromUtf8("radSchemes7"));
-        radSchemes7->setFont(font5);
+        radSchemes7->setFont(font6);
 
         horizontalLayout_5->addWidget(radSchemes7);
 
         radSchemes11 = new QRadioButton(grpSubstSchemes);
         radSchemes11->setObjectName(QString::fromUtf8("radSchemes11"));
-        radSchemes11->setFont(font5);
+        radSchemes11->setFont(font6);
         radSchemes11->setChecked(true);
 
         horizontalLayout_5->addWidget(radSchemes11);
 
         radSchemes203 = new QRadioButton(grpSubstSchemes);
         radSchemes203->setObjectName(QString::fromUtf8("radSchemes203"));
-        radSchemes203->setFont(font5);
+        radSchemes203->setFont(font6);
         radSchemes203->setChecked(false);
 
         horizontalLayout_5->addWidget(radSchemes203);
 
         radSchemesUser = new QRadioButton(grpSubstSchemes);
         radSchemesUser->setObjectName(QString::fromUtf8("radSchemesUser"));
-        radSchemesUser->setFont(font5);
+        radSchemesUser->setFont(font6);
         radSchemesUser->setChecked(false);
 
         horizontalLayout_5->addWidget(radSchemesUser);
@@ -686,14 +719,22 @@ public:
         label_4 = new QLabel(frameModels);
         label_4->setObjectName(QString::fromUtf8("label_4"));
         label_4->setMinimumSize(QSize(0, 20));
-        label_4->setFont(font4);
+        label_4->setMaximumSize(QSize(16777215, 20));
+        QFont font9;
+        font9.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font9.setPointSize(10);
+        font9.setBold(false);
+        font9.setItalic(true);
+        font9.setUnderline(true);
+        font9.setWeight(50);
+        label_4->setFont(font9);
 
         verticalLayout_11->addWidget(label_4);
 
         frame_3 = new QFrame(frameModels);
         frame_3->setObjectName(QString::fromUtf8("frame_3"));
         frame_3->setMinimumSize(QSize(0, 50));
-        frame_3->setMaximumSize(QSize(16777215, 60));
+        frame_3->setMaximumSize(QSize(16777215, 50));
         frame_3->setFrameShape(QFrame::NoFrame);
         frame_3->setFrameShadow(QFrame::Plain);
         frame_3->setLineWidth(0);
@@ -706,7 +747,7 @@ public:
         cbNoRateVarModels->setObjectName(QString::fromUtf8("cbNoRateVarModels"));
         cbNoRateVarModels->setMinimumSize(QSize(0, 22));
         cbNoRateVarModels->setMaximumSize(QSize(160, 16777215));
-        cbNoRateVarModels->setFont(font4);
+        cbNoRateVarModels->setFont(font6);
         cbNoRateVarModels->setChecked(true);
 
         gridLayout_6->addWidget(cbNoRateVarModels, 0, 0, 1, 1);
@@ -714,7 +755,7 @@ public:
         cbIGModels = new QCheckBox(frame_3);
         cbIGModels->setObjectName(QString::fromUtf8("cbIGModels"));
         cbIGModels->setMinimumSize(QSize(0, 22));
-        cbIGModels->setFont(font4);
+        cbIGModels->setFont(font6);
         cbIGModels->setChecked(true);
 
         gridLayout_6->addWidget(cbIGModels, 0, 3, 1, 1);
@@ -723,7 +764,7 @@ public:
         cbIModels->setObjectName(QString::fromUtf8("cbIModels"));
         cbIModels->setMinimumSize(QSize(0, 22));
         cbIModels->setMaximumSize(QSize(180, 16777215));
-        cbIModels->setFont(font4);
+        cbIModels->setFont(font6);
         cbIModels->setChecked(true);
 
         gridLayout_6->addWidget(cbIModels, 0, 2, 1, 1);
@@ -736,7 +777,7 @@ public:
         lblNCat->setObjectName(QString::fromUtf8("lblNCat"));
         lblNCat->setMinimumSize(QSize(100, 20));
         lblNCat->setMaximumSize(QSize(100, 20));
-        lblNCat->setFont(font4);
+        lblNCat->setFont(font6);
 
         gridLayout_6->addWidget(lblNCat, 1, 2, 1, 1);
 
@@ -744,7 +785,7 @@ public:
         cbGModels->setObjectName(QString::fromUtf8("cbGModels"));
         cbGModels->setMinimumSize(QSize(0, 22));
         cbGModels->setMaximumSize(QSize(220, 16777215));
-        cbGModels->setFont(font4);
+        cbGModels->setFont(font6);
         cbGModels->setChecked(true);
 
         gridLayout_6->addWidget(cbGModels, 0, 1, 1, 1);
@@ -753,7 +794,7 @@ public:
         sliderNCat->setObjectName(QString::fromUtf8("sliderNCat"));
         sliderNCat->setMinimumSize(QSize(100, 20));
         sliderNCat->setMaximumSize(QSize(100, 20));
-        sliderNCat->setFont(font1);
+        sliderNCat->setFont(font6);
         sliderNCat->setAutoFillBackground(false);
         sliderNCat->setMinimum(2);
         sliderNCat->setMaximum(20);
@@ -762,8 +803,6 @@ public:
 
         gridLayout_6->addWidget(sliderNCat, 1, 1, 1, 1);
 
-        cbNoRateVarModels->raise();
-        cbIModels->raise();
         cbIModels->raise();
         cbNoRateVarModels->raise();
         cbGModels->raise();
@@ -777,14 +816,14 @@ public:
         label_5->setObjectName(QString::fromUtf8("label_5"));
         label_5->setMinimumSize(QSize(0, 20));
         label_5->setMaximumSize(QSize(16777215, 20));
-        label_5->setFont(font4);
+        label_5->setFont(font9);
 
         verticalLayout_11->addWidget(label_5);
 
         frame_4 = new QFrame(frameModels);
         frame_4->setObjectName(QString::fromUtf8("frame_4"));
         frame_4->setMinimumSize(QSize(0, 25));
-        frame_4->setMaximumSize(QSize(16777215, 30));
+        frame_4->setMaximumSize(QSize(16777215, 25));
         frame_4->setFrameShape(QFrame::NoFrame);
         frame_4->setFrameShadow(QFrame::Plain);
         frame_4->setLineWidth(0);
@@ -797,7 +836,7 @@ public:
         cbEqualFreq->setObjectName(QString::fromUtf8("cbEqualFreq"));
         cbEqualFreq->setMinimumSize(QSize(160, 22));
         cbEqualFreq->setMaximumSize(QSize(160, 16777215));
-        cbEqualFreq->setFont(font4);
+        cbEqualFreq->setFont(font6);
         cbEqualFreq->setChecked(true);
 
         horizontalLayout_6->addWidget(cbEqualFreq);
@@ -806,7 +845,7 @@ public:
         cbMlFreq->setObjectName(QString::fromUtf8("cbMlFreq"));
         cbMlFreq->setMinimumSize(QSize(160, 22));
         cbMlFreq->setMaximumSize(QSize(180, 16777215));
-        cbMlFreq->setFont(font4);
+        cbMlFreq->setFont(font6);
         cbMlFreq->setChecked(true);
 
         horizontalLayout_6->addWidget(cbMlFreq);
@@ -821,7 +860,7 @@ public:
         frame = new QFrame(frameModels);
         frame->setObjectName(QString::fromUtf8("frame"));
         frame->setMinimumSize(QSize(0, 30));
-        frame->setMaximumSize(QSize(16777215, 50));
+        frame->setMaximumSize(QSize(16777215, 30));
         horizontalLayout_3 = new QHBoxLayout(frame);
         horizontalLayout_3->setSpacing(0);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
@@ -831,7 +870,7 @@ public:
         lblTextNModels->setObjectName(QString::fromUtf8("lblTextNModels"));
         lblTextNModels->setMinimumSize(QSize(150, 22));
         lblTextNModels->setMaximumSize(QSize(150, 22));
-        lblTextNModels->setFont(font5);
+        lblTextNModels->setFont(font6);
 
         horizontalLayout_3->addWidget(lblTextNModels);
 
@@ -839,7 +878,7 @@ public:
         lblNumModels->setObjectName(QString::fromUtf8("lblNumModels"));
         lblNumModels->setMinimumSize(QSize(100, 22));
         lblNumModels->setMaximumSize(QSize(16777215, 22));
-        lblNumModels->setFont(font5);
+        lblNumModels->setFont(font6);
 
         horizontalLayout_3->addWidget(lblNumModels);
 
@@ -852,19 +891,20 @@ public:
 
         cbShowMatrices = new QCheckBox(frameModels);
         cbShowMatrices->setObjectName(QString::fromUtf8("cbShowMatrices"));
-        QFont font7;
-        font7.setFamily(QString::fromUtf8("Courier"));
-        font7.setPointSize(10);
-        font7.setBold(true);
-        font7.setItalic(true);
-        font7.setWeight(75);
-        cbShowMatrices->setFont(font7);
+        cbShowMatrices->setMinimumSize(QSize(0, 20));
+        cbShowMatrices->setMaximumSize(QSize(16777215, 20));
+        cbShowMatrices->setFont(font6);
 
         verticalLayout_11->addWidget(cbShowMatrices);
 
         modelsListView = new QListWidget(frameModels);
         modelsListView->setObjectName(QString::fromUtf8("modelsListView"));
-        modelsListView->setFont(font4);
+        QFont font10;
+        font10.setFamily(QString::fromUtf8("Courier"));
+        font10.setPointSize(10);
+        font10.setBold(true);
+        font10.setWeight(75);
+        modelsListView->setFont(font10);
         modelsListView->setFrameShape(QFrame::NoFrame);
         modelsListView->setFrameShadow(QFrame::Plain);
         modelsListView->setLineWidth(0);
@@ -875,11 +915,24 @@ public:
 
         verticalLayout_8->addWidget(frameModels);
 
+        line_2 = new QFrame(scrollAreaWidgetContents);
+        line_2->setObjectName(QString::fromUtf8("line_2"));
+        line_2->setFrameShadow(QFrame::Sunken);
+        line_2->setFrameShape(QFrame::HLine);
+
+        verticalLayout_8->addWidget(line_2);
+
         cbAdvanced = new QCheckBox(scrollAreaWidgetContents);
         cbAdvanced->setObjectName(QString::fromUtf8("cbAdvanced"));
         cbAdvanced->setMinimumSize(QSize(205, 22));
         cbAdvanced->setMaximumSize(QSize(16777215, 22));
-        cbAdvanced->setFont(font7);
+        QFont font11;
+        font11.setFamily(QString::fromUtf8("Courier"));
+        font11.setPointSize(10);
+        font11.setBold(true);
+        font11.setItalic(true);
+        font11.setWeight(75);
+        cbAdvanced->setFont(font11);
 
         verticalLayout_8->addWidget(cbAdvanced);
 
@@ -899,7 +952,13 @@ public:
         txtOptEpsilon->setObjectName(QString::fromUtf8("txtOptEpsilon"));
         txtOptEpsilon->setMinimumSize(QSize(0, 20));
         txtOptEpsilon->setMaximumSize(QSize(150, 25));
-        txtOptEpsilon->setFont(font5);
+        QFont font12;
+        font12.setFamily(QString::fromUtf8("Courier"));
+        font12.setPointSize(10);
+        font12.setBold(true);
+        font12.setItalic(false);
+        font12.setWeight(75);
+        txtOptEpsilon->setFont(font12);
         txtOptEpsilon->setText(QString::fromUtf8("0.01"));
         txtOptEpsilon->setMaxLength(10);
         txtOptEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
@@ -910,7 +969,7 @@ public:
         txtParEpsilon->setObjectName(QString::fromUtf8("txtParEpsilon"));
         txtParEpsilon->setMinimumSize(QSize(0, 20));
         txtParEpsilon->setMaximumSize(QSize(150, 25));
-        txtParEpsilon->setFont(font5);
+        txtParEpsilon->setFont(font12);
         txtParEpsilon->setText(QString::fromUtf8("0.001"));
         txtParEpsilon->setMaxLength(10);
         txtParEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
@@ -921,7 +980,7 @@ public:
         lblParEpsText->setObjectName(QString::fromUtf8("lblParEpsText"));
         lblParEpsText->setMinimumSize(QSize(0, 20));
         lblParEpsText->setMaximumSize(QSize(16777215, 25));
-        lblParEpsText->setFont(font5);
+        lblParEpsText->setFont(font12);
 
         gridLayout_2->addWidget(lblParEpsText, 1, 0, 1, 1);
 
@@ -929,7 +988,7 @@ public:
         lblOptEpsText->setObjectName(QString::fromUtf8("lblOptEpsText"));
         lblOptEpsText->setMinimumSize(QSize(0, 20));
         lblOptEpsText->setMaximumSize(QSize(16777215, 25));
-        lblOptEpsText->setFont(font5);
+        lblOptEpsText->setFont(font12);
 
         gridLayout_2->addWidget(lblOptEpsText, 2, 0, 1, 1);
 
@@ -937,7 +996,7 @@ public:
         lblNThreads->setObjectName(QString::fromUtf8("lblNThreads"));
         lblNThreads->setMinimumSize(QSize(100, 20));
         lblNThreads->setMaximumSize(QSize(16777215, 25));
-        lblNThreads->setFont(font4);
+        lblNThreads->setFont(font10);
 
         gridLayout_2->addWidget(lblNThreads, 0, 2, 1, 1);
 
@@ -958,7 +1017,7 @@ public:
         lblNThreadText->setObjectName(QString::fromUtf8("lblNThreadText"));
         lblNThreadText->setMinimumSize(QSize(0, 20));
         lblNThreadText->setMaximumSize(QSize(16777215, 25));
-        lblNThreadText->setFont(font5);
+        lblNThreadText->setFont(font12);
 
         gridLayout_2->addWidget(lblNThreadText, 0, 0, 1, 1);
 
@@ -1048,32 +1107,29 @@ public:
         cbShowHetParams = new QCheckBox(groupBox_4);
         cbShowHetParams->setObjectName(QString::fromUtf8("cbShowHetParams"));
         cbShowHetParams->setGeometry(QRect(135, 0, 121, 22));
-        QFont font8;
-        font8.setFamily(QString::fromUtf8("Arial"));
-        font8.setItalic(false);
-        cbShowHetParams->setFont(font8);
+        QFont font13;
+        font13.setFamily(QString::fromUtf8("Arial"));
+        font13.setItalic(false);
+        cbShowHetParams->setFont(font13);
         cbShowRates = new QCheckBox(groupBox_4);
         cbShowRates->setObjectName(QString::fromUtf8("cbShowRates"));
         cbShowRates->setGeometry(QRect(385, 0, 121, 22));
-        cbShowRates->setFont(font8);
+        cbShowRates->setFont(font13);
         cbShowFreqs = new QCheckBox(groupBox_4);
         cbShowFreqs->setObjectName(QString::fromUtf8("cbShowFreqs"));
         cbShowFreqs->setGeometry(QRect(260, 0, 121, 22));
-        cbShowFreqs->setFont(font8);
+        cbShowFreqs->setFont(font13);
         cbShowSelection = new QCheckBox(groupBox_4);
         cbShowSelection->setObjectName(QString::fromUtf8("cbShowSelection"));
         cbShowSelection->setGeometry(QRect(10, 0, 121, 22));
-        cbShowSelection->setFont(font8);
+        cbShowSelection->setFont(font13);
         cbShowSelection->setChecked(true);
 
         verticalLayout_3->addWidget(groupBox_4);
 
         tblModels = new QTableView(tab_runsingle);
         tblModels->setObjectName(QString::fromUtf8("tblModels"));
-        QFont font9;
-        font9.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font9.setPointSize(10);
-        tblModels->setFont(font9);
+        tblModels->setFont(font4);
         tblModels->setAlternatingRowColors(true);
         tblModels->setSortingEnabled(true);
 
@@ -1099,7 +1155,7 @@ public:
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         tblResultsBic = new QTableView(tabResultsBic);
         tblResultsBic->setObjectName(QString::fromUtf8("tblResultsBic"));
-        tblResultsBic->setFont(font9);
+        tblResultsBic->setFont(font4);
         tblResultsBic->setAlternatingRowColors(true);
         tblResultsBic->setSortingEnabled(true);
 
@@ -1114,7 +1170,7 @@ public:
         verticalLayout_5->setObjectName(QString::fromUtf8("verticalLayout_5"));
         tblResultsAic = new QTableView(tabResultsAic);
         tblResultsAic->setObjectName(QString::fromUtf8("tblResultsAic"));
-        tblResultsAic->setFont(font9);
+        tblResultsAic->setFont(font4);
         tblResultsAic->setAlternatingRowColors(true);
         tblResultsAic->setSortingEnabled(true);
 
@@ -1129,7 +1185,7 @@ public:
         verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
         tblResultsAicc = new QTableView(tabResultsAicc);
         tblResultsAicc->setObjectName(QString::fromUtf8("tblResultsAicc"));
-        tblResultsAicc->setFont(font9);
+        tblResultsAicc->setFont(font4);
         tblResultsAicc->setAlternatingRowColors(true);
         tblResultsAicc->setSortingEnabled(true);
 
@@ -1144,7 +1200,7 @@ public:
         verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
         tblResultsDt = new QTableView(tabResultsDt);
         tblResultsDt->setObjectName(QString::fromUtf8("tblResultsDt"));
-        tblResultsDt->setFont(font9);
+        tblResultsDt->setFont(font4);
         tblResultsDt->setAlternatingRowColors(true);
         tblResultsDt->setSortingEnabled(true);
 
@@ -1163,6 +1219,15 @@ public:
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
+        debugConsole = new QTextBrowser(tab_console);
+        debugConsole->setObjectName(QString::fromUtf8("debugConsole"));
+        debugConsole->setEnabled(true);
+        debugConsole->setFont(font4);
+        debugConsole->setAutoFillBackground(false);
+        debugConsole->setStyleSheet(QString::fromUtf8("background: #fff;"));
+
+        horizontalLayout_2->addWidget(debugConsole);
+
         QIcon icon4;
         icon4.addFile(QString::fromUtf8("IMG/console-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         tabView->addTab(tab_console, icon4, QString());
@@ -1181,9 +1246,10 @@ public:
         horizontalLayout_10->setContentsMargins(9, 9, 9, 9);
         txt_messages = new QTextBrowser(widget_footer);
         txt_messages->setObjectName(QString::fromUtf8("txt_messages"));
-        txt_messages->setMinimumSize(QSize(400, 100));
+        txt_messages->setMinimumSize(QSize(200, 100));
         txt_messages->setMaximumSize(QSize(10000, 10000));
         txt_messages->setFont(font1);
+        txt_messages->setStyleSheet(QString::fromUtf8("background: #fff;"));
 
         horizontalLayout_10->addWidget(txt_messages);
 
@@ -1194,7 +1260,7 @@ public:
         jModelTest->setCentralWidget(layout_main);
         menuBar = new QMenuBar(jModelTest);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 989, 25));
+        menuBar->setGeometry(QRect(0, 0, 810, 25));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuWhat_is_this = new QMenu(menuBar);
@@ -1230,7 +1296,7 @@ public:
 
         retranslateUi(jModelTest);
 
-        tabView->setCurrentIndex(2);
+        tabView->setCurrentIndex(0);
         results_content->setCurrentIndex(3);
 
 
@@ -1268,17 +1334,17 @@ public:
         lblLoadTreeText->setText(QApplication::translate("jModelTest", "Tree:", 0, QApplication::UnicodeUTF8));
         lblLoadPartsText->setText(QApplication::translate("jModelTest", "Partitions:", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        btnLoadParts->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load tree file in <span style=\" font-weight:600;\">NEWICK</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
+        btnLoadAlignment->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load multiple sequence alignment in <span style=\" font-weight:600;\">FASTA</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        btnLoadParts->setText(QApplication::translate("jModelTest", "...", 0, QApplication::UnicodeUTF8));
+        btnLoadAlignment->setText(QApplication::translate("jModelTest", "Load", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         btnLoadTree->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load tree file in <span style=\" font-weight:600;\">NEWICK</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        btnLoadTree->setText(QApplication::translate("jModelTest", "...", 0, QApplication::UnicodeUTF8));
+        btnLoadTree->setText(QApplication::translate("jModelTest", "Load", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        btnLoadAlignment->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load multiple sequence alignment in <span style=\" font-weight:600;\">FASTA</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
+        btnLoadParts->setToolTip(QApplication::translate("jModelTest", "<html><head/><body><p>Load tree file in <span style=\" font-weight:600;\">NEWICK</span> format</p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
-        btnLoadAlignment->setText(QApplication::translate("jModelTest", "...", 0, QApplication::UnicodeUTF8));
+        btnLoadParts->setText(QApplication::translate("jModelTest", "Load", 0, QApplication::UnicodeUTF8));
         label_6->setText(QApplication::translate("jModelTest", "Data type:", 0, QApplication::UnicodeUTF8));
         radDatatypeDna->setText(QApplication::translate("jModelTest", "DNA", 0, QApplication::UnicodeUTF8));
         radDatatypeProt->setText(QApplication::translate("jModelTest", "Protein", 0, QApplication::UnicodeUTF8));

@@ -5,20 +5,18 @@
 #include "progressdialog.h"
 
 #include <unistd.h>
-
 #include <iostream>
 #include <QtGui/QFileDialog>
 #include <QtGui/QHeaderView>
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
+#include <QProgressDialog>
 #include <qtconcurrentmap.h>
 #include <QFutureWatcher>
 #include <QVector>
 #include <pthread.h>
 #include <thread>
 #include <atomic>
-
-#include <QProgressDialog>
 
 #define TABLE_MODELS_WIDTH 905
 #define TABLE_COL_DT 6
@@ -38,6 +36,9 @@ jModelTest::jModelTest(QWidget *parent) :
 
     ui->setupUi(this);
 
+    /* Redirect Console output to QTextEdit */
+    redirect = new Q_DebugStream(std::cout, ui->debugConsole);
+
     QPixmap gearPix("IMG/gear.png");
     ui->lblGear->setPixmap(gearPix.scaled(ui->lblGear->width(),ui->lblGear->height(),Qt::KeepAspectRatio));
     ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
@@ -50,6 +51,13 @@ jModelTest::jModelTest(QWidget *parent) :
 
     on_radDatatypeDna_clicked();
     updateGUI();
+}
+
+jModelTest::~jModelTest()
+{
+    delete redirect;
+    delete models_table_items;
+    delete ui;
 }
 
 void jModelTest::clear_table(QTableView * result_table)
@@ -104,10 +112,13 @@ void jModelTest::fill_results(QTableView * result_table, ModelSelection &model_s
 
 size_t jModelTest::compute_size(int n_cats, int n_threads)
 {
+    int states = ui->radDatatypeDna->isChecked()?
+                N_DNA_STATES :
+                N_PROT_STATES;
     size_t mem_b = Utils::mem_size(n_seqs,
                     seq_len,
                     n_cats,
-                    N_DNA_STATES);
+                    states);
     mem_b *= n_threads;
 
     /* overestimating factor */
@@ -297,12 +308,6 @@ void jModelTest::resetSettings()
     clear_table(ui->tblResultsDt);
 
     updateGUI();
-}
-
-jModelTest::~jModelTest()
-{
-    delete models_table_items;
-    delete ui;
 }
 
 static QString to_qstring(const char * msg, msg_level level)
@@ -729,7 +734,7 @@ void jModelTest::on_actionProgress_triggered()
 {
     /* if tab is disabled, the menu should be as well */
     assert(ui->tabView->isTabEnabled(TAB_RUN));
-    ui->tabView->setCurrentIndex(TAB_RUN);
+    ui->tabView->setCurrentIndex(TAB_CONSOLE);
 }
 
 void jModelTest::on_actionResults_triggered()
@@ -1023,7 +1028,7 @@ void jModelTest::on_btnRun_clicked()
 
     unset_state(STATE_MODELS_OPTIMIZED);
     set_state(STATE_MODELS_OPTIMIZING);
-    ui->tabView->setCurrentIndex(TAB_RUN);
+    ui->tabView->setCurrentIndex(TAB_CONSOLE);
 
     /* hide DT tabs/columns if the tree is fixed */
     ui->results_content->setTabEnabled(TAB_RESULTS_DT,

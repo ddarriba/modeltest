@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
+#include <unistd.h>
 
 using namespace std;
 
@@ -174,6 +175,7 @@ void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
 
 void Utils::print_options(mt_options & opts, ostream  &out)
 {
+    mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
 
     out << "Input data:" << endl;
@@ -219,7 +221,7 @@ void Utils::print_options(mt_options & opts, ostream  &out)
     default:
         assert(0);
     }
-    out << "  " << left << setw(14) << "threads:" << opts.n_threads << endl;
+    out << "  " << left << setw(14) << "threads:" << opts.n_threads << "/" << num_cores << endl;
     out << "  " << left << setw(14) << "RNG seed:" << opts.rnd_seed << endl;
     if (opts.verbose == VERBOSITY_MID)
         out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
@@ -693,6 +695,38 @@ void init_lexan (const char * text, long n)
   rawtext      = text;
   rawtext_size = n;
   pos          = 0;
+}
+
+mt_size_t Utils::count_physical_cores( void ) {
+    uint32_t registers[4];
+    unsigned logicalcpucount;
+    unsigned physicalcpucount;
+#if defined(_WIN32) || defined(WIN32)
+    SYSTEM_INFO systeminfo;
+    GetSystemInfo( &systeminfo );
+    logicalcpucount = systeminfo.dwNumberOfProcessors;
+#else
+    logicalcpucount = sysconf( _SC_NPROCESSORS_ONLN );
+#endif
+    return logicalcpucount;
+
+    if (logicalcpucount % 2 != 0)
+        return logicalcpucount;
+    __asm__ __volatile__ ("cpuid " :
+                          "=a" (registers[0]),
+            "=b" (registers[1]),
+            "=c" (registers[2]),
+            "=d" (registers[3])
+        : "a" (1), "c" (0));
+
+    unsigned CPUFeatureSet = registers[3];
+    bool hyperthreading = CPUFeatureSet & (1 << 28);
+    if (hyperthreading){
+        physicalcpucount = logicalcpucount / 2;
+    } else {
+        physicalcpucount = logicalcpucount;
+    }
+    return physicalcpucount;
 }
 
 } /* namespace */

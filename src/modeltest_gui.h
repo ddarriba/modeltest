@@ -2,11 +2,13 @@
 #define JMODELTEST_H
 
 #include "modeltest.h"
+#include "gui/qdebugstream.h"
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTableView>
+
 #include <string>
 #include <vector>
 
@@ -15,7 +17,7 @@
 #define TAB_CONFIG          0
 #define TAB_RUN             1
 #define TAB_RESULTS         2
-#define TAB_CONSOLE         4
+#define TAB_CONSOLE         3
 
 #define TAB_RESULTS_BIC  0
 #define TAB_RESULTS_AIC  1
@@ -128,6 +130,7 @@ public slots:
 
 private:
     Ui::jModelTest *ui;
+    Q_DebugStream *redirect;
 
     void evaluate_models(ModelTest & mtest);
 
