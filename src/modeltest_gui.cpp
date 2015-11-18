@@ -121,11 +121,8 @@ void jModelTest::updateGUI()
     char txt[30];
     int n_model_sets, n_matrices, n_models;
 
-    ui->lblLoadAlignText->setVisible( check_state(STATE_ALIGNMENT_LOADED) );
-    ui->lblLoadTreeText->setVisible( check_state(STATE_TREE_LOADED) && utree_filename.compare(""));
-    ui->lblTree->setVisible(check_state(STATE_ALIGNMENT_LOADED));
-    ui->lblLoadPartsText->setVisible(check_state(STATE_PARTITIONS_LOADED) && partitions_filename.compare(""));
-    ui->lblParts->setVisible(check_state(STATE_ALIGNMENT_LOADED));
+    //ui->lblTree->setVisible(check_state(STATE_ALIGNMENT_LOADED));
+    //ui->lblParts->setVisible(check_state(STATE_ALIGNMENT_LOADED));
 
     tabs_multi_shown = check_state(STATE_PARTITIONS_LOADED);
 
@@ -272,11 +269,14 @@ void jModelTest::resetSettings()
 
     clear_state();
     if (msa_filename.compare(""))
+    {
         set_state(STATE_ALIGNMENT_LOADED);
         if (utree_filename.compare(""))
         {
             set_state(STATE_TREE_LOADED);
+            ui->radTopoU->setChecked(true);
         }
+    }
     else
     {
         set_state(STATE_INITIAL);
@@ -472,10 +472,6 @@ void jModelTest::on_btnLoadParts_clicked()
         }
 
         ui->lblParts->setText(QString(Utils::getBaseName(partitions_filename).c_str()));
-        if (partitions_filename.compare(""))
-            ui->lblLoadPartsText->setText("Loaded");
-        else
-            ui->lblLoadPartsText->setText("None");
         updateGUI();
     }
 }
