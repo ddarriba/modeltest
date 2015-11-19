@@ -482,7 +482,7 @@ color: #222;</string>
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="iconSize">
            <size>
@@ -495,8 +495,8 @@ color: #222;</string>
           </property>
           <widget class="QWidget" name="tab_configure">
            <attribute name="icon">
-            <iconset>
-             <normaloff>IMG/tool-icon.png</normaloff>IMG/tool-icon.png</iconset>
+            <iconset resource="mtgraphics.qrc">
+             <normaloff>:/IMG/IMG/tool-icon.png</normaloff>:/IMG/IMG/tool-icon.png</iconset>
            </attribute>
            <attribute name="title">
             <string>Configure</string>
@@ -2253,8 +2253,8 @@ color: #222;</string>
           </widget>
           <widget class="QWidget" name="tab_runsingle">
            <attribute name="icon">
-            <iconset>
-             <normaloff>IMG/run-icon.png</normaloff>IMG/run-icon.png</iconset>
+            <iconset resource="mtgraphics.qrc">
+             <normaloff>:/IMG/IMG/run-icon.png</normaloff>:/IMG/IMG/run-icon.png</iconset>
            </attribute>
            <attribute name="title">
             <string>Progress</string>
@@ -2347,7 +2347,7 @@ color: #222;</string>
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="tblModels">
+             <widget class="QTableWidget" name="tblModels">
               <property name="font">
                <font>
                 <family>Courier 10 Pitch</family>
@@ -2366,8 +2366,8 @@ color: #222;</string>
           </widget>
           <widget class="QWidget" name="tab_results">
            <attribute name="icon">
-            <iconset>
-             <normaloff>IMG/results-icon.png</normaloff>IMG/results-icon.png</iconset>
+            <iconset resource="mtgraphics.qrc">
+             <normaloff>:/IMG/IMG/results-icon.png</normaloff>:/IMG/IMG/results-icon.png</iconset>
            </attribute>
            <attribute name="title">
             <string>Results</string>
@@ -2384,7 +2384,7 @@ color: #222;</string>
                <string/>
               </property>
               <property name="currentIndex">
-               <number>3</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="tabResultsBic">
                <attribute name="title">
@@ -2484,8 +2484,8 @@ color: #222;</string>
           </widget>
           <widget class="QWidget" name="tab_console">
            <attribute name="icon">
-            <iconset>
-             <normaloff>IMG/console-icon.png</normaloff>IMG/console-icon.png</iconset>
+            <iconset resource="mtgraphics.qrc">
+             <normaloff>:/IMG/IMG/console-icon.png</normaloff>:/IMG/IMG/console-icon.png</iconset>
            </attribute>
            <attribute name="title">
             <string>Debug Console</string>
@@ -2753,6 +2753,8 @@ p, li { white-space: pre-wrap; }
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="mtgraphics.qrc"/>
+ </resources>
  <connections/>
 </ui>

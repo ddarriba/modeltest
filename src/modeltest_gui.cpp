@@ -39,7 +39,7 @@ jModelTest::jModelTest(QWidget *parent) :
     /* Redirect Console output to QTextEdit */
     redirect = new Q_DebugStream(std::cout, ui->debugConsole);
 
-    QPixmap gearPix("IMG/gear.png");
+    QPixmap gearPix(":/IMG/IMG/gear.png");
     ui->lblGear->setPixmap(gearPix.scaled(ui->lblGear->width(),ui->lblGear->height(),Qt::KeepAspectRatio));
     ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
     ui->sliderNThreads->setValue(QThread::idealThreadCount());
@@ -212,7 +212,10 @@ void jModelTest::updateGUI()
     bool tabResultsEnabled = check_state(STATE_MODELS_OPTIMIZED);
     ui->actionConfigure->setEnabled(tabConfigEnabled);
     ui->tabView->setTabEnabled(TAB_CONFIG, tabConfigEnabled);
-    ui->grpOptions->setEnabled(check_state(STATE_ALIGNMENT_LOADED));
+    ui->grpOptions->setEnabled(
+                check_state(STATE_ALIGNMENT_LOADED) &&
+                !(check_state(STATE_MODELS_OPTIMIZING) |
+                  check_state(STATE_MODELS_OPTIMIZED)));
     ui->actionProgress->setEnabled(tabRunEnabled);
     ui->tabView->setTabEnabled(TAB_RUN, tabRunEnabled);
     ui->actionResults->setEnabled(tabResultsEnabled);

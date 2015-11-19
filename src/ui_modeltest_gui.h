@@ -34,6 +34,7 @@
 #include <QtGui/QStatusBar>
 #include <QtGui/QTabWidget>
 #include <QtGui/QTableView>
+#include <QtGui/QTableWidget>
 #include <QtGui/QTextBrowser>
 #include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
@@ -169,7 +170,7 @@ public:
     QCheckBox *cbShowRates;
     QCheckBox *cbShowFreqs;
     QCheckBox *cbShowSelection;
-    QTableView *tblModels;
+    QTableWidget *tblModels;
     QWidget *tab_results;
     QHBoxLayout *horizontalLayout;
     QTabWidget *results_content;
@@ -1094,7 +1095,7 @@ public:
         verticalLayout_10->addLayout(verticalLayout_9);
 
         QIcon icon1;
-        icon1.addFile(QString::fromUtf8("IMG/tool-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon1.addFile(QString::fromUtf8(":/IMG/IMG/tool-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         tabView->addTab(tab_configure, icon1, QString());
         tab_runsingle = new QWidget();
         tab_runsingle->setObjectName(QString::fromUtf8("tab_runsingle"));
@@ -1127,7 +1128,7 @@ public:
 
         verticalLayout_3->addWidget(groupBox_4);
 
-        tblModels = new QTableView(tab_runsingle);
+        tblModels = new QTableWidget(tab_runsingle);
         tblModels->setObjectName(QString::fromUtf8("tblModels"));
         tblModels->setFont(font4);
         tblModels->setAlternatingRowColors(true);
@@ -1136,7 +1137,7 @@ public:
         verticalLayout_3->addWidget(tblModels);
 
         QIcon icon2;
-        icon2.addFile(QString::fromUtf8("IMG/run-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon2.addFile(QString::fromUtf8(":/IMG/IMG/run-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         tabView->addTab(tab_runsingle, icon2, QString());
         tab_results = new QWidget();
         tab_results->setObjectName(QString::fromUtf8("tab_results"));
@@ -1211,7 +1212,7 @@ public:
         horizontalLayout->addWidget(results_content);
 
         QIcon icon3;
-        icon3.addFile(QString::fromUtf8("IMG/results-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon3.addFile(QString::fromUtf8(":/IMG/IMG/results-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         tabView->addTab(tab_results, icon3, QString());
         tab_console = new QWidget();
         tab_console->setObjectName(QString::fromUtf8("tab_console"));
@@ -1229,7 +1230,7 @@ public:
         horizontalLayout_2->addWidget(debugConsole);
 
         QIcon icon4;
-        icon4.addFile(QString::fromUtf8("IMG/console-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon4.addFile(QString::fromUtf8(":/IMG/IMG/console-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         tabView->addTab(tab_console, icon4, QString());
 
         horizontalLayout_11->addWidget(tabView);
@@ -1296,8 +1297,8 @@ public:
 
         retranslateUi(jModelTest);
 
-        tabView->setCurrentIndex(0);
-        results_content->setCurrentIndex(3);
+        tabView->setCurrentIndex(1);
+        results_content->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(jModelTest);

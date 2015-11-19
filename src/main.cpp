@@ -796,6 +796,7 @@ int main(int argc, char *argv[])
         #ifndef _NO_GUI_
         /* launch GUI */
         QApplication a(argc, argv);
+        //Q_INIT_RESOURCE(mtgraphics);
 
         modeltest::jModelTest w;
         w.show();

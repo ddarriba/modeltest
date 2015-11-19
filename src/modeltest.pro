@@ -51,6 +51,8 @@ FORMS    += \
     progressdialog.ui \
     modeltest_gui.ui
 
+RESOURCES = mtgraphics.qrc
+
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll
 else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
