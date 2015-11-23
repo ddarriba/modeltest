@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>810</width>
+    <width>670</width>
     <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
+    <width>670</width>
     <height>600</height>
    </size>
   </property>
@@ -518,7 +518,7 @@ color: #222;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>734</width>
+                 <width>594</width>
                  <height>558</height>
                 </rect>
                </property>
@@ -964,7 +964,7 @@ color: #222;</string>
                          </font>
                         </property>
                         <property name="text">
-                         <string>Maximum-Likelihood</string>
+                         <string>ML</string>
                         </property>
                         <property name="checked">
                          <bool>false</bool>
@@ -983,7 +983,7 @@ color: #222;</string>
                          </font>
                         </property>
                         <property name="text">
-                         <string>User defined</string>
+                         <string>Custom</string>
                         </property>
                        </widget>
                       </item>
@@ -2261,93 +2261,172 @@ color: #222;</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
-             <widget class="QGroupBox" name="groupBox_4">
-              <property name="title">
-               <string/>
+             <widget class="QFrame" name="frameProgressHeader">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
               </property>
-              <widget class="QCheckBox" name="cbShowHetParams">
-               <property name="geometry">
-                <rect>
-                 <x>135</x>
-                 <y>0</y>
-                 <width>121</width>
-                 <height>22</height>
-                </rect>
+              <property name="maximumSize">
+               <size>
+                <width>16777213</width>
+                <height>25</height>
+               </size>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <property name="spacing">
+                <number>5</number>
                </property>
-               <property name="font">
-                <font>
-                 <family>Arial</family>
-                 <italic>false</italic>
-                </font>
+               <property name="leftMargin">
+                <number>0</number>
                </property>
-               <property name="text">
-                <string>Het. params</string>
+               <property name="topMargin">
+                <number>0</number>
                </property>
-              </widget>
-              <widget class="QCheckBox" name="cbShowRates">
-               <property name="geometry">
-                <rect>
-                 <x>385</x>
-                 <y>0</y>
-                 <width>121</width>
-                 <height>22</height>
-                </rect>
+               <property name="rightMargin">
+                <number>0</number>
                </property>
-               <property name="font">
-                <font>
-                 <family>Arial</family>
-                 <italic>false</italic>
-                </font>
+               <property name="bottomMargin">
+                <number>0</number>
                </property>
-               <property name="text">
-                <string>Rates</string>
-               </property>
-              </widget>
-              <widget class="QCheckBox" name="cbShowFreqs">
-               <property name="geometry">
-                <rect>
-                 <x>260</x>
-                 <y>0</y>
-                 <width>121</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <property name="font">
-                <font>
-                 <family>Arial</family>
-                 <italic>false</italic>
-                </font>
-               </property>
-               <property name="text">
-                <string>Frequencies</string>
-               </property>
-              </widget>
-              <widget class="QCheckBox" name="cbShowSelection">
-               <property name="geometry">
-                <rect>
-                 <x>10</x>
-                 <y>0</y>
-                 <width>121</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <property name="font">
-                <font>
-                 <family>Arial</family>
-                 <italic>false</italic>
-                </font>
-               </property>
-               <property name="text">
-                <string>Selection</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
+               <item>
+                <widget class="QCheckBox" name="cbShowSelection">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Selection</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="cbShowHetParams">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Het. params</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="cbShowFreqs">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Frequencies</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="cbShowRates">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <italic>false</italic>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Rates</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_11">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QComboBox" name="cmbProgressPartitions">
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>200</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
-             <widget class="QTableWidget" name="tblModels">
+             <widget class="QTableView" name="tblModels">
               <property name="font">
                <font>
                 <family>Courier 10 Pitch</family>
@@ -2372,7 +2451,63 @@ color: #222;</string>
            <attribute name="title">
             <string>Results</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QVBoxLayout" name="verticalLayout_12">
+            <item>
+             <widget class="QFrame" name="frameResultsHeader">
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <spacer name="horizontalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QComboBox" name="cmbResultsPartition">
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>200</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
             <item>
              <widget class="QTabWidget" name="results_content">
               <property name="font">
@@ -2384,7 +2519,7 @@ color: #222;</string>
                <string/>
               </property>
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="tabResultsBic">
                <attribute name="title">
@@ -2585,7 +2720,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>810</width>
+     <width>670</width>
      <height>25</height>
     </rect>
    </property>

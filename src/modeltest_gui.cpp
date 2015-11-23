@@ -1238,6 +1238,7 @@ void jModelTest::set_tablemodels_header()
     }
 
     models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Time")));
+    std::cout << "SET MODELS" << std::endl;
     ui->tblModels->setModel(models_table_items);
 
     assert(cur_column == TABLE_WIDTH);
@@ -1368,6 +1369,7 @@ void jModelTest::on_radSchemesUser_clicked()
 
 void jModelTest::on_modelsListView_itemClicked(QListWidgetItem *item)
 {
+    UNUSED(item);
     ui->radSchemesUser->setChecked(true);
     updateGUI();
 }

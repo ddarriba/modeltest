@@ -170,7 +170,7 @@ public:
     QCheckBox *cbShowRates;
     QCheckBox *cbShowFreqs;
     QCheckBox *cbShowSelection;
-    QTableWidget *tblModels;
+    QTableView *tblModels;
     QWidget *tab_results;
     QHBoxLayout *horizontalLayout;
     QTabWidget *results_content;
