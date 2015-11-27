@@ -1,17 +1,18 @@
 bin_PROGRAMS = modeltest modeltestx
 
 modeltest_SOURCES = \
+	moc/moc_modeltest_gui.cpp \
+	moc/moc_progressdialog.cpp \
+	gui/qrc_mtgraphics.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
 	modeltest.cpp \
 	modeltest_gui.cpp \
-	moc/moc_modeltest_gui.cpp \
 	msapll.cpp \
 	partition.cpp \
 	partitioning_scheme.cpp \
 	progressdialog.cpp \
-	moc/moc_progressdialog.cpp \
 	treepll.cpp \
 	utils.cpp \
 	main.cpp

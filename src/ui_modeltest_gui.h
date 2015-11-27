@@ -14,9 +14,9 @@
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
+#include <QtGui/QComboBox>
 #include <QtGui/QFrame>
 #include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
@@ -34,7 +34,6 @@
 #include <QtGui/QStatusBar>
 #include <QtGui/QTabWidget>
 #include <QtGui/QTableView>
-#include <QtGui/QTableWidget>
 #include <QtGui/QTextBrowser>
 #include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
@@ -165,14 +164,21 @@ public:
     QPushButton *btnRun;
     QWidget *tab_runsingle;
     QVBoxLayout *verticalLayout_3;
-    QGroupBox *groupBox_4;
-    QCheckBox *cbShowHetParams;
-    QCheckBox *cbShowRates;
-    QCheckBox *cbShowFreqs;
+    QFrame *frameProgressHeader;
+    QHBoxLayout *horizontalLayout_8;
     QCheckBox *cbShowSelection;
+    QCheckBox *cbShowHetParams;
+    QCheckBox *cbShowFreqs;
+    QCheckBox *cbShowRates;
+    QSpacerItem *horizontalSpacer_11;
+    QComboBox *cmbProgressPartitions;
     QTableView *tblModels;
     QWidget *tab_results;
+    QVBoxLayout *verticalLayout_12;
+    QFrame *frameResultsHeader;
     QHBoxLayout *horizontalLayout;
+    QSpacerItem *horizontalSpacer_10;
+    QComboBox *cmbResultsPartition;
     QTabWidget *results_content;
     QWidget *tabResultsBic;
     QVBoxLayout *verticalLayout_4;
@@ -204,8 +210,8 @@ public:
     {
         if (jModelTest->objectName().isEmpty())
             jModelTest->setObjectName(QString::fromUtf8("jModelTest"));
-        jModelTest->resize(810, 800);
-        jModelTest->setMinimumSize(QSize(500, 600));
+        jModelTest->resize(670, 800);
+        jModelTest->setMinimumSize(QSize(670, 600));
         QFont font;
         font.setFamily(QString::fromUtf8("Arial"));
         jModelTest->setFont(font);
@@ -421,7 +427,7 @@ public:
         grpOptions->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 734, 558));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 594, 558));
         verticalLayout_8 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_8->setSpacing(6);
         verticalLayout_8->setContentsMargins(11, 11, 11, 11);
@@ -1103,32 +1109,66 @@ public:
         verticalLayout_3->setSpacing(6);
         verticalLayout_3->setContentsMargins(11, 11, 11, 11);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
-        groupBox_4 = new QGroupBox(tab_runsingle);
-        groupBox_4->setObjectName(QString::fromUtf8("groupBox_4"));
-        cbShowHetParams = new QCheckBox(groupBox_4);
-        cbShowHetParams->setObjectName(QString::fromUtf8("cbShowHetParams"));
-        cbShowHetParams->setGeometry(QRect(135, 0, 121, 22));
+        frameProgressHeader = new QFrame(tab_runsingle);
+        frameProgressHeader->setObjectName(QString::fromUtf8("frameProgressHeader"));
+        frameProgressHeader->setMinimumSize(QSize(0, 25));
+        frameProgressHeader->setMaximumSize(QSize(16777213, 25));
+        horizontalLayout_8 = new QHBoxLayout(frameProgressHeader);
+        horizontalLayout_8->setSpacing(5);
+        horizontalLayout_8->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
+        horizontalLayout_8->setContentsMargins(0, 0, 0, 0);
+        cbShowSelection = new QCheckBox(frameProgressHeader);
+        cbShowSelection->setObjectName(QString::fromUtf8("cbShowSelection"));
+        cbShowSelection->setMinimumSize(QSize(0, 20));
+        cbShowSelection->setMaximumSize(QSize(16777215, 20));
         QFont font13;
         font13.setFamily(QString::fromUtf8("Arial"));
         font13.setItalic(false);
-        cbShowHetParams->setFont(font13);
-        cbShowRates = new QCheckBox(groupBox_4);
-        cbShowRates->setObjectName(QString::fromUtf8("cbShowRates"));
-        cbShowRates->setGeometry(QRect(385, 0, 121, 22));
-        cbShowRates->setFont(font13);
-        cbShowFreqs = new QCheckBox(groupBox_4);
-        cbShowFreqs->setObjectName(QString::fromUtf8("cbShowFreqs"));
-        cbShowFreqs->setGeometry(QRect(260, 0, 121, 22));
-        cbShowFreqs->setFont(font13);
-        cbShowSelection = new QCheckBox(groupBox_4);
-        cbShowSelection->setObjectName(QString::fromUtf8("cbShowSelection"));
-        cbShowSelection->setGeometry(QRect(10, 0, 121, 22));
         cbShowSelection->setFont(font13);
         cbShowSelection->setChecked(true);
 
-        verticalLayout_3->addWidget(groupBox_4);
+        horizontalLayout_8->addWidget(cbShowSelection);
 
-        tblModels = new QTableWidget(tab_runsingle);
+        cbShowHetParams = new QCheckBox(frameProgressHeader);
+        cbShowHetParams->setObjectName(QString::fromUtf8("cbShowHetParams"));
+        cbShowHetParams->setMinimumSize(QSize(0, 20));
+        cbShowHetParams->setMaximumSize(QSize(16777215, 20));
+        cbShowHetParams->setFont(font13);
+
+        horizontalLayout_8->addWidget(cbShowHetParams);
+
+        cbShowFreqs = new QCheckBox(frameProgressHeader);
+        cbShowFreqs->setObjectName(QString::fromUtf8("cbShowFreqs"));
+        cbShowFreqs->setMinimumSize(QSize(0, 20));
+        cbShowFreqs->setMaximumSize(QSize(16777215, 20));
+        cbShowFreqs->setFont(font13);
+
+        horizontalLayout_8->addWidget(cbShowFreqs);
+
+        cbShowRates = new QCheckBox(frameProgressHeader);
+        cbShowRates->setObjectName(QString::fromUtf8("cbShowRates"));
+        cbShowRates->setMinimumSize(QSize(0, 20));
+        cbShowRates->setMaximumSize(QSize(16777215, 20));
+        cbShowRates->setFont(font13);
+
+        horizontalLayout_8->addWidget(cbShowRates);
+
+        horizontalSpacer_11 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer_11);
+
+        cmbProgressPartitions = new QComboBox(frameProgressHeader);
+        cmbProgressPartitions->setObjectName(QString::fromUtf8("cmbProgressPartitions"));
+        cmbProgressPartitions->setMinimumSize(QSize(200, 0));
+        cmbProgressPartitions->setMaximumSize(QSize(200, 16777215));
+
+        horizontalLayout_8->addWidget(cmbProgressPartitions);
+
+
+        verticalLayout_3->addWidget(frameProgressHeader);
+
+        tblModels = new QTableView(tab_runsingle);
         tblModels->setObjectName(QString::fromUtf8("tblModels"));
         tblModels->setFont(font4);
         tblModels->setAlternatingRowColors(true);
@@ -1141,10 +1181,33 @@ public:
         tabView->addTab(tab_runsingle, icon2, QString());
         tab_results = new QWidget();
         tab_results->setObjectName(QString::fromUtf8("tab_results"));
-        horizontalLayout = new QHBoxLayout(tab_results);
-        horizontalLayout->setSpacing(6);
+        verticalLayout_12 = new QVBoxLayout(tab_results);
+        verticalLayout_12->setSpacing(6);
+        verticalLayout_12->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_12->setObjectName(QString::fromUtf8("verticalLayout_12"));
+        frameResultsHeader = new QFrame(tab_results);
+        frameResultsHeader->setObjectName(QString::fromUtf8("frameResultsHeader"));
+        frameResultsHeader->setFrameShape(QFrame::StyledPanel);
+        frameResultsHeader->setFrameShadow(QFrame::Raised);
+        horizontalLayout = new QHBoxLayout(frameResultsHeader);
+        horizontalLayout->setSpacing(5);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+        horizontalLayout->setContentsMargins(0, 0, 0, 0);
+        horizontalSpacer_10 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout->addItem(horizontalSpacer_10);
+
+        cmbResultsPartition = new QComboBox(frameResultsHeader);
+        cmbResultsPartition->setObjectName(QString::fromUtf8("cmbResultsPartition"));
+        cmbResultsPartition->setMinimumSize(QSize(200, 0));
+        cmbResultsPartition->setMaximumSize(QSize(200, 16777215));
+
+        horizontalLayout->addWidget(cmbResultsPartition);
+
+
+        verticalLayout_12->addWidget(frameResultsHeader);
+
         results_content = new QTabWidget(tab_results);
         results_content->setObjectName(QString::fromUtf8("results_content"));
         results_content->setFont(font);
@@ -1209,7 +1272,7 @@ public:
 
         results_content->addTab(tabResultsDt, QString());
 
-        horizontalLayout->addWidget(results_content);
+        verticalLayout_12->addWidget(results_content);
 
         QIcon icon3;
         icon3.addFile(QString::fromUtf8(":/IMG/IMG/results-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
@@ -1261,7 +1324,7 @@ public:
         jModelTest->setCentralWidget(layout_main);
         menuBar = new QMenuBar(jModelTest);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 810, 25));
+        menuBar->setGeometry(QRect(0, 0, 670, 25));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuWhat_is_this = new QMenu(menuBar);
@@ -1298,7 +1361,7 @@ public:
         retranslateUi(jModelTest);
 
         tabView->setCurrentIndex(1);
-        results_content->setCurrentIndex(2);
+        results_content->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(jModelTest);
@@ -1362,8 +1425,8 @@ public:
         radTopoFixedMp->setText(QApplication::translate("jModelTest", "Fixed MP", 0, QApplication::UnicodeUTF8));
         radTopoFixedJc->setText(QApplication::translate("jModelTest", "Fixed ML (JC)", 0, QApplication::UnicodeUTF8));
         radTopoFixedGtr->setText(QApplication::translate("jModelTest", "Fixed ML (GTR)", 0, QApplication::UnicodeUTF8));
-        radTopoML->setText(QApplication::translate("jModelTest", "Maximum-Likelihood", 0, QApplication::UnicodeUTF8));
-        radTopoU->setText(QApplication::translate("jModelTest", "User defined", 0, QApplication::UnicodeUTF8));
+        radTopoML->setText(QApplication::translate("jModelTest", "ML", 0, QApplication::UnicodeUTF8));
+        radTopoU->setText(QApplication::translate("jModelTest", "Custom", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("jModelTest", "Models", 0, QApplication::UnicodeUTF8));
         radSchemes3->setText(QApplication::translate("jModelTest", "3", 0, QApplication::UnicodeUTF8));
         radSchemes5->setText(QApplication::translate("jModelTest", "5", 0, QApplication::UnicodeUTF8));
@@ -1394,11 +1457,10 @@ public:
         btnResetConfig->setText(QApplication::translate("jModelTest", "Reset", 0, QApplication::UnicodeUTF8));
         btnRun->setText(QApplication::translate("jModelTest", "Run", 0, QApplication::UnicodeUTF8));
         tabView->setTabText(tabView->indexOf(tab_configure), QApplication::translate("jModelTest", "Configure", 0, QApplication::UnicodeUTF8));
-        groupBox_4->setTitle(QString());
-        cbShowHetParams->setText(QApplication::translate("jModelTest", "Het. params", 0, QApplication::UnicodeUTF8));
-        cbShowRates->setText(QApplication::translate("jModelTest", "Rates", 0, QApplication::UnicodeUTF8));
-        cbShowFreqs->setText(QApplication::translate("jModelTest", "Frequencies", 0, QApplication::UnicodeUTF8));
         cbShowSelection->setText(QApplication::translate("jModelTest", "Selection", 0, QApplication::UnicodeUTF8));
+        cbShowHetParams->setText(QApplication::translate("jModelTest", "Het. params", 0, QApplication::UnicodeUTF8));
+        cbShowFreqs->setText(QApplication::translate("jModelTest", "Frequencies", 0, QApplication::UnicodeUTF8));
+        cbShowRates->setText(QApplication::translate("jModelTest", "Rates", 0, QApplication::UnicodeUTF8));
         tabView->setTabText(tabView->indexOf(tab_runsingle), QApplication::translate("jModelTest", "Progress", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         results_content->setToolTip(QString());
