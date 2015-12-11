@@ -26,7 +26,7 @@
 
 #define DEFAULT_GAMMA_RATE_CATS   4
 #define DEFAULT_PARAM_EPSILON     0.0001
-#define DEFAULT_OPT_EPSILON       0.001
+#define DEFAULT_OPT_EPSILON       0.01
 #define DEFAULT_RND_SEED          12345
 
 #define MT_SIZE_UNDEF             UINT_MAX

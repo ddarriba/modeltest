@@ -13,7 +13,11 @@ namespace modeltest {
 class Model
 {
 public:
-    Model(int model_params);
+    /**
+     * @brief Creates a new Model
+     * @param model_params model parameters mask
+     */
+    Model(mt_mask_t model_params);
     virtual ~Model();
 
     /**

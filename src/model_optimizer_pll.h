@@ -26,12 +26,12 @@ namespace modeltest
                        Model *_model,
                        const partition_t & partition,
                        mt_size_t _n_cat_g = DEFAULT_GAMMA_RATE_CATS,
-                       mt_index_t _thread_number = 0);
+                       mt_index_t _thread_number = 0,
+                       mt_size_t num_threads = 1);
     virtual ~ModelOptimizerPll ();
 
     virtual double opt_single_parameter(mt_index_t which_parameter,
-                                        double tolerance
-                                               = DEFAULT_PARAM_EPSILON);
+                                        double tolerance = DEFAULT_PARAM_EPSILON);
 
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001);

@@ -79,9 +79,15 @@ size_t Utils::mem_size(unsigned int n_taxa,
                        unsigned int n_states)
 {
     mt_size_t n_nodes = n_taxa * 2 - 2;
-    size_t mem = (n_nodes * n_sites * n_states * n_categories +
-            n_states * n_states * n_categories * n_nodes) * sizeof(double) +
-            ((n_nodes + 1)* n_sites) * sizeof(int);
+    mt_size_t n_branches = n_taxa * 2 - 3;
+    size_t n_clvs = n_sites * n_states * n_categories * n_nodes;
+    size_t n_scal = ((n_nodes + 1)* n_sites);
+    size_t n_pmat = n_branches * n_sites * n_states * n_categories;
+
+    size_t mem =  (n_clvs + n_pmat) * sizeof(double) + n_scal * sizeof(unsigned int) ;
+//    size_t mem = (n_nodes * n_sites * n_states * n_categories +
+//            n_states * n_states * n_categories * n_nodes) * sizeof(double) +
+//            ((n_nodes + 1)* n_sites) * sizeof(int);
 
     return mem;
 }

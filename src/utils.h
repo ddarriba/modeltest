@@ -92,7 +92,7 @@ public:
     static std::string getBaseName(std::string const& filename);
 
     /**
-     * @brief Estimates the required memory
+     * @brief Estimates the required memory for P-matrices, CLVs and  scalers
      * @param[in] n_taxa The number of taxa
      * @param[in] n_sites The sequence length
      * @param[in] n_categories The number of gamma rate categories

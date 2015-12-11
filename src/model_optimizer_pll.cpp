@@ -46,7 +46,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       Model *_model,
                                       const partition_t &_partition,
                                       mt_size_t _n_cat_g,
-                                      mt_index_t _thread_number)
+                                      mt_index_t _thread_number,
+                                      mt_size_t num_threads)
     : ModelOptimizer(_model, _partition),
       msa(_msa),
       tree(_tree),

@@ -1295,9 +1295,12 @@ void jModelTest::on_cbShowSelection_toggled(bool checked)
 void jModelTest::on_sliderNThreads_valueChanged(int value)
 {
     ui->lblNThreads->setText(QString::number(value));
+    int n_cats = ui->sliderNCat->value();
+    if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
+        n_cats = 1;
     ui->lblEstimatedMem->setText(
                 QString::number(
-                    compute_size(ui->sliderNCat->value(),
+                    compute_size(n_cats,
                                  value)));
 }
 

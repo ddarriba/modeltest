@@ -34,7 +34,7 @@ namespace modeltest
      * @return the resulting log-Likelihood of the model
      */
     virtual double opt_single_parameter(mt_index_t which_parameter,
-                                        double tolerance = 0.0001) = 0;
+                                        double tolerance = DEFAULT_PARAM_EPSILON) = 0;
 
     /**
      * @brief Optimizes all parameters for the model
@@ -42,8 +42,8 @@ namespace modeltest
      * @param[in] tolerance  tolerance for parameter optimization
      * @return true, if the optimization is OK
      */
-    virtual bool run(double epsilon   = 0.01,
-                     double tolerance = 0.0001) = 0;
+    virtual bool run(double epsilon   = DEFAULT_OPT_EPSILON,
+                     double tolerance = DEFAULT_PARAM_EPSILON) = 0;
 
     /**
      * @brief Gets the optimization status of the model
