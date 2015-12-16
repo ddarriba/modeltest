@@ -5,6 +5,13 @@
 #include <vector>
 #include <climits>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE "modeltest"
+#define VERSION "1.0.1"
+#endif
+
 #ifndef __has_cpp_attribute         // Optional of course.
   #define __has_cpp_attribute(x) 0  // Compatibility with non-clang compilers.
 #endif

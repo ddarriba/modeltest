@@ -8,6 +8,7 @@
 #include <QtGui/QListWidgetItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTableView>
+#include <QtGui/QLabel>
 
 #include <string>
 #include <vector>
@@ -125,6 +126,8 @@ private slots:
     void on_radSchemesUser_clicked();
     void on_modelsListView_itemClicked(QListWidgetItem *item);
 
+    void on_sliderNCat_valueChanged(int value);
+
 public slots:
     void cancel_jobs();
 
@@ -138,7 +141,10 @@ private:
     void updateGUI();
     void resetSettings();
 
-    void fill_results(QTableView * result_table, ModelSelection &model_selection);
+    void fill_results(QTableView * result_table,
+                      ModelSelection &model_selection,
+                      QLabel *imp_inv = 0, QLabel *imp_gamma = 0,
+                      QLabel *imp_gammainv = 0, QLabel *imp_freqs = 0);
     void clear_table(QTableView * result_table);
 
     bool check_state(current_state st);

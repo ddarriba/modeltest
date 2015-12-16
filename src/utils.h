@@ -146,6 +146,18 @@ public:
     static void print_options(mt_options & opts, std::ostream  &out = std::cout);
 
     /**
+     * @brief Prints the header
+     * @param[in,out] out  The output stream
+     */
+    static void print_header(std::ostream  &out = std::cout);
+
+    /**
+     * @brief Prints the version
+     * @param[in,out] out  The output stream
+     */
+    static void print_version(std::ostream& out = std::cout);
+
+    /**
      * @brief count the number of physical CPU cores
      * @return the number of physical CPU cores
      */

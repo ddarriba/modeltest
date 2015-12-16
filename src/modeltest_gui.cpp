@@ -69,7 +69,8 @@ void jModelTest::clear_table(QTableView * result_table)
     }
 }
 
-void jModelTest::fill_results(QTableView * result_table, ModelSelection &model_selection)
+void jModelTest::fill_results(QTableView * result_table, ModelSelection &model_selection,
+                              QLabel *imp_inv, QLabel *imp_gamma, QLabel *imp_gammainv, QLabel *imp_freqs)
 {
     QStandardItemModel * results_table_items;
     double cum_weight = 0.0;
@@ -108,6 +109,15 @@ void jModelTest::fill_results(QTableView * result_table, ModelSelection &model_s
         cum_weight += model_selection.get_model(i).weight;
         results_table_items->setItem(i, 6, new QStandardItem(QString::number(cum_weight, 'f', 2)));
     }
+
+    if (imp_gamma)
+        imp_gamma->setText(QString::number(model_selection.get_importance_gamma()));
+    if (imp_inv)
+        imp_inv->setText(QString::number(model_selection.get_importance_inv()));
+    if (imp_gammainv)
+        imp_gammainv->setText(QString::number(model_selection.get_importance_gamma_inv()));
+    if (imp_freqs)
+        imp_freqs->setText(QString::number(model_selection.get_importance_freqs()));
 }
 
 size_t jModelTest::compute_size(int n_cats, int n_threads)
@@ -1086,6 +1096,7 @@ void jModelTest::on_btnRun_clicked()
 
     ModelSelection bic_selection(modelsPtr, ic_bic);
     fill_results(ui->tblResultsBic, bic_selection);
+                 //ui->txtImpInv, ui->txtImpGamma, ui->txtImpInvGamma, ui->txtImpFreqs);
     ModelSelection aic_selection(modelsPtr, ic_aic);
     fill_results(ui->tblResultsAic, aic_selection);
     ModelSelection aicc_selection(modelsPtr, ic_aicc);
@@ -1375,6 +1386,11 @@ void jModelTest::on_modelsListView_itemClicked(QListWidgetItem *item)
     UNUSED(item);
     ui->radSchemesUser->setChecked(true);
     updateGUI();
+}
+
+void jModelTest::on_sliderNCat_valueChanged(int value)
+{
+    on_sliderNCat_sliderMoved(value);
 }
 
 }

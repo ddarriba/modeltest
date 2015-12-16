@@ -13,6 +13,28 @@
 
 #define CHECK_LOCAL_CONVERGENCE 0
 
+#define JOB_WAIT             0
+#define JOB_UPDATE_MATRICES  1
+#define JOB_FULL_LK          2
+#define JOB_UPDATE_PARTIALS  3
+#define JOB_REDUCE_LK_EDGE   4
+#define JOB_FINALIZE        -1
+
+struct thread_wrap {
+    void * data;
+    modeltest::ModelOptimizerPll * instance;
+
+    thread_wrap( void * d, modeltest::ModelOptimizerPll * i ) : data(d), instance(i) {}
+};
+
+extern "C" void* thread_worker( void * d )
+{
+    thread_wrap * w = static_cast< thread_wrap* >( d );
+    void * return_val = w->instance->worker(w->data);
+
+    return return_val;
+}
+
 /* a callback function for performing a full traversal */
 static int cb_full_traversal(pll_utree_t * node)
 {
@@ -33,6 +55,93 @@ static int cb_reset_branches(pll_utree_t * node)
     return 1;
 }
 
+static int barrier(thread_data_t * data)
+{
+  return pthread_barrier_wait (data->barrier_buf);
+}
+
+static void dealloc_partition_local(pll_partition_t * partition)
+{
+  if (partition->clv)
+    free(partition->clv);
+  if (partition->scale_buffer)
+    free(partition->scale_buffer);
+  free(partition);
+}
+
+static pll_partition_t * pll_partition_clone_partial(
+                             pll_partition_t * partition,
+                             unsigned int id,
+                             unsigned int count)
+{
+  unsigned int i;
+  unsigned int start, sites, offset;
+  pll_partition_t * new_partition;
+
+  sites = (partition->sites / count);
+  offset = (partition->sites % count);
+  start = sites * id + ((id<offset)?id:offset);
+  sites += (id < offset)?1:0;
+
+  new_partition = (pll_partition_t *) malloc(sizeof(pll_partition_t));
+  new_partition->tips = partition->tips;
+  new_partition->clv_buffers = partition->clv_buffers;
+  new_partition->states = partition->states;
+  new_partition->sites = sites;
+  new_partition->rate_matrices = partition->rate_matrices;
+  new_partition->prob_matrices = partition->prob_matrices;
+  new_partition->rate_cats = partition->rate_cats;
+  new_partition->scale_buffers = partition->scale_buffers;
+  new_partition->attributes = partition->attributes;
+
+    /* vectorization options */
+  new_partition->alignment = partition->alignment;
+  new_partition->states_padded = partition->states_padded;
+
+  new_partition->mixture = partition->mixture;
+  new_partition->clv = (double **)calloc(partition->tips + partition->clv_buffers,
+                                            sizeof(double *));
+  if (!new_partition->clv)
+  {
+    dealloc_partition_local (new_partition);
+    return PLL_FAILURE;
+  }
+  for (i = 0; i < new_partition->tips + new_partition->clv_buffers; ++i)
+    new_partition->clv[i] = partition->clv[i]
+        + (start * partition->states_padded * partition->rate_cats);
+
+  new_partition->scale_buffer = (unsigned int **) calloc (
+      new_partition->scale_buffers, sizeof(unsigned int *));
+  if (!new_partition->scale_buffer)
+  {
+    dealloc_partition_local (new_partition);
+    return PLL_FAILURE;
+  }
+  for (i = 0; i < new_partition->scale_buffers; ++i)
+    new_partition->scale_buffer[i] = &partition->scale_buffer[i][start];
+
+  if (partition->invariant)
+    new_partition->invariant = &partition->invariant[start];
+  else
+    new_partition->invariant = NULL;
+
+  new_partition->pattern_weights = &partition->pattern_weights[start];
+
+  new_partition->pmatrix = partition->pmatrix;
+  new_partition->rates = partition->rates;
+  new_partition->rate_weights = partition->rate_weights;
+  new_partition->subst_params = partition->subst_params;
+  new_partition->frequencies = partition->frequencies;
+  new_partition->prop_invar = partition->prop_invar;
+
+  new_partition->eigen_decomp_valid = partition->eigen_decomp_valid;
+  new_partition->eigenvecs = partition->eigenvecs;
+  new_partition->inv_eigenvecs = partition->inv_eigenvecs;
+  new_partition->eigenvals = partition->eigenvals;
+
+  return new_partition;
+}
+
 namespace modeltest
 {
 
@@ -46,13 +155,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       Model *_model,
                                       const partition_t &_partition,
                                       mt_size_t _n_cat_g,
-                                      mt_index_t _thread_number,
-                                      mt_size_t num_threads)
+                                      mt_index_t _thread_number)
     : ModelOptimizer(_model, _partition),
       msa(_msa),
       tree(_tree),
       thread_number(_thread_number)
 {
+    thread_job = 0;
+    global_lnl = 0;
+
     params = NULL;
     operations = NULL;
     branch_lengths = NULL;
@@ -180,8 +291,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     branch_lengths = new double[n_branches];
     matrix_indices = new mt_index_t[n_branches];
     operations = new pll_operation_t[n_inner];
-    mt_size_t matrix_count;
-    mt_size_t ops_count;
 
     pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
                                  matrix_indices, operations, &matrix_count,
@@ -232,6 +341,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                        &ops_count);
           pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
                                     tree->get_n_branches());
+//          for (mt_index_t i=0; i<num_threads; i++)
+//            thread_data[i].vroot = tree->get_pll_tree();
+//          start_job_sync (JOB_UPDATE_PARTIALS, thread_data);
           pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
           params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
@@ -313,13 +425,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   }
 
   bool ModelOptimizerPll::run(double epsilon,
-                              double tolerance)
+                              double tolerance,
+                              mt_size_t _num_threads)
   {
+      /*test*/
+      //num_threads = 2;
+
 #ifdef VERBOSE //TODO: Verbosity medium
       std::cout << "Optimizing model " << model->get_name() << std::endl;
 #endif
       time_t start_time = time(NULL);
       mt_size_t n_branches = tree->get_n_branches();
+
+      pthread_t * threads = NULL;
+      pll_partition_t ** partition_local = NULL;
+      double * result_buf = NULL;
+      pthread_barrier_t barrier_buf;
 
       if (params == NULL)
         build_parameters();
@@ -359,6 +480,47 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       std::cout << std::endl;
 #endif
 
+      /* /PTHREADS */
+      if (num_threads > 1)
+      {
+        threads = (pthread_t *) Utils::allocate(num_threads, sizeof(pthread_t));
+        thread_data = (thread_data_t *) Utils::allocate(num_threads, sizeof(thread_data_t));
+        partition_local = (pll_partition_t **) Utils::allocate(num_threads, sizeof(pll_partition_t *));
+        result_buf = (double *) Utils::allocate(num_threads, sizeof(double));
+        thread_job = JOB_WAIT;
+        pthread_barrier_init (&barrier_buf,
+                              NULL,
+                              num_threads);
+        for (mt_index_t i=0; i<num_threads; i++)
+        {
+          partition_local[i] = pll_partition_clone_partial(pll_partition, i, num_threads);
+
+          thread_data[i].thread_id = i;
+          thread_data[i].num_threads = (long) num_threads;
+          thread_data[i].partition = partition_local[i];
+          thread_data[i].matrix_indices = matrix_indices;
+          thread_data[i].matrix_count = matrix_count;
+          thread_data[i].operations = operations;
+          thread_data[i].ops_count = ops_count;
+          thread_data[i].branch_lengths = branch_lengths;
+          thread_data[i].vroot = tree->get_pll_tree();
+          thread_data[i].barrier_buf = &barrier_buf;
+          thread_data[i].trap = 1;
+          thread_data[i].result_buf = result_buf;
+
+          /* thread 0 is reserved for master process */
+          if (i)
+          {
+              thread_wrap * w = new thread_wrap(&(thread_data[i]), this);
+              if(pthread_create(&(threads[i]), NULL, thread_worker, w)) {
+                std::cerr << "ERROR: Cannot create thread " << i << std::endl;
+                return false;
+              }
+          }
+        }
+      }
+      /* /PTHREADS */
+
 //      tree->reroot_random(thread_number);
       pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
 
@@ -394,6 +556,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       double test_logl;         /* temporary variable */
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
+
+
+//      printf("LnL BEFORE %f\n", global_lnl);
+//      for (mt_index_t i=0; i<num_threads; i++)
+//        thread_data[i].vroot = tree->get_pll_tree();
+//      start_job_sync (JOB_REDUCE_LK_EDGE, thread_data);
+//      printf("LnL AFTER %f\n", global_lnl);
 
       std::vector<mt_index_t> params_to_optimize;
 
@@ -462,6 +631,25 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       optimized = true;
 
+      if (num_threads > 1)
+      {
+          /* finalize */
+          thread_job = JOB_FINALIZE;
+
+          /* join threads */
+          for (mt_index_t i=1; i<num_threads; i++)
+            pthread_join (threads[i], NULL);
+
+          /* clean */
+          for (mt_index_t i=0; i<num_threads; i++)
+            dealloc_partition_local(thread_data[i].partition);
+
+          free(result_buf);
+          free(threads);
+          free(thread_data);
+          free(partition_local);
+      }
+
       model->set_lnl(cur_logl);
       model->set_exec_time(end_time - start_time);
 
@@ -480,4 +668,152 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       return true;
   }
+
+  /* PTHREADS */
+
+  void ModelOptimizerPll::start_job_sync(int JOB, thread_data_t * td)
+  {
+    thread_job = JOB;
+    td->trap = 0;
+    worker(td);
+  }
+
+  void * ModelOptimizerPll::worker(void * void_data)
+  {
+    thread_data_t * thread_data;
+    unsigned int i;
+    unsigned int id, mat_count, mat_offset, mat_start;
+    unsigned int * matrix_indices;
+    double * branch_lengths;
+
+    thread_data = (thread_data_t *) void_data;
+    id = thread_data->thread_id;
+    mat_count  = (thread_data->matrix_count / thread_data->num_threads);
+    mat_offset = (thread_data->matrix_count % thread_data->num_threads);
+    mat_start = id * mat_count + ((id<mat_offset)?id:mat_offset);
+    mat_count += (id < mat_offset)?1:0;
+    matrix_indices = thread_data->matrix_indices + mat_start;
+    branch_lengths = thread_data->branch_lengths + mat_start;
+
+    do
+    {
+      /* wait */
+      switch (thread_job)
+        {
+        case JOB_FINALIZE:
+          {
+            /* finalize */
+            thread_data->trap = 0;
+            break;
+          }
+        case JOB_UPDATE_MATRICES:
+        {
+          barrier (thread_data);
+
+            /* check eigen */
+            if (!thread_data->partition->eigen_decomp_valid[0])
+            {
+              barrier (thread_data);
+              if (!id)
+                pll_update_eigen (thread_data->partition, 0);
+              barrier (thread_data);
+              if (!id)
+                thread_data->partition->eigen_decomp_valid[0] = 1;
+            }
+
+            barrier (thread_data);
+
+            pll_update_prob_matrices (thread_data->partition, 0,
+                                      matrix_indices,
+                                      branch_lengths,
+                                      mat_count);
+
+            if (!id)
+              thread_job = JOB_WAIT;
+            barrier (thread_data);
+            break;
+          }
+        case JOB_UPDATE_PARTIALS:
+          {
+            barrier (thread_data);
+
+            pll_update_partials (thread_data->partition,
+                                 thread_data->operations,
+                                 thread_data->ops_count);
+            if (!id)
+              thread_job = JOB_WAIT;
+            barrier (thread_data);
+            break;
+          }
+        case JOB_REDUCE_LK_EDGE:
+          {
+            if (!id)
+              global_lnl = 0;
+            barrier (thread_data);
+
+            thread_data->result_buf[id] =
+                pll_compute_edge_loglikelihood (
+                  thread_data->partition,
+                  thread_data->vroot->clv_index,
+                  thread_data->vroot->scaler_index,
+                  thread_data->vroot->back->clv_index,
+                  thread_data->vroot->back->scaler_index,
+                  thread_data->vroot->pmatrix_index, 0);
+
+            /* reduce */
+            barrier (thread_data);
+            if (!id)
+              for (i=0; i<thread_data->num_threads; i++)
+                global_lnl += thread_data->result_buf[i];
+            barrier (thread_data);
+
+            if (!id)
+              thread_job = JOB_WAIT;
+            barrier (thread_data);
+            break;
+          }
+        case JOB_FULL_LK:
+          {
+            /* execute */
+            if (!id)
+              global_lnl = 0;
+            barrier (thread_data);
+
+            pll_update_partials (thread_data->partition, thread_data->operations,
+                                 thread_data->ops_count);
+
+            thread_data->result_buf[id] =
+                pll_compute_edge_loglikelihood (
+                  thread_data->partition,
+                  thread_data->vroot->clv_index,
+                  thread_data->vroot->scaler_index,
+                  thread_data->vroot->back->clv_index,
+                  thread_data->vroot->back->scaler_index,
+                  thread_data->vroot->pmatrix_index, 0);
+
+            /* reduce */
+            barrier (thread_data);
+            if (!id)
+              for (i = 0; i < thread_data->num_threads; i++)
+                global_lnl += thread_data->result_buf[i];
+            barrier (thread_data);
+
+            if (!id)
+              thread_job = JOB_WAIT;
+            barrier (thread_data);
+            break;
+          }
+        }
+    } while (thread_data->trap);
+
+    return 0;
+  }
+
 } /* namespace modeltest */
+
+#undef JOB_WAIT
+#undef JOB_UPDATE_MATRICES
+#undef JOB_FULL_LK
+#undef JOB_UPDATE_PARTIALS
+#undef JOB_REDUCE_LK_EDGE
+#undef JOB_FINALIZE

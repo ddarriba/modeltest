@@ -38,12 +38,14 @@ namespace modeltest
 
     /**
      * @brief Optimizes all parameters for the model
-     * @param[in] epsilon    the tolerance of the global optimization
-     * @param[in] tolerance  tolerance for parameter optimization
+     * @param[in] epsilon     the tolerance of the global optimization
+     * @param[in] tolerance   tolerance for parameter optimization
+     * @param[in] num_threads number of threads for model optimization
      * @return true, if the optimization is OK
      */
     virtual bool run(double epsilon   = DEFAULT_OPT_EPSILON,
-                     double tolerance = DEFAULT_PARAM_EPSILON) = 0;
+                     double tolerance = DEFAULT_PARAM_EPSILON,
+                     mt_size_t num_threads = 1) = 0;
 
     /**
      * @brief Gets the optimization status of the model

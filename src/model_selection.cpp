@@ -129,10 +129,22 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         sum_exp += exp(-0.5 * models[i].delta);
     }
 
+    importance_freqs = 0.0;
+    importance_inv = 0.0;
+    importance_gamma = 0.0;
+    importance_gamma_inv = 0.0;
     for (size_t i=0; i<models.size(); i++)
     {
         /* weights */
         models[i].weight = exp(-0.5 * models[i].delta) / sum_exp;
+        if(models[i].model->is_I())
+            importance_inv += models[i].weight;
+        if(models[i].model->is_G())
+            importance_gamma += models[i].weight;
+        if(models[i].model->is_I() && models[i].model->is_G())
+            importance_gamma_inv += models[i].weight;
+        if(models[i].model->is_F())
+            importance_freqs += models[i].weight;
     }
 }
 
@@ -181,6 +193,14 @@ void ModelSelection::print_best_model(std::ostream  &out)
     Model * best_model = best_sel_model.model;
     best_model->print(out);
     out << setw(PRINTMODEL_TABSIZE) << left << "Score:" << best_sel_model.score << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Weight" << best_sel_model.weight << endl;
+        << setw(PRINTMODEL_TABSIZE) << left << "Weight:" << best_sel_model.weight << endl;
+}
+
+void ModelSelection::print_importances(std::ostream  &out)
+{
+    out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Gamma:" << importance_gamma << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:" << importance_gamma_inv << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:" << importance_freqs << endl;
 }
 }

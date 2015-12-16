@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     main_console.cpp \
     modeltest_gui.cpp \
     partition.cpp \
-    partitioning_scheme.cpp
+    partitioning_scheme.cpp \
+    gui/xmodeltest.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -44,12 +45,14 @@ HEADERS  += \
     partition.h \
     partitioning_scheme.h \
     thread/threadpool.h \
-    gui/qdebugstream.h
+    gui/qdebugstream.h \
+    gui/xmodeltest.h
 
 FORMS    += \
     compute_options.ui \
     progressdialog.ui \
-    modeltest_gui.ui
+    modeltest_gui.ui \
+    gui/xmodeltest.ui
 
 RESOURCES = mtgraphics.qrc
 

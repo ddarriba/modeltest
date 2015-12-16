@@ -6,5 +6,8 @@
         <file>IMG/results-icon.png</file>
         <file>IMG/run-icon.png</file>
         <file>IMG/tool-icon.png</file>
+        <file>IMG/icon-openparts.png</file>
+        <file>IMG/icon-opentree.png</file>
+        <file>IMG/icon-openMSA.png</file>
     </qresource>
 </RCC>

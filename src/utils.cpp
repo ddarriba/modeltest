@@ -179,6 +179,23 @@ void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
     sort(scheme.begin(), scheme.end(), sort_partitions);
 }
 
+void Utils::print_header(std::ostream  &out)
+{
+    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
+    print_version(out);
+    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
+}
+
+void Utils::print_version(std::ostream& out)
+{
+    out << PACKAGE << " " << VERSION << endl;
+    out << "Copyright (C) 2015 Diego Darriba" << endl;
+    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
+    out << "This is free software: you are free to change and redistribute it." << endl;
+    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
+    out << endl << "Written by Diego Darriba." << endl;
+}
+
 void Utils::print_options(mt_options & opts, ostream  &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();

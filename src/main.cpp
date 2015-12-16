@@ -1,5 +1,6 @@
 #ifndef _NO_GUI_
 #include "modeltest_gui.h"
+#include "gui/xmodeltest.h"
 #include <QApplication>
 #else
 #include "modeltest.h"
@@ -18,12 +19,6 @@
 
 #include "thread/threadpool.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-#define PACKAGE "modeltest"
-#define VERSION "1.0.1"
-#endif
 #define MAX_OPT_LENGTH 40
 #define SHORT_OPT_LENGTH 6
 #define COMPL_OPT_LENGTH MAX_OPT_LENGTH-SHORT_OPT_LENGTH
@@ -32,16 +27,6 @@ using namespace std;
 
 /** number of parallel processes */
 static mt_size_t n_procs = 1;
-
-static void print_version(std::ostream& out)
-{
-    out << PACKAGE << " " << VERSION << endl;
-    out << "Copyright (C) 2015 Diego Darriba" << endl;
-    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
-    out << "This is free software: you are free to change and redistribute it." << endl;
-    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
-    out << endl << "Written by Diego Darriba." << endl;
-}
 
 static void print_usage(std::ostream& out)
 {
@@ -252,7 +237,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             print_usage(cout);
             return false;
         case 2:
-            print_version(cout);
+            modeltest::Utils::print_version(cout);
             return false;
         case 3:
             /* partitioning search */
@@ -746,7 +731,7 @@ int main(int argc, char *argv[])
             mt.evaluate_models(part_id, n_procs,
                                opts.epsilon_param, opts.epsilon_opt);
 
-            std::cout << "DONE" << std::endl;
+            std::cout << "Done" << std::endl;
 
             modeltest::ModelSelection bic_selection(mt.get_models(part_id),
                                                     modeltest::ic_bic);
@@ -754,6 +739,10 @@ int main(int argc, char *argv[])
             cout << "Best model according to BIC" << endl;
             cout << "---------------------------" << endl;
             bic_selection.print_best_model(cout);
+            cout << "---------------------------" << endl;
+            cout << "Parameter importances" << endl;
+            cout << "---------------------------" << endl;
+            bic_selection.print_importances(cout);
             cout << endl;
 
             modeltest::ModelSelection aic_selection(mt.get_models(part_id),
@@ -762,6 +751,10 @@ int main(int argc, char *argv[])
             cout << "Best model according to AIC" << endl;
             cout << "---------------------------" << endl;
             aic_selection.print_best_model(cout);
+            cout << "---------------------------" << endl;
+            cout << "Parameter importances" << endl;
+            cout << "---------------------------" << endl;
+            aic_selection.print_importances(cout);
             cout << endl;
 
             modeltest::ModelSelection aicc_selection(mt.get_models(part_id),
@@ -770,6 +763,10 @@ int main(int argc, char *argv[])
             cout << "Best model according to AICc" << endl;
             cout << "----------------------------" << endl;
             aicc_selection.print_best_model(cout);
+            cout << "---------------------------" << endl;
+            cout << "Parameter importances" << endl;
+            cout << "---------------------------" << endl;
+            aicc_selection.print_importances(cout);
             cout << endl;
 
             /* ignore DT if topology is fixed */
@@ -781,6 +778,10 @@ int main(int argc, char *argv[])
                 cout << "Best model according to DT" << endl;
                 cout << "--------------------------" << endl;
                 dt_selection.print_best_model(cout);
+                cout << "---------------------------" << endl;
+                cout << "Parameter importances" << endl;
+                cout << "---------------------------" << endl;
+                dt_selection.print_importances(cout);
                 cout << endl;
             }
         }
@@ -798,8 +799,10 @@ int main(int argc, char *argv[])
         QApplication a(argc, argv);
         //Q_INIT_RESOURCE(mtgraphics);
 
-        modeltest::jModelTest w;
-        w.show();
+        xmodeltest xmt;
+        xmt.show();
+//        modeltest::jModelTest w;
+//        w.show();
 
         return_val = a.exec();
         #else
