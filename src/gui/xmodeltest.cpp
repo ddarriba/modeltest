@@ -2,9 +2,14 @@
 #include "ui_xmodeltest.h"
 
 #include "../utils.h"
-#include "../modeltest.h"
 
 #include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
+#include <QtConcurrentRun>
+#include <iomanip>
+
+using namespace std;
+using namespace modeltest;
 
 static void enable(QToolButton * button, bool new_stat, bool set = false)
 {
@@ -12,14 +17,52 @@ static void enable(QToolButton * button, bool new_stat, bool set = false)
     if (new_stat)
     {
         if (set)
-            button->setStyleSheet("color: #000;\nbackground-color: #66c;");
+            button->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
+            //button->setStyleSheet("color: #333;\nbackground-color: #7a3788;");
         else
-            button->setStyleSheet("color: #000;\nbackground-color: #6c6;");
+            button->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
+            //button->setStyleSheet("color: #333;\nbackground-color: #88bc49;");
     }
     else
     {
-        button->setStyleSheet("");
+        //button->setStyleSheet("color: #f59983;\nbackground-color: #ffc2b3;");
+        button->setStyleSheet("color: #999;\nbackground-color: #ddd;");
     }
+}
+
+size_t xmodeltest::compute_size(int n_cats, int n_threads)
+{
+    size_t mem_b = 0;
+    int states = ui->radDatatypeDna->isChecked()?
+                N_DNA_STATES :
+                N_PROT_STATES;
+
+    if (n_seqs && seq_len && n_cats && states)
+    {
+        mem_b = Utils::mem_size(n_seqs,
+                        seq_len,
+                        n_cats,
+                        states);
+        mem_b *= n_threads;
+
+        /* overestimating factor */
+        mem_b *= 1.2;
+        mem_b /= (1024*1024);
+
+        ui->lbl_mem->setText(QString("%1 MB").arg(
+                    QString::number(
+                        mem_b)));
+
+        if (mem_b > 1000)
+            ui->lbl_mem->setStyleSheet("color: #f00;");
+        else
+            ui->lbl_mem->setStyleSheet("");
+    }
+    else
+    {
+        ui->lbl_mem->setText("-");
+    }
+    return (mem_b);
 }
 
 xmodeltest::xmodeltest(QWidget *parent) :
@@ -27,21 +70,56 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui(new Ui::xmodeltest)
 {
     ui->setupUi(this);
+    ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
+    ui->toolBar->setStyleSheet("color: #4b0c59;\nbackground-color: #f1fff4;");
+    ui->centralwidget->setStyleSheet("color: #333;\nbackground-color: #f1fff4;");
+    ui->frame_settings->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
+    ui->frame_models->setStyleSheet("color: #333;\nbackground-color: #b1df78;");
+    ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
+    n_seqs = 0;
+    seq_len = 0;
     status = st_active;
+
+    msa_filename = "";
+    utree_filename = "";
+    parts_filename = "";
+
     enable(ui->tool_help, true);
+
+    ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
+    ui->sliderNThreads->setValue(QThread::idealThreadCount());
 
     on_radDatatypeDna_clicked();
     update_gui();
 
     /* Redirect Console output to QTextEdit */
     redirect = new Q_DebugStream(std::cout, ui->consoleRun);
-    modeltest::Utils::print_header();
+
+    reset_xmt();
 }
 
 xmodeltest::~xmodeltest()
 {
     delete redirect;
     delete ui;
+}
+
+void xmodeltest::reset_xmt( void )
+{
+    n_seqs = 0;
+    seq_len = 0;
+    status = st_active;
+
+    msa_filename = "";
+    utree_filename = "";
+    parts_filename = "";
+
+    ui->lbl_msa->setText("-");
+    ui->lbl_tree->setText("-");
+    ui->lbl_parts->setText("-");
+
+    ui->consoleRun->clear();
+    Utils::print_header();
 }
 
 void xmodeltest::update_gui( void )
@@ -54,14 +132,14 @@ void xmodeltest::update_gui( void )
     ui->act_open_parts->setEnabled(status & st_msa_loaded);
     ui->mnu_open_parts->setEnabled(status & st_msa_loaded);
     enable(ui->tool_open_msa, status & st_active, status & st_msa_loaded);
-    enable(ui->tool_reset, status & st_active);
     enable(ui->tool_open_tree, status & st_msa_loaded, status & st_tree_loaded);
     enable(ui->tool_open_parts, status & st_msa_loaded, status & st_parts_loaded);
     enable(ui->tool_run_settings, status & st_msa_loaded, status & st_optimized);
     enable(ui->tool_settings, !(status & st_optimized), ui->tool_settings->isChecked());
     enable(ui->tool_results, status & st_optimized);
+    enable(ui->tool_reset, status & st_active);
 
-    ui->grpOptions->setVisible(ui->tool_settings->isChecked());
+    ui->frame_settings->setVisible(ui->tool_settings->isChecked());
     ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
 
     /** SETTINGS **/
@@ -82,7 +160,7 @@ void xmodeltest::update_gui( void )
                                   ui->cbIGModels->isChecked()));
     ui->lblNCat->setEnabled(ui->sliderNCat->isEnabled());
 
-    ui->grpAdvanced->setVisible(ui->cbAdvanced->isChecked());
+    ui->frame_advanced->setVisible(ui->cbAdvanced->isChecked());
     ui->modelsListView->setVisible(ui->cbShowMatrices->isChecked());
 
     ui->lblNThreads->setText(QString::number(ui->sliderNThreads->value()));
@@ -119,6 +197,7 @@ void xmodeltest::update_gui( void )
     int n_cats = ui->sliderNCat->value();
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
         n_cats = 1;
+    compute_size(n_cats, ui->sliderNThreads->value());
 }
 
 static QString to_qstring(const char * msg, msg_level_id level)
@@ -139,7 +218,22 @@ static QString to_qstring(const char * msg, msg_level_id level)
     return line;
 }
 
-void xmodeltest::on_act_open_msa_triggered()
+void xmodeltest::action_reset( void )
+{
+    QMessageBox msgBox;
+    msgBox.setText("This action will reset modeltest");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setStandardButtons(QMessageBox::Reset | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Reset)
+    {
+        reset_xmt();
+        update_gui();
+    }
+}
+
+void xmodeltest::action_open_msa()
 {
     QString filters = tr("Multiple Sequence Alignment(*.phy *.nex *.fas);; All files(*)");
     QString file_name = QFileDialog::getOpenFileName(this,
@@ -148,54 +242,113 @@ void xmodeltest::on_act_open_msa_triggered()
                                                     filters);
 
     const std::string loaded_file = file_name.toStdString();
-    mt_size_t n_seqs, seq_len;
+    bool load_file = true;
 
     if ( loaded_file.compare(""))
     {
-        msa_filename = loaded_file;
-        if (modeltest::ModelTest::test_msa(msa_filename,
-                                 &n_seqs,
-                                 &seq_len))
+        if (msa_filename.compare(""))
         {
-            char text[250];
-
-            ui->consoleMeta->append(to_qstring("Loaded alignment %1", msg_lvl_notify).arg(msa_filename.c_str()));
-            sprintf(text, "Num.Sequences:   %d", n_seqs);
-            ui->consoleMeta->append(to_qstring(text, msg_lvl_info));
-            sprintf(text, "Sequence Length: %d", seq_len);
-            ui->consoleMeta->append(to_qstring(text, msg_lvl_info));
-            status |= st_msa_loaded;
+            load_file = false;
+            if (loaded_file.compare(msa_filename))
+            {
+                QMessageBox msgBox;
+                msgBox.setText("Setting a different MSA will reset modeltest");
+                msgBox.setInformativeText("Are you sure?");
+                msgBox.setStandardButtons(QMessageBox::Reset | QMessageBox::Cancel);
+                msgBox.setDefaultButton(QMessageBox::Cancel);
+                int ret = msgBox.exec();
+                if (ret == QMessageBox::Reset)
+                {
+                    reset_xmt();
+                    load_file = true;
+                }
+            }
         }
-        else
+
+        if (load_file)
         {
-            ui->consoleMeta->append(to_qstring("Error: Cannot load alignment %1", msg_lvl_error).arg(msa_filename.c_str()));
-            msa_filename   = "";
-            status &= ~st_msa_loaded;
+            msa_filename = loaded_file;
+            if (ModelTest::test_msa(msa_filename,
+                                     &n_seqs,
+                                     &seq_len))
+            {
+                cout << endl << "Loaded alignment" << endl;
+                ui->consoleRun->append(to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
+                cout << "Num.Sequences:   " << n_seqs << endl;
+                cout << "Sequence Length: " << seq_len << endl;
+                status |= st_msa_loaded;
+            }
+            else
+            {
+                ui->consoleRun->append(to_qstring("Error: Cannot load alignment %1", msg_lvl_error).arg(msa_filename.c_str()));
+                msa_filename   = "";
+                status &= ~st_msa_loaded;
+            }
         }
     }
+
+    if (status & st_msa_loaded)
+    {
+        ui->lbl_msa->setText(QString(Utils::getBaseName(msa_filename).c_str()));
+        int n_cats = ui->sliderNCat->value();
+        if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
+            n_cats = 1;
+        compute_size(n_cats, ui->sliderNThreads->value());
+    }
+    else
+        ui->lbl_tree->setText("-");
+
     update_gui();
 }
 
-void xmodeltest::on_mnu_open_msa_triggered()
+void xmodeltest::action_open_tree()
 {
-    on_act_open_msa_triggered();
-}
+    QString filters = tr("Newick tree(*.tree *.newick);; All files(*)");
+    QString file_name = QFileDialog::getOpenFileName(this,
+                                                    tr("Open File"),
+                                                    "",
+                                                    filters);
+    const std::string loaded_file = file_name.toStdString();
 
-void xmodeltest::on_tool_open_msa_triggered(QAction *arg1)
-{
-    char text[250];
-    sprintf(text, "TRIGGER\n");
-    ui->consoleMeta->append(to_qstring(text, msg_lvl_info));
-    on_act_open_msa_triggered();
-}
+    if ( loaded_file.compare(""))
+    {
+        mt_size_t n_tips;
 
-void xmodeltest::on_tool_open_msa_released()
-{
-    on_act_open_msa_triggered();
-}
+        utree_filename = loaded_file;
+        if (modeltest::ModelTest::test_tree(utree_filename,
+                                 &n_tips))
+        {
+            if (n_tips == n_seqs)
+            {
+                cout << endl << "Loaded tree" << endl;
+                ui->consoleRun->append(to_qstring("%1", msg_lvl_notify).arg(utree_filename.c_str()));
+                status |= st_tree_loaded;
+            }
+            else
+            {
+                ui->consoleRun->append(to_qstring("Error: Tip number does not match in %1", msg_lvl_error).arg(utree_filename.c_str()));
+                utree_filename = "";
+                status &= ~st_tree_loaded;
+            }
+        }
+        else
+        {
+            ui->consoleRun->append(to_qstring("%1", msg_lvl_error).arg(mt_errmsg));
+            utree_filename = "";
+            status &= ~st_tree_loaded;
+        }
 
-void xmodeltest::on_tool_settings_toggled(bool checked)
-{
+        if (ui->radTopoU->isChecked())
+            ui->radTopoFixedGtr->setChecked(!(status & st_tree_loaded));
+        else
+            ui->radTopoU->setChecked(status & st_tree_loaded);
+    }
+
+    if (status & st_tree_loaded)
+        ui->lbl_tree->setText(QString(Utils::getBaseName(utree_filename).c_str()));
+    else
+        ui->lbl_tree->setText("-");
+
     update_gui();
 }
 
@@ -222,10 +375,7 @@ void xmodeltest::on_sliderNCat_sliderMoved(int position)
     sprintf(txt, "%d categories", position);
     ui->lblNCat->setText(QString(txt));
 
-//    ui->lblEstimatedMem->setText(
-//                QString::number(
-//                    compute_size(position,
-//                                 ui->sliderNThreads->value())));
+    compute_size(position, ui->sliderNThreads->value());
 }
 
 void xmodeltest::on_radSchemes3_clicked()
@@ -282,50 +432,6 @@ void xmodeltest::on_radSchemes203_clicked()
         update_gui();
     }
 }
-
-//void xmodeltest::on_radTopoU_clicked()
-//{
-//    assert(ui->btnLoadTree->isEnabled());
-//    on_btnLoadTree_clicked();
-
-//    if (!utree_filename.compare(""))
-//    {
-//        ui->radTopoFixedGtr->setChecked(true);
-//    }
-//    updateGUI();
-//}
-
-//void xmodeltest::on_radTopoFixedMp_clicked()
-//{
-//    utree_filename = "";
-//    ui->lblTree->setStyleSheet("color: #007;");
-//    ui->lblTree->setText("Fixed Maximum Parsimony");
-//    updateGUI();
-//}
-
-//void xmodeltest::on_radTopoFixedGtr_clicked()
-//{
-//    utree_filename = "";
-//    ui->lblTree->setStyleSheet("color: #007;");
-//    ui->lblTree->setText("Fixed Maximum Likelihood (GTR)");
-//    updateGUI();
-//}
-
-//void xmodeltest::on_radTopoFixedJc_clicked()
-//{
-//    utree_filename = "";
-//    ui->lblTree->setStyleSheet("color: #007;");
-//    ui->lblTree->setText("Fixed Maximum Likelihood (JC)");
-//    updateGUI();
-//}
-
-//void xmodeltest::on_radTopoML_clicked()
-//{
-//    utree_filename = "";
-//    ui->lblTree->setStyleSheet("color: #007;");
-//    ui->lblTree->setText("Maximum Likelihood");
-//    updateGUI();
-//}
 
 void xmodeltest::on_radSetModelTest_clicked()
 {
@@ -517,8 +623,5 @@ void xmodeltest::on_sliderNThreads_valueChanged(int value)
     int n_cats = ui->sliderNCat->value();
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
         n_cats = 1;
-//    ui->lblEstimatedMem->setText(
-//                QString::number(
-//                    compute_size(n_cats,
-//                                 value)));
+    compute_size(n_cats, value);
 }

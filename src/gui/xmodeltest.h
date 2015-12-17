@@ -2,6 +2,7 @@
 #define XMODELTEST_H
 
 #include "gui/qdebugstream.h"
+#include "../modeltest.h"
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
@@ -33,14 +34,20 @@ public:
 
 private slots:
     void on_act_open_msa_triggered();
-
     void on_mnu_open_msa_triggered();
+    void on_tool_open_msa_clicked();
 
-    void on_tool_open_msa_triggered(QAction *arg1);
+    void on_act_open_tree_triggered();
+    void on_mnu_open_tree_triggered();
+    void on_tool_open_tree_clicked();
 
-    void on_tool_open_msa_released();
-
+    void on_act_toggle_settings_triggered();
+    void on_mnu_toggle_settings_triggered(bool checked);
     void on_tool_settings_toggled(bool checked);
+
+    void on_act_reset_triggered();
+    void on_mnu_reset_triggered();
+    void on_tool_reset_clicked();
 
     /** SETTINGS **/
     void autoSelectSchemes(const int schemes[], int n);
@@ -77,13 +84,25 @@ private slots:
     void on_sliderNCat_sliderMoved(int position);
 
 private:
+    void toggle_settings( bool value );
+    void action_open_msa( void );
+    void action_open_tree( void );
+    void action_reset( void );
+    void update_gui( void );
+    void reset_xmt( void );
+
+    size_t compute_size(int n_cats, int n_threads);
+
     Ui::xmodeltest *ui;
     std::string msa_filename;
+    std::string utree_filename;
+    std::string parts_filename;
+
+    mt_size_t n_seqs;
+    mt_size_t seq_len;
     unsigned long status;
 
     Q_DebugStream *redirect;
-
-    void update_gui( void );
 };
 
 #endif // XMODELTEST_H

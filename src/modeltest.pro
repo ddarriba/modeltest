@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     modeltest_gui.cpp \
     partition.cpp \
     partitioning_scheme.cpp \
-    gui/xmodeltest.cpp
+    gui/xmodeltest.cpp \
+    gui/xmodeltest_actions.cpp
 
 HEADERS  += \
     model_defs.h \

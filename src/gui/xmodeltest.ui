@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../mtgraphics.qrc">
+    <normaloff>:/IMG/IMG/mt-icon.png</normaloff>:/IMG/IMG/mt-icon.png</iconset>
+  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>
@@ -303,16 +307,6 @@
         </widget>
        </item>
       </layout>
-      <zorder>frame_tools_1</zorder>
-      <zorder>frame_tools_2</zorder>
-      <zorder>tool_settings</zorder>
-      <zorder>tool_run_settings</zorder>
-      <zorder>tool_results</zorder>
-      <zorder>tool_reset</zorder>
-      <zorder>tool_open_msa</zorder>
-      <zorder>tool_open_tree</zorder>
-      <zorder>tool_help</zorder>
-      <zorder>tool_open_parts</zorder>
      </widget>
     </item>
     <item>
@@ -357,6 +351,148 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="1" column="0">
+           <widget class="QLabel" name="lbl_i_tree">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Tree:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="lbl_msa">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbl_i_msa">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>MSA:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="lbl_mem">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lbl_i_parts">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Partitions:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="lbl_parts">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lbl_i_mem">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Memory:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lbl_tree">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -376,7 +512,7 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <widget class="QScrollArea" name="grpOptions">
+         <widget class="QScrollArea" name="frame_settings">
           <property name="font">
            <font>
             <family>Arial</family>
@@ -390,7 +526,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-290</y>
+             <y>0</y>
              <width>694</width>
              <height>583</height>
             </rect>
@@ -952,7 +1088,7 @@
                 <number>2</number>
                </property>
                <item>
-                <widget class="QFrame" name="frame_2">
+                <widget class="QFrame" name="frame_models">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -967,7 +1103,7 @@
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_5">
                   <item>
-                   <widget class="QFrame" name="frame">
+                   <widget class="QFrame" name="frame_modeldefs">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                       <horstretch>0</horstretch>
@@ -1670,15 +1806,6 @@
                       </widget>
                      </item>
                     </layout>
-                    <zorder>frame_nmodels</zorder>
-                    <zorder>grpSubstSchemes</zorder>
-                    <zorder>frame_13</zorder>
-                    <zorder>frame_14</zorder>
-                    <zorder>label_13</zorder>
-                    <zorder>label_12</zorder>
-                    <zorder>lblTextNModels</zorder>
-                    <zorder>horizontalSpacer_17</zorder>
-                    <zorder>lblTextNModels</zorder>
                     <zorder>grpSubstSchemes</zorder>
                     <zorder>frame_nmodels</zorder>
                     <zorder>frame_13</zorder>
@@ -1782,7 +1909,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QFrame" name="grpAdvanced">
+             <widget class="QFrame" name="frame_advanced">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -2075,6 +2202,12 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="baseSize">
                <size>
                 <width>0</width>
@@ -2091,22 +2224,9 @@
                <enum>QTextEdit::NoWrap</enum>
               </property>
              </widget>
-             <widget class="QTextBrowser" name="consoleMeta">
-              <property name="font">
-               <font>
-                <family>Courier 10 Pitch</family>
-                <pointsize>9</pointsize>
-               </font>
-              </property>
-              <property name="lineWrapMode">
-               <enum>QTextEdit::NoWrap</enum>
-              </property>
-             </widget>
             </widget>
            </item>
           </layout>
-          <zorder>splitter</zorder>
-          <zorder>splitter</zorder>
          </widget>
         </widget>
        </item>
@@ -2140,8 +2260,31 @@
     <addaction name="mnu_open_msa"/>
     <addaction name="mnu_open_tree"/>
     <addaction name="mnu_open_parts"/>
+    <addaction name="mnu_reset"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="mnu_copy"/>
+   </widget>
+   <widget class="QMenu" name="menuRun">
+    <property name="title">
+     <string>Run</string>
+    </property>
+    <addaction name="mnu_toggle_settings"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="mnu_index"/>
+    <addaction name="mnu_about"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuRun"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -2167,6 +2310,10 @@
    <addaction name="act_open_tree"/>
    <addaction name="act_open_parts"/>
    <addaction name="separator"/>
+   <addaction name="act_toggle_settings"/>
+   <addaction name="act_run"/>
+   <addaction name="act_results"/>
+   <addaction name="act_reset"/>
   </widget>
   <action name="act_open_msa">
    <property name="icon">
@@ -2196,18 +2343,132 @@
    </property>
   </action>
   <action name="mnu_open_msa">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-openMSA.png</normaloff>:/IMG/IMG/icon-openMSA.png</iconset>
+   </property>
    <property name="text">
     <string>Load MSA</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="mnu_open_tree">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-opentree.png</normaloff>:/IMG/IMG/icon-opentree.png</iconset>
+   </property>
    <property name="text">
     <string>Load Tree</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
   </action>
   <action name="mnu_open_parts">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-openparts.png</normaloff>:/IMG/IMG/icon-openparts.png</iconset>
+   </property>
    <property name="text">
     <string>Load Partitions</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="act_toggle_settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-settings.png</normaloff>:/IMG/IMG/icon-settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="mnu_toggle_settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-settings.png</normaloff>:/IMG/IMG/icon-settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Settings</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+S</string>
+   </property>
+  </action>
+  <action name="act_run">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/run-icon.png</normaloff>:/IMG/IMG/run-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="act_results">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/results-icon.png</normaloff>:/IMG/IMG/results-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Results</string>
+   </property>
+  </action>
+  <action name="act_reset">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-reset.png</normaloff>:/IMG/IMG/icon-reset.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </action>
+  <action name="mnu_copy">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="mnu_about">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="mnu_index">
+   <property name="text">
+    <string>Index</string>
+   </property>
+  </action>
+  <action name="mnu_reset">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/icon-reset.png</normaloff>:/IMG/IMG/icon-reset.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>
