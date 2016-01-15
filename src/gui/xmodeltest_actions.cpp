@@ -36,6 +36,10 @@ void xmodeltest::on_tool_settings_toggled(bool checked)
     toggle_settings(checked);
 }
 
+void xmodeltest::on_act_run_triggered()  {action_run();}
+void xmodeltest::on_mnu_run_triggered()  {action_run();}
+void xmodeltest::on_tool_run_clicked()  {action_run();}
+
 void xmodeltest::on_act_reset_triggered() {action_reset();}
 void xmodeltest::on_mnu_reset_triggered() {action_reset();}
 void xmodeltest::on_tool_reset_clicked()  {action_reset();}

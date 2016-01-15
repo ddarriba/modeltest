@@ -112,6 +112,9 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
     mt_index_t cur_model;
     mt_size_t n_models = get_models(part_id).size();
 
+    if (!n_models)
+        return true;
+
     if (n_procs == 1)
     {
         for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
@@ -123,14 +126,14 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
     }
     else
     {
-        std::cout << "Creating pool with " << n_procs << " threads" << std::endl;
+        std::cerr << "Creating pool with " << n_procs << " threads" << std::endl;
         modeltest::ThreadPool pool(n_procs);
         std::vector< std::future<int> > results;
         std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
         std::map<mt_index_t, mt_index_t> testmap;
         testmap[15] = 27;
 
-        std::cout << "Starting jobs... (output might be unsorted)" << std::endl;
+        std::cerr << "Starting jobs... (output might be unsorted)" << std::endl;
         for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
         {
             modeltest::Model *model = get_models(part_id)[cur_model];

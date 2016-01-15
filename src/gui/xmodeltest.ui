@@ -207,7 +207,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="tool_run_settings">
+           <widget class="QToolButton" name="tool_run">
             <property name="font">
              <font>
               <family>Courier 10 Pitch</family>
@@ -2191,6 +2191,9 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
+            <widget class="QMdiArea" name="mdiArea"/>
+           </item>
+           <item>
             <widget class="QSplitter" name="splitter">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -2273,6 +2276,7 @@
      <string>Run</string>
     </property>
     <addaction name="mnu_toggle_settings"/>
+    <addaction name="mnu_run"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2466,6 +2470,18 @@
    </property>
    <property name="text">
     <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+R</string>
+   </property>
+  </action>
+  <action name="mnu_run">
+   <property name="icon">
+    <iconset resource="../mtgraphics.qrc">
+     <normaloff>:/IMG/IMG/run-icon.png</normaloff>:/IMG/IMG/run-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>

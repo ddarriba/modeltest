@@ -2,6 +2,7 @@
 #define XMODELTEST_H
 
 #include "gui/qdebugstream.h"
+#include "gui/mydebugstream.h"
 #include "../modeltest.h"
 
 #include <QMainWindow>
@@ -18,7 +19,8 @@ enum msg_level_id {
 #define st_msa_loaded   (1<<1)
 #define st_tree_loaded  (1<<2)
 #define st_parts_loaded (1<<3)
-#define st_optimized    (1<<4)
+#define st_optimizing   (1<<4)
+#define st_optimized    (1<<5)
 
 namespace Ui {
 class xmodeltest;
@@ -32,6 +34,11 @@ public:
     explicit xmodeltest(QWidget *parent = 0);
     ~xmodeltest();
 
+public slots:
+    void setText( QString message );
+    void optimization_done(partition_id_t part_id );
+    //void print_to_console(const char *message);
+
 private slots:
     void on_act_open_msa_triggered();
     void on_mnu_open_msa_triggered();
@@ -44,6 +51,11 @@ private slots:
     void on_act_toggle_settings_triggered();
     void on_mnu_toggle_settings_triggered(bool checked);
     void on_tool_settings_toggled(bool checked);
+
+    void on_act_run_triggered();
+    void on_mnu_run_triggered();
+    void on_tool_run_clicked();
+    void run_modelselection();
 
     void on_act_reset_triggered();
     void on_mnu_reset_triggered();
@@ -87,6 +99,7 @@ private:
     void toggle_settings( bool value );
     void action_open_msa( void );
     void action_open_tree( void );
+    void action_run( void );
     void action_reset( void );
     void update_gui( void );
     void reset_xmt( void );
@@ -102,7 +115,14 @@ private:
     mt_size_t seq_len;
     unsigned long status;
 
-    Q_DebugStream *redirect;
+    //Q_DebugStream *redirect;
+    MyDebugStream *redirect;
+
+    modeltest::ModelTest *mtest;
+    std::vector<modeltest::Model *> c_models;
+    partitioning_scheme_t * scheme;
+    tree_type start_tree;
+    mt_options opts;
 };
 
 #endif // XMODELTEST_H

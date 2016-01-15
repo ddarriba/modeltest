@@ -2,6 +2,8 @@
 #include "ui_xmodeltest.h"
 
 #include "../utils.h"
+#include "gui/xthreadopt.h"
+#include "gui/resultswidget.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -78,6 +80,8 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
     n_seqs = 0;
     seq_len = 0;
+    mtest = 0;
+    scheme = 0;
     status = st_active;
 
     msa_filename = "";
@@ -93,9 +97,13 @@ xmodeltest::xmodeltest(QWidget *parent) :
     update_gui();
 
     /* Redirect Console output to QTextEdit */
-    redirect = new Q_DebugStream(std::cout, ui->consoleRun);
+//    redirect = new Q_DebugStream(std::cout, ui->consoleRun);
+    redirect = new MyDebugStream(std::cout);
+    QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(setText(QString)), Qt::QueuedConnection);
 
     reset_xmt();
+
+    ui->mdiArea->addSubWindow(new resultsWidget(this));
 }
 
 xmodeltest::~xmodeltest()
@@ -134,7 +142,7 @@ void xmodeltest::update_gui( void )
     enable(ui->tool_open_msa, status & st_active, status & st_msa_loaded);
     enable(ui->tool_open_tree, status & st_msa_loaded, status & st_tree_loaded);
     enable(ui->tool_open_parts, status & st_msa_loaded, status & st_parts_loaded);
-    enable(ui->tool_run_settings, status & st_msa_loaded, status & st_optimized);
+    enable(ui->tool_run, status & st_msa_loaded, status & st_optimized);
     enable(ui->tool_settings, !(status & st_optimized), ui->tool_settings->isChecked());
     enable(ui->tool_results, status & st_optimized);
     enable(ui->tool_reset, status & st_active);
@@ -216,6 +224,183 @@ static QString to_qstring(const char * msg, msg_level_id level)
 
     line = line + endHtml;
     return line;
+}
+
+void xmodeltest::run_modelselection()
+{
+    cerr << "Get Partition" << endl;
+    partition_id_t part_id = {0};
+    int number_of_threads  = ui->sliderNThreads->value();
+
+    cerr << "Retrieve options" << endl;
+
+    QMessageBox msgBox;
+    msgBox.setText("Start models optimizaion");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    int ret = msgBox.exec();
+    if (ret != QMessageBox::Ok)
+        return;
+
+    if (ui->radTopoFixedMp->isChecked())
+        start_tree = tree_mp;
+    else if (ui->radTopoFixedJc->isChecked())
+        start_tree = tree_ml_jc_fixed;
+    else if (ui->radTopoFixedGtr->isChecked())
+        start_tree = tree_ml_gtr_fixed;
+    else if (ui->radTopoML->isChecked())
+        start_tree = tree_ml;
+    else if (ui->radTopoU->isChecked())
+        start_tree = tree_user_fixed;
+
+    cerr << "Build modeltest for " << number_of_threads << " threads" << endl;
+
+    mtest = new ModelTest(number_of_threads);
+
+    int model_params = 0;
+    if (ui->cbEqualFreq->isChecked())
+        model_params += MOD_PARAM_FIXED_FREQ;
+    if (ui->cbNoRateVarModels->isChecked())
+        model_params += MOD_PARAM_NO_RATE_VAR;
+    if (ui->cbIModels->isChecked())
+        model_params += MOD_PARAM_INV;
+    if (ui->cbGModels->isChecked())
+        model_params += MOD_PARAM_GAMMA;
+    if (ui->cbIGModels->isChecked())
+        model_params += MOD_PARAM_INV_GAMMA;
+    if (ui->cbMlFreq->isChecked())
+        model_params += MOD_PARAM_ESTIMATED_FREQ;
+
+    std::vector<mt_index_t> matrices;
+    if (ui->radDatatypeProt->isChecked())
+    {
+        for (int i=0; i < ui->modelsListView->count(); i++)
+        {
+            if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
+                matrices.push_back(i);
+        }
+    }
+    else
+    {
+        if (!ui->radSchemes203->isChecked())
+        {
+            for (int i=0; i < ui->modelsListView->count(); i++)
+            {
+                if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
+                    matrices.push_back(dna_model_matrices_indices[i]);
+            }
+        }
+        else
+        {
+            for (int i=0; i<N_DNA_ALLMATRIX_COUNT; i++)
+            {
+                matrices.push_back(i);
+            }
+        }
+    }
+
+    cerr << "Fill options" << endl;
+
+    opts.model_params = model_params;
+    opts.n_catg = ui->sliderNCat->value();
+    opts.msa_filename = msa_filename;
+    opts.tree_filename = utree_filename;
+    opts.partitions_filename = "";
+    if (ui->radDatatypeDna->isChecked())
+        opts.nt_candidate_models = matrices;
+    else
+        opts.aa_candidate_models = matrices;
+    opts.starting_tree = start_tree;
+    opts.partitions_desc = NULL;
+    opts.partitions_eff = NULL;
+    opts.n_threads = number_of_threads;
+    data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+
+    if (!scheme)
+    {
+        /* create single partition / single region */
+        cerr << "Create partitioning scheme" << endl;
+        scheme = new partitioning_scheme_t();
+        partition_region_t region;
+        partition_t partition;
+        region.start = 1;
+        region.end = seq_len;
+        region.stride = 1;
+        partition.datatype = datatype;
+        partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
+        partition.partition_name = "DATA";
+        partition.regions.push_back(region);
+        scheme->push_back(partition);
+    }
+    opts.partitions_desc = scheme;
+    //TODO: Create option for smoothing
+    opts.smooth_freqs = false;
+
+    cerr << "Build modeltest instance" << endl;
+
+    bool ok_inst = mtest->build_instance(opts);
+    if (!ok_inst)
+    {
+        ui->consoleRun->append(to_qstring("Error building instance [%1]", msg_lvl_error).arg(mt_errno));
+        ui->consoleRun->append(to_qstring(mt_errmsg, msg_lvl_error));
+        return;
+    }
+
+    cerr << "Set candidate models" << endl;
+    if (c_models.size())
+    {
+        mtest->set_models(c_models, part_id);
+    }
+
+    /* print settings */
+    modeltest::Utils::print_options(opts);
+
+    xThreadOpt * mythread = new xThreadOpt(mtest, part_id, number_of_threads);
+    QObject::connect(mythread, SIGNAL(optimization_done(partition_id_t)), this, SLOT(optimization_done(partition_id_t)));
+
+    status &= ~st_optimized;
+    status |= st_optimizing;
+    mythread->start();
+
+    on_run = true;
+
+
+//    updateGUI();
+}
+
+void xmodeltest::optimization_done( partition_id_t part_id )
+{
+    const std::vector<Model *> & modelsPtr = mtest->get_models(part_id);
+        QVector<int> models;
+        for (int i=0; (size_t)i < modelsPtr.size(); i++)
+            models.append(i);
+
+        status &= ~st_optimizing;
+        status |= st_optimized;
+
+        on_run = false;
+
+        //TODO: WAIT FOR FINISHING!
+
+        /* clear and clone models */
+        for (size_t i=0; i<c_models.size(); i++)
+            delete(c_models[i]);
+        c_models.clear();
+        c_models.resize( modelsPtr.size() );
+        for (size_t i=0; i<modelsPtr.size(); i++)
+            if (ui->radDatatypeDna->isChecked())
+                c_models[i] = new DnaModel(*(modelsPtr[i]));
+            else
+                c_models[i] = new ProtModel(*(modelsPtr[i]));
+
+        delete mtest;
+}
+
+void xmodeltest::action_run( void )
+{
+    run_modelselection();
+    update_gui();
 }
 
 void xmodeltest::action_reset( void )
@@ -624,4 +809,10 @@ void xmodeltest::on_sliderNThreads_valueChanged(int value)
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
         n_cats = 1;
     compute_size(n_cats, value);
+}
+
+void xmodeltest::setText(QString message)
+{
+    ui->consoleRun->append(message);
+    ui->consoleRun->show();
 }

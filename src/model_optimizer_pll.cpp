@@ -432,7 +432,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       //num_threads = 2;
 
 #ifdef VERBOSE //TODO: Verbosity medium
-      std::cout << "Optimizing model " << model->get_name() << std::endl;
+      std::cout << "Optimizing model " << model->get_name() <<  " with " << _num_threads << " threads" << std::endl;
 #endif
       time_t start_time = time(NULL);
       mt_size_t n_branches = tree->get_n_branches();
@@ -481,22 +481,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 #endif
 
       /* /PTHREADS */
-      if (num_threads > 1)
+      if (_num_threads > 1)
       {
-        threads = (pthread_t *) Utils::allocate(num_threads, sizeof(pthread_t));
-        thread_data = (thread_data_t *) Utils::allocate(num_threads, sizeof(thread_data_t));
-        partition_local = (pll_partition_t **) Utils::allocate(num_threads, sizeof(pll_partition_t *));
-        result_buf = (double *) Utils::allocate(num_threads, sizeof(double));
+        threads = (pthread_t *) Utils::allocate(_num_threads, sizeof(pthread_t));
+        thread_data = (thread_data_t *) Utils::allocate(_num_threads, sizeof(thread_data_t));
+        partition_local = (pll_partition_t **) Utils::allocate(_num_threads, sizeof(pll_partition_t *));
+        result_buf = (double *) Utils::allocate(_num_threads, sizeof(double));
         thread_job = JOB_WAIT;
         pthread_barrier_init (&barrier_buf,
                               NULL,
-                              num_threads);
-        for (mt_index_t i=0; i<num_threads; i++)
+                              _num_threads);
+        for (mt_index_t i=0; i<_num_threads; i++)
         {
-          partition_local[i] = pll_partition_clone_partial(pll_partition, i, num_threads);
+          partition_local[i] = pll_partition_clone_partial(pll_partition, i, _num_threads);
 
           thread_data[i].thread_id = i;
-          thread_data[i].num_threads = (long) num_threads;
+          thread_data[i].num_threads = (long) _num_threads;
           thread_data[i].partition = partition_local[i];
           thread_data[i].matrix_indices = matrix_indices;
           thread_data[i].matrix_count = matrix_count;
@@ -631,17 +631,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       optimized = true;
 
-      if (num_threads > 1)
+      if (_num_threads > 1)
       {
           /* finalize */
           thread_job = JOB_FINALIZE;
 
           /* join threads */
-          for (mt_index_t i=1; i<num_threads; i++)
+          for (mt_index_t i=1; i<_num_threads; i++)
             pthread_join (threads[i], NULL);
 
           /* clean */
-          for (mt_index_t i=0; i<num_threads; i++)
+          for (mt_index_t i=0; i<_num_threads; i++)
             dealloc_partition_local(thread_data[i].partition);
 
           free(result_buf);
