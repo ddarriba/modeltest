@@ -22,6 +22,10 @@ public:
     const partition_t get_descriptor( void ) const;
 
     void sort_models(bool forwards);
+    mt_index_t get_number_of_models() const
+    {
+        return c_models.size();
+    }
     std::vector<Model *> & get_models();
     bool set_models(const std::vector<Model *> &models);
 private:

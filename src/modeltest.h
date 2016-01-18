@@ -108,6 +108,14 @@ public:
                                          const partition_id_t &part_id,
                                          mt_index_t thread_number = 0);
 
+//    /**
+//     * @brief Gets the number of candidate ModelSelection
+//     *
+//     * @param[in] part_id  the partition id
+//     * @return The number of candidate models
+//     */
+//    mt_size_t get_number_of_models(const partition_id_t &part_id) const;
+
     /**
      * @brief Gets the set of candidate models
      * @param[in] part_id  the partition id

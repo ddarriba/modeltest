@@ -683,9 +683,8 @@ int main(int argc, char *argv[])
     {
         /* command line */
         mt_options opts;
-        mt_index_t cur_model;
         mt_size_t num_cores = modeltest::Utils::count_physical_cores();
-        time_t ini_global_time = time(NULL);
+        //time_t ini_global_time = time(NULL);
 
         if (!parse_arguments(argc, argv, opts))
         {

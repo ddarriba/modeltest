@@ -130,8 +130,6 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
         modeltest::ThreadPool pool(n_procs);
         std::vector< std::future<int> > results;
         std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
-        std::map<mt_index_t, mt_index_t> testmap;
-        testmap[15] = 27;
 
         std::cerr << "Starting jobs... (output might be unsorted)" << std::endl;
         for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)

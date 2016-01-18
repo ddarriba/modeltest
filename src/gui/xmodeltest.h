@@ -3,7 +3,7 @@
 
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
-#include "../modeltest.h"
+#include "modeltest.h"
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
@@ -26,6 +26,7 @@ enum msg_level_id {
 #define st_optimized    (1<<5)
 
 Q_DECLARE_METATYPE( partition_id_t )
+Q_DECLARE_METATYPE( mt_size_t )
 
 namespace Ui {
 class xmodeltest;
@@ -40,8 +41,9 @@ public:
     ~xmodeltest();
 
 public slots:
-    void setText( QString message );
-    void optimization_done(partition_id_t part_id );
+    void set_text( QString message );
+    void optimized_single_model(modeltest::Model * model, unsigned int n_models);
+    void optimization_done( partition_id_t part_id );
     //void print_to_console(const char *message);
 
 private slots:
@@ -118,6 +120,8 @@ private:
     void action_reset( void );
     void update_gui( void );
     void reset_xmt( void );
+
+    void set_substitution_schemes(mt_index_t n_schemes);
 
     /* results */
     QStandardItemModel * results_table_items;

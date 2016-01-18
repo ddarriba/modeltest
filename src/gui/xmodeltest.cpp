@@ -71,6 +71,7 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui(new Ui::xmodeltest)
 {
     qRegisterMetaType<partition_id_t>();
+    qRegisterMetaType<mt_size_t>();
 
     ui->setupUi(this);
     ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
@@ -100,7 +101,7 @@ xmodeltest::xmodeltest(QWidget *parent) :
     /* Redirect Console output to QTextEdit */
 //    redirect = new Q_DebugStream(std::cout, ui->consoleRun);
     redirect = new MyDebugStream(std::cout);
-    QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(setText(QString)), Qt::QueuedConnection);
+    QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(set_text(QString)), Qt::QueuedConnection);
 
     results_table_items = NULL;
 
@@ -272,7 +273,7 @@ void xmodeltest::run_modelselection()
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
 
-    cerr << "Build modeltest for " << number_of_threads << " threads" << endl;
+    cout << "Buildint modeltest for " << number_of_threads << " threads" << endl;
 
     mtest = new ModelTest(number_of_threads);
 
@@ -331,12 +332,14 @@ void xmodeltest::run_modelselection()
     opts.partitions_desc = NULL;
     opts.partitions_eff = NULL;
     opts.n_threads = number_of_threads;
+    opts.epsilon_param = ui->txtParEpsilon->text().toDouble();
+    opts.epsilon_opt = ui->txtOptEpsilon->text().toDouble();
+
     data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
 
     if (!scheme)
     {
         /* create single partition / single region */
-        cerr << "Create partitioning scheme" << endl;
         scheme = new partitioning_scheme_t();
         partition_region_t region;
         partition_t partition;
@@ -353,7 +356,7 @@ void xmodeltest::run_modelselection()
     //TODO: Create option for smoothing
     opts.smooth_freqs = false;
 
-    cerr << "Build modeltest instance" << endl;
+    cout << "Building modeltest instance" << endl;
 
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
@@ -363,17 +366,24 @@ void xmodeltest::run_modelselection()
         return;
     }
 
-    cerr << "Set candidate models" << endl;
     if (c_models.size())
     {
         mtest->set_models(c_models, part_id);
     }
 
     /* print settings */
-    modeltest::Utils::print_options(opts);
+   Utils::print_options(opts);
 
-    xThreadOpt * mythread = new xThreadOpt(mtest, part_id, number_of_threads);
-    QObject::connect(mythread, SIGNAL(optimization_done(partition_id_t)), this, SLOT(optimization_done(partition_id_t)));
+    xThreadOpt * mythread = new xThreadOpt(mtest, part_id, number_of_threads,
+                                           opts.epsilon_param, opts.epsilon_opt);
+    QObject::connect(mythread,
+                     SIGNAL(optimization_done(partition_id_t)),
+                     this,
+                     SLOT(optimization_done(partition_id_t)));
+    QObject::connect(mythread,
+                     SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
+                     this,
+                     SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
 
     status &= ~st_optimized;
     status |= st_optimizing;
@@ -383,39 +393,6 @@ void xmodeltest::run_modelselection()
 
 
 //    updateGUI();
-}
-
-void xmodeltest::optimization_done( partition_id_t part_id )
-{
-    const std::vector<Model *> & modelsPtr = mtest->get_models(part_id);
-        QVector<int> models;
-        for (int i=0; (size_t)i < modelsPtr.size(); i++)
-            models.append(i);
-
-        status &= ~st_optimizing;
-        status |= st_optimized;
-
-        on_run = false;
-
-        //TODO: WAIT FOR FINISHING!
-
-        cerr << " FILL " << endl;
-        ModelSelection bic_selection(modelsPtr, ic_bic);
-        fill_results(ui->result_table, bic_selection);
-
-        /* clear and clone models */
-        for (size_t i=0; i<c_models.size(); i++)
-            delete(c_models[i]);
-        c_models.clear();
-        c_models.resize( modelsPtr.size() );
-        for (size_t i=0; i<modelsPtr.size(); i++)
-            if (ui->radDatatypeDna->isChecked())
-                c_models[i] = new DnaModel(*(modelsPtr[i]));
-            else
-                c_models[i] = new ProtModel(*(modelsPtr[i]));
-
-        delete mtest;
-        update_gui();
 }
 
 void xmodeltest::action_run( void )
@@ -585,274 +562,101 @@ void xmodeltest::action_open_tree()
 void xmodeltest::autoSelectSchemes(const int schemes[], int n)
 {
 
-    for (int i=0; i < ui->modelsListView->count(); i++)
-        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
-
-    for (int i=0; i<n; i++)
-        ui->modelsListView->item(schemes[i])->setCheckState(Qt::CheckState::Checked);
-
-    update_gui();
-}
-
-void xmodeltest::on_sliderNCat_sliderMoved(int position)
-{
-    char txt[30];
-    sprintf(txt, "%d categories", position);
-    ui->lblNCat->setText(QString(txt));
-
-    compute_size(position, ui->sliderNThreads->value());
-}
-
-void xmodeltest::on_radSchemes3_clicked()
-{
-    if (ui->radDatatypeDna->isChecked())
-    {
-        int schemes[3] = {0, 1, 10};
-        autoSelectSchemes(schemes, 3);
-        ui->radSchemes3->setChecked(true);
-        // updateGUI();
-    }
-}
-
-void xmodeltest::on_radSchemes5_clicked()
-{
-    if (ui->radDatatypeDna->isChecked())
-    {
-        int schemes[5] = {0, 1, 2, 3, 10};
-        autoSelectSchemes(schemes, 5);
-        ui->radSchemes5->setChecked(true);
-        // updateGUI();
-    }
-}
-
-void xmodeltest::on_radSchemes7_clicked()
-{
-    if (ui->radDatatypeDna->isChecked())
-    {
-        int schemes[7] = {0, 1, 2, 3, 6, 9, 10};
-        autoSelectSchemes(schemes, 7);
-        ui->radSchemes7->setChecked(true);
-        //updateGUI();
-    }
-}
-
-void xmodeltest::on_radSchemes11_clicked()
-{
-    if (ui->radDatatypeDna->isChecked())
-    {
-        for (int i=0; i < ui->modelsListView->count(); i++)
-            ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
-        ui->radSchemes11->setChecked(true);
-        // updateGUI();
-    }
-}
-
-void xmodeltest::on_radSchemes203_clicked()
-{
-    if (ui->radDatatypeDna->isChecked())
+    if (n == 203)
     {
         for (int i=0; i < ui->modelsListView->count(); i++)
             ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
-        ui->radSchemes203->setChecked(true);
-        update_gui();
     }
-}
-
-void xmodeltest::on_radSetModelTest_clicked()
-{
-    on_radSetModelTest_toggled(true);
-}
-
-void xmodeltest::on_radSetMrbayes_clicked()
-{
-    on_radSetMrbayes_toggled(true);
-}
-
-void xmodeltest::on_radSetRaxml_clicked()
-{
-    on_radSetRaxml_toggled(true);
-}
-
-void xmodeltest::on_radSetPhyml_clicked()
-{
-    on_radSetPhyml_toggled(true);
-}
-
-void xmodeltest::on_radSetModelTest_toggled(bool checked)
-{
-    if (!checked)
-        return;
-    on_radSchemes11_clicked();
-    ui->cbMlFreq->setChecked(true);
-    ui->cbEqualFreq->setChecked(true);
-    ui->cbNoRateVarModels->setChecked(true);
-    ui->cbIModels->setChecked(true);
-    ui->cbGModels->setChecked(true);
-    ui->cbIGModels->setChecked(true);
-    update_gui();
-}
-
-void xmodeltest::on_radSetMrbayes_toggled(bool checked)
-{
-    if (!checked)
-        return;
-    on_radSchemes3_clicked();
-    ui->cbMlFreq->setChecked(true);
-    ui->cbEqualFreq->setChecked(true);
-    ui->cbNoRateVarModels->setChecked(true);
-    ui->cbGModels->setChecked(true);
-    ui->cbIModels->setChecked(true);
-    ui->cbIGModels->setChecked(true);
-    update_gui();
-}
-
-void xmodeltest::on_radSetRaxml_toggled(bool checked)
-{
-    if (!checked)
-        return;
-    on_radSchemes3_clicked();
-    ui->cbMlFreq->setChecked(true);
-    ui->cbEqualFreq->setChecked(true);
-    ui->cbNoRateVarModels->setChecked(false);
-    ui->cbGModels->setChecked(true);
-    ui->cbIModels->setChecked(false);
-    ui->cbIGModels->setChecked(false);
-    ui->sliderNCat->setValue(4);
-    on_sliderNCat_sliderMoved(4);
-    update_gui();
-}
-
-void xmodeltest::on_radSetPhyml_toggled(bool checked)
-{
-    if (!checked)
-        return;
-    on_radSchemes11_clicked();
-    ui->cbMlFreq->setChecked(true);
-    ui->cbEqualFreq->setChecked(true);
-    ui->cbNoRateVarModels->setChecked(true);
-    ui->cbIModels->setChecked(true);
-    ui->cbGModels->setChecked(true);
-    ui->cbIGModels->setChecked(true);
-    update_gui();
-}
-
-void xmodeltest::on_cbEqualFreq_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbMlFreq_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbNoRateVarModels_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbIModels_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbGModels_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbIGModels_toggled(bool checked)
-{
-    UNUSED(checked);
-    update_gui();
-}
-
-void xmodeltest::on_cbAdvanced_clicked()
-{
-    update_gui();
-}
-
-void xmodeltest::on_cbShowMatrices_clicked()
-{
-    update_gui();
-}
-
-void xmodeltest::on_radDatatypeDna_clicked()
-{
-    //ui->grpSubstSchemes->setVisible(true);
-    ui->grpSubstSchemes->setEnabled(true);
-    ui->cbMlFreq->setText("ML frequencies");
-    ui->modelsListView->clear();
-
-    ui->modelsListView->addItem("000000  JC / F81");
-    ui->modelsListView->addItem("010010  K80 / HKY85");
-    ui->modelsListView->addItem("010020  TrNef / TrN");
-    ui->modelsListView->addItem("012210  TPM1 / TPM1uf");
-    ui->modelsListView->addItem("010212  TPM2 / TPM2uf");
-    ui->modelsListView->addItem("012012  TPM3 / TPM3uf");
-    ui->modelsListView->addItem("012230  TIM1ef / TIM1");
-    ui->modelsListView->addItem("010232  TIM2ef / TIM2");
-    ui->modelsListView->addItem("012032  TIM3ef / TIM3");
-    ui->modelsListView->addItem("012314  TVMef / TVM");
-    ui->modelsListView->addItem("012345  SYM / GTR");
-
-    ui->modelsListView->setMinimumHeight(250);
-    ui->modelsListView->setMaximumHeight(250);
-    on_radSchemes11_clicked();
-}
-
-void xmodeltest::on_radDatatypeProt_clicked()
-{
-
-    //ui->grpSubstSchemes->setVisible(false);
-    ui->grpSubstSchemes->setEnabled(false);
-    ui->cbMlFreq->setText("Empirical frequencies");
-    ui->modelsListView->clear();
-    for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+    else
     {
-        ui->modelsListView->addItem(prot_model_names[i].c_str());
-        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+        for (int i=0; i < ui->modelsListView->count(); i++)
+            ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
+
+        for (int i=0; i<n; i++)
+            ui->modelsListView->item(schemes[i])->setCheckState(Qt::CheckState::Checked);
     }
-
-    ui->modelsListView->setMinimumHeight(363);
-    ui->modelsListView->setMaximumHeight(363);
-    ui->modelsListView->selectAll();
-}
-
-void xmodeltest::on_radSchemesUser_clicked()
-{
-    ui->cbShowMatrices->setChecked(true);
-    on_cbShowMatrices_clicked();
-}
-
-void xmodeltest::on_modelsListView_itemClicked(QListWidgetItem *item)
-{
-    UNUSED(item);
-    ui->radSchemesUser->setChecked(true);
     update_gui();
 }
 
-void xmodeltest::on_sliderNCat_valueChanged(int value)
+void xmodeltest::set_substitution_schemes(mt_index_t n_schemes)
 {
-    on_sliderNCat_sliderMoved(value);
+    if (ui->radDatatypeDna->isChecked())
+    {
+        int schemes[11] = {0, 1, 10,    /* 3 schemes */
+                           2, 3,        /* 5 schemes */
+                           6, 9,        /* 7 schemes */
+                           4, 5, 7, 8}; /* 11 schemes */
+        switch(n_schemes)
+        {
+        case 3:
+            ui->radSchemes3->setChecked(true);
+            break;
+        case 5:
+            ui->radSchemes5->setChecked(true);
+            break;
+        case 7:
+            ui->radSchemes7->setChecked(true);
+            break;
+        case 11:
+            ui->radSchemes11->setChecked(true);
+            break;
+        case 203:
+            ui->radSchemes203->setChecked(true);
+            break;
+        default:
+            assert(0);
+        }
+
+        autoSelectSchemes(schemes, n_schemes);
+    }
 }
 
-void xmodeltest::on_sliderNThreads_valueChanged(int value)
-{
-    ui->lblNThreads->setText(QString::number(value));
-    int n_cats = ui->sliderNCat->value();
-    if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
-        n_cats = 1;
-    compute_size(n_cats, value);
-}
+/* SLOTS */
 
-void xmodeltest::setText(QString message)
+void xmodeltest::set_text(QString message)
 {
     ui->consoleRun->append(message);
     ui->consoleRun->show();
+}
+
+static unsigned int model_index = 0;
+
+void xmodeltest::optimized_single_model(Model * model, unsigned int n_models )
+{
+            /* print progress */
+        cout << setw(5) << right << (++model_index) << "/"
+             << setw(5) << left << n_models
+             << setw(15) << left << model->get_name()
+             << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+             << model->get_lnl() << endl;
+}
+
+void xmodeltest::optimization_done( partition_id_t part_id )
+{
+    const std::vector<Model *> & modelsPtr = mtest->get_models(part_id);
+        QVector<int> models;
+        for (int i=0; (size_t)i < modelsPtr.size(); i++)
+            models.append(i);
+
+        status &= ~st_optimizing;
+        status |= st_optimized;
+
+        on_run = false;
+
+        ModelSelection bic_selection(modelsPtr, ic_bic);
+        fill_results(ui->result_table, bic_selection);
+
+        /* clear and clone models */
+        for (size_t i=0; i<c_models.size(); i++)
+            delete(c_models[i]);
+        c_models.clear();
+        c_models.resize( modelsPtr.size() );
+        for (size_t i=0; i<modelsPtr.size(); i++)
+            if (ui->radDatatypeDna->isChecked())
+                c_models[i] = new DnaModel(*(modelsPtr[i]));
+            else
+                c_models[i] = new ProtModel(*(modelsPtr[i]));
+
+        delete mtest;
+        update_gui();
 }

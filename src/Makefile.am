@@ -5,6 +5,7 @@ modeltest_SOURCES = \
 	moc/moc_progressdialog.cpp \
 	gui/qrc_mtgraphics.cpp \
 	gui/xmodeltest.cpp \
+	gui/xthreadopt \
 	moc_xmodeltest.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
