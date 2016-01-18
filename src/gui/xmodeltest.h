@@ -7,6 +7,9 @@
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
+#include <QtGui/QStandardItemModel>
+#include <QtGui/QTableView>
+#include <QtGui/QLabel>
 
 enum msg_level_id {
     msg_lvl_error,
@@ -21,6 +24,8 @@ enum msg_level_id {
 #define st_parts_loaded (1<<3)
 #define st_optimizing   (1<<4)
 #define st_optimized    (1<<5)
+
+Q_DECLARE_METATYPE( partition_id_t )
 
 namespace Ui {
 class xmodeltest;
@@ -56,6 +61,10 @@ private slots:
     void on_mnu_run_triggered();
     void on_tool_run_clicked();
     void run_modelselection();
+
+    void on_act_results_triggered();
+    void on_mnu_results_triggered();
+    void on_tool_results_clicked();
 
     void on_act_reset_triggered();
     void on_mnu_reset_triggered();
@@ -95,14 +104,23 @@ private slots:
     void on_sliderNCat_valueChanged(int value);
     void on_sliderNCat_sliderMoved(int position);
 
+    /* FILL */
+    void fill_results(QTableView * result_table,
+                      modeltest::ModelSelection &model_selection,
+                      QLabel *imp_inv = 0, QLabel *imp_gamma = 0,
+                      QLabel *imp_gammainv = 0, QLabel *imp_freqs = 0);
 private:
     void toggle_settings( bool value );
     void action_open_msa( void );
     void action_open_tree( void );
     void action_run( void );
+    void action_results( void );
     void action_reset( void );
     void update_gui( void );
     void reset_xmt( void );
+
+    /* results */
+    QStandardItemModel * results_table_items;
 
     size_t compute_size(int n_cats, int n_threads);
 

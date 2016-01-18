@@ -40,6 +40,10 @@ void xmodeltest::on_act_run_triggered()  {action_run();}
 void xmodeltest::on_mnu_run_triggered()  {action_run();}
 void xmodeltest::on_tool_run_clicked()  {action_run();}
 
+void xmodeltest::on_act_results_triggered()  {action_results();}
+void xmodeltest::on_mnu_results_triggered()  {action_results();}
+void xmodeltest::on_tool_results_clicked()  {action_results();}
+
 void xmodeltest::on_act_reset_triggered() {action_reset();}
 void xmodeltest::on_mnu_reset_triggered() {action_reset();}
 void xmodeltest::on_tool_reset_clicked()  {action_reset();}

@@ -183,6 +183,18 @@ public:
     QWidget *tabResultsBic;
     QVBoxLayout *verticalLayout_4;
     QTableView *tblResultsBic;
+    QFrame *frame_2;
+    QGridLayout *gridLayout_5;
+    QLabel *lblImportances;
+    QLabel *lblImpGamma;
+    QSpacerItem *spacerImp;
+    QLabel *lblImpFreqs;
+    QLabel *txtImpFreqs;
+    QLabel *txtImpGamma;
+    QLabel *lblImpInv;
+    QLabel *txtImpInv;
+    QLabel *lblImpInvGamma;
+    QLabel *txtImpInvGamma;
     QWidget *tabResultsAic;
     QVBoxLayout *verticalLayout_5;
     QTableView *tblResultsAic;
@@ -1225,6 +1237,86 @@ public:
 
         verticalLayout_4->addWidget(tblResultsBic);
 
+        frame_2 = new QFrame(tabResultsBic);
+        frame_2->setObjectName(QString::fromUtf8("frame_2"));
+        frame_2->setMinimumSize(QSize(0, 20));
+        frame_2->setFrameShape(QFrame::StyledPanel);
+        frame_2->setFrameShadow(QFrame::Raised);
+        gridLayout_5 = new QGridLayout(frame_2);
+        gridLayout_5->setSpacing(6);
+        gridLayout_5->setContentsMargins(11, 11, 11, 11);
+        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
+        gridLayout_5->setVerticalSpacing(6);
+        lblImportances = new QLabel(frame_2);
+        lblImportances->setObjectName(QString::fromUtf8("lblImportances"));
+        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(lblImportances->sizePolicy().hasHeightForWidth());
+        lblImportances->setSizePolicy(sizePolicy);
+        lblImportances->setMinimumSize(QSize(0, 0));
+        QFont font14;
+        font14.setBold(true);
+        font14.setUnderline(false);
+        font14.setWeight(75);
+        lblImportances->setFont(font14);
+        lblImportances->setLineWidth(1);
+
+        gridLayout_5->addWidget(lblImportances, 0, 0, 1, 2, Qt::AlignHCenter);
+
+        lblImpGamma = new QLabel(frame_2);
+        lblImpGamma->setObjectName(QString::fromUtf8("lblImpGamma"));
+        lblImpGamma->setMinimumSize(QSize(100, 0));
+
+        gridLayout_5->addWidget(lblImpGamma, 3, 0, 1, 1);
+
+        spacerImp = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        gridLayout_5->addItem(spacerImp, 3, 2, 1, 1);
+
+        lblImpFreqs = new QLabel(frame_2);
+        lblImpFreqs->setObjectName(QString::fromUtf8("lblImpFreqs"));
+        lblImpFreqs->setMinimumSize(QSize(100, 0));
+
+        gridLayout_5->addWidget(lblImpFreqs, 4, 0, 1, 1);
+
+        txtImpFreqs = new QLabel(frame_2);
+        txtImpFreqs->setObjectName(QString::fromUtf8("txtImpFreqs"));
+        txtImpFreqs->setMinimumSize(QSize(60, 0));
+
+        gridLayout_5->addWidget(txtImpFreqs, 4, 1, 1, 1);
+
+        txtImpGamma = new QLabel(frame_2);
+        txtImpGamma->setObjectName(QString::fromUtf8("txtImpGamma"));
+        txtImpGamma->setMinimumSize(QSize(60, 0));
+
+        gridLayout_5->addWidget(txtImpGamma, 3, 1, 1, 1);
+
+        lblImpInv = new QLabel(frame_2);
+        lblImpInv->setObjectName(QString::fromUtf8("lblImpInv"));
+        lblImpInv->setMinimumSize(QSize(100, 0));
+
+        gridLayout_5->addWidget(lblImpInv, 2, 0, 1, 1);
+
+        txtImpInv = new QLabel(frame_2);
+        txtImpInv->setObjectName(QString::fromUtf8("txtImpInv"));
+        txtImpInv->setMinimumSize(QSize(60, 0));
+
+        gridLayout_5->addWidget(txtImpInv, 2, 1, 1, 1);
+
+        lblImpInvGamma = new QLabel(frame_2);
+        lblImpInvGamma->setObjectName(QString::fromUtf8("lblImpInvGamma"));
+
+        gridLayout_5->addWidget(lblImpInvGamma, 1, 0, 1, 1);
+
+        txtImpInvGamma = new QLabel(frame_2);
+        txtImpInvGamma->setObjectName(QString::fromUtf8("txtImpInvGamma"));
+
+        gridLayout_5->addWidget(txtImpInvGamma, 1, 1, 1, 1);
+
+
+        verticalLayout_4->addWidget(frame_2);
+
         results_content->addTab(tabResultsBic, QString());
         tabResultsAic = new QWidget();
         tabResultsAic->setObjectName(QString::fromUtf8("tabResultsAic"));
@@ -1360,7 +1452,7 @@ public:
 
         retranslateUi(jModelTest);
 
-        tabView->setCurrentIndex(1);
+        tabView->setCurrentIndex(2);
         results_content->setCurrentIndex(0);
 
 
@@ -1465,6 +1557,15 @@ public:
 #ifndef QT_NO_TOOLTIP
         results_content->setToolTip(QString());
 #endif // QT_NO_TOOLTIP
+        lblImportances->setText(QApplication::translate("jModelTest", "Importances", 0, QApplication::UnicodeUTF8));
+        lblImpGamma->setText(QApplication::translate("jModelTest", "Gamma:", 0, QApplication::UnicodeUTF8));
+        lblImpFreqs->setText(QApplication::translate("jModelTest", "Frequencies:", 0, QApplication::UnicodeUTF8));
+        txtImpFreqs->setText(QApplication::translate("jModelTest", "N/A", 0, QApplication::UnicodeUTF8));
+        txtImpGamma->setText(QApplication::translate("jModelTest", "N/A", 0, QApplication::UnicodeUTF8));
+        lblImpInv->setText(QApplication::translate("jModelTest", "Prop.Inv:", 0, QApplication::UnicodeUTF8));
+        txtImpInv->setText(QApplication::translate("jModelTest", "N/A", 0, QApplication::UnicodeUTF8));
+        lblImpInvGamma->setText(QApplication::translate("jModelTest", "Inv+Gamma", 0, QApplication::UnicodeUTF8));
+        txtImpInvGamma->setText(QApplication::translate("jModelTest", "N/A", 0, QApplication::UnicodeUTF8));
         results_content->setTabText(results_content->indexOf(tabResultsBic), QApplication::translate("jModelTest", "BIC", 0, QApplication::UnicodeUTF8));
         results_content->setTabText(results_content->indexOf(tabResultsAic), QApplication::translate("jModelTest", "AIC", 0, QApplication::UnicodeUTF8));
         results_content->setTabText(results_content->indexOf(tabResultsAicc), QApplication::translate("jModelTest", "AICc", 0, QApplication::UnicodeUTF8));

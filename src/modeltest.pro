@@ -27,7 +27,7 @@ SOURCES += main.cpp\
     gui/xmodeltest.cpp \
     gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
-    gui/resultswidget.cpp
+    gui/xmodeltest_fill.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -51,15 +51,13 @@ HEADERS  += \
     gui/qdebugstream.h \
     gui/xmodeltest.h \
     gui/mydebugstream.h \
-    gui/xthreadopt.h \
-    gui/resultswidget.h
+    gui/xthreadopt.h
 
 FORMS    += \
     compute_options.ui \
     progressdialog.ui \
     modeltest_gui.ui \
-    gui/xmodeltest.ui \
-    gui/resultswidget.ui
+    gui/xmodeltest.ui
 
 RESOURCES = mtgraphics.qrc
 

@@ -3,7 +3,6 @@
 
 #include "../utils.h"
 #include "gui/xthreadopt.h"
-#include "gui/resultswidget.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -71,6 +70,8 @@ xmodeltest::xmodeltest(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::xmodeltest)
 {
+    qRegisterMetaType<partition_id_t>();
+
     ui->setupUi(this);
     ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
     ui->toolBar->setStyleSheet("color: #4b0c59;\nbackground-color: #f1fff4;");
@@ -101,9 +102,9 @@ xmodeltest::xmodeltest(QWidget *parent) :
     redirect = new MyDebugStream(std::cout);
     QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(setText(QString)), Qt::QueuedConnection);
 
-    reset_xmt();
+    results_table_items = NULL;
 
-    ui->mdiArea->addSubWindow(new resultsWidget(this));
+    reset_xmt();
 }
 
 xmodeltest::~xmodeltest()
@@ -126,6 +127,26 @@ void xmodeltest::reset_xmt( void )
     ui->lbl_tree->setText("-");
     ui->lbl_parts->setText("-");
 
+    if (ui->result_table->model() != NULL)
+    {
+        results_table_items = static_cast<QStandardItemModel *>(ui->result_table->model());
+        results_table_items->clear();
+    }
+    else
+    {
+        results_table_items = new QStandardItemModel(0,7, this);
+    }
+    int cur_column = 0;
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("K")));
+
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("lnL")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("score")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("delta")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("weight")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("cum weight")));
+    ui->result_table->setModel(results_table_items);
+
     ui->consoleRun->clear();
     Utils::print_header();
 }
@@ -142,7 +163,7 @@ void xmodeltest::update_gui( void )
     enable(ui->tool_open_msa, status & st_active, status & st_msa_loaded);
     enable(ui->tool_open_tree, status & st_msa_loaded, status & st_tree_loaded);
     enable(ui->tool_open_parts, status & st_msa_loaded, status & st_parts_loaded);
-    enable(ui->tool_run, status & st_msa_loaded, status & st_optimized);
+    enable(ui->tool_run, (status & st_msa_loaded) && !(status & st_optimized), status & st_optimized);
     enable(ui->tool_settings, !(status & st_optimized), ui->tool_settings->isChecked());
     enable(ui->tool_results, status & st_optimized);
     enable(ui->tool_reset, status & st_active);
@@ -228,11 +249,8 @@ static QString to_qstring(const char * msg, msg_level_id level)
 
 void xmodeltest::run_modelselection()
 {
-    cerr << "Get Partition" << endl;
     partition_id_t part_id = {0};
     int number_of_threads  = ui->sliderNThreads->value();
-
-    cerr << "Retrieve options" << endl;
 
     QMessageBox msgBox;
     msgBox.setText("Start models optimizaion");
@@ -299,8 +317,6 @@ void xmodeltest::run_modelselection()
             }
         }
     }
-
-    cerr << "Fill options" << endl;
 
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
@@ -383,6 +399,10 @@ void xmodeltest::optimization_done( partition_id_t part_id )
 
         //TODO: WAIT FOR FINISHING!
 
+        cerr << " FILL " << endl;
+        ModelSelection bic_selection(modelsPtr, ic_bic);
+        fill_results(ui->result_table, bic_selection);
+
         /* clear and clone models */
         for (size_t i=0; i<c_models.size(); i++)
             delete(c_models[i]);
@@ -395,12 +415,20 @@ void xmodeltest::optimization_done( partition_id_t part_id )
                 c_models[i] = new ProtModel(*(modelsPtr[i]));
 
         delete mtest;
+        update_gui();
 }
 
 void xmodeltest::action_run( void )
 {
+    toggle_settings(false);
+    update_gui();
     run_modelselection();
     update_gui();
+}
+
+void xmodeltest::action_results( void )
+{
+    //TODO
 }
 
 void xmodeltest::action_reset( void )
@@ -489,10 +517,22 @@ void xmodeltest::action_open_msa()
 void xmodeltest::action_open_tree()
 {
     QString filters = tr("Newick tree(*.tree *.newick);; All files(*)");
-    QString file_name = QFileDialog::getOpenFileName(this,
-                                                    tr("Open File"),
-                                                    "",
-                                                    filters);
+    QString file_name;
+    if (status & st_optimized)
+    {
+            QMessageBox msgBox;
+            msgBox.setText("Tree cannot be set after optimization");
+            msgBox.setInformativeText("You must reset ModelTest before");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+            return;
+    }
+
+    file_name = QFileDialog::getOpenFileName(this,
+                                             tr("Open File"),
+                                             "",
+                                             filters);
     const std::string loaded_file = file_name.toStdString();
 
     if ( loaded_file.compare(""))
@@ -501,7 +541,7 @@ void xmodeltest::action_open_tree()
 
         utree_filename = loaded_file;
         if (modeltest::ModelTest::test_tree(utree_filename,
-                                 &n_tips))
+                                            &n_tips))
         {
             if (n_tips == n_seqs)
             {

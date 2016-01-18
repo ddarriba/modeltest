@@ -5,7 +5,7 @@ modeltest_SOURCES = \
 	moc/moc_progressdialog.cpp \
 	gui/qrc_mtgraphics.cpp \
 	gui/xmodeltest.cpp \
-	gui/moc_xmodeltest.cpp \
+	moc_xmodeltest.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
