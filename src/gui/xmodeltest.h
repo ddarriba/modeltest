@@ -106,11 +106,17 @@ private slots:
     void on_sliderNCat_valueChanged(int value);
     void on_sliderNCat_sliderMoved(int position);
 
+    void on_rad_aic_clicked();
+    void on_rad_aicc_clicked();
+    void on_rad_bic_clicked();
+    void on_rad_dt_clicked();
+
     /* FILL */
     void fill_results(QTableView * result_table,
                       modeltest::ModelSelection &model_selection,
                       QLabel *imp_inv = 0, QLabel *imp_gamma = 0,
                       QLabel *imp_gammainv = 0, QLabel *imp_freqs = 0);
+
 private:
     void toggle_settings( bool value );
     void action_open_msa( void );
@@ -123,8 +129,6 @@ private:
 
     void set_substitution_schemes(mt_index_t n_schemes);
 
-    /* results */
-    QStandardItemModel * results_table_items;
 
     size_t compute_size(int n_cats, int n_threads);
 

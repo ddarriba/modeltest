@@ -103,7 +103,7 @@ xmodeltest::xmodeltest(QWidget *parent) :
     redirect = new MyDebugStream(std::cout);
     QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(set_text(QString)), Qt::QueuedConnection);
 
-    results_table_items = NULL;
+    //results_table_items = NULL;
 
     reset_xmt();
 }
@@ -128,26 +128,6 @@ void xmodeltest::reset_xmt( void )
     ui->lbl_tree->setText("-");
     ui->lbl_parts->setText("-");
 
-    if (ui->result_table->model() != NULL)
-    {
-        results_table_items = static_cast<QStandardItemModel *>(ui->result_table->model());
-        results_table_items->clear();
-    }
-    else
-    {
-        results_table_items = new QStandardItemModel(0,7, this);
-    }
-    int cur_column = 0;
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("K")));
-
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("lnL")));
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("score")));
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("delta")));
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("weight")));
-    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("cum weight")));
-    ui->result_table->setModel(results_table_items);
-
     ui->consoleRun->clear();
     Utils::print_header();
 }
@@ -170,7 +150,16 @@ void xmodeltest::update_gui( void )
     enable(ui->tool_reset, status & st_active);
 
     ui->frame_settings->setVisible(ui->tool_settings->isChecked());
-    ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
+    ui->grpConsoles->setVisible(!(ui->tool_settings->isChecked() || ui->tool_results->isChecked()));
+    ui->frame_results->setVisible(ui->tool_results->isChecked());
+
+    if (ui->frame_results->isVisible())
+    {
+        ui->table_results_aic->setVisible(ui->rad_aic->isChecked());
+        ui->table_results_aicc->setVisible(ui->rad_aicc->isChecked());
+        ui->table_results_bic->setVisible(ui->rad_bic->isChecked());
+        ui->table_results_dt->setVisible(ui->rad_dt->isChecked());
+    }
 
     /** SETTINGS **/
     ui->modelsListView->setEnabled(
@@ -406,6 +395,7 @@ void xmodeltest::action_run( void )
 void xmodeltest::action_results( void )
 {
     //TODO
+    update_gui();
 }
 
 void xmodeltest::action_reset( void )
@@ -643,8 +633,17 @@ void xmodeltest::optimization_done( partition_id_t part_id )
 
         on_run = false;
 
+        ui->tool_results->setChecked(true);
+
+        ModelSelection aic_selection(modelsPtr, ic_aic);
+        ModelSelection aicc_selection(modelsPtr, ic_aicc);
         ModelSelection bic_selection(modelsPtr, ic_bic);
-        fill_results(ui->result_table, bic_selection);
+        ModelSelection dt_selection(modelsPtr, ic_dt);
+
+        fill_results(ui->table_results_aic, aic_selection);
+        fill_results(ui->table_results_aicc, aicc_selection);
+        fill_results(ui->table_results_bic, bic_selection);
+        fill_results(ui->table_results_dt, dt_selection);
 
         /* clear and clone models */
         for (size_t i=0; i<c_models.size(); i++)

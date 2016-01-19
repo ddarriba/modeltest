@@ -5,17 +5,16 @@ using namespace modeltest;
 void xmodeltest::fill_results(QTableView * result_table, ModelSelection &model_selection,
                               QLabel *imp_inv, QLabel *imp_gamma, QLabel *imp_gammainv, QLabel *imp_freqs)
 {
+    QStandardItemModel * results_table_items;
     double cum_weight = 0.0;
+
+    //result_table->setModel(new QStandardItemModel(0,7, this));
 
     if (result_table->model() != NULL)
     {
-        results_table_items = static_cast<QStandardItemModel *>(result_table->model());
-        results_table_items->clear();
+        delete result_table->model();
     }
-    else
-    {
-        results_table_items = new QStandardItemModel(0,7, this);
-    }
+    results_table_items = new QStandardItemModel(0,7, this);
 
     int cur_column = 0;
     results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>859</width>
+    <width>877</width>
     <height>800</height>
    </rect>
   </property>
@@ -2294,24 +2294,79 @@
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QRadioButton" name="radioButton">
+               <widget class="QRadioButton" name="rad_aic">
                 <property name="text">
                  <string>AIC</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton_2">
+               <widget class="QRadioButton" name="rad_aicc">
+                <property name="text">
+                 <string>AICc</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rad_bic">
                 <property name="text">
                  <string>BIC</string>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rad_dt">
+                <property name="text">
+                 <string>DT</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer_ic">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QTableView" name="result_table"/>
+            <widget class="QTableView" name="table_results_aic">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableView" name="table_results_aicc">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableView" name="table_results_bic">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableView" name="table_results_dt">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -2327,7 +2382,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>859</width>
+     <width>877</width>
      <height>25</height>
     </rect>
    </property>
