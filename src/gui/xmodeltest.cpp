@@ -10,7 +10,6 @@
 #include <iomanip>
 
 using namespace std;
-using namespace modeltest;
 
 static void enable(QToolButton * button, bool new_stat, bool set = false)
 {
@@ -40,7 +39,7 @@ size_t xmodeltest::compute_size(int n_cats, int n_threads)
 
     if (n_seqs && seq_len && n_cats && states)
     {
-        mem_b = Utils::mem_size(n_seqs,
+        mem_b = modeltest::Utils::mem_size(n_seqs,
                         seq_len,
                         n_cats,
                         states);
@@ -129,7 +128,7 @@ void xmodeltest::reset_xmt( void )
     ui->lbl_parts->setText("-");
 
     ui->consoleRun->clear();
-    Utils::print_header();
+    modeltest::Utils::print_header();
 }
 
 void xmodeltest::update_gui( void )
@@ -257,7 +256,7 @@ void xmodeltest::run_modelselection()
 
     cout << "Buildint modeltest for " << number_of_threads << " threads" << endl;
 
-    mtest = new ModelTest(number_of_threads);
+    mtest = new modeltest::ModelTest(number_of_threads);
 
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
@@ -343,8 +342,8 @@ void xmodeltest::run_modelselection()
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
     {
-        ui->consoleRun->append(to_qstring("Error building instance [%1]", msg_lvl_error).arg(mt_errno));
-        ui->consoleRun->append(to_qstring(mt_errmsg, msg_lvl_error));
+        ui->consoleRun->append(to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
+        ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
         return;
     }
 
@@ -354,7 +353,7 @@ void xmodeltest::run_modelselection()
     }
 
     /* print settings */
-   Utils::print_options(opts);
+   modeltest::Utils::print_options(opts);
 
     xThreadOpt * mythread = new xThreadOpt(mtest, part_id, number_of_threads,
                                            opts.epsilon_param, opts.epsilon_opt);
@@ -371,7 +370,7 @@ void xmodeltest::run_modelselection()
     status |= st_optimizing;
     mythread->start();
 
-    on_run = true;
+    modeltest::on_run = true;
 
 
 //    updateGUI();
@@ -441,7 +440,7 @@ void xmodeltest::action_open_msa()
         if (load_file)
         {
             msa_filename = loaded_file;
-            if (ModelTest::test_msa(msa_filename,
+            if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_seqs,
                                      &seq_len))
             {
@@ -462,7 +461,7 @@ void xmodeltest::action_open_msa()
 
     if (status & st_msa_loaded)
     {
-        ui->lbl_msa->setText(QString(Utils::getBaseName(msa_filename).c_str()));
+        ui->lbl_msa->setText(QString(modeltest::Utils::getBaseName(msa_filename).c_str()));
         int n_cats = ui->sliderNCat->value();
         if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
             n_cats = 1;
@@ -518,7 +517,7 @@ void xmodeltest::action_open_tree()
         }
         else
         {
-            ui->consoleRun->append(to_qstring("%1", msg_lvl_error).arg(mt_errmsg));
+            ui->consoleRun->append(to_qstring("%1", msg_lvl_error).arg(modeltest::mt_errmsg));
             utree_filename = "";
             status &= ~st_tree_loaded;
         }
@@ -530,7 +529,7 @@ void xmodeltest::action_open_tree()
     }
 
     if (status & st_tree_loaded)
-        ui->lbl_tree->setText(QString(Utils::getBaseName(utree_filename).c_str()));
+        ui->lbl_tree->setText(QString(modeltest::Utils::getBaseName(utree_filename).c_str()));
     else
         ui->lbl_tree->setText("-");
 
@@ -604,7 +603,7 @@ void xmodeltest::set_text(QString message)
 
 static unsigned int model_index = 0;
 
-void xmodeltest::optimized_single_model(Model * model, unsigned int n_models )
+void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n_models )
 {
             /* print progress */
         cout << setw(5) << right << (++model_index) << "/"
@@ -616,7 +615,7 @@ void xmodeltest::optimized_single_model(Model * model, unsigned int n_models )
 
 void xmodeltest::optimization_done( partition_id_t part_id )
 {
-    const std::vector<Model *> & modelsPtr = mtest->get_models(part_id);
+    const std::vector<modeltest::Model *> & modelsPtr = mtest->get_models(part_id);
         QVector<int> models;
         for (int i=0; (size_t)i < modelsPtr.size(); i++)
             models.append(i);
@@ -624,14 +623,14 @@ void xmodeltest::optimization_done( partition_id_t part_id )
         status &= ~st_optimizing;
         status |= st_optimized;
 
-        on_run = false;
+        modeltest::on_run = false;
 
         ui->tool_results->setChecked(true);
 
-        ModelSelection aic_selection(modelsPtr, ic_aic);
-        ModelSelection aicc_selection(modelsPtr, ic_aicc);
-        ModelSelection bic_selection(modelsPtr, ic_bic);
-        ModelSelection dt_selection(modelsPtr, ic_dt);
+        modeltest::ModelSelection aic_selection(modelsPtr, modeltest::ic_aic);
+        modeltest::ModelSelection aicc_selection(modelsPtr, modeltest::ic_aicc);
+        modeltest::ModelSelection bic_selection(modelsPtr, modeltest::ic_bic);
+        modeltest::ModelSelection dt_selection(modelsPtr, modeltest::ic_dt);
 
         fill_results(ui->table_results_aic, aic_selection,
                      ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
@@ -653,9 +652,9 @@ void xmodeltest::optimization_done( partition_id_t part_id )
         c_models.resize( modelsPtr.size() );
         for (size_t i=0; i<modelsPtr.size(); i++)
             if (ui->radDatatypeDna->isChecked())
-                c_models[i] = new DnaModel(*(modelsPtr[i]));
+                c_models[i] = new modeltest::DnaModel(*(modelsPtr[i]));
             else
-                c_models[i] = new ProtModel(*(modelsPtr[i]));
+                c_models[i] = new modeltest::ProtModel(*(modelsPtr[i]));
 
         delete mtest;
         update_gui();

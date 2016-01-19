@@ -14,8 +14,8 @@
 using namespace std;
 
 static void set_branch_length_recursive (pll_utree_t * tree,
-                                                 double length,
-                                                 bool reset)
+                                         double length,
+                                         bool reset)
 {
   if (tree)
   {
@@ -279,7 +279,8 @@ namespace modeltest
 
   bool TreePll::reset_branches(mt_index_t thread_number)
   {
-    return false;
+      assert(thread_number < number_of_threads);
+      return false;
   }
 
   bool TreePll::test_tree(std::string const& tree_filename, mt_size_t *n_tips)
@@ -300,6 +301,7 @@ namespace modeltest
 
   const string TreePll::get_label( mt_index_t index, mt_index_t thread_number) const
   {
+      assert(thread_number < number_of_threads);
       if (index >= n_tips)
           return "";
       else
@@ -308,9 +310,37 @@ namespace modeltest
 
   void TreePll::print(mt_index_t thread_number) const
   {
+      assert(thread_number < number_of_threads);
       char *newick = pll_utree_export_newick(pll_tree[thread_number]);
       cout << newick << endl;
       free (newick);
   }
 
+  void * TreePll::extract_tree ( mt_index_t thread_number) const
+  {
+      assert(thread_number < number_of_threads);
+      pll_utree_t * new_tree = pll_utree_clone(pll_tip_nodes[thread_number][0]);
+      return new_tree;
+  }
+
+  static double recurse_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2)
+  {
+      double sum_branches = (tree1->length - tree2->length) * (tree1->length - tree2->length);
+
+      if (tree1->back->next)
+      {
+          sum_branches += recurse_euclidean_distance(tree1->back->next, tree1->back->next);
+          sum_branches += recurse_euclidean_distance(tree1->back->next->next, tree2->back->next->next);
+      }
+      return sum_branches;
+  }
+
+  double TreePll::compute_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2)
+  {
+      assert(!(tree1->next || tree2->next) && !strcmp(tree1->label, tree2->label));
+
+      double sum_branches = recurse_euclidean_distance(tree1, tree2);
+
+      return sqrt(sum_branches);
+  }
 } /* namespace modeltest */

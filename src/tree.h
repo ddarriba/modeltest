@@ -36,9 +36,28 @@ namespace modeltest
 
     virtual ~Tree ();
 
+    /**
+     * @brief get the number of tips
+     * @return the number of tips
+     */
     mt_size_t get_n_tips( void ) const { return n_tips; }
+
+    /**
+     * @brief get the number of inner nodes
+     * @return the number of inner nodes
+     */
     mt_size_t get_n_inner( void ) const { return n_inner; }
+
+    /**
+     * @brief get the number of branches
+     * @return the number of branches
+     */
     mt_size_t get_n_branches( void ) const { return 2*n_tips-3; }
+
+    /**
+     * @brief get the total number of nodes
+     * @return the number of nodes
+     */
     mt_size_t get_n_nodes( void ) const { return 2*n_tips-2; }
 
     virtual const std::string get_label( mt_index_t index, mt_index_t thread_number = 0 ) const = 0;
@@ -65,17 +84,34 @@ namespace modeltest
     virtual bool reset_branches(mt_index_t thread_number = 0) = 0;
 
     virtual void print( mt_index_t thread_number = 0 ) const = 0;
-    bool is_bl_optimized( void ) { return bl_optimized; }
-    void set_bl_optimized( void ) { bl_optimized = true; }
-  protected:
-    tree_type type;
-    const std::string tree_file;
-    mt_size_t n_tips;
-    mt_size_t n_inner;
-    mt_size_t number_of_threads;
-    int random_seed;
 
-    bool bl_optimized;
+    /**
+     * @brief extract a copy of the tree structure with branch lengths
+     * @param thread_number the thread number
+     * @return the tree structure
+     */
+    virtual void * extract_tree ( mt_index_t thread_number = 0 ) const = 0;
+
+    /**
+     * @brief check if branch lengths have been optimized
+     * @return true, if branch lengths have been optimized
+     */
+    bool is_bl_optimized( void ) { return bl_optimized; }
+
+    /**
+     * @brief set the branch lengths as optimized
+     */
+    void set_bl_optimized( void ) { bl_optimized = true; }
+
+  protected:
+    tree_type type;               //! type of starting tree
+    const std::string tree_file;  //! NEWICK tree filename
+    mt_size_t n_tips;             //! number of tips
+    mt_size_t n_inner;            //! number of inner nodes (2n_tips - 3)
+    mt_size_t number_of_threads;  //! number of threads
+    int random_seed;              //! RNG seed
+
+    bool bl_optimized;            //! branch lengths are optimized
   };
 
 } /* namespace modeltest */

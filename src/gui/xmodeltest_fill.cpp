@@ -1,14 +1,11 @@
 #include "xmodeltest.h"
 
-using namespace modeltest;
-
-void xmodeltest::fill_results(QTableView * result_table, ModelSelection &model_selection,
+void xmodeltest::fill_results(QTableView * result_table,
+                              modeltest::ModelSelection &model_selection,
                               QLabel *imp_inv, QLabel *imp_gamma, QLabel *imp_gammainv, QLabel *imp_freqs)
 {
     QStandardItemModel * results_table_items;
     double cum_weight = 0.0;
-
-    //result_table->setModel(new QStandardItemModel(0,7, this));
 
     if (result_table->model() != NULL)
     {
@@ -29,16 +26,16 @@ void xmodeltest::fill_results(QTableView * result_table, ModelSelection &model_s
 
     for (size_t i=0; i<model_selection.size(); i++)
     {
-        Model * model = model_selection.get_model(i).model;
+        modeltest::Model * model = model_selection.get_model(i).model;
         results_table_items->setItem(i, 0, new QStandardItem(QString(model->get_name().c_str())));
         results_table_items->setItem(i, 1, new QStandardItem(QString::number(model->get_n_free_variables())));
 
-        results_table_items->setItem(i, 2, new QStandardItem(QString::number(model->get_lnl(), 'f', 2)));
-        results_table_items->setItem(i, 3, new QStandardItem(QString::number(model_selection.get_model(i).score, 'f', 2)));
-        results_table_items->setItem(i, 4, new QStandardItem(QString::number(model_selection.get_model(i).delta, 'f', 2)));
-        results_table_items->setItem(i, 5, new QStandardItem(QString::number(model_selection.get_model(i).weight, 'f', 2)));
+        results_table_items->setItem(i, 2, new QStandardItem(QString::number(model->get_lnl(), 'f', 4)));
+        results_table_items->setItem(i, 3, new QStandardItem(QString::number(model_selection.get_model(i).score, 'f', 4)));
+        results_table_items->setItem(i, 4, new QStandardItem(QString::number(model_selection.get_model(i).delta, 'f', 4)));
+        results_table_items->setItem(i, 5, new QStandardItem(QString::number(model_selection.get_model(i).weight, 'f', 4)));
         cum_weight += model_selection.get_model(i).weight;
-        results_table_items->setItem(i, 6, new QStandardItem(QString::number(cum_weight, 'f', 2)));
+        results_table_items->setItem(i, 6, new QStandardItem(QString::number(cum_weight, 'f', 4)));
     }
 
     if (imp_gamma)

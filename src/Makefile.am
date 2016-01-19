@@ -3,10 +3,14 @@ bin_PROGRAMS = modeltestx modeltest
 modeltest_SOURCES = \
 	moc/moc_modeltest_gui.cpp \
 	moc/moc_progressdialog.cpp \
+	moc/moc_xmodeltest.cpp \
+	moc/moc_xthreadopt.cpp \
+	moc/moc_mydebugstream.cpp \
 	gui/qrc_mtgraphics.cpp \
 	gui/xmodeltest.cpp \
-	gui/xthreadopt \
-	moc_xmodeltest.cpp \
+	gui/xmodeltest_actions.cpp \
+	gui/xmodeltest_fill.cpp \
+	gui/xthreadopt.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \

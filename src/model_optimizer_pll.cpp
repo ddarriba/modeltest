@@ -665,7 +665,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       }
 
       model->evaluate_criteria(n_branches, params->lk_params.partition->sites);
-
+      model->set_tree((pll_utree_t *) tree->extract_tree(thread_number));
       return true;
   }
 

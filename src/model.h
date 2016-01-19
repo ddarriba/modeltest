@@ -151,6 +151,9 @@ public:
     time_t get_exec_time() const;
     void set_exec_time( time_t t);
 
+    pll_utree_t * get_tree( void ) const;
+    void set_tree( pll_utree_t * tree );
+
 protected:
     std::string name;
 
@@ -175,6 +178,8 @@ protected:
 
     mt_size_t n_frequencies;
     mt_size_t n_subst_rates;
+
+    pll_utree_t *tree;
 };
 
 class DnaModel : public Model
@@ -209,19 +214,20 @@ public:
     ProtModel(mt_index_t matrix_index,
           int model_params);
     ProtModel(const Model &other);
-    virtual ~ProtModel();
+    virtual ~ProtModel( void );
     virtual void clone(const Model *other);
 
-    virtual data_type get_datatype()
+    virtual data_type get_datatype( void )
     {
         return dt_protein;
     }
 
-    virtual mt_size_t get_n_subst_params() const;
+    virtual mt_size_t get_n_subst_params( void ) const;
     virtual const double * get_subst_rates( void ) const;
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);
+
 private:
     const double *fixed_subst_rates;
 };

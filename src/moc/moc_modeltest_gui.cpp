@@ -22,7 +22,7 @@ static const uint qt_meta_data_modeltest__jModelTest[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      52,   14, // methods
+      53,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -83,7 +83,8 @@ static const uint qt_meta_data_modeltest__jModelTest[] = {
     1387,   22,   22,   22, 0x08,
     1415,   22,   22,   22, 0x08,
     1448, 1443,   22,   22, 0x08,
-    1496,   22,   22,   22, 0x0a,
+    1496, 1140,   22,   22, 0x08,
+    1528,   22,   22,   22, 0x0a,
 
        0        // eod
 };
@@ -139,6 +140,7 @@ static const char qt_meta_stringdata_modeltest__jModelTest[] = {
     "on_cbShowMatrices_clicked()\0"
     "on_radSchemesUser_clicked()\0item\0"
     "on_modelsListView_itemClicked(QListWidgetItem*)\0"
+    "on_sliderNCat_valueChanged(int)\0"
     "cancel_jobs()\0"
 };
 
@@ -199,7 +201,8 @@ void modeltest::jModelTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 48: _t->on_cbShowMatrices_clicked(); break;
         case 49: _t->on_radSchemesUser_clicked(); break;
         case 50: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
-        case 51: _t->cancel_jobs(); break;
+        case 51: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 52: _t->cancel_jobs(); break;
         default: ;
         }
     }
@@ -237,9 +240,9 @@ int modeltest::jModelTest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 52)
+        if (_id < 53)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 52;
+        _id -= 53;
     }
     return _id;
 }

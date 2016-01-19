@@ -78,6 +78,8 @@ Model::Model(mt_mask_t model_params)
 
     frequencies = 0;
     subst_rates = 0;
+
+    tree = 0;
 }
 
 Model::~Model()
@@ -86,6 +88,8 @@ Model::~Model()
         free(frequencies);
     if (subst_rates)
         free(subst_rates);
+    if (tree)
+        pll_utree_destroy(tree);
 }
 
 std::string const& Model::get_name() const
@@ -245,6 +249,19 @@ void Model::set_exec_time( time_t t)
     exec_time = t;
 }
 
+pll_utree_t * Model::get_tree( void ) const
+{
+    assert(is_optimized());
+    return tree;
+}
+
+void Model::set_tree( pll_utree_t * _tree )
+{
+    if (tree)
+        pll_utree_destroy(tree);
+    tree = _tree;
+}
+
 DnaModel::DnaModel(mt_index_t matrix_index,
              int model_params)
     : Model(model_params)
@@ -325,6 +342,8 @@ void DnaModel::clone(const Model * other_model)
     dt   = other->dt;
 
     exec_time = other->exec_time;
+    if (other->tree)
+        tree = pll_utree_clone(other->tree);
 }
 
 const int * DnaModel::get_symmetries( void ) const
@@ -457,6 +476,8 @@ void ProtModel::clone(const Model * other_model)
     dt   = other->dt;
 
     exec_time = other->exec_time;
+    if (other->tree)
+        tree = pll_utree_clone(other->tree);
 }
 
 mt_size_t ProtModel::get_n_subst_params() const

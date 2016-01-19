@@ -768,8 +768,8 @@ int main(int argc, char *argv[])
             aicc_selection.print_importances(cout);
             cout << endl;
 
-            /* ignore DT if topology is fixed */
-            if (opts.starting_tree == tree_ml)
+            /* ignore DT if topology is not fixed */
+            if (opts.starting_tree != tree_ml)
             {
                 modeltest::ModelSelection dt_selection(mt.get_models(part_id),
                                                     modeltest::ic_dt);

@@ -1,4 +1,5 @@
 #include "model_selection.h"
+#include "treepll.h"
 
 #include <cassert>
 #include <cmath>
@@ -73,24 +74,20 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         minDT = 999999999999;
         for (size_t i=0; i<c_models.size(); i++)
         {
-            //Model * model1 = models[i].model;
+            Model * model1 = models[i].model;
             sum = 0.0;
             for (size_t j=0; j<c_models.size(); j++)
             {
-                //Model * model2 = models[j].model;
+                Model * model2 = models[j].model;
 
-                double distance = 2.0;
-                /* TODO: compute distance between trees */
+                double distance = TreePll::compute_euclidean_distance(model1->get_tree(), model2->get_tree());
+                /* TODO: compute distance between trees in a table*/
                 // distance = distances.getDistance(model1.getTree(), model2.getTree());
 
                 assert(distance >= 0);
-                /* TODO: actually useless 'if'. If distance == 0, sum is not affected */
-                /*       also if distance < 0, there is an error */
-                if (distance > 0 && i!=j)
-                {
-                    sum += distance * bicLike[j];
-                }
+                sum += distance * bicLike[j];
             }
+
             models[i].score = sum / denom;
             if (models[i].score < minDT)
             {
