@@ -150,16 +150,9 @@ void xmodeltest::update_gui( void )
     enable(ui->tool_reset, status & st_active);
 
     ui->frame_settings->setVisible(ui->tool_settings->isChecked());
-    ui->grpConsoles->setVisible(!(ui->tool_settings->isChecked() || ui->tool_results->isChecked()));
+    ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
+    ui->frame_console->setVisible(!ui->tool_results->isChecked());
     ui->frame_results->setVisible(ui->tool_results->isChecked());
-
-    if (ui->frame_results->isVisible())
-    {
-        ui->table_results_aic->setVisible(ui->rad_aic->isChecked());
-        ui->table_results_aicc->setVisible(ui->rad_aicc->isChecked());
-        ui->table_results_bic->setVisible(ui->rad_bic->isChecked());
-        ui->table_results_dt->setVisible(ui->rad_dt->isChecked());
-    }
 
     /** SETTINGS **/
     ui->modelsListView->setEnabled(
@@ -640,10 +633,18 @@ void xmodeltest::optimization_done( partition_id_t part_id )
         ModelSelection bic_selection(modelsPtr, ic_bic);
         ModelSelection dt_selection(modelsPtr, ic_dt);
 
-        fill_results(ui->table_results_aic, aic_selection);
-        fill_results(ui->table_results_aicc, aicc_selection);
-        fill_results(ui->table_results_bic, bic_selection);
-        fill_results(ui->table_results_dt, dt_selection);
+        fill_results(ui->table_results_aic, aic_selection,
+                     ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
+                     ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
+        fill_results(ui->table_results_aicc, aicc_selection,
+                     ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
+                     ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
+        fill_results(ui->table_results_bic, bic_selection,
+                     ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
+                     ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
+        fill_results(ui->table_results_dt, dt_selection,
+                     ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                     ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
         /* clear and clone models */
         for (size_t i=0; i<c_models.size(); i++)
