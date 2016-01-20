@@ -22,6 +22,10 @@ void xmodeltest::on_act_open_tree_triggered() {action_open_tree();}
 void xmodeltest::on_mnu_open_tree_triggered() {action_open_tree();}
 void xmodeltest::on_tool_open_tree_clicked()  {action_open_tree();}
 
+void xmodeltest::on_act_open_parts_triggered() {action_open_parts();}
+void xmodeltest::on_mnu_open_parts_triggered() {action_open_parts();}
+void xmodeltest::on_tool_open_parts_clicked()  {action_open_parts();}
+
 void xmodeltest::on_act_toggle_settings_triggered()
 {
     toggle_settings(ui->act_toggle_settings->isChecked());

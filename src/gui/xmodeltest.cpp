@@ -564,7 +564,74 @@ void xmodeltest::action_open_tree()
     update_gui();
 }
 
+void xmodeltest::action_open_parts()
+{
+    QString filters = tr("Partitions file(*.parts *.model *.conf);; All files(*)");
+    QString file_name;
+    if (status & st_optimized)
+    {
+            QMessageBox msgBox;
+            msgBox.setText("Partitions cannot be set after optimization");
+            msgBox.setInformativeText("You must reset ModelTest before");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+            return;
+    }
 
+    file_name = QFileDialog::getOpenFileName(this,
+                                             tr("Open File"),
+                                             "",
+                                             filters);
+    const std::string loaded_file = file_name.toStdString();
+
+    if ( loaded_file.compare(""))
+    {
+        parts_filename = loaded_file;
+        scheme = modeltest::Utils::parse_partitions_file(parts_filename);
+        if (!scheme)
+        {
+            parts_filename = "";
+            ui->consoleRun->append(to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+            ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+            if (scheme)
+            {
+                delete scheme;
+                scheme = 0;
+            }
+            status &= ~st_parts_loaded;
+        }
+        else
+        {
+            if (!modeltest::ModelTest::test_partitions(*scheme, seq_len))
+            {
+                ui->consoleRun->append(to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+                ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                parts_filename = "";
+                delete scheme;
+                scheme = 0;
+                status &= ~st_parts_loaded;
+            }
+            else
+            {
+                ui->consoleRun->append(to_qstring("Loaded %1 partitions %2", msg_lvl_notify).arg(scheme->size()).arg(parts_filename.c_str()));
+                if (modeltest::mt_errno)
+                {
+                    /* there are warnings */
+                    ui->consoleRun->append("Warning: " + to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                }
+                status |= st_parts_loaded;
+            }
+        }
+    }
+
+    if (status & st_parts_loaded)
+        ui->lbl_parts->setText(QString(modeltest::Utils::getBaseName(parts_filename).c_str()));
+    else
+        ui->lbl_parts->setText("-");
+
+    update_gui();
+}
 
 
 /** SETTINGS **/

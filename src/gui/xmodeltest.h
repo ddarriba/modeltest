@@ -55,6 +55,10 @@ private slots:
     void on_mnu_open_tree_triggered();
     void on_tool_open_tree_clicked();
 
+    void on_act_open_parts_triggered();
+    void on_mnu_open_parts_triggered();
+    void on_tool_open_parts_clicked();
+
     void on_act_toggle_settings_triggered();
     void on_mnu_toggle_settings_triggered(bool checked);
     void on_tool_settings_toggled(bool checked);
@@ -116,6 +120,7 @@ private:
     void toggle_settings( bool value );
     void action_open_msa( void );
     void action_open_tree( void );
+    void action_open_parts( void );
     void action_run( void );
     void action_results( void );
     void action_reset( void );

@@ -556,13 +556,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-
-//      printf("LnL BEFORE %f\n", global_lnl);
-//      for (mt_index_t i=0; i<num_threads; i++)
-//        thread_data[i].vroot = tree->get_pll_tree();
-//      start_job_sync (JOB_REDUCE_LK_EDGE, thread_data);
-//      printf("LnL AFTER %f\n", global_lnl);
-
       std::vector<mt_index_t> params_to_optimize;
 
       if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
