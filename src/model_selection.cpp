@@ -86,8 +86,9 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
 
                 assert(distance >= 0);
                 sum += distance * bicLike[j];
+                //sum += exp(log(distance) - c_models[j]->get_bic() + minBIC);
             }
-
+//sum(exp(log(dij) − bic[j] + min_bic))
             models[i].score = sum / denom;
             if (models[i].score < minDT)
             {
@@ -112,7 +113,7 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
                 models[i].weight = (1.0 / models[i].score) / sumReciprocal;
         }
 
-        delete bicLike;
+        delete[] bicLike;
     }
     else
     {

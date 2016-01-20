@@ -44,7 +44,7 @@ public slots:
     void set_text( QString message );
     void optimized_single_model(modeltest::Model * model, unsigned int n_models);
     void optimization_done( partition_id_t part_id );
-    //void print_to_console(const char *message);
+    void optimization_interrupted( partition_id_t part_id );
 
 private slots:
     void on_act_open_msa_triggered();
@@ -106,11 +106,6 @@ private slots:
     void on_sliderNCat_valueChanged(int value);
     void on_sliderNCat_sliderMoved(int position);
 
-    void on_rad_aic_clicked();
-    void on_rad_aicc_clicked();
-    void on_rad_bic_clicked();
-    void on_rad_dt_clicked();
-
     /* FILL */
     void fill_results(QTableView * result_table,
                       modeltest::ModelSelection &model_selection,
@@ -149,6 +144,8 @@ private:
     partitioning_scheme_t * scheme;
     tree_type start_tree;
     mt_options opts;
+
+    time_t ini_t;
 };
 
 #endif // XMODELTEST_H

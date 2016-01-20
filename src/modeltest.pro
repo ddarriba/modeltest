@@ -15,7 +15,6 @@ SOURCES += main.cpp\
     utils.cpp \
     model.cpp \
     modeltest.cpp \
-    progressdialog.cpp \
     model_optimizer_pll.cpp \
     msapll.cpp \
     treepll.cpp \
@@ -27,14 +26,14 @@ SOURCES += main.cpp\
     gui/xmodeltest.cpp \
     gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
-    gui/xmodeltest_fill.cpp
+    gui/xmodeltest_fill.cpp \
+    gui/progressdialog.cpp
 
 HEADERS  += \
     model_defs.h \
     utils.h \
     model.h \
     modeltest.h \
-    progressdialog.h \
     model_optimizer.h \
     model_optimizer_pll.h \
     msa.h \
@@ -51,13 +50,15 @@ HEADERS  += \
     gui/qdebugstream.h \
     gui/xmodeltest.h \
     gui/mydebugstream.h \
-    gui/xthreadopt.h
+    gui/xthreadopt.h \
+    gui/progressdialog.h \
+    thread/observer.h
 
 FORMS    += \
     compute_options.ui \
-    progressdialog.ui \
     modeltest_gui.ui \
-    gui/xmodeltest.ui
+    gui/xmodeltest.ui \
+    gui/progressdialog.ui
 
 RESOURCES = mtgraphics.qrc
 

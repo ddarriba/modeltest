@@ -71,8 +71,6 @@ namespace modeltest
     mt_index_t * matrix_indices;       //! array of matrix indices
     mt_size_t matrix_count;
 
-    mt_index_t thread_number;  //! the number of the current thread
-
     /* pthreads */
     void start_job_sync(int JOB, thread_data_t * td);
 

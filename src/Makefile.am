@@ -11,6 +11,7 @@ modeltest_SOURCES = \
 	gui/xmodeltest_actions.cpp \
 	gui/xmodeltest_fill.cpp \
 	gui/xthreadopt.cpp \
+	gui/progressdialog.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
@@ -19,7 +20,6 @@ modeltest_SOURCES = \
 	msapll.cpp \
 	partition.cpp \
 	partitioning_scheme.cpp \
-	progressdialog.cpp \
 	treepll.cpp \
 	utils.cpp \
 	main.cpp
@@ -69,6 +69,7 @@ endif
 
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
+	gui/progressdialog.h \
 	thread/threadpool.h \
 	model_optimizer_pll.h \
 	utils.h \
@@ -83,7 +84,6 @@ pkginclude_HEADERS= \
 	treepll.h \
 	partitioning_scheme.h \
 	msa.h \
-	progressdialog.h \
 	msapll.h \
 	global_defs.h \
 	modeltest.h \

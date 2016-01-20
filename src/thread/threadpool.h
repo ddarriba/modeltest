@@ -21,6 +21,11 @@ public:
   template<class F, class... Args>
   auto enqueue(F&& f, Args&&... args)
   -> std::future<typename std::result_of<F(Args...)>::type>;
+  void clean( void )
+  {
+      while (!this->tasks.empty())
+        this->tasks.pop();
+  }
   ~ThreadPool();
   std::map< std::thread::id, mt_index_t > worker_ids;
   mt_size_t ready;

@@ -563,8 +563,8 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-283</y>
-                 <width>694</width>
+                 <y>0</y>
+                 <width>674</width>
                  <height>583</height>
                 </rect>
                </property>
@@ -590,7 +590,7 @@
                    </font>
                   </property>
                   <property name="frameShape">
-                   <enum>QFrame::StyledPanel</enum>
+                   <enum>QFrame::NoFrame</enum>
                   </property>
                   <property name="frameShadow">
                    <enum>QFrame::Plain</enum>
@@ -1133,12 +1133,24 @@
                       </size>
                      </property>
                      <property name="frameShape">
-                      <enum>QFrame::StyledPanel</enum>
+                      <enum>QFrame::NoFrame</enum>
                      </property>
                      <property name="frameShadow">
-                      <enum>QFrame::Raised</enum>
+                      <enum>QFrame::Plain</enum>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_5">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
                       <item>
                        <widget class="QFrame" name="frame_modeldefs">
                         <property name="sizePolicy">
@@ -1160,12 +1172,24 @@
                          </size>
                         </property>
                         <property name="frameShape">
-                         <enum>QFrame::StyledPanel</enum>
+                         <enum>QFrame::NoFrame</enum>
                         </property>
                         <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
+                         <enum>QFrame::Plain</enum>
                         </property>
                         <layout class="QVBoxLayout" name="verticalLayout_3">
+                         <property name="leftMargin">
+                          <number>2</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>2</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>2</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>2</number>
+                         </property>
                          <item>
                           <widget class="QFrame" name="grpSubstSchemes">
                            <property name="enabled">
@@ -2308,7 +2332,7 @@
               <item>
                <widget class="QFrame" name="frame_results_header">
                 <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
+                 <enum>QFrame::NoFrame</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>
@@ -2330,19 +2354,6 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <spacer name="spacer_results_header">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
                   <widget class="QComboBox" name="cmb_results_partition">
                    <property name="minimumSize">
                     <size>
@@ -2358,6 +2369,19 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="spacer_results_header">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </widget>
               </item>
@@ -2372,7 +2396,7 @@
                  <string/>
                 </property>
                 <property name="currentIndex">
-                 <number>3</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="tab_results_bic">
                  <attribute name="title">

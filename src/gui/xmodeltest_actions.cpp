@@ -258,10 +258,3 @@ void xmodeltest::on_sliderNThreads_valueChanged(int value)
         n_cats = 1;
     compute_size(n_cats, value);
 }
-
-/* results */
-
-void xmodeltest::on_rad_aic_clicked() { update_gui(); }
-void xmodeltest::on_rad_aicc_clicked() { update_gui(); }
-void xmodeltest::on_rad_bic_clicked() { update_gui(); }
-void xmodeltest::on_rad_dt_clicked() { update_gui(); }

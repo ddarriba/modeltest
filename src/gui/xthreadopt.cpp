@@ -1,6 +1,5 @@
 #include "xthreadopt.h"
 
-#include "thread/threadpool.h"
 #include <map>
 #include <vector>
 #include <iomanip>
@@ -18,7 +17,21 @@ xThreadOpt::xThreadOpt(modeltest::ModelTest * mtest,
     mtest(mtest), part_id(part_id), n_threads(n_threads),
     epsilon_param(epsilon_param), epsilon_opt(epsilon_opt)
 {
+    pool = 0;
+    interrupt = false;
+}
 
+void xThreadOpt::update(Observable * subject)
+{
+    modeltest::ModelOptimizer * mopt = static_cast<modeltest::ModelOptimizer *>(subject);
+
+    //emit next_model( model, thread_map[my_id] );
+    if (interrupt)
+    {
+        mopt->interrupt();
+    }
+
+    emit next_parameter( mopt->get_cur_parameter(), mopt->get_opt_delta(), mopt->get_thread_number() );
 }
 
 void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
@@ -29,8 +42,21 @@ void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
                             double epsilon_param,
                             double epsilon_opt)
 {
-        mtest->evaluate_single_model(model, part_id, thread_id, epsilon_param, epsilon_opt);
-        emit optimized_single_done(model, n_models);
+    // check before optimization
+    if (interrupt)
+        return;
+
+    modeltest::ModelOptimizer * mopt = mtest->get_model_optimizer(model,
+                                                                  part_id,
+                                                                  thread_id);
+    mopt->attach(this);
+    mopt->run(epsilon_param, epsilon_opt);
+
+    // check for models interrupted during optimization
+    if (interrupt)
+        return;
+
+    emit optimized_single_done(model, n_models);
 }
 
 void xThreadOpt::run()
@@ -44,15 +70,15 @@ void xThreadOpt::run()
         for (cur_model=0; cur_model < mtest->get_models(part_id).size(); cur_model++)
         {
             modeltest::Model *model = mtest->get_models(part_id)[cur_model];
+            emit next_model( model, 0 );
             optimize_single(mtest, part_id, n_models, model, 0, epsilon_param, epsilon_opt);
-            //mtest->evaluate_single_model(model, part_id, 0, epsilon_param, epsilon_opt);
         }
     }
     else
     {
-        modeltest::ThreadPool pool(n_threads);
+        pool = new modeltest::ThreadPool(n_threads);
         vector< future<void> > results;
-        map<thread::id, mt_index_t> thread_map = pool.worker_ids;
+        map<thread::id, mt_index_t> thread_map = pool->worker_ids;
 
         cout << "Starting jobs... (output might be unsorted)" << endl;
         for (cur_model=0; cur_model < mtest->get_models(part_id).size(); cur_model++)
@@ -63,16 +89,27 @@ void xThreadOpt::run()
             double eps_opt = epsilon_opt;
             partition_id_t p_id = part_id;
             results.emplace_back(
-              pool.enqueue([cur_model, model, n_models, p_id, eps_par, eps_opt, this, &thread_map] {
+              pool->enqueue([cur_model, model, n_models, p_id, eps_par, eps_opt, this, &thread_map] {
                   thread::id my_id(__gthread_self());
+                  emit next_model( model, thread_map[my_id] );
                   optimize_single(mtest, part_id, n_models, model, thread_map[my_id], epsilon_param, epsilon_opt);
-//                thread::id my_id(__gthread_self());
-//                int res =  mtest->evaluate_single_model(model, part_id, 0, epsilon_part, epsilon_opt);
-//                return res;
               })
             );
         }
     }
 
-    emit optimization_done(part_id);
+    delete pool;
+    pool = 0;
+
+    if (interrupt)
+        emit optimization_interrupted(part_id);
+    else
+        emit optimization_done(part_id);
+}
+
+void xThreadOpt::kill_threads()
+{
+    interrupt = true;
+    if (pool)
+        pool->clean();
 }

@@ -9,20 +9,24 @@
 #define MODEL_OPTIMIZER_H_
 
 #include "model.h"
+#include "thread/observer.h"
 
 namespace modeltest
 {
 
   extern bool on_run;
 
-  class ModelOptimizer
+  class ModelOptimizer : public Observable
   {
   public:
     ModelOptimizer (Model *_model,
-                    const partition_t & _partition)
+                    const partition_t & _partition,
+                    mt_index_t _thread_number = 0)
         : model(_model),
-          partition(_partition)
+          partition(_partition),
+          thread_number(_thread_number)
     {
+        interrupt_optimization = false;
         optimized = false;
     }
     virtual ~ModelOptimizer ();
@@ -53,10 +57,22 @@ namespace modeltest
      */
     int is_optimized() const { return optimized; }
 
+    mt_index_t get_thread_number() const { return thread_number; }
+    mt_index_t get_cur_parameter() const { return cur_parameter; }
+    double get_opt_delta() const { return opt_delta; }
+    void interrupt() { interrupt_optimization = true; }
+
   protected:
     bool optimized; //! optimization state
     Model *model;   //! the model to optimize
     const partition_t partition;
+
+    mt_index_t thread_number;  //! the number of the current thread
+
+    // dynamic optimization status
+    bool interrupt_optimization;
+    mt_index_t cur_parameter;
+    double opt_delta;
   };
 
 } /* namespace modeltest */

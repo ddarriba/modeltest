@@ -89,7 +89,9 @@ Model::~Model()
     if (subst_rates)
         free(subst_rates);
     if (tree)
-        pll_utree_destroy(tree);
+    {
+        pll_utree_destroy(tree->back);
+    }
 }
 
 std::string const& Model::get_name() const
@@ -258,7 +260,7 @@ pll_utree_t * Model::get_tree( void ) const
 void Model::set_tree( pll_utree_t * _tree )
 {
     if (tree)
-        pll_utree_destroy(tree);
+        pll_utree_destroy(tree->back);
     tree = _tree;
 }
 

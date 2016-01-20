@@ -2,7 +2,7 @@
 #include "global_defs.h"
 #include "modeltest_gui.h"
 #include "ui_modeltest_gui.h"
-#include "progressdialog.h"
+#include "gui/progressdialog.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -1076,8 +1076,8 @@ void jModelTest::on_btnRun_clicked()
 
     //futureWatcher.
 
-    ProgressDialog dialog( modelsPtr.size() );
-    dialog.setLabelText(QString("Progressing using %1 thread(s)...").arg(number_of_threads));
+    ProgressDialog dialog( modelsPtr.size(), number_of_threads );
+    //dialog.setLabelText(QString("Progressing using %1 thread(s)...").arg(number_of_threads));
 
     QObject::connect(&futureWatcher, SIGNAL(finished()), &dialog, SLOT(reset()));
     QObject::connect(&dialog, SIGNAL(canceled()), &futureWatcher, SLOT(cancel()));

@@ -156,10 +156,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       const partition_t &_partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
-    : ModelOptimizer(_model, _partition),
+    : ModelOptimizer(_model, _partition, _thread_number),
       msa(_msa),
-      tree(_tree),
-      thread_number(_thread_number)
+      tree(_tree)
 {
     thread_job = 0;
     global_lnl = 0;
@@ -582,8 +581,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (params_to_optimize.size())
       {
           mt_size_t iters_hard_limit = 200;
-          while (n_iters < params_to_optimize.size() ||
-                (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+          while ((!interrupt_optimization) &&
+                  (n_iters < params_to_optimize.size() ||
+                (fabs (cur_logl - logl) > epsilon && cur_logl < logl)))
           {
               n_iters++;
               logl = cur_logl;
@@ -609,6 +609,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   test_logl = cur_logl;
 #endif
                   cur_logl = opt_single_parameter(cur_parameter, tolerance);
+
+                  // notify parameter optimization
+                  opt_delta = cur_logl;
+                  notify();
+
 #if(CHECK_LOCAL_CONVERGENCE)
                   if (fabs(test_logl - cur_logl) < tolerance)
                       converged |= cur_parameter;
@@ -629,8 +634,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       time_t end_time = time(NULL);
 
-      optimized = true;
-
       if (_num_threads > 1)
       {
           /* finalize */
@@ -650,23 +653,31 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           free(partition_local);
       }
 
-      model->set_lnl(cur_logl);
-      model->set_exec_time(end_time - start_time);
-
-      if (model->is_G())
-          model->set_alpha(params->lk_params.alpha_value);
-      if (model->is_I())
-          model->set_prop_inv(pll_partition->prop_invar[0]);
-
-      if (model->get_datatype() == dt_dna)
+      if (interrupt_optimization)
       {
-        model->set_frequencies(pll_partition->frequencies[0]);
-        model->set_subst_rates(pll_partition->subst_params[0]);
+          return false;
       }
+      else
+      {
+          optimized = true;
+          model->set_lnl(cur_logl);
+          model->set_exec_time(end_time - start_time);
 
-      model->evaluate_criteria(n_branches, params->lk_params.partition->sites);
-      model->set_tree((pll_utree_t *) tree->extract_tree(thread_number));
-      return true;
+          if (model->is_G())
+              model->set_alpha(params->lk_params.alpha_value);
+          if (model->is_I())
+              model->set_prop_inv(pll_partition->prop_invar[0]);
+
+          if (model->get_datatype() == dt_dna)
+          {
+            model->set_frequencies(pll_partition->frequencies[0]);
+            model->set_subst_rates(pll_partition->subst_params[0]);
+          }
+
+          model->evaluate_criteria(n_branches, params->lk_params.partition->sites);
+          model->set_tree((pll_utree_t *) tree->extract_tree(thread_number));
+          return true;
+      }
   }
 
   /* PTHREADS */

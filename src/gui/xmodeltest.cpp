@@ -1,8 +1,9 @@
 #include "xmodeltest.h"
 #include "ui_xmodeltest.h"
 
-#include "../utils.h"
+#include "utils.h"
 #include "gui/xthreadopt.h"
+#include "gui/progressdialog.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -140,13 +141,25 @@ void xmodeltest::update_gui( void )
     ui->mnu_open_tree->setEnabled(status & st_msa_loaded);
     ui->act_open_parts->setEnabled(status & st_msa_loaded);
     ui->mnu_open_parts->setEnabled(status & st_msa_loaded);
-    enable(ui->tool_open_msa, status & st_active, status & st_msa_loaded);
-    enable(ui->tool_open_tree, status & st_msa_loaded, status & st_tree_loaded);
-    enable(ui->tool_open_parts, status & st_msa_loaded, status & st_parts_loaded);
-    enable(ui->tool_run, (status & st_msa_loaded) && !(status & st_optimized), status & st_optimized);
-    enable(ui->tool_settings, !(status & st_optimized), ui->tool_settings->isChecked());
-    enable(ui->tool_results, status & st_optimized);
-    enable(ui->tool_reset, status & st_active);
+    enable(ui->tool_open_msa,
+          (status & st_active) && !(status & st_optimized),
+           status & st_msa_loaded);
+    enable(ui->tool_open_tree,
+          (status & st_msa_loaded) && !(status & st_optimized),
+           status & st_tree_loaded);
+    enable(ui->tool_open_parts,
+          (status & st_msa_loaded) && !(status & st_optimized),
+           status & st_parts_loaded);
+    enable(ui->tool_run,
+          (status & st_msa_loaded) && !(status & st_optimized),
+           status & st_optimized);
+    enable(ui->tool_settings,
+         !(status & st_optimized),
+           ui->tool_settings->isChecked());
+    enable(ui->tool_results,
+           status & st_optimized);
+    enable(ui->tool_reset,
+           status & st_active);
 
     ui->frame_settings->setVisible(ui->tool_settings->isChecked());
     ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
@@ -254,7 +267,7 @@ void xmodeltest::run_modelselection()
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
 
-    cout << "Buildint modeltest for " << number_of_threads << " threads" << endl;
+    cout << "Building modeltest for " << number_of_threads << " threads" << endl;
 
     mtest = new modeltest::ModelTest(number_of_threads);
 
@@ -315,6 +328,7 @@ void xmodeltest::run_modelselection()
     opts.n_threads = number_of_threads;
     opts.epsilon_param = ui->txtParEpsilon->text().toDouble();
     opts.epsilon_opt = ui->txtOptEpsilon->text().toDouble();
+    opts.verbose = VERBOSITY_LOW;
 
     data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
 
@@ -362,24 +376,38 @@ void xmodeltest::run_modelselection()
                      this,
                      SLOT(optimization_done(partition_id_t)));
     QObject::connect(mythread,
+                     SIGNAL(optimization_interrupted(partition_id_t)),
+                     this,
+                     SLOT(optimization_interrupted(partition_id_t)));
+    QObject::connect(mythread,
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      this,
                      SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
 
+    ProgressDialog dialog( mtest->get_models(part_id).size(), number_of_threads );
+
+    QObject::connect(mythread, SIGNAL(optimization_done(partition_id_t)), &dialog, SLOT(reset( void )));
+    QObject::connect(mythread,
+                     SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
+                     &dialog,
+                     SLOT(optimized_single_model( void )));
+    QObject::connect(mythread, SIGNAL(next_model(modeltest::Model*,uint)), &dialog, SLOT(set_model_running(modeltest::Model*,uint)));
+    QObject::connect(mythread, SIGNAL(next_parameter(uint,double,uint)), &dialog, SLOT(set_delta_running(uint,double,uint)));
+    QObject::connect(&dialog, SIGNAL(canceled()), mythread, SLOT(kill_threads()));
+
     status &= ~st_optimized;
     status |= st_optimizing;
-    mythread->start();
-
     modeltest::on_run = true;
 
-
-//    updateGUI();
+    mythread->start();
+    dialog.exec();
 }
 
 void xmodeltest::action_run( void )
 {
     toggle_settings(false);
     update_gui();
+    ini_t = time(NULL);
     run_modelselection();
     update_gui();
 }
@@ -658,4 +686,25 @@ void xmodeltest::optimization_done( partition_id_t part_id )
 
         delete mtest;
         update_gui();
+
+        cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+        cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
+}
+
+void xmodeltest::optimization_interrupted( partition_id_t part_id )
+{
+        status &= ~st_optimizing;
+        status &= ~st_optimized;
+
+        modeltest::on_run = false;
+
+        /* clear models */
+        for (size_t i=0; i<c_models.size(); i++)
+            delete(c_models[i]);
+
+        delete mtest;
+        update_gui();
+
+        cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+        cout << "optimization interrupted after " << time(NULL) - ini_t << " seconds" << endl;
 }
