@@ -1,9 +1,10 @@
 #ifndef XMODELTEST_H
 #define XMODELTEST_H
 
+#include "modeltest.h"
+#include "gui/xthreadopt.h"
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
-#include "modeltest.h"
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
@@ -41,7 +42,7 @@ public:
     ~xmodeltest();
 
 public slots:
-    void set_text( QString message );
+    void set_text(char *message );
     void optimized_single_model(modeltest::Model * model, unsigned int n_models);
     void optimization_done( partition_id_t part_id );
     void optimization_interrupted( partition_id_t part_id );
@@ -143,6 +144,7 @@ private:
 
     //Q_DebugStream *redirect;
     MyDebugStream *redirect;
+    xThreadOpt * mythread;
 
     modeltest::ModelTest *mtest;
     std::vector<modeltest::Model *> c_models;

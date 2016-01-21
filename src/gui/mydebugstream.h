@@ -21,7 +21,11 @@ public:
     {
         // output anything that is left
         if (!m_string.empty())
-            emit  newText( m_string.c_str() );
+        {
+            char * text = (char *) malloc(m_string.length() + 1);
+            strcpy(text, m_string.c_str());
+            emit  newText( text );
+        }
 
         m_stream.rdbuf(m_old_buf);
     }
@@ -31,7 +35,9 @@ protected:
     {
         if (v == '\n')
         {
-            emit  newText( m_string.c_str() );
+            char * text = (char *) malloc(m_string.length() + 1);
+            strcpy(text, m_string.c_str());
+            emit  newText( text );
             m_string.erase(m_string.begin(), m_string.end());
         }
         else
@@ -50,7 +56,9 @@ protected:
             if (pos != std::string::npos)
             {
                 std::string tmp(m_string.begin(), m_string.begin() + pos);
-                emit  newText( tmp.c_str() );
+                char * text = (char *) malloc(m_string.length() + 1);
+                strcpy(text, tmp.c_str());
+                emit  newText( text );
                 m_string.erase(m_string.begin(), m_string.begin() + pos + 1);
             }
         }
@@ -58,7 +66,7 @@ protected:
     }
 
 signals:
-    void newText( QString text );
+    void newText( char * text );
 
 private:
     std::ostream &m_stream;

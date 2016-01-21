@@ -51,6 +51,7 @@ void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
                                                                   thread_id);
     mopt->attach(this);
     mopt->run(epsilon_param, epsilon_opt);
+    delete mopt;
 
     // check for models interrupted during optimization
     if (interrupt)

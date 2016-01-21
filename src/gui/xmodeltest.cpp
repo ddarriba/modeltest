@@ -2,7 +2,6 @@
 #include "ui_xmodeltest.h"
 
 #include "utils.h"
-#include "gui/xthreadopt.h"
 #include "gui/progressdialog.h"
 
 #include <QtGui/QFileDialog>
@@ -99,11 +98,8 @@ xmodeltest::xmodeltest(QWidget *parent) :
     update_gui();
 
     /* Redirect Console output to QTextEdit */
-//    redirect = new Q_DebugStream(std::cout, ui->consoleRun);
     redirect = new MyDebugStream(std::cout);
-    QObject::connect(redirect, SIGNAL(newText(QString)), this, SLOT(set_text(QString)), Qt::QueuedConnection);
-
-    //results_table_items = NULL;
+    QObject::connect(redirect, SIGNAL(newText(char *)), this, SLOT(set_text(char *)), Qt::QueuedConnection);
 
     reset_xmt();
 }
@@ -130,6 +126,20 @@ void xmodeltest::reset_xmt( void )
 
     ui->consoleRun->clear();
     modeltest::Utils::print_header();
+
+    if (scheme)
+    {
+        delete scheme;
+        scheme = 0;
+    }
+
+    if (c_models.size())
+    {
+        /* clear models */
+        for (size_t i=0; i<c_models.size(); i++)
+            delete(c_models[i]);
+        c_models.clear();
+    }
 }
 
 void xmodeltest::update_gui( void )
@@ -267,6 +277,11 @@ void xmodeltest::run_modelselection()
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
 
+    /* clear models */
+    for (size_t i=0; i<c_models.size(); i++)
+        delete(c_models[i]);
+    c_models.clear();
+
     cout << "Building modeltest for " << number_of_threads << " threads" << endl;
 
     mtest = new modeltest::ModelTest(number_of_threads);
@@ -313,6 +328,9 @@ void xmodeltest::run_modelselection()
         }
     }
 
+    opts.n_taxa = n_seqs;
+    opts.n_sites = seq_len;
+    opts.rnd_seed = 12345;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
     opts.msa_filename = msa_filename;
@@ -369,7 +387,7 @@ void xmodeltest::run_modelselection()
     /* print settings */
    modeltest::Utils::print_options(opts);
 
-    xThreadOpt * mythread = new xThreadOpt(mtest, part_id, number_of_threads,
+    mythread = new xThreadOpt(mtest, part_id, number_of_threads,
                                            opts.epsilon_param, opts.epsilon_opt);
     QObject::connect(mythread,
                      SIGNAL(optimization_done(partition_id_t)),
@@ -690,9 +708,11 @@ void xmodeltest::set_substitution_schemes(mt_index_t n_schemes)
 
 /* SLOTS */
 
-void xmodeltest::set_text(QString message)
+void xmodeltest::set_text(char * message)
 {
+    //TODO: Improve this allocation/deallocation
     ui->consoleRun->append(message);
+    free(message);
     ui->consoleRun->show();
 }
 
@@ -740,10 +760,8 @@ void xmodeltest::optimization_done( partition_id_t part_id )
                      ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
                      ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
-        /* clear and clone models */
-        for (size_t i=0; i<c_models.size(); i++)
-            delete(c_models[i]);
-        c_models.clear();
+        /* clone models */
+        assert(!c_models.size());
         c_models.resize( modelsPtr.size() );
         for (size_t i=0; i<modelsPtr.size(); i++)
             if (ui->radDatatypeDna->isChecked())
@@ -751,11 +769,13 @@ void xmodeltest::optimization_done( partition_id_t part_id )
             else
                 c_models[i] = new modeltest::ProtModel(*(modelsPtr[i]));
 
-        delete mtest;
         update_gui();
 
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
+
+        delete mtest;
+        delete mythread;
 }
 
 void xmodeltest::optimization_interrupted( partition_id_t part_id )
@@ -769,9 +789,11 @@ void xmodeltest::optimization_interrupted( partition_id_t part_id )
         for (size_t i=0; i<c_models.size(); i++)
             delete(c_models[i]);
 
-        delete mtest;
         update_gui();
 
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization interrupted after " << time(NULL) - ini_t << " seconds" << endl;
+
+        delete mtest;
+        delete mythread;
 }
