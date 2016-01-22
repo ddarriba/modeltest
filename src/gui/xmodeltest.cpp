@@ -163,13 +163,19 @@ void xmodeltest::update_gui( void )
     enable(ui->tool_run,
           (status & st_msa_loaded) && !(status & st_optimized),
            status & st_optimized);
+    bool enable_settings = !(status & st_optimized);
     enable(ui->tool_settings,
-         !(status & st_optimized),
+           enable_settings,
            ui->tool_settings->isChecked());
+    ui->tool_settings->setChecked(ui->tool_settings->isChecked() &&
+                                  enable_settings);
+    bool enable_results = status & st_optimized;
     enable(ui->tool_results,
-           status & st_optimized);
+           enable_results);
     enable(ui->tool_reset,
            status & st_active);
+    ui->tool_results->setChecked(ui->tool_results->isChecked() &&
+                                 enable_results);
 
     ui->frame_settings->setVisible(ui->tool_settings->isChecked());
     ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
@@ -423,6 +429,9 @@ void xmodeltest::run_modelselection()
 
 void xmodeltest::action_run( void )
 {
+    if (!ui->tool_run->isEnabled())
+        return;
+
     toggle_settings(false);
     update_gui();
     ini_t = time(NULL);
@@ -453,6 +462,9 @@ void xmodeltest::action_reset( void )
 
 void xmodeltest::action_open_msa()
 {
+    if (!ui->tool_open_msa->isEnabled())
+        return;
+
     QString filters = tr("Multiple Sequence Alignment(*.phy *.nex *.fas);; All files(*)");
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Open File"),
@@ -521,6 +533,9 @@ void xmodeltest::action_open_msa()
 
 void xmodeltest::action_open_tree()
 {
+    if (!ui->tool_open_tree->isEnabled())
+        return;
+
     QString filters = tr("Newick tree(*.tree *.newick);; All files(*)");
     QString file_name;
     if (status & st_optimized)
@@ -584,6 +599,9 @@ void xmodeltest::action_open_tree()
 
 void xmodeltest::action_open_parts()
 {
+    if (!ui->tool_open_parts->isEnabled())
+        return;
+
     QString filters = tr("Partitions file(*.parts *.model *.conf);; All files(*)");
     QString file_name;
     if (status & st_optimized)

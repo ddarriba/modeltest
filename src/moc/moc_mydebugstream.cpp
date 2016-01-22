@@ -36,7 +36,7 @@ static const uint qt_meta_data_MyDebugStream[] = {
 };
 
 static const char qt_meta_stringdata_MyDebugStream[] = {
-    "MyDebugStream\0\0text\0newText(QString)\0"
+    "MyDebugStream\0\0text\0newText(char*)\0"
 };
 
 void MyDebugStream::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -45,7 +45,7 @@ void MyDebugStream::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         Q_ASSERT(staticMetaObject.cast(_o));
         MyDebugStream *_t = static_cast<MyDebugStream *>(_o);
         switch (_id) {
-        case 0: _t->newText((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 0: _t->newText((*reinterpret_cast< char*(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -93,7 +93,7 @@ int MyDebugStream::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void MyDebugStream::newText(QString _t1)
+void MyDebugStream::newText(char * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

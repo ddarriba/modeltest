@@ -218,6 +218,7 @@ namespace modeltest
       for (mt_index_t i=0; i<states; i++)
           partition.empirical_freqs[i] = 0;
 
+      const unsigned int * states_map = (partition.datatype == dt_dna)?pll_map_nt:pll_map_aa;
       mt_size_t count = 0;
       for (mt_index_t i = 0; i < n_sequences; i++)
       {
@@ -225,7 +226,7 @@ namespace modeltest
           {
               for (mt_index_t j = region.start; j < region.end; j++)
               {
-                  mt_size_t ind = pll_map_nt[(int)sequences[i][j]];
+                  mt_size_t ind = states_map[(int)sequences[i][j]];
                   for (mt_index_t k=0; k<states; k++)
                   {
                       if ( ind & 1)
