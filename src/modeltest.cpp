@@ -78,6 +78,7 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
                           double epsilon_opt)
 {
     time_t ini_t = time(NULL);
+
     int res = evaluate_single_model(model,
                                     part_id,
                                     thread_id,
@@ -96,7 +97,9 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
          << setw(15) << left << model->get_name()
          << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
          << model->get_lnl()
-         << setw(8) << time(NULL) - ini_t << endl;
+         << setw(8) << time(NULL) - ini_t
+         << setw(8) << model->get_alpha()
+         << setw(8) << model->get_prop_inv() << endl;
 
      return res;
 }
@@ -292,13 +295,16 @@ bool ModelTest::build_instance(mt_options & options)
         current_instance->partitions_eff = options.partitions_eff;
     }
 
-    /* compute empirical frequencies */
+    /* evaluate partitions */
     for (partition_t & partition : *options.partitions_eff)
+    {
+        /* compute empirical frequencies */
         if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
         {
             std::cerr << "Error in " << partition.partition_name << std::endl;
             return false;
         }
+    }
 
     switch (options.starting_tree)
     {

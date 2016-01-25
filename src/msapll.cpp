@@ -164,6 +164,7 @@ namespace modeltest
       r[p2] = p;
   }
 
+
   bool MsaPll::reorder_sites(partitioning_scheme_t & scheme)
   {
       /* sort partitioning scheme */
@@ -218,55 +219,54 @@ namespace modeltest
       for (mt_index_t i=0; i<states; i++)
           partition.empirical_freqs[i] = 0;
 
+      mt_size_t cum_sites = 0;
+      for (partition_region_t region : partition.regions)
+          cum_sites += region.end - region.start;
+
+      uint32_t existing_states = 0;
       const unsigned int * states_map = (partition.datatype == dt_dna)?pll_map_nt:pll_map_aa;
-      mt_size_t count = 0;
-      for (mt_index_t i = 0; i < n_sequences; i++)
+      for (mt_index_t i=0; i<n_sequences; ++i)
       {
           for (partition_region_t region : partition.regions)
           {
               for (mt_index_t j = region.start; j < region.end; j++)
               {
+                  double sum_site = 0.0;
                   mt_size_t ind = states_map[(int)sequences[i][j]];
-                  for (mt_index_t k=0; k<states; k++)
+                  for (unsigned int k=0; k<states; ++k)
                   {
-                      if ( ind & 1)
-                      {
-                          count++;
-                          partition.empirical_freqs[k]++;
-                      }
-                      ind >>= 1;
+                      sum_site += (ind & (1<<k)) > 0;
                   }
+                  for (unsigned int k=0; k<states; ++k)
+                      partition.empirical_freqs[k] += 1.0 * ((ind & (1<<k))>0) / sum_site;
+                  if (sum_site == 1)
+                      existing_states |= ind;
               }
           }
+      }
+
+      for (mt_index_t i=0; i<states; i++)
+      {
+          partition.empirical_freqs[i] /= n_sequences * cum_sites;
       }
 
       /* validate */
       double checksum = 0.0;
       for (mt_index_t i=0; i<states; i++)
       {
-          partition.empirical_freqs[i] /= (double)count;
           checksum += partition.empirical_freqs[i];
       }
       assert( fabs(1-checksum) < 1e-10 );
 
-      mt_size_t missing_states = 0;
-
       /* check missing states */
-      for (mt_index_t i=0; i<states; i++)
-          if (partition.empirical_freqs[i] == 0.0)
-          {
-             missing_states++;
-             if (smooth)
-                  partition.empirical_freqs[i] = MT_MIN_SMOOTH_FREQ;
-          }
-
+      mt_size_t missing_states = states - Utils::count_bits(existing_states);
       if (missing_states)
       {
           if (smooth)
           {
               std::cerr << "WARNING: Forced freq. smoothing" << std::endl;
               for (mt_index_t i=0; i<states; i++)
-                 partition.empirical_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
+                  partition.empirical_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
           }
           else
           {

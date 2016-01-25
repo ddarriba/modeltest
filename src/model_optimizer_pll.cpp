@@ -296,7 +296,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                  &ops_count);
 
     free (travbuffer);
-
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
@@ -384,7 +383,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   {
       assert (params == NULL);
 
-      double default_alpha = 0.5;
+      double default_alpha = 1.5;
       pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
 
       params = new pll_optimize_options_t;

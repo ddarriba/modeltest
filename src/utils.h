@@ -5,6 +5,7 @@
 #include "msa.h"
 #include "tree.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -162,6 +163,8 @@ public:
      * @return the number of physical CPU cores
      */
     static mt_size_t count_physical_cores( void );
+
+    static mt_size_t count_bits( uint32_t value);
 };
 
 }
