@@ -5,19 +5,17 @@
 #include "gui/xthreadopt.h"
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
+#include "gui/xutils.h"
+
+/* dialogs */
+#include "gui/datainfodialog.h"
+#include "gui/resultsdialog.h"
 
 #include <QMainWindow>
 #include <QtGui/QListWidgetItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTableView>
 #include <QtGui/QLabel>
-
-enum msg_level_id {
-    msg_lvl_error,
-    msg_lvl_alert,
-    msg_lvl_notify,
-    msg_lvl_info
-};
 
 #define st_active       (1<<0)
 #define st_msa_loaded   (1<<1)
@@ -77,6 +75,8 @@ private slots:
     void on_mnu_reset_triggered();
     void on_tool_reset_clicked();
 
+    void on_mnu_view_datainfo_triggered();
+
     /** SETTINGS **/
     void autoSelectSchemes(const int schemes[], int n);
     void on_radSchemes3_clicked();
@@ -111,12 +111,6 @@ private slots:
     void on_sliderNCat_valueChanged(int value);
     void on_sliderNCat_sliderMoved(int position);
 
-    /* FILL */
-    void fill_results(QTableView * result_table,
-                      modeltest::ModelSelection &model_selection,
-                      QLabel *imp_inv = 0, QLabel *imp_gamma = 0,
-                      QLabel *imp_gammainv = 0, QLabel *imp_freqs = 0);
-
 private:
     void toggle_settings( bool value );
     void action_open_msa( void );
@@ -125,6 +119,8 @@ private:
     void action_run( void );
     void action_results( void );
     void action_reset( void );
+    void action_view_datainfo( void );
+
     void update_gui( void );
     void reset_xmt( void );
 
@@ -153,6 +149,10 @@ private:
     mt_options opts;
 
     time_t ini_t;
+
+    /* other dialogs */
+    DataInfoDialog * datainfo_dialog;
+    ResultsDialog * results_dialog;
 };
 
 #endif // XMODELTEST_H

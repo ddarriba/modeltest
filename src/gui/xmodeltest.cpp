@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "gui/progressdialog.h"
+#include "gui/datainfodialog.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -101,6 +102,9 @@ xmodeltest::xmodeltest(QWidget *parent) :
     redirect = new MyDebugStream(std::cout);
     QObject::connect(redirect, SIGNAL(newText(char *)), this, SLOT(set_text(char *)), Qt::QueuedConnection);
 
+    datainfo_dialog = 0;
+    results_dialog = 0;
+
     reset_xmt();
 }
 
@@ -140,6 +144,14 @@ void xmodeltest::reset_xmt( void )
             delete(c_models[i]);
         c_models.clear();
     }
+
+    if (datainfo_dialog)
+        delete datainfo_dialog;
+    datainfo_dialog = 0;
+
+    if (results_dialog)
+        delete results_dialog;
+    results_dialog = 0;
 }
 
 void xmodeltest::update_gui( void )
@@ -174,13 +186,9 @@ void xmodeltest::update_gui( void )
            enable_results);
     enable(ui->tool_reset,
            status & st_active);
-    ui->tool_results->setChecked(ui->tool_results->isChecked() &&
-                                 enable_results);
 
     ui->frame_settings->setVisible(ui->tool_settings->isChecked());
     ui->grpConsoles->setVisible(!ui->tool_settings->isChecked());
-    ui->frame_console->setVisible(!ui->tool_results->isChecked());
-    ui->frame_results->setVisible(ui->tool_results->isChecked());
 
     /** SETTINGS **/
     ui->modelsListView->setEnabled(
@@ -238,24 +246,6 @@ void xmodeltest::update_gui( void )
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
         n_cats = 1;
     compute_size(n_cats, ui->sliderNThreads->value());
-}
-
-static QString to_qstring(const char * msg, msg_level_id level)
-{
-    QString line = msg;
-    QString endHtml = "</font>";
-
-    switch(level)
-    {
-        case msg_lvl_error: line = "<font color=\"Red\">" + line + "</font>"; break;
-        case msg_lvl_alert: line = "<font color=\"DeepPink\">" + line + "</font>"; break;
-        case msg_lvl_notify: line = "<font color=\"DarkGreen\">" + line + "</font>"; break;
-        case msg_lvl_info: line  = "<font color=\"Black\">" + line + "</font>"; break;
-        default: break;
-    }
-
-    line = line + endHtml;
-    return line;
 }
 
 void xmodeltest::run_modelselection()
@@ -380,8 +370,8 @@ void xmodeltest::run_modelselection()
     bool ok_inst = mtest->build_instance(opts);
     if (!ok_inst)
     {
-        ui->consoleRun->append(to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
-        ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+        ui->consoleRun->append(xutils::to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
+        ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
         return;
     }
 
@@ -442,6 +432,18 @@ void xmodeltest::action_run( void )
 void xmodeltest::action_results( void )
 {
     //TODO
+    if (!results_dialog)
+    {
+        modeltest::ModelSelection aic_selection(c_models, modeltest::ic_aic);
+        modeltest::ModelSelection aicc_selection(c_models, modeltest::ic_aicc);
+        modeltest::ModelSelection bic_selection(c_models, modeltest::ic_bic);
+        modeltest::ModelSelection dt_selection(c_models, modeltest::ic_dt);
+
+        results_dialog = new ResultsDialog(aic_selection, aicc_selection, bic_selection, dt_selection);
+    }
+    results_dialog->show();
+    results_dialog->raise();
+
     update_gui();
 }
 
@@ -464,6 +466,10 @@ void xmodeltest::action_open_msa()
 {
     if (!ui->tool_open_msa->isEnabled())
         return;
+
+    if (datainfo_dialog)
+        delete datainfo_dialog;
+    datainfo_dialog = 0;
 
     QString filters = tr("Multiple Sequence Alignment(*.phy *.nex *.fas);; All files(*)");
     QString file_name = QFileDialog::getOpenFileName(this,
@@ -503,14 +509,14 @@ void xmodeltest::action_open_msa()
                                      &seq_len))
             {
                 cout << endl << "Loaded alignment" << endl;
-                ui->consoleRun->append(to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
                 cout << "Num.Sequences:   " << n_seqs << endl;
                 cout << "Sequence Length: " << seq_len << endl;
                 status |= st_msa_loaded;
             }
             else
             {
-                ui->consoleRun->append(to_qstring("Error: Cannot load alignment %1", msg_lvl_error).arg(msa_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring("Error: Cannot load alignment %1", msg_lvl_error).arg(msa_filename.c_str()));
                 msa_filename   = "";
                 status &= ~st_msa_loaded;
             }
@@ -535,6 +541,10 @@ void xmodeltest::action_open_tree()
 {
     if (!ui->tool_open_tree->isEnabled())
         return;
+
+    if (datainfo_dialog)
+        delete datainfo_dialog;
+    datainfo_dialog = 0;
 
     QString filters = tr("Newick tree(*.tree *.newick);; All files(*)");
     QString file_name;
@@ -566,19 +576,19 @@ void xmodeltest::action_open_tree()
             if (n_tips == n_seqs)
             {
                 cout << endl << "Loaded tree" << endl;
-                ui->consoleRun->append(to_qstring("%1", msg_lvl_notify).arg(utree_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(utree_filename.c_str()));
                 status |= st_tree_loaded;
             }
             else
             {
-                ui->consoleRun->append(to_qstring("Error: Tip number does not match in %1", msg_lvl_error).arg(utree_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring("Error: Tip number does not match in %1", msg_lvl_error).arg(utree_filename.c_str()));
                 utree_filename = "";
                 status &= ~st_tree_loaded;
             }
         }
         else
         {
-            ui->consoleRun->append(to_qstring("%1", msg_lvl_error).arg(modeltest::mt_errmsg));
+            ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_error).arg(modeltest::mt_errmsg));
             utree_filename = "";
             status &= ~st_tree_loaded;
         }
@@ -601,6 +611,10 @@ void xmodeltest::action_open_parts()
 {
     if (!ui->tool_open_parts->isEnabled())
         return;
+
+    if (datainfo_dialog)
+        delete datainfo_dialog;
+    datainfo_dialog = 0;
 
     QString filters = tr("Partitions file(*.parts *.model *.conf);; All files(*)");
     QString file_name;
@@ -628,8 +642,8 @@ void xmodeltest::action_open_parts()
         if (!scheme)
         {
             parts_filename = "";
-            ui->consoleRun->append(to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
-            ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+            ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+            ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
             if (scheme)
             {
                 delete scheme;
@@ -641,8 +655,8 @@ void xmodeltest::action_open_parts()
         {
             if (!modeltest::ModelTest::test_partitions(*scheme, seq_len))
             {
-                ui->consoleRun->append(to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
-                ui->consoleRun->append(to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
                 parts_filename = "";
                 delete scheme;
                 scheme = 0;
@@ -650,11 +664,11 @@ void xmodeltest::action_open_parts()
             }
             else
             {
-                ui->consoleRun->append(to_qstring("Loaded %1 partitions %2", msg_lvl_notify).arg(scheme->size()).arg(parts_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring("Loaded %1 partitions %2", msg_lvl_notify).arg(scheme->size()).arg(parts_filename.c_str()));
                 if (modeltest::mt_errno)
                 {
                     /* there are warnings */
-                    ui->consoleRun->append("Warning: " + to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                    ui->consoleRun->append("Warning: " + xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
                 }
                 status |= st_parts_loaded;
             }
@@ -669,6 +683,12 @@ void xmodeltest::action_open_parts()
     update_gui();
 }
 
+void xmodeltest::action_view_datainfo( void )
+{
+    if (!datainfo_dialog)
+        datainfo_dialog = new DataInfoDialog(msa_filename, n_seqs, seq_len, utree_filename, 1.0, *scheme, parts_filename);
+    datainfo_dialog->show();
+}
 
 /** SETTINGS **/
 
@@ -757,26 +777,6 @@ void xmodeltest::optimization_done( partition_id_t part_id )
         status |= st_optimized;
 
         modeltest::on_run = false;
-
-        ui->tool_results->setChecked(true);
-
-        modeltest::ModelSelection aic_selection(modelsPtr, modeltest::ic_aic);
-        modeltest::ModelSelection aicc_selection(modelsPtr, modeltest::ic_aicc);
-        modeltest::ModelSelection bic_selection(modelsPtr, modeltest::ic_bic);
-        modeltest::ModelSelection dt_selection(modelsPtr, modeltest::ic_dt);
-
-        fill_results(ui->table_results_aic, aic_selection,
-                     ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
-                     ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
-        fill_results(ui->table_results_aicc, aicc_selection,
-                     ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
-                     ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
-        fill_results(ui->table_results_bic, bic_selection,
-                     ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
-                     ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-        fill_results(ui->table_results_dt, dt_selection,
-                     ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                     ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
         /* clone models */
         assert(!c_models.size());

@@ -27,7 +27,11 @@ SOURCES += main.cpp\
     gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
     gui/xmodeltest_fill.cpp \
-    gui/progressdialog.cpp
+    gui/progressdialog.cpp \
+    gui/datainfodialog.cpp \
+    gui/xutils.cpp \
+    gui/resultsdialog.cpp \
+    partitionselection.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -52,13 +56,19 @@ HEADERS  += \
     gui/mydebugstream.h \
     gui/xthreadopt.h \
     gui/progressdialog.h \
-    thread/observer.h
+    thread/observer.h \
+    gui/datainfodialog.h \
+    gui/xutils.h \
+    gui/resultsdialog.h \
+    partitionselection.h
 
 FORMS    += \
     compute_options.ui \
     modeltest_gui.ui \
     gui/xmodeltest.ui \
-    gui/progressdialog.ui
+    gui/progressdialog.ui \
+    gui/datainfodialog.ui \
+    gui/resultsdialog.ui
 
 RESOURCES = mtgraphics.qrc
 

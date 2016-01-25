@@ -14,7 +14,6 @@
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
 #include <QtGui/QFrame>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHBoxLayout>
@@ -31,8 +30,6 @@
 #include <QtGui/QSpacerItem>
 #include <QtGui/QSplitter>
 #include <QtGui/QStatusBar>
-#include <QtGui/QTabWidget>
-#include <QtGui/QTableView>
 #include <QtGui/QTextBrowser>
 #include <QtGui/QToolBar>
 #include <QtGui/QToolButton>
@@ -61,6 +58,7 @@ public:
     QAction *mnu_reset;
     QAction *mnu_run;
     QAction *mnu_results;
+    QAction *mnu_view_datainfo;
     QWidget *centralwidget;
     QVBoxLayout *verticalLayout;
     QFrame *frame_top;
@@ -71,14 +69,14 @@ public:
     QToolButton *tool_open_tree;
     QToolButton *tool_open_parts;
     QSpacerItem *horizontalSpacer;
+    QToolButton *tool_results;
     QFrame *frame_tools_2;
     QHBoxLayout *horizontalLayout_4;
     QToolButton *tool_settings;
     QToolButton *tool_run;
-    QToolButton *tool_results;
-    QToolButton *tool_help;
     QToolButton *tool_reset;
     QSpacerItem *horizontalSpacer_2;
+    QToolButton *tool_help;
     QFrame *frame_header;
     QHBoxLayout *horizontalLayout;
     QLabel *mt_icon;
@@ -183,80 +181,12 @@ public:
     QFrame *grpConsoles;
     QVBoxLayout *verticalLayout_4;
     QTextBrowser *consoleRun;
-    QFrame *frame_results;
-    QVBoxLayout *verticalLayout_6;
-    QFrame *frame_results_inner;
-    QVBoxLayout *verticalLayout_14;
-    QFrame *frame_results_header;
-    QHBoxLayout *horizontalLayout_6;
-    QComboBox *cmb_results_partition;
-    QSpacerItem *spacer_results_header;
-    QTabWidget *results_content;
-    QWidget *tab_results_bic;
-    QVBoxLayout *verticalLayout_8;
-    QTableView *table_results_bic;
-    QFrame *frame_imp_bic;
-    QGridLayout *gridLayout_5;
-    QLabel *lbl_imp_bic;
-    QLabel *lbl_imp_gamma_bic;
-    QSpacerItem *spacer_imp_bic;
-    QLabel *lbl_imp_freqs_bic;
-    QLabel *txt_imp_freqs_bic;
-    QLabel *txt_imp_gamma_bic;
-    QLabel *lbl_imp_inv_bic;
-    QLabel *txt_imp_inv_bic;
-    QLabel *lbl_imp_invgamma_bic;
-    QLabel *txt_imp_invgamma_bic;
-    QWidget *tab_results_aic;
-    QVBoxLayout *verticalLayout_10;
-    QTableView *table_results_aic;
-    QFrame *frame_imp_aic;
-    QGridLayout *gridLayout_6;
-    QLabel *lbl_imp_aic;
-    QLabel *lbl_imp_gamma_aic;
-    QSpacerItem *spacer_imp_aic;
-    QLabel *lbl_imp_freqs_aic;
-    QLabel *txt_imp_freqs_aic;
-    QLabel *txt_imp_gamma_aic;
-    QLabel *lbl_imp_inv_aic;
-    QLabel *txt_imp_inv_aic;
-    QLabel *lbl_imp_invgamma_aic;
-    QLabel *txt_imp_invgamma_aic;
-    QWidget *tab_results_aicc;
-    QVBoxLayout *verticalLayout_11;
-    QTableView *table_results_aicc;
-    QFrame *frame_imp_aicc;
-    QGridLayout *gridLayout_8;
-    QLabel *lbl_imp_aicc;
-    QLabel *lbl_imp_gamma_aicc;
-    QSpacerItem *spacer_imp_aicc;
-    QLabel *lbl_imp_freqs_aicc;
-    QLabel *txt_imp_freqs_aicc;
-    QLabel *txt_imp_gamma_aicc;
-    QLabel *lbl_imp_inv_aicc;
-    QLabel *txt_imp_inv_aicc;
-    QLabel *lbl_imp_invgamma_aicc;
-    QLabel *txt_imp_invgamma_aicc;
-    QWidget *tab_results_dt;
-    QVBoxLayout *verticalLayout_13;
-    QTableView *table_results_dt;
-    QFrame *frame_imp_dt;
-    QGridLayout *gridLayout_9;
-    QLabel *lbl_imp_dt;
-    QLabel *lbl_imp_gamma_dt;
-    QSpacerItem *spacer_imp_dt;
-    QLabel *lbl_imp_freqs_dt;
-    QLabel *txt_imp_freqs_dt;
-    QLabel *txt_imp_gamma_dt;
-    QLabel *lbl_imp_inv_dt;
-    QLabel *txt_imp_inv_dt;
-    QLabel *lbl_imp_invgamma_dt;
-    QLabel *txt_imp_invgamma_dt;
     QMenuBar *menubar;
     QMenu *menuFile;
     QMenu *menuEdit;
     QMenu *menuRun;
     QMenu *menuHelp;
+    QMenu *menuView;
     QStatusBar *statusbar;
     QToolBar *toolBar;
 
@@ -336,6 +266,8 @@ public:
         mnu_run->setIcon(icon5);
         mnu_results = new QAction(xmodeltest);
         mnu_results->setObjectName(QString::fromUtf8("mnu_results"));
+        mnu_view_datainfo = new QAction(xmodeltest);
+        mnu_view_datainfo->setObjectName(QString::fromUtf8("mnu_view_datainfo"));
         centralwidget = new QWidget(xmodeltest);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         verticalLayout = new QVBoxLayout(centralwidget);
@@ -386,6 +318,13 @@ public:
 
         horizontalLayout_3->addItem(horizontalSpacer);
 
+        tool_results = new QToolButton(frame_tools_1);
+        tool_results->setObjectName(QString::fromUtf8("tool_results"));
+        tool_results->setFont(font);
+        tool_results->setCheckable(false);
+
+        horizontalLayout_3->addWidget(tool_results);
+
 
         verticalLayout_2->addWidget(frame_tools_1);
 
@@ -411,19 +350,6 @@ public:
 
         horizontalLayout_4->addWidget(tool_run);
 
-        tool_results = new QToolButton(frame_tools_2);
-        tool_results->setObjectName(QString::fromUtf8("tool_results"));
-        tool_results->setFont(font);
-        tool_results->setCheckable(true);
-
-        horizontalLayout_4->addWidget(tool_results);
-
-        tool_help = new QToolButton(frame_tools_2);
-        tool_help->setObjectName(QString::fromUtf8("tool_help"));
-        tool_help->setFont(font);
-
-        horizontalLayout_4->addWidget(tool_help);
-
         tool_reset = new QToolButton(frame_tools_2);
         tool_reset->setObjectName(QString::fromUtf8("tool_reset"));
         tool_reset->setFont(font);
@@ -433,6 +359,12 @@ public:
         horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_4->addItem(horizontalSpacer_2);
+
+        tool_help = new QToolButton(frame_tools_2);
+        tool_help->setObjectName(QString::fromUtf8("tool_help"));
+        tool_help->setFont(font);
+
+        horizontalLayout_4->addWidget(tool_help);
 
 
         verticalLayout_2->addWidget(frame_tools_2);
@@ -554,7 +486,7 @@ public:
         frame_settings->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 674, 583));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 821, 583));
         verticalLayout_9 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_9->setObjectName(QString::fromUtf8("verticalLayout_9"));
         frameData = new QFrame(scrollAreaWidgetContents);
@@ -1203,396 +1135,6 @@ public:
         verticalLayout_7->addWidget(splitter_2);
 
         splitter->addWidget(frame_console);
-        frame_results = new QFrame(splitter);
-        frame_results->setObjectName(QString::fromUtf8("frame_results"));
-        frame_results->setFrameShape(QFrame::StyledPanel);
-        frame_results->setFrameShadow(QFrame::Raised);
-        verticalLayout_6 = new QVBoxLayout(frame_results);
-        verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
-        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
-        frame_results_inner = new QFrame(frame_results);
-        frame_results_inner->setObjectName(QString::fromUtf8("frame_results_inner"));
-        frame_results_inner->setFrameShape(QFrame::StyledPanel);
-        frame_results_inner->setFrameShadow(QFrame::Raised);
-        verticalLayout_14 = new QVBoxLayout(frame_results_inner);
-        verticalLayout_14->setObjectName(QString::fromUtf8("verticalLayout_14"));
-        frame_results_header = new QFrame(frame_results_inner);
-        frame_results_header->setObjectName(QString::fromUtf8("frame_results_header"));
-        frame_results_header->setFrameShape(QFrame::NoFrame);
-        frame_results_header->setFrameShadow(QFrame::Raised);
-        horizontalLayout_6 = new QHBoxLayout(frame_results_header);
-        horizontalLayout_6->setSpacing(5);
-        horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
-        horizontalLayout_6->setContentsMargins(0, 0, 0, 0);
-        cmb_results_partition = new QComboBox(frame_results_header);
-        cmb_results_partition->setObjectName(QString::fromUtf8("cmb_results_partition"));
-        cmb_results_partition->setMinimumSize(QSize(200, 0));
-        cmb_results_partition->setMaximumSize(QSize(200, 16777215));
-
-        horizontalLayout_6->addWidget(cmb_results_partition);
-
-        spacer_results_header = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        horizontalLayout_6->addItem(spacer_results_header);
-
-
-        verticalLayout_14->addWidget(frame_results_header);
-
-        results_content = new QTabWidget(frame_results_inner);
-        results_content->setObjectName(QString::fromUtf8("results_content"));
-        QFont font12;
-        font12.setFamily(QString::fromUtf8("Arial"));
-        results_content->setFont(font12);
-        tab_results_bic = new QWidget();
-        tab_results_bic->setObjectName(QString::fromUtf8("tab_results_bic"));
-        verticalLayout_8 = new QVBoxLayout(tab_results_bic);
-        verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
-        table_results_bic = new QTableView(tab_results_bic);
-        table_results_bic->setObjectName(QString::fromUtf8("table_results_bic"));
-        table_results_bic->setFont(font1);
-        table_results_bic->setAlternatingRowColors(true);
-        table_results_bic->setSortingEnabled(true);
-
-        verticalLayout_8->addWidget(table_results_bic);
-
-        frame_imp_bic = new QFrame(tab_results_bic);
-        frame_imp_bic->setObjectName(QString::fromUtf8("frame_imp_bic"));
-        frame_imp_bic->setMinimumSize(QSize(0, 20));
-        frame_imp_bic->setFrameShape(QFrame::StyledPanel);
-        frame_imp_bic->setFrameShadow(QFrame::Raised);
-        gridLayout_5 = new QGridLayout(frame_imp_bic);
-        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
-        gridLayout_5->setVerticalSpacing(6);
-        lbl_imp_bic = new QLabel(frame_imp_bic);
-        lbl_imp_bic->setObjectName(QString::fromUtf8("lbl_imp_bic"));
-        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(lbl_imp_bic->sizePolicy().hasHeightForWidth());
-        lbl_imp_bic->setSizePolicy(sizePolicy1);
-        lbl_imp_bic->setMinimumSize(QSize(0, 0));
-        QFont font13;
-        font13.setBold(true);
-        font13.setUnderline(false);
-        font13.setWeight(75);
-        lbl_imp_bic->setFont(font13);
-        lbl_imp_bic->setLineWidth(1);
-
-        gridLayout_5->addWidget(lbl_imp_bic, 0, 0, 1, 2, Qt::AlignHCenter);
-
-        lbl_imp_gamma_bic = new QLabel(frame_imp_bic);
-        lbl_imp_gamma_bic->setObjectName(QString::fromUtf8("lbl_imp_gamma_bic"));
-        lbl_imp_gamma_bic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_5->addWidget(lbl_imp_gamma_bic, 3, 0, 1, 1);
-
-        spacer_imp_bic = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_5->addItem(spacer_imp_bic, 3, 2, 1, 1);
-
-        lbl_imp_freqs_bic = new QLabel(frame_imp_bic);
-        lbl_imp_freqs_bic->setObjectName(QString::fromUtf8("lbl_imp_freqs_bic"));
-        lbl_imp_freqs_bic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_5->addWidget(lbl_imp_freqs_bic, 4, 0, 1, 1);
-
-        txt_imp_freqs_bic = new QLabel(frame_imp_bic);
-        txt_imp_freqs_bic->setObjectName(QString::fromUtf8("txt_imp_freqs_bic"));
-        txt_imp_freqs_bic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_5->addWidget(txt_imp_freqs_bic, 4, 1, 1, 1);
-
-        txt_imp_gamma_bic = new QLabel(frame_imp_bic);
-        txt_imp_gamma_bic->setObjectName(QString::fromUtf8("txt_imp_gamma_bic"));
-        txt_imp_gamma_bic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_5->addWidget(txt_imp_gamma_bic, 3, 1, 1, 1);
-
-        lbl_imp_inv_bic = new QLabel(frame_imp_bic);
-        lbl_imp_inv_bic->setObjectName(QString::fromUtf8("lbl_imp_inv_bic"));
-        lbl_imp_inv_bic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_5->addWidget(lbl_imp_inv_bic, 2, 0, 1, 1);
-
-        txt_imp_inv_bic = new QLabel(frame_imp_bic);
-        txt_imp_inv_bic->setObjectName(QString::fromUtf8("txt_imp_inv_bic"));
-        txt_imp_inv_bic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_5->addWidget(txt_imp_inv_bic, 2, 1, 1, 1);
-
-        lbl_imp_invgamma_bic = new QLabel(frame_imp_bic);
-        lbl_imp_invgamma_bic->setObjectName(QString::fromUtf8("lbl_imp_invgamma_bic"));
-
-        gridLayout_5->addWidget(lbl_imp_invgamma_bic, 1, 0, 1, 1);
-
-        txt_imp_invgamma_bic = new QLabel(frame_imp_bic);
-        txt_imp_invgamma_bic->setObjectName(QString::fromUtf8("txt_imp_invgamma_bic"));
-
-        gridLayout_5->addWidget(txt_imp_invgamma_bic, 1, 1, 1, 1);
-
-
-        verticalLayout_8->addWidget(frame_imp_bic);
-
-        results_content->addTab(tab_results_bic, QString());
-        tab_results_aic = new QWidget();
-        tab_results_aic->setObjectName(QString::fromUtf8("tab_results_aic"));
-        verticalLayout_10 = new QVBoxLayout(tab_results_aic);
-        verticalLayout_10->setObjectName(QString::fromUtf8("verticalLayout_10"));
-        table_results_aic = new QTableView(tab_results_aic);
-        table_results_aic->setObjectName(QString::fromUtf8("table_results_aic"));
-        table_results_aic->setFont(font1);
-        table_results_aic->setAlternatingRowColors(true);
-        table_results_aic->setSortingEnabled(true);
-
-        verticalLayout_10->addWidget(table_results_aic);
-
-        frame_imp_aic = new QFrame(tab_results_aic);
-        frame_imp_aic->setObjectName(QString::fromUtf8("frame_imp_aic"));
-        frame_imp_aic->setMinimumSize(QSize(0, 20));
-        frame_imp_aic->setFrameShape(QFrame::StyledPanel);
-        frame_imp_aic->setFrameShadow(QFrame::Raised);
-        gridLayout_6 = new QGridLayout(frame_imp_aic);
-        gridLayout_6->setObjectName(QString::fromUtf8("gridLayout_6"));
-        gridLayout_6->setVerticalSpacing(6);
-        lbl_imp_aic = new QLabel(frame_imp_aic);
-        lbl_imp_aic->setObjectName(QString::fromUtf8("lbl_imp_aic"));
-        sizePolicy1.setHeightForWidth(lbl_imp_aic->sizePolicy().hasHeightForWidth());
-        lbl_imp_aic->setSizePolicy(sizePolicy1);
-        lbl_imp_aic->setMinimumSize(QSize(0, 0));
-        lbl_imp_aic->setFont(font13);
-        lbl_imp_aic->setLineWidth(1);
-
-        gridLayout_6->addWidget(lbl_imp_aic, 0, 0, 1, 2, Qt::AlignHCenter);
-
-        lbl_imp_gamma_aic = new QLabel(frame_imp_aic);
-        lbl_imp_gamma_aic->setObjectName(QString::fromUtf8("lbl_imp_gamma_aic"));
-        lbl_imp_gamma_aic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_6->addWidget(lbl_imp_gamma_aic, 3, 0, 1, 1);
-
-        spacer_imp_aic = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_6->addItem(spacer_imp_aic, 3, 2, 1, 1);
-
-        lbl_imp_freqs_aic = new QLabel(frame_imp_aic);
-        lbl_imp_freqs_aic->setObjectName(QString::fromUtf8("lbl_imp_freqs_aic"));
-        lbl_imp_freqs_aic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_6->addWidget(lbl_imp_freqs_aic, 4, 0, 1, 1);
-
-        txt_imp_freqs_aic = new QLabel(frame_imp_aic);
-        txt_imp_freqs_aic->setObjectName(QString::fromUtf8("txt_imp_freqs_aic"));
-        txt_imp_freqs_aic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_6->addWidget(txt_imp_freqs_aic, 4, 1, 1, 1);
-
-        txt_imp_gamma_aic = new QLabel(frame_imp_aic);
-        txt_imp_gamma_aic->setObjectName(QString::fromUtf8("txt_imp_gamma_aic"));
-        txt_imp_gamma_aic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_6->addWidget(txt_imp_gamma_aic, 3, 1, 1, 1);
-
-        lbl_imp_inv_aic = new QLabel(frame_imp_aic);
-        lbl_imp_inv_aic->setObjectName(QString::fromUtf8("lbl_imp_inv_aic"));
-        lbl_imp_inv_aic->setMinimumSize(QSize(100, 0));
-
-        gridLayout_6->addWidget(lbl_imp_inv_aic, 2, 0, 1, 1);
-
-        txt_imp_inv_aic = new QLabel(frame_imp_aic);
-        txt_imp_inv_aic->setObjectName(QString::fromUtf8("txt_imp_inv_aic"));
-        txt_imp_inv_aic->setMinimumSize(QSize(60, 0));
-
-        gridLayout_6->addWidget(txt_imp_inv_aic, 2, 1, 1, 1);
-
-        lbl_imp_invgamma_aic = new QLabel(frame_imp_aic);
-        lbl_imp_invgamma_aic->setObjectName(QString::fromUtf8("lbl_imp_invgamma_aic"));
-
-        gridLayout_6->addWidget(lbl_imp_invgamma_aic, 1, 0, 1, 1);
-
-        txt_imp_invgamma_aic = new QLabel(frame_imp_aic);
-        txt_imp_invgamma_aic->setObjectName(QString::fromUtf8("txt_imp_invgamma_aic"));
-
-        gridLayout_6->addWidget(txt_imp_invgamma_aic, 1, 1, 1, 1);
-
-
-        verticalLayout_10->addWidget(frame_imp_aic);
-
-        results_content->addTab(tab_results_aic, QString());
-        tab_results_aicc = new QWidget();
-        tab_results_aicc->setObjectName(QString::fromUtf8("tab_results_aicc"));
-        verticalLayout_11 = new QVBoxLayout(tab_results_aicc);
-        verticalLayout_11->setObjectName(QString::fromUtf8("verticalLayout_11"));
-        table_results_aicc = new QTableView(tab_results_aicc);
-        table_results_aicc->setObjectName(QString::fromUtf8("table_results_aicc"));
-        table_results_aicc->setFont(font1);
-        table_results_aicc->setAlternatingRowColors(true);
-        table_results_aicc->setSortingEnabled(true);
-
-        verticalLayout_11->addWidget(table_results_aicc);
-
-        frame_imp_aicc = new QFrame(tab_results_aicc);
-        frame_imp_aicc->setObjectName(QString::fromUtf8("frame_imp_aicc"));
-        frame_imp_aicc->setMinimumSize(QSize(0, 20));
-        frame_imp_aicc->setFrameShape(QFrame::StyledPanel);
-        frame_imp_aicc->setFrameShadow(QFrame::Raised);
-        gridLayout_8 = new QGridLayout(frame_imp_aicc);
-        gridLayout_8->setObjectName(QString::fromUtf8("gridLayout_8"));
-        gridLayout_8->setVerticalSpacing(6);
-        lbl_imp_aicc = new QLabel(frame_imp_aicc);
-        lbl_imp_aicc->setObjectName(QString::fromUtf8("lbl_imp_aicc"));
-        sizePolicy1.setHeightForWidth(lbl_imp_aicc->sizePolicy().hasHeightForWidth());
-        lbl_imp_aicc->setSizePolicy(sizePolicy1);
-        lbl_imp_aicc->setMinimumSize(QSize(0, 0));
-        lbl_imp_aicc->setFont(font13);
-        lbl_imp_aicc->setLineWidth(1);
-
-        gridLayout_8->addWidget(lbl_imp_aicc, 0, 0, 1, 2, Qt::AlignHCenter);
-
-        lbl_imp_gamma_aicc = new QLabel(frame_imp_aicc);
-        lbl_imp_gamma_aicc->setObjectName(QString::fromUtf8("lbl_imp_gamma_aicc"));
-        lbl_imp_gamma_aicc->setMinimumSize(QSize(100, 0));
-
-        gridLayout_8->addWidget(lbl_imp_gamma_aicc, 3, 0, 1, 1);
-
-        spacer_imp_aicc = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_8->addItem(spacer_imp_aicc, 3, 2, 1, 1);
-
-        lbl_imp_freqs_aicc = new QLabel(frame_imp_aicc);
-        lbl_imp_freqs_aicc->setObjectName(QString::fromUtf8("lbl_imp_freqs_aicc"));
-        lbl_imp_freqs_aicc->setMinimumSize(QSize(100, 0));
-
-        gridLayout_8->addWidget(lbl_imp_freqs_aicc, 4, 0, 1, 1);
-
-        txt_imp_freqs_aicc = new QLabel(frame_imp_aicc);
-        txt_imp_freqs_aicc->setObjectName(QString::fromUtf8("txt_imp_freqs_aicc"));
-        txt_imp_freqs_aicc->setMinimumSize(QSize(60, 0));
-
-        gridLayout_8->addWidget(txt_imp_freqs_aicc, 4, 1, 1, 1);
-
-        txt_imp_gamma_aicc = new QLabel(frame_imp_aicc);
-        txt_imp_gamma_aicc->setObjectName(QString::fromUtf8("txt_imp_gamma_aicc"));
-        txt_imp_gamma_aicc->setMinimumSize(QSize(60, 0));
-
-        gridLayout_8->addWidget(txt_imp_gamma_aicc, 3, 1, 1, 1);
-
-        lbl_imp_inv_aicc = new QLabel(frame_imp_aicc);
-        lbl_imp_inv_aicc->setObjectName(QString::fromUtf8("lbl_imp_inv_aicc"));
-        lbl_imp_inv_aicc->setMinimumSize(QSize(100, 0));
-
-        gridLayout_8->addWidget(lbl_imp_inv_aicc, 2, 0, 1, 1);
-
-        txt_imp_inv_aicc = new QLabel(frame_imp_aicc);
-        txt_imp_inv_aicc->setObjectName(QString::fromUtf8("txt_imp_inv_aicc"));
-        txt_imp_inv_aicc->setMinimumSize(QSize(60, 0));
-
-        gridLayout_8->addWidget(txt_imp_inv_aicc, 2, 1, 1, 1);
-
-        lbl_imp_invgamma_aicc = new QLabel(frame_imp_aicc);
-        lbl_imp_invgamma_aicc->setObjectName(QString::fromUtf8("lbl_imp_invgamma_aicc"));
-
-        gridLayout_8->addWidget(lbl_imp_invgamma_aicc, 1, 0, 1, 1);
-
-        txt_imp_invgamma_aicc = new QLabel(frame_imp_aicc);
-        txt_imp_invgamma_aicc->setObjectName(QString::fromUtf8("txt_imp_invgamma_aicc"));
-
-        gridLayout_8->addWidget(txt_imp_invgamma_aicc, 1, 1, 1, 1);
-
-
-        verticalLayout_11->addWidget(frame_imp_aicc);
-
-        results_content->addTab(tab_results_aicc, QString());
-        tab_results_dt = new QWidget();
-        tab_results_dt->setObjectName(QString::fromUtf8("tab_results_dt"));
-        verticalLayout_13 = new QVBoxLayout(tab_results_dt);
-        verticalLayout_13->setObjectName(QString::fromUtf8("verticalLayout_13"));
-        table_results_dt = new QTableView(tab_results_dt);
-        table_results_dt->setObjectName(QString::fromUtf8("table_results_dt"));
-        table_results_dt->setFont(font1);
-        table_results_dt->setAlternatingRowColors(true);
-        table_results_dt->setSortingEnabled(true);
-
-        verticalLayout_13->addWidget(table_results_dt);
-
-        frame_imp_dt = new QFrame(tab_results_dt);
-        frame_imp_dt->setObjectName(QString::fromUtf8("frame_imp_dt"));
-        frame_imp_dt->setMinimumSize(QSize(0, 20));
-        frame_imp_dt->setFrameShape(QFrame::StyledPanel);
-        frame_imp_dt->setFrameShadow(QFrame::Raised);
-        gridLayout_9 = new QGridLayout(frame_imp_dt);
-        gridLayout_9->setObjectName(QString::fromUtf8("gridLayout_9"));
-        gridLayout_9->setVerticalSpacing(6);
-        lbl_imp_dt = new QLabel(frame_imp_dt);
-        lbl_imp_dt->setObjectName(QString::fromUtf8("lbl_imp_dt"));
-        sizePolicy1.setHeightForWidth(lbl_imp_dt->sizePolicy().hasHeightForWidth());
-        lbl_imp_dt->setSizePolicy(sizePolicy1);
-        lbl_imp_dt->setMinimumSize(QSize(0, 0));
-        lbl_imp_dt->setFont(font13);
-        lbl_imp_dt->setLineWidth(1);
-
-        gridLayout_9->addWidget(lbl_imp_dt, 0, 0, 1, 2, Qt::AlignHCenter);
-
-        lbl_imp_gamma_dt = new QLabel(frame_imp_dt);
-        lbl_imp_gamma_dt->setObjectName(QString::fromUtf8("lbl_imp_gamma_dt"));
-        lbl_imp_gamma_dt->setMinimumSize(QSize(100, 0));
-
-        gridLayout_9->addWidget(lbl_imp_gamma_dt, 3, 0, 1, 1);
-
-        spacer_imp_dt = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_9->addItem(spacer_imp_dt, 3, 2, 1, 1);
-
-        lbl_imp_freqs_dt = new QLabel(frame_imp_dt);
-        lbl_imp_freqs_dt->setObjectName(QString::fromUtf8("lbl_imp_freqs_dt"));
-        lbl_imp_freqs_dt->setMinimumSize(QSize(100, 0));
-
-        gridLayout_9->addWidget(lbl_imp_freqs_dt, 4, 0, 1, 1);
-
-        txt_imp_freqs_dt = new QLabel(frame_imp_dt);
-        txt_imp_freqs_dt->setObjectName(QString::fromUtf8("txt_imp_freqs_dt"));
-        txt_imp_freqs_dt->setMinimumSize(QSize(60, 0));
-
-        gridLayout_9->addWidget(txt_imp_freqs_dt, 4, 1, 1, 1);
-
-        txt_imp_gamma_dt = new QLabel(frame_imp_dt);
-        txt_imp_gamma_dt->setObjectName(QString::fromUtf8("txt_imp_gamma_dt"));
-        txt_imp_gamma_dt->setMinimumSize(QSize(60, 0));
-
-        gridLayout_9->addWidget(txt_imp_gamma_dt, 3, 1, 1, 1);
-
-        lbl_imp_inv_dt = new QLabel(frame_imp_dt);
-        lbl_imp_inv_dt->setObjectName(QString::fromUtf8("lbl_imp_inv_dt"));
-        lbl_imp_inv_dt->setMinimumSize(QSize(100, 0));
-
-        gridLayout_9->addWidget(lbl_imp_inv_dt, 2, 0, 1, 1);
-
-        txt_imp_inv_dt = new QLabel(frame_imp_dt);
-        txt_imp_inv_dt->setObjectName(QString::fromUtf8("txt_imp_inv_dt"));
-        txt_imp_inv_dt->setMinimumSize(QSize(60, 0));
-
-        gridLayout_9->addWidget(txt_imp_inv_dt, 2, 1, 1, 1);
-
-        lbl_imp_invgamma_dt = new QLabel(frame_imp_dt);
-        lbl_imp_invgamma_dt->setObjectName(QString::fromUtf8("lbl_imp_invgamma_dt"));
-
-        gridLayout_9->addWidget(lbl_imp_invgamma_dt, 1, 0, 1, 1);
-
-        txt_imp_invgamma_dt = new QLabel(frame_imp_dt);
-        txt_imp_invgamma_dt->setObjectName(QString::fromUtf8("txt_imp_invgamma_dt"));
-
-        gridLayout_9->addWidget(txt_imp_invgamma_dt, 1, 1, 1, 1);
-
-
-        verticalLayout_13->addWidget(frame_imp_dt);
-
-        results_content->addTab(tab_results_dt, QString());
-
-        verticalLayout_14->addWidget(results_content);
-
-
-        verticalLayout_6->addWidget(frame_results_inner);
-
-        splitter->addWidget(frame_results);
 
         horizontalLayout_2->addWidget(splitter);
 
@@ -1614,6 +1156,8 @@ public:
         menuRun->setObjectName(QString::fromUtf8("menuRun"));
         menuHelp = new QMenu(menubar);
         menuHelp->setObjectName(QString::fromUtf8("menuHelp"));
+        menuView = new QMenu(menubar);
+        menuView->setObjectName(QString::fromUtf8("menuView"));
         xmodeltest->setMenuBar(menubar);
         statusbar = new QStatusBar(xmodeltest);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -1627,6 +1171,7 @@ public:
         menubar->addAction(menuFile->menuAction());
         menubar->addAction(menuEdit->menuAction());
         menubar->addAction(menuRun->menuAction());
+        menubar->addAction(menuView->menuAction());
         menubar->addAction(menuHelp->menuAction());
         menuFile->addAction(mnu_open_msa);
         menuFile->addAction(mnu_open_tree);
@@ -1635,9 +1180,10 @@ public:
         menuEdit->addAction(mnu_copy);
         menuRun->addAction(mnu_toggle_settings);
         menuRun->addAction(mnu_run);
-        menuRun->addAction(mnu_results);
         menuHelp->addAction(mnu_index);
         menuHelp->addAction(mnu_about);
+        menuView->addAction(mnu_view_datainfo);
+        menuView->addAction(mnu_results);
         toolBar->addAction(act_open_msa);
         toolBar->addAction(act_open_tree);
         toolBar->addAction(act_open_parts);
@@ -1648,9 +1194,6 @@ public:
         toolBar->addAction(act_reset);
 
         retranslateUi(xmodeltest);
-
-        results_content->setCurrentIndex(0);
-
 
         QMetaObject::connectSlotsByName(xmodeltest);
     } // setupUi
@@ -1684,6 +1227,11 @@ public:
         mnu_run->setText(QApplication::translate("xmodeltest", "Run", 0, QApplication::UnicodeUTF8));
         mnu_run->setShortcut(QApplication::translate("xmodeltest", "Ctrl+R", 0, QApplication::UnicodeUTF8));
         mnu_results->setText(QApplication::translate("xmodeltest", "Results", 0, QApplication::UnicodeUTF8));
+        mnu_view_datainfo->setText(QApplication::translate("xmodeltest", "Data info", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        mnu_view_datainfo->setToolTip(QApplication::translate("xmodeltest", "View information about the input data", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+        mnu_view_datainfo->setShortcut(QApplication::translate("xmodeltest", "Ctrl+I", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_open_msa->setToolTip(QApplication::translate("xmodeltest", "Load MSA file (FASTA)", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1706,6 +1254,13 @@ public:
 #endif // QT_NO_STATUSTIP
         tool_open_parts->setText(QApplication::translate("xmodeltest", "partitions", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
+        tool_results->setToolTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_STATUSTIP
+        tool_results->setStatusTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_STATUSTIP
+        tool_results->setText(QApplication::translate("xmodeltest", "results", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
         tool_settings->setToolTip(QApplication::translate("xmodeltest", "Configure model selection", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_STATUSTIP
@@ -1720,12 +1275,12 @@ public:
 #endif // QT_NO_STATUSTIP
         tool_run->setText(QApplication::translate("xmodeltest", "run", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
-        tool_results->setToolTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+        tool_reset->setToolTip(QApplication::translate("xmodeltest", "Reset everything", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_STATUSTIP
-        tool_results->setStatusTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+        tool_reset->setStatusTip(QApplication::translate("xmodeltest", "Reset everything", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
-        tool_results->setText(QApplication::translate("xmodeltest", "results", 0, QApplication::UnicodeUTF8));
+        tool_reset->setText(QApplication::translate("xmodeltest", "reset", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_help->setToolTip(QApplication::translate("xmodeltest", "Help me, please", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1733,13 +1288,6 @@ public:
         tool_help->setStatusTip(QApplication::translate("xmodeltest", "Help me, please", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_help->setText(QApplication::translate("xmodeltest", "help!", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        tool_reset->setToolTip(QApplication::translate("xmodeltest", "Reset everything", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-#ifndef QT_NO_STATUSTIP
-        tool_reset->setStatusTip(QApplication::translate("xmodeltest", "Reset everything", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_STATUSTIP
-        tool_reset->setText(QApplication::translate("xmodeltest", "reset", 0, QApplication::UnicodeUTF8));
         mt_icon->setText(QString());
         lbl_i_tree->setText(QApplication::translate("xmodeltest", "Tree:", 0, QApplication::UnicodeUTF8));
         lbl_msa->setText(QApplication::translate("xmodeltest", "-", 0, QApplication::UnicodeUTF8));
@@ -1791,53 +1339,11 @@ public:
         lblOptEpsText->setText(QApplication::translate("xmodeltest", "Optimization epsilon:", 0, QApplication::UnicodeUTF8));
         lblNThreads->setText(QApplication::translate("xmodeltest", "4", 0, QApplication::UnicodeUTF8));
         lblNThreadText->setText(QApplication::translate("xmodeltest", "Number of threads:", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        results_content->setToolTip(QString());
-#endif // QT_NO_TOOLTIP
-        lbl_imp_bic->setText(QApplication::translate("xmodeltest", "Importances", 0, QApplication::UnicodeUTF8));
-        lbl_imp_gamma_bic->setText(QApplication::translate("xmodeltest", "Gamma:", 0, QApplication::UnicodeUTF8));
-        lbl_imp_freqs_bic->setText(QApplication::translate("xmodeltest", "Frequencies:", 0, QApplication::UnicodeUTF8));
-        txt_imp_freqs_bic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        txt_imp_gamma_bic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_inv_bic->setText(QApplication::translate("xmodeltest", "Prop.Inv:", 0, QApplication::UnicodeUTF8));
-        txt_imp_inv_bic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_invgamma_bic->setText(QApplication::translate("xmodeltest", "Inv+Gamma", 0, QApplication::UnicodeUTF8));
-        txt_imp_invgamma_bic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        results_content->setTabText(results_content->indexOf(tab_results_bic), QApplication::translate("xmodeltest", "BIC", 0, QApplication::UnicodeUTF8));
-        lbl_imp_aic->setText(QApplication::translate("xmodeltest", "Importances", 0, QApplication::UnicodeUTF8));
-        lbl_imp_gamma_aic->setText(QApplication::translate("xmodeltest", "Gamma:", 0, QApplication::UnicodeUTF8));
-        lbl_imp_freqs_aic->setText(QApplication::translate("xmodeltest", "Frequencies:", 0, QApplication::UnicodeUTF8));
-        txt_imp_freqs_aic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        txt_imp_gamma_aic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_inv_aic->setText(QApplication::translate("xmodeltest", "Prop.Inv:", 0, QApplication::UnicodeUTF8));
-        txt_imp_inv_aic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_invgamma_aic->setText(QApplication::translate("xmodeltest", "Inv+Gamma", 0, QApplication::UnicodeUTF8));
-        txt_imp_invgamma_aic->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        results_content->setTabText(results_content->indexOf(tab_results_aic), QApplication::translate("xmodeltest", "AIC", 0, QApplication::UnicodeUTF8));
-        lbl_imp_aicc->setText(QApplication::translate("xmodeltest", "Importances", 0, QApplication::UnicodeUTF8));
-        lbl_imp_gamma_aicc->setText(QApplication::translate("xmodeltest", "Gamma:", 0, QApplication::UnicodeUTF8));
-        lbl_imp_freqs_aicc->setText(QApplication::translate("xmodeltest", "Frequencies:", 0, QApplication::UnicodeUTF8));
-        txt_imp_freqs_aicc->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        txt_imp_gamma_aicc->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_inv_aicc->setText(QApplication::translate("xmodeltest", "Prop.Inv:", 0, QApplication::UnicodeUTF8));
-        txt_imp_inv_aicc->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_invgamma_aicc->setText(QApplication::translate("xmodeltest", "Inv+Gamma", 0, QApplication::UnicodeUTF8));
-        txt_imp_invgamma_aicc->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        results_content->setTabText(results_content->indexOf(tab_results_aicc), QApplication::translate("xmodeltest", "AICc", 0, QApplication::UnicodeUTF8));
-        lbl_imp_dt->setText(QApplication::translate("xmodeltest", "Importances", 0, QApplication::UnicodeUTF8));
-        lbl_imp_gamma_dt->setText(QApplication::translate("xmodeltest", "Gamma:", 0, QApplication::UnicodeUTF8));
-        lbl_imp_freqs_dt->setText(QApplication::translate("xmodeltest", "Frequencies:", 0, QApplication::UnicodeUTF8));
-        txt_imp_freqs_dt->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        txt_imp_gamma_dt->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_inv_dt->setText(QApplication::translate("xmodeltest", "Prop.Inv:", 0, QApplication::UnicodeUTF8));
-        txt_imp_inv_dt->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        lbl_imp_invgamma_dt->setText(QApplication::translate("xmodeltest", "Inv+Gamma", 0, QApplication::UnicodeUTF8));
-        txt_imp_invgamma_dt->setText(QApplication::translate("xmodeltest", "N/A", 0, QApplication::UnicodeUTF8));
-        results_content->setTabText(results_content->indexOf(tab_results_dt), QApplication::translate("xmodeltest", "DT", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("xmodeltest", "File", 0, QApplication::UnicodeUTF8));
         menuEdit->setTitle(QApplication::translate("xmodeltest", "Edit", 0, QApplication::UnicodeUTF8));
         menuRun->setTitle(QApplication::translate("xmodeltest", "Run", 0, QApplication::UnicodeUTF8));
         menuHelp->setTitle(QApplication::translate("xmodeltest", "Help", 0, QApplication::UnicodeUTF8));
+        menuView->setTitle(QApplication::translate("xmodeltest", "View", 0, QApplication::UnicodeUTF8));
         toolBar->setWindowTitle(QApplication::translate("xmodeltest", "toolBar", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

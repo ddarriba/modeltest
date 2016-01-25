@@ -291,7 +291,9 @@ bool ModelTest::build_instance(mt_options & options)
             delete options.partitions_eff;
         options.partitions_eff = new std::vector<partition_t>(*options.partitions_desc);
         if (!current_instance->msa->reorder_sites(*options.partitions_eff))
+        {
             return false;
+        }
         current_instance->partitions_eff = options.partitions_eff;
     }
 

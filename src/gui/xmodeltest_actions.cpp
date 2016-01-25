@@ -52,6 +52,7 @@ void xmodeltest::on_act_reset_triggered() {action_reset();}
 void xmodeltest::on_mnu_reset_triggered() {action_reset();}
 void xmodeltest::on_tool_reset_clicked()  {action_reset();}
 
+void xmodeltest::on_mnu_view_datainfo_triggered() {action_view_datainfo();}
 
 /* optimization settings */
 

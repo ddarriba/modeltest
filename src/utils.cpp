@@ -597,11 +597,13 @@ static vector<partition_t> * parse_partition (int * inp)
         if (!strcasecmp(tmpchar,"DNA") || !strcasecmp(tmpchar,"NT"))
         {
             pi.datatype   = dt_dna;
+            pi.states     = N_DNA_STATES;
         }
         else if (!strcasecmp(tmpchar,"PROT") || !strcasecmp(tmpchar,"AA"))
         {
             /* and  protein data */
             pi.datatype  = dt_protein;
+            pi.states    = N_PROT_STATES;
         }
         else
         {
