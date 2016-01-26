@@ -151,7 +151,7 @@ void Partition::sort_models(bool forwards)
          fsort);
 }
 
-vector<Model *> & Partition::get_models()
+std::vector<Model *> const& Partition::get_models() const
 {
     return c_models;
 }

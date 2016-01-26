@@ -26,7 +26,7 @@ public:
     {
         return c_models.size();
     }
-    std::vector<Model *> & get_models();
+    std::vector<Model *> const& get_models() const;
     bool set_models(const std::vector<Model *> &models);
 private:
     Msa * msa;                       //! input MSA

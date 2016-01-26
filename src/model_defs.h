@@ -14,6 +14,11 @@
 #define N_PROT_SUBST_RATES     190
 #define N_PROT_MODEL_MATRICES   19
 
+#define DNA_JC_INDEX             0
+#define DNA_HKY_INDEX           18
+#define DNA_GTR_INDEX          202
+#define MATRIX_INDEX_UNDEF     999
+
 #define MOD_PARAM_FIXED_FREQ      (1<<0)
 #define MOD_PARAM_ESTIMATED_FREQ  (1<<1)
 #define MOD_PARAM_NO_RATE_VAR     (1<<2)
@@ -23,6 +28,12 @@
 
 #define MOD_MASK_FREQ_PARAMS   3
 #define MOD_MASK_RATE_PARAMS  60
+
+const mt_index_t raxml_matrices_indices[3] = {
+    DNA_JC_INDEX,
+    DNA_HKY_INDEX,
+    DNA_GTR_INDEX
+};
 
 const std::string dna_model_names[22] = {
     "JC",     "F81",

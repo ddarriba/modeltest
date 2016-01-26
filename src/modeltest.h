@@ -121,7 +121,7 @@ public:
      * @param[in] part_id  the partition id
      * @return the set of candidate models
      */
-    const std::vector<Model *> & get_models(const partition_id_t &part_id);
+    std::vector<Model *> const& get_models(const partition_id_t &part_id);
 
     /**
      * @brief Updates the existing models with the values of another set

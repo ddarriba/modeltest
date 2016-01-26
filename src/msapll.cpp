@@ -25,21 +25,22 @@ namespace modeltest
   {
     char *hdr = NULL;
     char *seq = NULL;
-    long seqlen;
-    long hdrlen;
-    long seqno;
+    long n_sites_read;
+    long hdr_len;
+    long seq_idx;
 
     /* MSA should be always checked beforehand */
     /* Therefore it should never fail here */
-    assert(MsaPll::test(msa_filename, &n_sequences, &n_sites));
+    assert(MsaPll::test(msa_filename, &n_taxa, &n_sites));
 
     pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
-    tipnames  = (char **)Utils::c_allocate(n_sequences, sizeof(char *));
-    sequences = (char **)Utils::c_allocate(n_sequences, sizeof(char *));
+    tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
 
-    for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdrlen,&seq,&seqlen,&seqno); ++cur_seq)
+    for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
     {
+        assert (n_sites_read == n_sites);
         for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
            hdr[i] = '\0';
         tipnames[cur_seq]  = hdr;
@@ -54,11 +55,11 @@ namespace modeltest
 
   MsaPll::~MsaPll ()
   {
-    for (mt_index_t i = 0; i < n_sequences; i++)
+    for (mt_index_t i = 0; i < n_taxa; i++)
       free (sequences[i]);
     free (sequences);
 
-    for (mt_index_t i = 0; i < n_sequences; i++)
+    for (mt_index_t i = 0; i < n_taxa; i++)
       free (tipnames[i]);
     free (tipnames);
 
@@ -69,13 +70,13 @@ namespace modeltest
 
   const char * MsaPll::get_header (mt_index_t index) const
   {
-    assert(index < n_sequences);
+    assert(index < n_taxa);
     return tipnames[index];
   }
 
   const char * MsaPll::get_sequence (mt_index_t index) const
   {
-    assert(index < n_sequences);
+    assert(index < n_taxa);
     return sequences[index];
   }
 
@@ -86,9 +87,9 @@ namespace modeltest
       mt_index_t cur_seq;
       char *hdr = NULL;
       char *seq = NULL;
-      long seqlen;
-      long hdrlen;
-      long seqno;
+      long n_sites_read;
+      long hdr_len;
+      long seq_idx;
 
       /* reset error */
       errno = 0;
@@ -105,24 +106,24 @@ namespace modeltest
       /* make sure they are all of the same length */
       mt_size_t sites = MT_SIZE_UNDEF;
       for (cur_seq = 0;
-           pll_fasta_getnext (fp, &hdr, &hdrlen, &seq, &seqlen, &seqno); ++cur_seq)
+           pll_fasta_getnext (fp, &hdr, &hdr_len, &seq, &n_sites_read, &seq_idx); ++cur_seq)
       {
           free (seq);
           free (hdr);
 
-          assert(seqlen < MT_SIZE_UNDEF);
+          assert(n_sites_read < MT_SIZE_UNDEF);
 
-          if (seqlen < 0)
+          if (n_sites_read < 0)
               return false;
 
           /* if parsing fail, we continue for avoid memory leaks */
-          if (sites != MT_SIZE_UNDEF && (long)sites != seqlen)
+          if (sites != MT_SIZE_UNDEF && (long)sites != n_sites_read)
           {
               errno = MT_ERROR_ALIGNMENT;
               break;
           }
           else if (sites == MT_SIZE_UNDEF)
-              sites = (mt_size_t) seqlen;
+              sites = (mt_size_t) n_sites_read;
       }
 
       if (sites == MT_SIZE_UNDEF)
@@ -148,12 +149,12 @@ namespace modeltest
   }
 
   static void swap_sites(char **s,
-                         mt_index_t n_sequences,
+                         mt_index_t n_taxa,
                          vector<mt_index_t> &r,
                          mt_index_t p1,
                          mt_index_t p2)
   {
-      for (mt_index_t i=0; i<n_sequences; i++)
+      for (mt_index_t i=0; i<n_taxa; i++)
       {
         char s_aux = s[i][p1];
         s[i][p1] = s[i][p2];
@@ -190,7 +191,7 @@ namespace modeltest
                       while(reindex[k] != j) k = reindex[k];
 
                       /* swap */
-                      swap_sites(sequences, n_sequences, reindex, cur, k);
+                      swap_sites(sequences, n_taxa, reindex, cur, k);
                   }
                   cur++;
               }
@@ -225,7 +226,7 @@ namespace modeltest
 
       uint32_t existing_states = 0;
       const unsigned int * states_map = (partition.datatype == dt_dna)?pll_map_nt:pll_map_aa;
-      for (mt_index_t i=0; i<n_sequences; ++i)
+      for (mt_index_t i=0; i<n_taxa; ++i)
       {
           for (partition_region_t region : partition.regions)
           {
@@ -247,7 +248,7 @@ namespace modeltest
 
       for (mt_index_t i=0; i<states; i++)
       {
-          partition.empirical_freqs[i] /= n_sequences * cum_sites;
+          partition.empirical_freqs[i] /= n_taxa * cum_sites;
       }
 
       /* validate */
@@ -280,7 +281,7 @@ namespace modeltest
 
   void MsaPll::print() const
   {
-      for (mt_index_t i=0; i<n_sequences; i++)
+      for (mt_index_t i=0; i<n_taxa; i++)
           cout << setw(20) << tipnames[i] << " " << sequences[i] << endl;
 
   }

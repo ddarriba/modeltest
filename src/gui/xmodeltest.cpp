@@ -12,6 +12,8 @@
 
 using namespace std;
 
+static unsigned int model_index;
+
 static void enable(QToolButton * button, bool new_stat, bool set = false)
 {
     button->setEnabled(new_stat);
@@ -38,10 +40,10 @@ size_t xmodeltest::compute_size(int n_cats, int n_threads)
                 N_DNA_STATES :
                 N_PROT_STATES;
 
-    if (n_seqs && seq_len && n_cats && states)
+    if (n_taxa && n_sites && n_cats && states)
     {
-        mem_b = modeltest::Utils::mem_size(n_seqs,
-                        seq_len,
+        mem_b = modeltest::Utils::mem_size(n_taxa,
+                        n_sites,
                         n_cats,
                         states);
         mem_b *= n_threads;
@@ -80,8 +82,8 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui->frame_settings->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
     ui->frame_models->setStyleSheet("color: #333;\nbackground-color: #b1df78;");
     ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
-    n_seqs = 0;
-    seq_len = 0;
+    n_taxa = 0;
+    n_sites = 0;
     mtest = 0;
     scheme = 0;
     status = st_active;
@@ -116,8 +118,8 @@ xmodeltest::~xmodeltest()
 
 void xmodeltest::reset_xmt( void )
 {
-    n_seqs = 0;
-    seq_len = 0;
+    n_taxa = 0;
+    n_sites = 0;
     status = st_active;
 
     msa_filename = "";
@@ -262,6 +264,8 @@ void xmodeltest::run_modelselection()
     if (ret != QMessageBox::Ok)
         return;
 
+    model_index = 0;
+
     if (ui->radTopoFixedMp->isChecked())
         start_tree = tree_mp;
     else if (ui->radTopoFixedJc->isChecked())
@@ -324,8 +328,8 @@ void xmodeltest::run_modelselection()
         }
     }
 
-    opts.n_taxa = n_seqs;
-    opts.n_sites = seq_len;
+    opts.n_taxa = n_taxa;
+    opts.n_sites = n_sites;
     opts.rnd_seed = 12345;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
@@ -353,7 +357,7 @@ void xmodeltest::run_modelselection()
         partition_region_t region;
         partition_t partition;
         region.start = 1;
-        region.end = seq_len;
+        region.end = n_sites;
         region.stride = 1;
         partition.datatype = datatype;
         partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
@@ -505,13 +509,13 @@ void xmodeltest::action_open_msa()
         {
             msa_filename = loaded_file;
             if (modeltest::ModelTest::test_msa(msa_filename,
-                                     &n_seqs,
-                                     &seq_len))
+                                     &n_taxa,
+                                     &n_sites))
             {
                 cout << endl << "Loaded alignment" << endl;
                 ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
-                cout << "Num.Sequences:   " << n_seqs << endl;
-                cout << "Sequence Length: " << seq_len << endl;
+                cout << "Num.Sequences:   " << n_taxa << endl;
+                cout << "Sequence Length: " << n_sites << endl;
                 status |= st_msa_loaded;
             }
             else
@@ -573,7 +577,7 @@ void xmodeltest::action_open_tree()
         if (modeltest::ModelTest::test_tree(utree_filename,
                                             &n_tips))
         {
-            if (n_tips == n_seqs)
+            if (n_tips == n_taxa)
             {
                 cout << endl << "Loaded tree" << endl;
                 ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(utree_filename.c_str()));
@@ -653,7 +657,7 @@ void xmodeltest::action_open_parts()
         }
         else
         {
-            if (!modeltest::ModelTest::test_partitions(*scheme, seq_len))
+            if (!modeltest::ModelTest::test_partitions(*scheme, n_sites))
             {
                 ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
                 ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
@@ -686,7 +690,7 @@ void xmodeltest::action_open_parts()
 void xmodeltest::action_view_datainfo( void )
 {
     if (!datainfo_dialog)
-        datainfo_dialog = new DataInfoDialog(msa_filename, n_seqs, seq_len, utree_filename, 1.0, *scheme, parts_filename);
+        datainfo_dialog = new DataInfoDialog(msa_filename, n_taxa, n_sites, utree_filename, 1.0, *scheme, parts_filename);
     datainfo_dialog->show();
 }
 
@@ -753,8 +757,6 @@ void xmodeltest::set_text(char * message)
     free(message);
     ui->consoleRun->show();
 }
-
-static unsigned int model_index = 0;
 
 void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n_models )
 {

@@ -14,13 +14,13 @@ class DataInfoDialog : public QWidget
     Q_OBJECT
 
 public:
-    explicit DataInfoDialog(const std::string &msa_filename,
-                            mt_size_t ntaxa,
-                            mt_size_t seqlen,
-                            const std::string &tree_filename,
-                            double treelen,
+    explicit DataInfoDialog(std::string const& msa_filename,
+                            mt_size_t n_taxa,
+                            mt_size_t n_sites,
+                            std::string const& tree_filename,
+                            double tree_len,
                             partitioning_scheme_t &scheme,
-                            const std::string &parts_filename,
+                            std::string const& parts_filename,
                             QWidget *parent = 0);
     ~DataInfoDialog();
 

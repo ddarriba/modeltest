@@ -1,8 +1,9 @@
 bin_PROGRAMS = modeltestx modeltest
 
 modeltest_SOURCES = \
-	moc/moc_modeltest_gui.cpp \
 	moc/moc_progressdialog.cpp \
+	moc/moc_resultsdialog.cpp \
+	moc/moc_datainfodialog.cpp \
 	moc/moc_xmodeltest.cpp \
 	moc/moc_xthreadopt.cpp \
 	moc/moc_mydebugstream.cpp \
@@ -12,11 +13,14 @@ modeltest_SOURCES = \
 	gui/xmodeltest_fill.cpp \
 	gui/xthreadopt.cpp \
 	gui/progressdialog.cpp \
+	gui/datainfodialog.cpp \
+	gui/resultsdialog.cpp \
+	gui/xutils.cpp \
+	service/modeltestservice.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
 	modeltest.cpp \
-	modeltest_gui.cpp \
 	msapll.cpp \
 	partition.cpp \
 	partitioning_scheme.cpp \
@@ -41,6 +45,7 @@ if HAVE_SSE
 endif
 
 modeltestx_SOURCES = \
+	service/modeltestservice.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \

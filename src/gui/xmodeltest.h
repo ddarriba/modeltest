@@ -134,8 +134,8 @@ private:
     std::string utree_filename;
     std::string parts_filename;
 
-    mt_size_t n_seqs;
-    mt_size_t seq_len;
+    mt_size_t n_taxa;
+    mt_size_t n_sites;
     unsigned long status;
 
     //Q_DebugStream *redirect;

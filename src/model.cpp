@@ -67,6 +67,7 @@ Model::Model(mt_mask_t model_params)
       optimize_gamma(model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA)),
       optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ)
 {
+    matrix_index = 0;
     prop_inv = 0.0;
     alpha = 0.0;
 
@@ -92,6 +93,11 @@ Model::~Model()
     {
         pll_utree_destroy(tree->back);
     }
+}
+
+mt_index_t Model::get_matrix_index() const
+{
+    return matrix_index;
 }
 
 std::string const& Model::get_name() const
@@ -264,13 +270,15 @@ void Model::set_tree( pll_utree_t * _tree )
     tree = _tree;
 }
 
-DnaModel::DnaModel(mt_index_t matrix_index,
+DnaModel::DnaModel(mt_index_t _matrix_index,
              int model_params)
     : Model(model_params)
 {
     stringstream ss_name;
 
+    matrix_index = _matrix_index;
     assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
+
     n_frequencies = N_DNA_STATES;
     n_subst_rates = N_DNA_SUBST_RATES;
 
@@ -324,6 +332,7 @@ DnaModel::DnaModel(const Model & other)
 void DnaModel::clone(const Model * other_model)
 {
     const DnaModel * other = dynamic_cast<const DnaModel *>(other_model);
+    matrix_index = other->matrix_index;
     name = other->name;
     memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
     optimize_pinv  = other->optimize_pinv;
@@ -410,12 +419,13 @@ void DnaModel::print(std::ostream  &out)
 
 /* PROTEIN MODELS */
 
-ProtModel::ProtModel(mt_index_t matrix_index,
+ProtModel::ProtModel(mt_index_t _matrix_index,
              int model_params)
     : Model(model_params)
 {
     stringstream ss_name;
 
+    matrix_index = _matrix_index;
     assert(matrix_index < N_PROT_MODEL_MATRICES);
     n_frequencies = N_PROT_STATES;
     n_subst_rates = N_PROT_SUBST_RATES;
@@ -459,6 +469,7 @@ ProtModel::~ProtModel()
 void ProtModel::clone(const Model * other_model)
 {
     const ProtModel * other = dynamic_cast<const ProtModel *>(other_model);
+    matrix_index = other->matrix_index;
     name = other->name;
     optimize_pinv  = other->optimize_pinv;
     optimize_gamma = other->optimize_gamma;

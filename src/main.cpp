@@ -1,9 +1,9 @@
 #ifndef _NO_GUI_
-#include "modeltest_gui.h"
 #include "gui/xmodeltest.h"
+#include "service/modeltestservice.h"
 #include <QApplication>
 #else
-#include "modeltest.h"
+#include "service/modeltestservice.h"
 #endif
 #include "utils.h"
 
@@ -22,6 +22,8 @@
 #define MAX_OPT_LENGTH 40
 #define SHORT_OPT_LENGTH 6
 #define COMPL_OPT_LENGTH MAX_OPT_LENGTH-SHORT_OPT_LENGTH
+
+ModelTestService *ModelTestService::s_instance = 0;
 
 using namespace std;
 
@@ -358,6 +360,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
             break;
         case 'p':
             n_procs = (mt_size_t) atoi(optarg);
+            exec_opt.n_threads = n_procs;
             if (n_procs <= 0)
             {
                 cerr << PACKAGE << ": Invalid number of parallel processes: " << optarg << endl;
@@ -691,9 +694,7 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
-        modeltest::ModelTest mt(n_procs);
-
-        if (!mt.build_instance(opts))
+        if (!ModelTestService::instance()->create_instance(opts))
         {
             cerr << modeltest::mt_errmsg << endl;
             return (int)modeltest::mt_errno;
@@ -719,6 +720,8 @@ int main(int argc, char *argv[])
                  << PACKAGE << " --usage' for more information" << endl;
         }
 
+        vector<map<modeltest::ic_type, modeltest::selection_model>> best_models(opts.partitions_eff->size());
+
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
 
@@ -727,62 +730,79 @@ int main(int argc, char *argv[])
                  << endl << endl;
 
             partition_id_t part_id = {i};
-            mt.evaluate_models(part_id, n_procs,
+            ModelTestService::instance()->evaluate_models(part_id, n_procs,
                                opts.epsilon_param, opts.epsilon_opt);
 
             std::cout << "Done" << std::endl;
 
-            modeltest::ModelSelection bic_selection(mt.get_models(part_id),
-                                                    modeltest::ic_bic);
-            bic_selection.print(cout, 10);
+            modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
+            bic_selection->print(cout, 10);
             cout << "Best model according to BIC" << endl;
             cout << "---------------------------" << endl;
-            bic_selection.print_best_model(cout);
+            bic_selection->print_best_model(cout);
             cout << "---------------------------" << endl;
             cout << "Parameter importances" << endl;
             cout << "---------------------------" << endl;
-            bic_selection.print_importances(cout);
+            bic_selection->print_importances(cout);
             cout << endl;
+            cout << ModelTestService::instance()->get_raxml_command_line(*(bic_selection->get_model(0).model)) << endl;
+            best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
+            delete bic_selection;
 
-            modeltest::ModelSelection aic_selection(mt.get_models(part_id),
-                                                    modeltest::ic_aic);
-            aic_selection.print(cout, 10);
+            modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
+            aic_selection->print(cout, 10);
             cout << "Best model according to AIC" << endl;
             cout << "---------------------------" << endl;
-            aic_selection.print_best_model(cout);
+            aic_selection->print_best_model(cout);
             cout << "---------------------------" << endl;
             cout << "Parameter importances" << endl;
             cout << "---------------------------" << endl;
-            aic_selection.print_importances(cout);
+            aic_selection->print_importances(cout);
             cout << endl;
+            best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
+            delete aic_selection;
 
-            modeltest::ModelSelection aicc_selection(mt.get_models(part_id),
-                                                    modeltest::ic_aicc);
-            aicc_selection.print(cout, 10);
+            modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
+            aicc_selection->print(cout, 10);
             cout << "Best model according to AICc" << endl;
             cout << "----------------------------" << endl;
-            aicc_selection.print_best_model(cout);
+            aicc_selection->print_best_model(cout);
             cout << "---------------------------" << endl;
             cout << "Parameter importances" << endl;
             cout << "---------------------------" << endl;
-            aicc_selection.print_importances(cout);
+            aicc_selection->print_importances(cout);
             cout << endl;
+            best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
+            delete aicc_selection;
 
             /* ignore DT if topology is not fixed */
             if (opts.starting_tree != tree_ml)
             {
-                modeltest::ModelSelection dt_selection(mt.get_models(part_id),
-                                                    modeltest::ic_dt);
-                dt_selection.print(cout, 10);
+                modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
+                dt_selection->print(cout, 10);
                 cout << "Best model according to DT" << endl;
                 cout << "--------------------------" << endl;
-                dt_selection.print_best_model(cout);
+                dt_selection->print_best_model(cout);
                 cout << "---------------------------" << endl;
                 cout << "Parameter importances" << endl;
                 cout << "---------------------------" << endl;
-                dt_selection.print_importances(cout);
+                dt_selection->print_importances(cout);
                 cout << endl;
+                best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
+                delete dt_selection;
             }
+        }
+
+        cout << "Summary:" << endl;
+        for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
+        {
+            cout <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
+            modeltest::ModelSelection::print_inline_header(cout);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], cout);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], cout);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], cout);
+            if (opts.starting_tree != tree_ml)
+                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], cout);
         }
 
         /* clean */
@@ -790,6 +810,8 @@ int main(int argc, char *argv[])
             delete opts.partitions_desc;
         if (opts.partitions_eff)
             delete opts.partitions_eff;
+
+        ModelTestService::instance()->destroy_instance();
     }
     else
     {

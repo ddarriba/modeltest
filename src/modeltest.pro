@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     gui/datainfodialog.cpp \
     gui/xutils.cpp \
     gui/resultsdialog.cpp \
-    partitionselection.cpp
+    partitionselection.cpp \
+    service/modeltestservice.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -60,7 +61,8 @@ HEADERS  += \
     gui/datainfodialog.h \
     gui/xutils.h \
     gui/resultsdialog.h \
-    partitionselection.h
+    partitionselection.h \
+    service/modeltestservice.h
 
 FORMS    += \
     compute_options.ui \

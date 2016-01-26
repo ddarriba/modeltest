@@ -26,37 +26,39 @@ public:
      */
     virtual void clone(const Model *other) = 0;
 
-    virtual data_type get_datatype() = 0;
+    virtual data_type get_datatype( void ) const = 0;
+
+    mt_index_t get_matrix_index( void ) const;
 
     /**
      * @brief Gets the name of the model
      * @return the name of the model
      */
-    std::string const& get_name() const;
+    std::string const& get_name( void ) const;
 
     /**
      * @brief Checks whether the model is already optimized
      * @return true, if the model is optimized
      */
-    bool is_optimized() const;
+    bool is_optimized( void ) const;
 
     /**
      * @brief Checks whether the model includes a proportion of invariant sites
      * @return true, if the model is +I
      */
-    bool is_I() const;
+    bool is_I( void ) const;
 
     /**
      * @brief Checks whether the model contains gamma rate heterogeneity
      * @return true, if the model is +G
      */
-    bool is_G() const;
+    bool is_G( void ) const;
 
     /**
      * @brief checks whether the model contains unequal frequencies
      * @return true, if state frequencies are unequal
      */
-    bool is_F() const;
+    bool is_F( void ) const;
 
     /**
      * @brief Gets the matrix symmetries
@@ -108,19 +110,19 @@ public:
      * @brief Gets the number of model substitution rate parameters
      * @return the number of model substitution rate parameters
      */
-    virtual mt_size_t get_n_subst_params() const;
+    virtual mt_size_t get_n_subst_params( void ) const;
 
     /**
      * @brief Gets the number of model free parameters
      * @return the number of model free parameters
      */
-    mt_size_t get_n_free_variables() const;
+    mt_size_t get_n_free_variables( void ) const;
 
     /**
      * @brief Gets the log-Likelihood score
      * @return the log-Likelihood score
      */
-    double get_lnl() const;
+    double get_lnl( void ) const;
 
     /**
      * @brief Sets the log-Likelihood score
@@ -137,15 +139,15 @@ public:
     bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
 
-    double get_bic() const;
-    double get_aic() const;
-    double get_aicc() const;
-    double get_dt() const;
+    double get_bic( void ) const;
+    double get_aic( void ) const;
+    double get_aicc( void ) const;
+    double get_dt( void ) const;
 
-    double get_prop_inv() const;
+    double get_prop_inv( void ) const;
     void set_prop_inv(double value);
 
-    double get_alpha() const;
+    double get_alpha( void ) const;
     void set_alpha(double value);
 
     time_t get_exec_time() const;
@@ -155,6 +157,7 @@ public:
     void set_tree( pll_utree_t * tree );
 
 protected:
+    mt_index_t matrix_index;
     std::string name;
 
     bool optimize_pinv;
@@ -190,7 +193,7 @@ public:
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
-    virtual data_type get_datatype()
+    virtual data_type get_datatype( void ) const
     {
         return dt_dna;
     }
@@ -217,7 +220,7 @@ public:
     virtual ~ProtModel( void );
     virtual void clone(const Model *other);
 
-    virtual data_type get_datatype( void )
+    virtual data_type get_datatype( void ) const
     {
         return dt_protein;
     }

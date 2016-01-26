@@ -18,7 +18,7 @@ namespace modeltest
   {
   public:
     Msa (std::string _msa_filename) :
-    msa_filename (_msa_filename), n_sequences (0), n_sites (0)
+    msa_filename (_msa_filename), n_taxa (0), n_sites (0)
     {
     }
     virtual ~Msa ();
@@ -63,7 +63,7 @@ namespace modeltest
 
     mt_size_t get_n_sequences (void) const
     {
-      return n_sequences;
+      return n_taxa;
     }
     mt_size_t get_n_sites (void) const
     {
@@ -72,7 +72,7 @@ namespace modeltest
 
   protected:
     const std::string msa_filename;
-    mt_size_t n_sequences;
+    mt_size_t n_taxa;
     mt_size_t n_sites;
   };
 

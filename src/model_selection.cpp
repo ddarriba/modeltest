@@ -194,6 +194,42 @@ void ModelSelection::print_best_model(std::ostream  &out)
         << setw(PRINTMODEL_TABSIZE) << left << "Weight:" << best_sel_model.weight << endl;
 }
 
+void ModelSelection::print_inline_header(std::ostream &out)
+{
+    out << setw(10) << " ";
+    out << setw(20) << "Model";
+    out << setw(14) << "Score";
+    out << setw(14) << "Weight";
+    out << endl;
+    out << setfill('-') << setw(10+20+14+14) << "" << setfill(' ') << endl;
+}
+
+void ModelSelection::print_inline_best_model(ic_type type, selection_model &model, std::ostream &out)
+{
+    switch (type)
+    {
+    case ic_bic:
+        out << setw(10) << "  BIC";
+        break;
+    case ic_aic:
+        out << setw(10) << "  AIC";
+        break;
+    case ic_aicc:
+        out << setw(10) << "  AICc";
+        break;
+    case ic_dt:
+        out << setw(10) << "  DT";
+        break;
+    default:
+        assert(0);
+    }
+
+    out << setw(20) << model.model->get_name();
+    out << setw(14) << setprecision(4) << model.score;
+    out << setw(14) << setprecision(4) << model.weight;
+    out << endl;
+}
+
 void ModelSelection::print_importances(std::ostream  &out)
 {
     out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl

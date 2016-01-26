@@ -55,7 +55,10 @@ public:
      * @brief Print out the best model
      * @param[in] out the output stream to print to
      */
-    void print_best_model(std::ostream  &out = std::cout);
+    void print_best_model(std::ostream &out = std::cout);
+
+    static void print_inline_header(std::ostream &out = std::cout);
+    static void print_inline_best_model(ic_type type, selection_model &model, std::ostream &out = std::cout);
 
     /**
      * @brief Print out the parameter importances

@@ -2,13 +2,13 @@
 #include "ui_datainfodialog.h"
 #include "gui/xutils.h"
 
-DataInfoDialog::DataInfoDialog(const std::string & msa_filename,
-                               mt_size_t ntaxa,
-                               mt_size_t seqlen,
-                               const std::string & tree_filename,
-                               double treelen,
+DataInfoDialog::DataInfoDialog(std::string const& msa_filename,
+                               mt_size_t n_taxa,
+                               mt_size_t n_sites,
+                               std::string const& tree_filename,
+                               double tree_len,
                                partitioning_scheme_t &scheme,
-                               const std::string &  parts_filename,
+                               std::string const&  parts_filename,
                                QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataInfoDialog)
@@ -19,9 +19,9 @@ DataInfoDialog::DataInfoDialog(const std::string & msa_filename,
     sprintf(line, "MSA filename           %s", msa_filename.c_str());
     ui->text->append(line);
     ui->text->append("");
-    sprintf(line, "Number of sequences        %d", ntaxa);
+    sprintf(line, "Number of sequences        %d", n_taxa);
     ui->text->append(line);
-    sprintf(line, "Sequence length            %d", seqlen);
+    sprintf(line, "Sequence length            %d", n_sites);
     ui->text->append(line);
     ui->text->append("");
 
@@ -30,7 +30,7 @@ DataInfoDialog::DataInfoDialog(const std::string & msa_filename,
         sprintf(line, "Tree filename          %s", tree_filename.c_str());
         ui->text->append(line);
         ui->text->append("");
-        sprintf(line, "Tree length                %.4f", treelen);
+        sprintf(line, "Tree length                %.4f", tree_len);
         ui->text->append(line);
         ui->text->append("");
     }

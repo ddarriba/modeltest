@@ -428,9 +428,10 @@ bool ModelTest::build_instance(mt_options & options)
     return true;
 }
 
-const vector<Model *> & ModelTest::get_models(const partition_id_t &part_id)
+vector<Model *> const& ModelTest::get_models(partition_id_t const& part_id)
 {
-    return partitions[part_id]->get_models();
+    Partition const* part = partitions[part_id];
+    return part->get_models();
 }
 
 bool ModelTest::set_models(const std::vector<Model *> &c_models,
