@@ -88,6 +88,7 @@ void ProgressDialog::set_progress_value( int value )
 
 void ProgressDialog::set_delta_running( unsigned int parameter, double value, unsigned int thread_idx )
 {
+    UNUSED(parameter);
     lbl_delta[thread_idx]->setText( QString::number(value, 'f', 4) );
     //ui->label->setText( text );
 }

@@ -1,6 +1,7 @@
 #include "xmodeltest.h"
 #include "ui_xmodeltest.h"
 
+#include "service/modeltestservice.h"
 #include "utils.h"
 #include "gui/progressdialog.h"
 #include "gui/datainfodialog.h"
@@ -84,7 +85,6 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
     n_taxa = 0;
     n_sites = 0;
-    mtest = 0;
     scheme = 0;
     status = st_active;
 
@@ -282,10 +282,6 @@ void xmodeltest::run_modelselection()
         delete(c_models[i]);
     c_models.clear();
 
-    cout << "Building modeltest for " << number_of_threads << " threads" << endl;
-
-    mtest = new modeltest::ModelTest(number_of_threads);
-
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
         model_params += MOD_PARAM_FIXED_FREQ;
@@ -369,9 +365,9 @@ void xmodeltest::run_modelselection()
     //TODO: Create option for smoothing
     opts.smooth_freqs = false;
 
-    cout << "Building modeltest instance" << endl;
+    cout << "Building modeltest instance for " << number_of_threads << " threads" << endl;
 
-    bool ok_inst = mtest->build_instance(opts);
+    bool ok_inst = ModelTestService::instance()->create_instance(opts);
     if (!ok_inst)
     {
         ui->consoleRun->append(xutils::to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
@@ -379,16 +375,18 @@ void xmodeltest::run_modelselection()
         return;
     }
 
-    if (c_models.size())
-    {
-        mtest->set_models(c_models, part_id);
-    }
+//    if (c_models.size())
+//    {
+//        mtest->set_models(c_models, part_id);
+//    }
 
     /* print settings */
    modeltest::Utils::print_options(opts);
 
-    mythread = new xThreadOpt(mtest, part_id, number_of_threads,
-                                           opts.epsilon_param, opts.epsilon_opt);
+   //TODO: FIX
+    mythread = new xThreadOpt(ModelTestService::instance()->get_modeltest(),
+                              part_id, number_of_threads,
+                              opts.epsilon_param, opts.epsilon_opt);
     QObject::connect(mythread,
                      SIGNAL(optimization_done(partition_id_t)),
                      this,
@@ -402,7 +400,8 @@ void xmodeltest::run_modelselection()
                      this,
                      SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
 
-    ProgressDialog dialog( mtest->get_models(part_id).size(), number_of_threads );
+    ProgressDialog dialog( ModelTestService::instance()->get_number_of_models(part_id),
+                           number_of_threads );
 
     QObject::connect(mythread, SIGNAL(optimization_done(partition_id_t)), &dialog, SLOT(reset( void )));
     QObject::connect(mythread,
@@ -770,7 +769,8 @@ void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n
 
 void xmodeltest::optimization_done( partition_id_t part_id )
 {
-    const std::vector<modeltest::Model *> & modelsPtr = mtest->get_models(part_id);
+    //TODO: FIX
+    const std::vector<modeltest::Model *> & modelsPtr = ModelTestService::instance()->get_modeltest()->get_models(part_id);
         QVector<int> models;
         for (int i=0; (size_t)i < modelsPtr.size(); i++)
             models.append(i);
@@ -794,12 +794,14 @@ void xmodeltest::optimization_done( partition_id_t part_id )
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
 
-        delete mtest;
+        ModelTestService::instance()->destroy_instance();
         delete mythread;
 }
 
 void xmodeltest::optimization_interrupted( partition_id_t part_id )
 {
+    UNUSED(part_id);
+
         status &= ~st_optimizing;
         status &= ~st_optimized;
 
@@ -814,6 +816,6 @@ void xmodeltest::optimization_interrupted( partition_id_t part_id )
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization interrupted after " << time(NULL) - ini_t << " seconds" << endl;
 
-        delete mtest;
+        ModelTestService::instance()->destroy_instance();
         delete mythread;
 }

@@ -1,7 +1,6 @@
 #ifndef XMODELTEST_H
 #define XMODELTEST_H
 
-#include "modeltest.h"
 #include "gui/xthreadopt.h"
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
@@ -142,7 +141,6 @@ private:
     MyDebugStream *redirect;
     xThreadOpt * mythread;
 
-    modeltest::ModelTest *mtest;
     std::vector<modeltest::Model *> c_models;
     partitioning_scheme_t * scheme;
     tree_type start_tree;

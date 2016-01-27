@@ -49,10 +49,19 @@ public:
                          double epsilon_param,
                          double epsilon_opt);
 
+    bool optimize_single(const partition_id_t &part_id,
+                         mt_index_t n_models,
+                         modeltest::Model *model,
+                         mt_index_t thread_id,
+                         double epsilon_param,
+                         double epsilon_opt);
+
     modeltest::ModelSelection * select_models(partition_id_t const& part_id, modeltest::ic_type type)
     {
         return new modeltest::ModelSelection(modeltest_instance->get_models(part_id), type);
     }
+
+    mt_size_t get_number_of_models(partition_id_t const& part_id);
 
     modeltest::ModelTest * get_modeltest()
     {

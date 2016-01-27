@@ -66,6 +66,11 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                                epsilon_opt);
 }
 
+mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id)
+{
+    return modeltest_instance->get_models(part_id).size();
+}
+
 string ModelTestService::get_raxml_command_line(Model const& model)
 {
     std::stringstream raxml_args;
