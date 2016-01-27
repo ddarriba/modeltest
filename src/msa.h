@@ -56,6 +56,8 @@ namespace modeltest
                                                bool smooth = false,
                                                bool force_recompute = false) = 0;
 
+    virtual bool compute_empirical_pinv(partition_t &partition) = 0;
+
     /**
      * @brief Prints the sequence
      */

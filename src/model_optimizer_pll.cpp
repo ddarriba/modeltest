@@ -42,15 +42,16 @@ static int cb_full_traversal(pll_utree_t * node)
     return 1;
 }
 
-/* a callback function for resetting all branches */
-static int cb_reset_branches(pll_utree_t * node)
+/* a callback function for resetting missing branches */
+static int cb_set_missing_branches(pll_utree_t * node)
 {
 
-    UNUSED(node);
-
     /* reset branches */
-    node->length = 0.1;
-    node->back->length = 0.1;
+    if (!node->length)
+    {
+        node->length = 0.1;
+        node->back->length = 0.1;
+    }
 
     return 1;
 }
@@ -275,7 +276,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     /* additional stuff */
     mt_size_t traversal_size;
     if (!pll_utree_traverse (pll_tree,
-                             cb_reset_branches,
+                             cb_set_missing_branches,
                              travbuffer,
                              &traversal_size))
     {
@@ -310,7 +311,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   }
 
   double ModelOptimizerPll::opt_single_parameter(mt_index_t which_parameter,
-                                                 double tolerance)
+                                                 double tolerance,
+                                                 bool first_guess)
   {
       double cur_logl;
 
@@ -348,12 +350,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
           cur_logl = pll_optimize_branch_lengths_iterative (
                       pll_partition, pll_tree, params->params_index, params->lk_params.freqs_index,
-                      params->pgtol, smoothings++, true);
+                      params->pgtol, smoothings, true);
 
           pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
           pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
                                        matrix_indices, operations, &matrix_count,
                                        &ops_count);
+          //params->lk_params.partition->prop_invar[0] = 0.0;
           params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
           params->lk_params.where.unrooted_t.parent_scaler_index =
                   pll_tree->scaler_index;
@@ -365,15 +368,25 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
           free(travbuffer);
       }
-      else if (which_parameter == PLL_PARAMETER_ALPHA || which_parameter == PLL_PARAMETER_PINV)
+      else if (which_parameter == PLL_PARAMETER_ALPHA)
       {
           params->which_parameters = which_parameter;
-          cur_logl = pll_optimize_parameters_brent (params);
+          if (first_guess)
+            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.02, 1.0, 100.0);
+          else
+              cur_logl = pll_optimize_parameters_brent(params);
+      }
+      else if (which_parameter == PLL_PARAMETER_PINV)
+      {
+          params->which_parameters = which_parameter;
+          if (first_guess)
+            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.0, partition.empirical_pinv, 1.0);
+          else
+              cur_logl = pll_optimize_parameters_brent(params);
       }
       else
       {
-          params->which_parameters = which_parameter;
-          cur_logl = pll_optimize_parameters_lbfgsb (params);
+          cur_logl = pll_optimize_parameters_brent(params);
       }
 
       return cur_logl;
@@ -448,7 +461,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (!model->is_I())
           pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);
       else
-          pll_update_invariant_sites_proportion(pll_partition, 0, 0.5);
+          pll_update_invariant_sites_proportion(pll_partition, 0, partition.empirical_pinv);
 
       if (model->is_F())
           model->set_frequencies(partition.empirical_freqs);
@@ -522,9 +535,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 //      tree->reroot_random(thread_number);
       pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
 
-      tree->set_branches(0.15, thread_number);
-      for (mt_index_t i=0; i<n_branches; i++)
-          branch_lengths[i] = 0.15;
+//      tree->set_branches(0.15, thread_number);
+//      for (mt_index_t i=0; i<n_branches; i++)
+//          branch_lengths[i] = 0.15;
       pll_update_prob_matrices (pll_partition,
                                 0,
                                 matrix_indices,
@@ -546,6 +559,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
        * function can minimize the score
        */
       double cur_logl = logl * -1;
+
+      /* notify initial likelihood */
+      opt_delta = cur_logl;
+      notify();
+
       /* logl intialized to an arbitrary value above the current lk */
       logl = cur_logl + 10;
       mt_index_t n_iters = 0;       /* iterations counter */
@@ -574,11 +592,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       {
           mt_size_t iters_hard_limit = 200;
           while ((!interrupt_optimization) &&
-                  (n_iters < params_to_optimize.size() ||
+                  ((n_iters % params_to_optimize.size()) ||
                 (fabs (cur_logl - logl) > epsilon && cur_logl < logl)))
           {
-              n_iters++;
-              logl = cur_logl;
+              if (!(n_iters % params_to_optimize.size()))
+                logl = cur_logl;
 
               if (!on_run)
               {
@@ -600,7 +618,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               {
                   test_logl = cur_logl;
 #endif
-                  cur_logl = opt_single_parameter(cur_parameter, tolerance);
+                  cur_logl = opt_single_parameter(cur_parameter, tolerance, n_iters);
 
                   // notify parameter optimization
                   opt_delta = cur_logl;
@@ -615,6 +633,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               cur_parameter_index++;
               cur_parameter_index %= params_to_optimize.size();
 
+              n_iters++;
               iters_hard_limit--;
               assert(iters_hard_limit);
           }

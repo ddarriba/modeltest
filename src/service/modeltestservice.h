@@ -5,6 +5,7 @@
 #include "modeltest.h"
 #include "model_selection.h"
 #include "model.h"
+#include "thread/observer.h"
 
 #include <string>
 #include <vector>
@@ -38,21 +39,24 @@ public:
     static bool test_tree( std::string const& tree_filename,
                            mt_size_t *n_tips );
 
+    static bool initialized( void ) { return instance != NULL; }
+
 //    static bool test_partitions( std::string const&parts_filename,
 //                                 mt_size_t * n_partitions ) {}
 
     bool create_instance( mt_options & options );
     bool destroy_instance( void );
 
-    bool evaluate_models(partition_id_t const& part_id,
-                         mt_size_t n_procs,
-                         double epsilon_param,
-                         double epsilon_opt);
-
     bool optimize_single(const partition_id_t &part_id,
                          mt_index_t n_models,
                          modeltest::Model *model,
                          mt_index_t thread_id,
+                         double epsilon_param,
+                         double epsilon_opt,
+                         const std::vector<Observer *> observers = {});
+
+    bool evaluate_models(partition_id_t const& part_id,
+                         mt_size_t n_procs,
                          double epsilon_param,
                          double epsilon_opt);
 
@@ -62,6 +66,8 @@ public:
     }
 
     mt_size_t get_number_of_models(partition_id_t const& part_id);
+
+    modeltest::Model * get_model(partition_id_t const& part_id, mt_index_t model_idx);
 
     modeltest::ModelTest * get_modeltest()
     {

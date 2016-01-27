@@ -303,7 +303,12 @@ bool ModelTest::build_instance(mt_options & options)
         /* compute empirical frequencies */
         if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
         {
-            std::cerr << "Error in " << partition.partition_name << std::endl;
+            std::cerr << "Error computing frequencies in " << partition.partition_name << std::endl;
+            return false;
+        }
+        if (!current_instance->msa->compute_empirical_pinv(partition))
+        {
+            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
             return false;
         }
     }

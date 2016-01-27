@@ -32,8 +32,7 @@ protected:
     void run();
 
 private:
-    void optimize_single(modeltest::ModelTest *mtest,
-                                const partition_id_t &part_id,
+    void optimize_single(const partition_id_t &part_id,
                                 mt_index_t n_models,
                                 modeltest::Model *model,
                                 mt_index_t thread_id,
@@ -41,7 +40,6 @@ private:
                                 double epsilon_opt);
 
     modeltest::ThreadPool * pool;
-    modeltest::ModelTest * mtest;
     partition_id_t part_id;
     int n_threads;
 

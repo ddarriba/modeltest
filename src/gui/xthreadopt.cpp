@@ -1,4 +1,5 @@
 #include "xthreadopt.h"
+#include "service/modeltestservice.h"
 
 #include <map>
 #include <vector>
@@ -14,11 +15,12 @@ xThreadOpt::xThreadOpt(modeltest::ModelTest * mtest,
                        int n_threads,
                        double epsilon_param,
                        double epsilon_opt) :
-    mtest(mtest), part_id(part_id), n_threads(n_threads),
+    part_id(part_id), n_threads(n_threads),
     epsilon_param(epsilon_param), epsilon_opt(epsilon_opt)
 {
     pool = 0;
     interrupt = false;
+    assert(ModelTestService::initialized());
 }
 
 void xThreadOpt::update(Observable * subject)
@@ -34,8 +36,7 @@ void xThreadOpt::update(Observable * subject)
     emit next_parameter( mopt->get_cur_parameter(), mopt->get_opt_delta(), mopt->get_thread_number() );
 }
 
-void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
-                            const partition_id_t &part_id,
+void xThreadOpt::optimize_single(const partition_id_t &part_id,
                             mt_index_t n_models,
                             modeltest::Model *model,
                             mt_index_t thread_id,
@@ -46,12 +47,19 @@ void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
     if (interrupt)
         return;
 
-    modeltest::ModelOptimizer * mopt = mtest->get_model_optimizer(model,
-                                                                  part_id,
-                                                                  thread_id);
-    mopt->attach(this);
-    mopt->run(epsilon_param, epsilon_opt);
-    delete mopt;
+    ModelTestService::instance()->optimize_single(part_id,
+                                                  n_models,
+                                                  model,
+                                                  thread_id,
+                                                  epsilon_param,
+                                                  epsilon_opt,
+                                                  {this});
+//    modeltest::ModelOptimizer * mopt = mtest->get_model_optimizer(model,
+//                                                                  part_id,
+//                                                                  thread_id);
+//    mopt->attach(this);
+//    mopt->run(epsilon_param, epsilon_opt);
+//    delete mopt;
 
     // check for models interrupted during optimization
     if (interrupt)
@@ -63,16 +71,16 @@ void xThreadOpt::optimize_single(modeltest::ModelTest *mtest,
 void xThreadOpt::run()
 {
     mt_index_t cur_model;
-    mt_size_t n_models = mtest->get_models(part_id).size();
+    mt_size_t n_models = ModelTestService::instance()->get_number_of_models(part_id);
     assert(n_models);
 
     if (n_threads == 1)
     {
-        for (cur_model=0; cur_model < mtest->get_models(part_id).size(); cur_model++)
+        for (cur_model=0; cur_model < n_models; cur_model++)
         {
-            modeltest::Model *model = mtest->get_models(part_id)[cur_model];
+            modeltest::Model *model = ModelTestService::instance()->get_model(part_id, cur_model);
             emit next_model( model, 0 );
-            optimize_single(mtest, part_id, n_models, model, 0, epsilon_param, epsilon_opt);
+            optimize_single(part_id, n_models, model, 0, epsilon_param, epsilon_opt);
         }
     }
     else
@@ -82,9 +90,9 @@ void xThreadOpt::run()
         map<thread::id, mt_index_t> thread_map = pool->worker_ids;
 
         cout << "Starting jobs... (output might be unsorted)" << endl;
-        for (cur_model=0; cur_model < mtest->get_models(part_id).size(); cur_model++)
+        for (cur_model=0; cur_model < n_models; cur_model++)
         {
-            modeltest::Model *model = mtest->get_models(part_id)[cur_model];
+            modeltest::Model *model = ModelTestService::instance()->get_model(part_id, cur_model);
 
             double eps_par = epsilon_param;
             double eps_opt = epsilon_opt;
@@ -93,7 +101,7 @@ void xThreadOpt::run()
               pool->enqueue([cur_model, model, n_models, p_id, eps_par, eps_opt, this, &thread_map] {
                   thread::id my_id(__gthread_self());
                   emit next_model( model, thread_map[my_id] );
-                  optimize_single(mtest, part_id, n_models, model, thread_map[my_id], epsilon_param, epsilon_opt);
+                  optimize_single(part_id, n_models, model, thread_map[my_id], epsilon_param, epsilon_opt);
               })
             );
         }

@@ -24,13 +24,6 @@ bool ModelTestService::test_tree( std::string const& tree_filename,
     return ModelTest::test_tree(tree_filename, n_tips);
 }
 
-//bool ModelTestService::test_partitions( std::string const&parts_filename,
-//                                        mt_size_t * n_partitions )
-//{
-//    ModelTest::
-//    ModelTest::test_partitions()
-//}
-
 bool ModelTestService::create_instance( mt_options & options )
 {
     bool build_ok;
@@ -54,6 +47,27 @@ bool ModelTestService::destroy_instance( void )
     return true;
 }
 
+bool ModelTestService::optimize_single(const partition_id_t &part_id,
+                     mt_index_t n_models,
+                     modeltest::Model *model,
+                     mt_index_t thread_id,
+                     double epsilon_param,
+                     double epsilon_opt,
+                     const std::vector<Observer *> observers)
+{
+    assert(modeltest_instance);
+
+    ModelOptimizer * mopt = modeltest_instance->get_model_optimizer(model,
+        part_id,
+        thread_id);
+    for (Observer * observer : observers)
+        mopt->attach(observer);
+    mopt->run(epsilon_param, epsilon_opt);
+    delete mopt;
+
+    return true;
+}
+
 bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                        mt_size_t n_procs,
                                        double epsilon_param,
@@ -69,6 +83,11 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id)
 {
     return modeltest_instance->get_models(part_id).size();
+}
+
+Model * ModelTestService::get_model(partition_id_t const& part_id, mt_index_t model_idx)
+{
+    return modeltest_instance->get_models(part_id).at(model_idx);
 }
 
 string ModelTestService::get_raxml_command_line(Model const& model)

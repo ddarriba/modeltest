@@ -279,6 +279,32 @@ namespace modeltest
       return true;
   }
 
+  bool MsaPll::compute_empirical_pinv(partition_t &partition)
+  {
+      mt_size_t n_inv = 0;
+      mt_size_t n_sites = 0;
+      for (partition_region_t region : partition.regions)
+      {
+          n_sites += region.end - region.start;
+          n_inv   += region.end - region.start;
+          for (mt_index_t j = region.start; j < region.end; j++)
+          {
+              char state = sequences[0][j];
+              for (mt_index_t i=0; i<n_taxa; ++i)
+              {
+                  if (sequences[i][j] != state)
+                  {
+                      n_inv--;
+                      break;
+                  }
+              }
+          }
+      }
+      double empirical_pinv = (double)1.0*n_inv/n_sites;
+      partition.empirical_pinv = empirical_pinv;
+      return true;
+  }
+
   void MsaPll::print() const
   {
       for (mt_index_t i=0; i<n_taxa; i++)

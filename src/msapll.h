@@ -26,6 +26,7 @@ namespace modeltest
     virtual bool compute_empirical_frequencies(partition_t &partition,
                                                bool smooth = false,
                                                bool force_recompute = false);
+    virtual bool compute_empirical_pinv(partition_t &partition);
     virtual void print() const;
 
     static bool test(std::string const& msa_filename,

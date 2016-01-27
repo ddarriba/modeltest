@@ -47,7 +47,8 @@ namespace modeltest
     virtual ~ModelOptimizerPll ();
 
     virtual double opt_single_parameter(mt_index_t which_parameter,
-                                        double tolerance = DEFAULT_PARAM_EPSILON);
+                                        double tolerance = DEFAULT_PARAM_EPSILON,
+                                        bool first_guess = false);
 
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001,

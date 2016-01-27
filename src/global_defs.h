@@ -126,6 +126,7 @@ typedef struct
 {
     std::vector<partition_region_t> regions;
     std::vector<double> empirical_freqs;
+    double empirical_pinv;
     data_type datatype;
     mt_size_t states;
     std::string partition_name;

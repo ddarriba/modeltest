@@ -38,7 +38,8 @@ namespace modeltest
      * @return the resulting log-Likelihood of the model
      */
     virtual double opt_single_parameter(mt_index_t which_parameter,
-                                        double tolerance = DEFAULT_PARAM_EPSILON) = 0;
+                                        double tolerance = DEFAULT_PARAM_EPSILON,
+                                        bool first_guess = false) = 0;
 
     /**
      * @brief Optimizes all parameters for the model

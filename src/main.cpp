@@ -131,6 +131,20 @@ static void print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "f: both +I and +G (+I+G)" << endl;
 
+    out << setw(MAX_OPT_LENGTH) << left << "  -m, --models list"
+        << "sets the candidate model matrices separated by commas" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "dna: JC HKY TrN TPM1 TPM2 TPM3" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "     TIM1 TIM2 TIM3 TVM GTR" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "protein: DAYHOFF LG DCMUT JTT MTREV WAG RTREV CPREV" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "         VT BLOSUM62 MTMAM MTART MTZOA PMB HIBV HIVW" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "         JTTDCMUT FLU SMTREV" << endl;
+
+
     /************************************************************/
 
     out << endl << " Partitioning scheme search:" << endl;
