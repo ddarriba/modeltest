@@ -75,12 +75,13 @@ static bool build_models(data_type datatype,
     return true;
 }
 
-Partition::Partition(Msa * _msa,
+Partition::Partition(partition_id_t id,
+                     Msa * _msa,
                      Tree * _tree,
                      partition_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params) :
-    msa(_msa), tree(_tree),
+    id(id), msa(_msa), tree(_tree),
     descriptor(_descriptor)
 {
     switch(descriptor.datatype)
@@ -107,6 +108,20 @@ const partition_t Partition::get_descriptor( void ) const
     return descriptor;
 }
 
+data_type Partition::get_datatype(void) const
+{
+    return descriptor.datatype;
+}
+
+const std::string Partition::get_name( void ) const
+{
+    return descriptor.partition_name;
+}
+
+const partition_id_t Partition::get_id( void ) const
+{
+    return id;
+}
 static bool sort_forwards(Model * m1, Model * m2)
 {
     mt_size_t p1 = m1->get_n_free_variables();
@@ -151,9 +166,19 @@ void Partition::sort_models(bool forwards)
          fsort);
 }
 
+mt_size_t Partition::get_number_of_models( void ) const
+{
+    return c_models.size();
+}
+
 std::vector<Model *> const& Partition::get_models() const
 {
     return c_models;
+}
+
+Model * Partition::get_model(mt_index_t index) const
+{
+    return c_models[index];
 }
 
 bool Partition::set_models(const std::vector<Model *> &models)

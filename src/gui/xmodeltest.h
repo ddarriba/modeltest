@@ -8,6 +8,7 @@
 
 /* dialogs */
 #include "gui/datainfodialog.h"
+#include "gui/modelsdialog.h"
 #include "gui/resultsdialog.h"
 
 #include <QMainWindow>
@@ -41,8 +42,9 @@ public:
 public slots:
     void set_text(char *message );
     void optimized_single_model(modeltest::Model * model, unsigned int n_models);
-    void optimization_done( partition_id_t part_id );
-    void optimization_interrupted( partition_id_t part_id );
+    void optimized_partition( partition_id_t part_id );
+    void optimization_done( );
+    void optimization_interrupted( );
 
 private slots:
     void on_act_open_msa_triggered();
@@ -69,6 +71,8 @@ private slots:
     void on_act_results_triggered();
     void on_mnu_results_triggered();
     void on_tool_results_clicked();
+
+    void on_mnu_models_triggered();
 
     void on_act_reset_triggered();
     void on_mnu_reset_triggered();
@@ -116,7 +120,8 @@ private:
     void action_open_tree( void );
     void action_open_parts( void );
     void action_run( void );
-    void action_results( void );
+    void action_viewresults( void );
+    void action_viewmodels( void );
     void action_reset( void );
     void action_view_datainfo( void );
 
@@ -141,7 +146,7 @@ private:
     MyDebugStream *redirect;
     xThreadOpt * mythread;
 
-    std::vector<modeltest::Model *> c_models;
+    //std::vector<modeltest::Model *> c_models;
     partitioning_scheme_t * scheme;
     tree_type start_tree;
     mt_options opts;
@@ -151,6 +156,7 @@ private:
     /* other dialogs */
     DataInfoDialog * datainfo_dialog;
     ResultsDialog * results_dialog;
+    ModelsDialog * models_dialog;
 };
 
 #endif // XMODELTEST_H

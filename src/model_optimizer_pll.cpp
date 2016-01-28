@@ -379,14 +379,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       else if (which_parameter == PLL_PARAMETER_PINV)
       {
           params->which_parameters = which_parameter;
+
           if (first_guess)
-            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.0, partition.empirical_pinv, 1.0);
+            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.0, partition.empirical_pinv, 0.99);
           else
               cur_logl = pll_optimize_parameters_brent(params);
       }
       else
       {
-          cur_logl = pll_optimize_parameters_brent(params);
+          params->which_parameters = which_parameter;
+          cur_logl = pll_optimize_parameters_lbfgsb(params);
       }
 
       return cur_logl;

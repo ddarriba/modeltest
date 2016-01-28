@@ -17,14 +17,17 @@ typedef std::map<partition_id_t, Partition *> partitions_map_t;
 class PartitioningScheme
 {
 public:
-    PartitioningScheme(const partitioning_scheme_t & scheme_def,
-                       Msa * msa,
-                       Tree * tree,
-                       std::vector<mt_index_t> candidate_models,
-                       mt_mask_t model_params);
+    PartitioningScheme();
     ~PartitioningScheme();
 
+    bool add_partition(const partition_id_t &partition_id,
+                       Partition * partition);
+
+    bool delete_partitions( void );
+
     mt_index_t get_size( void ) const;
+
+    Partition & get_partition( partition_id_t const& part_id );
     Partition & get_partition( mt_index_t id );
 private:
     partitions_map_t partitions;

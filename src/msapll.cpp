@@ -234,6 +234,12 @@ namespace modeltest
               {
                   double sum_site = 0.0;
                   mt_size_t ind = states_map[(int)sequences[i][j]];
+                  if (!ind)
+                  {
+                      mt_errno = MT_ERROR_FREQUENCIES;
+                      snprintf(mt_errmsg, 200, "MSA does not match the data type [%s]", partition.partition_name.c_str());
+                      return false;
+                  }
                   for (unsigned int k=0; k<states; ++k)
                   {
                       sum_site += (ind & (1<<k)) > 0;
@@ -257,7 +263,13 @@ namespace modeltest
       {
           checksum += partition.empirical_freqs[i];
       }
-      assert( fabs(1-checksum) < 1e-10 );
+
+      if( (checksum != checksum) || (fabs(1-checksum) > 1e-10 ))
+      {
+          mt_errno = MT_ERROR_FREQUENCIES;
+          snprintf(mt_errmsg, 200, "Empirical frequencies do not sum to 1 [%s]", partition.partition_name.c_str());
+          return false;
+      }
 
       /* check missing states */
       mt_size_t missing_states = states - Utils::count_bits(existing_states);
@@ -271,11 +283,13 @@ namespace modeltest
           }
           else
           {
-              std::cerr << "There are "<< missing_states << " missing states." << std::endl;
+              mt_errno = MT_ERROR_FREQUENCIES;
+              snprintf(mt_errmsg, 200, "There are [%d] missing states [%s]", missing_states, partition.partition_name.c_str());
               return false;
           }
       }
 
+      mt_errno = 0;
       return true;
   }
 

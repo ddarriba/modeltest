@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     gui/xutils.cpp \
     gui/resultsdialog.cpp \
     partitionselection.cpp \
-    service/modeltestservice.cpp
+    service/modeltestservice.cpp \
+    gui/modelsdialog.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -62,7 +63,8 @@ HEADERS  += \
     gui/xutils.h \
     gui/resultsdialog.h \
     partitionselection.h \
-    service/modeltestservice.h
+    service/modeltestservice.h \
+    gui/modelsdialog.h
 
 FORMS    += \
     compute_options.ui \
@@ -70,7 +72,8 @@ FORMS    += \
     gui/xmodeltest.ui \
     gui/progressdialog.ui \
     gui/datainfodialog.ui \
-    gui/resultsdialog.ui
+    gui/resultsdialog.ui \
+    gui/modelsdialog.ui
 
 RESOURCES = mtgraphics.qrc
 

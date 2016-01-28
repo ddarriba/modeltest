@@ -3,6 +3,7 @@ bin_PROGRAMS = modeltestx modeltest
 modeltest_SOURCES = \
 	moc/moc_progressdialog.cpp \
 	moc/moc_resultsdialog.cpp \
+	moc/moc_modelsdialog.cpp \
 	moc/moc_datainfodialog.cpp \
 	moc/moc_xmodeltest.cpp \
 	moc/moc_xthreadopt.cpp \
@@ -15,6 +16,7 @@ modeltest_SOURCES = \
 	gui/progressdialog.cpp \
 	gui/datainfodialog.cpp \
 	gui/resultsdialog.cpp \
+	gui/modelsdialog.cpp \
 	gui/xutils.cpp \
 	service/modeltestservice.cpp \
 	model.cpp \

@@ -106,12 +106,14 @@ xmodeltest::xmodeltest(QWidget *parent) :
 
     datainfo_dialog = 0;
     results_dialog = 0;
+    models_dialog = 0;
 
     reset_xmt();
 }
 
 xmodeltest::~xmodeltest()
 {
+    ModelTestService::instance()->destroy_instance();
     delete redirect;
     delete ui;
 }
@@ -139,13 +141,7 @@ void xmodeltest::reset_xmt( void )
         scheme = 0;
     }
 
-    if (c_models.size())
-    {
-        /* clear models */
-        for (size_t i=0; i<c_models.size(); i++)
-            delete(c_models[i]);
-        c_models.clear();
-    }
+    ModelTestService::instance()->destroy_instance();
 
     if (datainfo_dialog)
         delete datainfo_dialog;
@@ -154,6 +150,10 @@ void xmodeltest::reset_xmt( void )
     if (results_dialog)
         delete results_dialog;
     results_dialog = 0;
+
+    if (models_dialog)
+        delete models_dialog;
+    models_dialog = 0;
 }
 
 void xmodeltest::update_gui( void )
@@ -161,31 +161,50 @@ void xmodeltest::update_gui( void )
     char txt[30];
     int n_model_sets, n_matrices, n_models;
 
-    ui->act_open_tree->setEnabled(status & st_msa_loaded);
-    ui->mnu_open_tree->setEnabled(status & st_msa_loaded);
-    ui->act_open_parts->setEnabled(status & st_msa_loaded);
-    ui->mnu_open_parts->setEnabled(status & st_msa_loaded);
+    bool enable_open_msa = (status & st_active) && !(status & st_optimized);
+    ui->act_open_msa->setEnabled(enable_open_msa);
+    ui->mnu_open_msa->setEnabled(enable_open_msa);
     enable(ui->tool_open_msa,
-          (status & st_active) && !(status & st_optimized),
+           enable_open_msa,
            status & st_msa_loaded);
+
+    bool enable_open_tree = (status & st_msa_loaded) && !(status & st_optimized);
+    ui->act_open_tree->setEnabled(enable_open_tree);
+    ui->mnu_open_tree->setEnabled(enable_open_tree);
     enable(ui->tool_open_tree,
-          (status & st_msa_loaded) && !(status & st_optimized),
+           enable_open_tree,
            status & st_tree_loaded);
+
+    bool enable_open_parts = (status & st_msa_loaded) && !(status & st_optimized);
+    ui->act_open_parts->setEnabled(enable_open_parts);
+    ui->mnu_open_parts->setEnabled(enable_open_parts);
     enable(ui->tool_open_parts,
-          (status & st_msa_loaded) && !(status & st_optimized),
+           enable_open_parts,
            status & st_parts_loaded);
+
+    bool enable_run = (status & st_msa_loaded) && !(status & st_optimized);
+    ui->mnu_run->setEnabled(enable_run);
     enable(ui->tool_run,
-          (status & st_msa_loaded) && !(status & st_optimized),
+           enable_run,
            status & st_optimized);
+
     bool enable_settings = !(status & st_optimized);
     enable(ui->tool_settings,
            enable_settings,
            ui->tool_settings->isChecked());
+    ui->mnu_toggle_settings->setEnabled(enable_settings);
     ui->tool_settings->setChecked(ui->tool_settings->isChecked() &&
                                   enable_settings);
+
     bool enable_results = status & st_optimized;
     enable(ui->tool_results,
            enable_results);
+    ui->act_results->setEnabled(enable_results);
+    ui->mnu_results->setEnabled(enable_results);
+
+    bool enable_models = status & st_optimized;
+    ui->mnu_models->setEnabled(enable_models);
+
     enable(ui->tool_reset,
            status & st_active);
 
@@ -252,7 +271,7 @@ void xmodeltest::update_gui( void )
 
 void xmodeltest::run_modelselection()
 {
-    partition_id_t part_id = {0};
+    partition_id_t part_id;
     int number_of_threads  = ui->sliderNThreads->value();
 
     QMessageBox msgBox;
@@ -276,11 +295,6 @@ void xmodeltest::run_modelselection()
         start_tree = tree_ml;
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
-
-    /* clear models */
-    for (size_t i=0; i<c_models.size(); i++)
-        delete(c_models[i]);
-    c_models.clear();
 
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
@@ -365,9 +379,9 @@ void xmodeltest::run_modelselection()
     //TODO: Create option for smoothing
     opts.smooth_freqs = false;
 
-    cout << "Building modeltest instance for " << number_of_threads << " threads" << endl;
+    ui->consoleRun->append(xutils::to_qstring("Building modeltest instance for %1 threads", msg_lvl_info).arg(number_of_threads));
 
-    bool ok_inst = ModelTestService::instance()->create_instance(opts);
+    bool ok_inst = ModelTestService::instance()->reset_instance(opts);
     if (!ok_inst)
     {
         ui->consoleRun->append(xutils::to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
@@ -375,35 +389,51 @@ void xmodeltest::run_modelselection()
         return;
     }
 
-//    if (c_models.size())
-//    {
-//        mtest->set_models(c_models, part_id);
-//    }
-
     /* print settings */
    modeltest::Utils::print_options(opts);
 
+   modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
+
    //TODO: FIX
-    mythread = new xThreadOpt(ModelTestService::instance()->get_modeltest(),
-                              part_id, number_of_threads,
-                              opts.epsilon_param, opts.epsilon_opt);
+   mt_size_t n_models;
+   if (partitioning_scheme.get_size() == 1)
+   {
+       part_id = {0};
+        mythread = new xThreadOpt(part_id,
+                                  number_of_threads,
+                                  opts.epsilon_param,
+                                  opts.epsilon_opt);
+   }
+   else
+   {
+       mythread = new xThreadOpt(partitioning_scheme,
+                                 number_of_threads,
+                                 opts.epsilon_param,
+                                 opts.epsilon_opt);
+   }
+    n_models = mythread->get_number_of_models();
+
     QObject::connect(mythread,
-                     SIGNAL(optimization_done(partition_id_t)),
+                     SIGNAL(optimization_done()),
                      this,
-                     SLOT(optimization_done(partition_id_t)));
+                     SLOT(optimization_done()));
     QObject::connect(mythread,
-                     SIGNAL(optimization_interrupted(partition_id_t)),
+                     SIGNAL(optimization_interrupted()),
                      this,
-                     SLOT(optimization_interrupted(partition_id_t)));
+                     SLOT(optimization_interrupted()));
     QObject::connect(mythread,
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      this,
                      SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
+    QObject::connect(mythread,
+                     SIGNAL(optimized_partition_done(partition_id_t)),
+                     this,
+                     SLOT(optimized_partition(partition_id_t)));
 
-    ProgressDialog dialog( ModelTestService::instance()->get_number_of_models(part_id),
+    ProgressDialog dialog( n_models,
                            number_of_threads );
 
-    QObject::connect(mythread, SIGNAL(optimization_done(partition_id_t)), &dialog, SLOT(reset( void )));
+    QObject::connect(mythread, SIGNAL(optimization_done( void )), &dialog, SLOT(reset( void )));
     QObject::connect(mythread,
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      &dialog,
@@ -432,22 +462,36 @@ void xmodeltest::action_run( void )
     update_gui();
 }
 
-void xmodeltest::action_results( void )
+void xmodeltest::action_viewresults( void )
 {
-    //TODO
+    //TODO: Results view for all partitions!
+    //      MOVE the select_
     if (!results_dialog)
     {
-        modeltest::ModelSelection aic_selection(c_models, modeltest::ic_aic);
-        modeltest::ModelSelection aicc_selection(c_models, modeltest::ic_aicc);
-        modeltest::ModelSelection bic_selection(c_models, modeltest::ic_bic);
-        modeltest::ModelSelection dt_selection(c_models, modeltest::ic_dt);
+        modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_aic);
+        modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_aicc);
+        modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_bic);
+        modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_dt);
 
-        results_dialog = new ResultsDialog(aic_selection, aicc_selection, bic_selection, dt_selection);
+        results_dialog = new ResultsDialog(*aic_selection, *aicc_selection, *bic_selection, *dt_selection);
+
+        delete aic_selection;
+        delete aicc_selection;
+        delete bic_selection;
+        delete dt_selection;
     }
     results_dialog->show();
     results_dialog->raise();
 
     update_gui();
+}
+
+void xmodeltest::action_viewmodels( void )
+{
+    if (!models_dialog)
+        models_dialog = new ModelsDialog(ModelTestService::instance()->get_partitioning_scheme());
+    models_dialog->show();
+    models_dialog->raise();
 }
 
 void xmodeltest::action_reset( void )
@@ -767,49 +811,38 @@ void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n
              << model->get_lnl() << endl;
 }
 
-void xmodeltest::optimization_done( partition_id_t part_id )
+void xmodeltest::optimized_partition( partition_id_t part_id )
+{
+    cout << "Finished partition " << endl;
+}
+
+void xmodeltest::optimization_done( )
 {
     //TODO: FIX
-    const std::vector<modeltest::Model *> & modelsPtr = ModelTestService::instance()->get_modeltest()->get_models(part_id);
-        QVector<int> models;
-        for (int i=0; (size_t)i < modelsPtr.size(); i++)
-            models.append(i);
+//    const std::vector<modeltest::Model *> & modelsPtr = ModelTestService::instance()->get_modeltest()->get_models(part_id);
+//        QVector<int> models;
+//        for (int i=0; (size_t)i < modelsPtr.size(); i++)
+//            models.append(i);
 
         status &= ~st_optimizing;
         status |= st_optimized;
 
         modeltest::on_run = false;
 
-        /* clone models */
-        assert(!c_models.size());
-        c_models.resize( modelsPtr.size() );
-        for (size_t i=0; i<modelsPtr.size(); i++)
-            if (ui->radDatatypeDna->isChecked())
-                c_models[i] = new modeltest::DnaModel(*(modelsPtr[i]));
-            else
-                c_models[i] = new modeltest::ProtModel(*(modelsPtr[i]));
-
         update_gui();
 
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
 
-        ModelTestService::instance()->destroy_instance();
         delete mythread;
 }
 
-void xmodeltest::optimization_interrupted( partition_id_t part_id )
+void xmodeltest::optimization_interrupted()
 {
-    UNUSED(part_id);
-
         status &= ~st_optimizing;
         status &= ~st_optimized;
 
         modeltest::on_run = false;
-
-        /* clear models */
-        for (size_t i=0; i<c_models.size(); i++)
-            delete(c_models[i]);
 
         update_gui();
 

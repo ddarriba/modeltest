@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Results</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../mtgraphics.qrc">
+    <normaloff>:/IMG/IMG/results-icon.png</normaloff>:/IMG/IMG/results-icon.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -811,6 +815,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../mtgraphics.qrc"/>
+ </resources>
  <connections/>
 </ui>

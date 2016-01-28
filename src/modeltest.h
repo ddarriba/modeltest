@@ -108,13 +108,7 @@ public:
                                          const partition_id_t &part_id,
                                          mt_index_t thread_number = 0);
 
-//    /**
-//     * @brief Gets the number of candidate ModelSelection
-//     *
-//     * @param[in] part_id  the partition id
-//     * @return The number of candidate models
-//     */
-//    mt_size_t get_number_of_models(const partition_id_t &part_id) const;
+    PartitioningScheme & get_partitioning_scheme( void ) const;
 
     /**
      * @brief Gets the set of candidate models
@@ -133,9 +127,10 @@ public:
                     const partition_id_t &part_id);
 
 private:
-    mt_size_t number_of_threads;            //! number of threads
-    selection_instance * current_instance;  //! model optimization parameters
-    partitions_map_t partitions;            //! partitions
+    mt_size_t number_of_threads;              //! number of threads
+    selection_instance * current_instance;    //! model optimization parameters
+    //partitions_map_t partitions;            //! partitions
+    PartitioningScheme * partitioning_scheme; //! partitioning scheme
 
     /**
      * @brief Creates a new set of model optimization parameters

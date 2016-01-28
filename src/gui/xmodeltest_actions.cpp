@@ -44,9 +44,11 @@ void xmodeltest::on_act_run_triggered()  {action_run();}
 void xmodeltest::on_mnu_run_triggered()  {action_run();}
 void xmodeltest::on_tool_run_clicked()  {action_run();}
 
-void xmodeltest::on_act_results_triggered()  {action_results();}
-void xmodeltest::on_mnu_results_triggered()  {action_results();}
-void xmodeltest::on_tool_results_clicked()  {action_results();}
+void xmodeltest::on_act_results_triggered()  {action_viewresults();}
+void xmodeltest::on_mnu_results_triggered()  {action_viewresults();}
+void xmodeltest::on_tool_results_clicked()  {action_viewresults();}
+
+void xmodeltest::on_mnu_models_triggered()  {action_viewmodels();}
 
 void xmodeltest::on_act_reset_triggered() {action_reset();}
 void xmodeltest::on_mnu_reset_triggered() {action_reset();}
@@ -199,6 +201,7 @@ void xmodeltest::on_radDatatypeDna_clicked()
 {
     //ui->grpSubstSchemes->setVisible(true);
     ui->grpSubstSchemes->setEnabled(true);
+    ui->cbEqualFreq->setText("Equal frequencies");
     ui->cbMlFreq->setText("ML frequencies");
     ui->modelsListView->clear();
 
@@ -224,6 +227,7 @@ void xmodeltest::on_radDatatypeProt_clicked()
 
     //ui->grpSubstSchemes->setVisible(false);
     ui->grpSubstSchemes->setEnabled(false);
+    ui->cbEqualFreq->setText("Model frequencies");
     ui->cbMlFreq->setText("Empirical frequencies");
     ui->modelsListView->clear();
     for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)

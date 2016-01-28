@@ -46,6 +46,7 @@ public:
 
     bool create_instance( mt_options & options );
     bool destroy_instance( void );
+    bool reset_instance( mt_options & options );
 
     bool optimize_single(const partition_id_t &part_id,
                          mt_index_t n_models,
@@ -65,9 +66,11 @@ public:
         return new modeltest::ModelSelection(modeltest_instance->get_models(part_id), type);
     }
 
-    mt_size_t get_number_of_models(partition_id_t const& part_id);
+    mt_size_t get_number_of_models(partition_id_t const& part_id) const;
 
-    modeltest::Model * get_model(partition_id_t const& part_id, mt_index_t model_idx);
+    modeltest::PartitioningScheme & get_partitioning_scheme( void ) const;
+
+    modeltest::Model * get_model(partition_id_t const& part_id, mt_index_t model_idx) const;
 
     modeltest::ModelTest * get_modeltest()
     {

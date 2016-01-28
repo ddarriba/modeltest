@@ -77,6 +77,7 @@ extern int mpi_numprocs;
 #define MT_ERROR_UNIMPLEMENTED 10000
 #define MT_ERROR_LIBPLL        10100
 #define MT_ERROR_ALIGNMENT     10200
+#define MT_ERROR_FREQUENCIES   10250
 #define MT_ERROR_TREE          10300
 #define MT_ERROR_PARTITIONS    10400
 #define MT_ERROR_MODELS        10500

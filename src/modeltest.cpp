@@ -20,6 +20,7 @@ ModelTest::ModelTest(mt_size_t _number_of_threads)
     : number_of_threads(_number_of_threads)
 {
     setlocale(LC_NUMERIC, "C");
+    partitioning_scheme = 0;
     create_instance();
 }
 
@@ -45,9 +46,9 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     }
     MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-    const Partition * partition = partitions[part_id];
+    Partition &partition = partitioning_scheme->get_partition(part_id);
     return new ModelOptimizerPll(msa, tree, model,
-                                 partition->get_descriptor(),
+                                 partition.get_descriptor(),
                                  current_instance->n_catg,
                                  thread_number);
 }
@@ -109,20 +110,19 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                                 double epsilon_param,
                                 double epsilon_opt)
 {
-    assert(partitions.size());
-    Partition * partition = partitions[part_id];
-    assert(partition);
+    Partition &partition = partitioning_scheme->get_partition(part_id);
+
     mt_index_t cur_model;
-    mt_size_t n_models = get_models(part_id).size();
+    mt_size_t n_models = partition.get_number_of_models();
 
     if (!n_models)
         return true;
 
     if (n_procs == 1)
     {
-        for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
+        for (cur_model=0; cur_model < n_models; cur_model++)
         {
-            modeltest::Model *model = get_models(part_id)[cur_model];
+            Model *model = partition.get_model(cur_model);
             eval_and_print(part_id, cur_model, n_models, model, 0,
                            epsilon_param, epsilon_opt);
         }
@@ -130,14 +130,14 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
     else
     {
         std::cerr << "Creating pool with " << n_procs << " threads" << std::endl;
-        modeltest::ThreadPool pool(n_procs);
+        ThreadPool pool(n_procs);
         std::vector< std::future<int> > results;
         std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
 
         std::cerr << "Starting jobs... (output might be unsorted)" << std::endl;
-        for (cur_model=0; cur_model < get_models(part_id).size(); cur_model++)
+        for (cur_model=0; cur_model < n_models; cur_model++)
         {
-            modeltest::Model *model = get_models(part_id)[cur_model];
+            Model *model = partition.get_model(cur_model);
 
             results.emplace_back(
               pool.enqueue([cur_model, model, n_models, part_id, epsilon_param, epsilon_opt, this, &thread_map] {
@@ -399,6 +399,8 @@ bool ModelTest::build_instance(mt_options & options)
     else
       current_instance->n_catg = 1;
 
+    assert(!partitioning_scheme);
+    partitioning_scheme = new PartitioningScheme();
     mt_index_t cur_part_id = 0;
     for (partition_t & partition : (*current_instance->partitions_eff))
     {
@@ -406,13 +408,15 @@ bool ModelTest::build_instance(mt_options & options)
         part_id[0] = cur_part_id;
         Partition * new_part;
         if (partition.datatype == dt_dna)
-            new_part = new Partition(current_instance->msa,
+            new_part = new Partition(part_id,
+                                     current_instance->msa,
                                      current_instance->tree,
                                      partition,
                                      options.nt_candidate_models,
                                      options.model_params);
         else if (partition.datatype == dt_protein)
-            new_part = new Partition(current_instance->msa,
+            new_part = new Partition(part_id,
+                                     current_instance->msa,
                                      current_instance->tree,
                                      partition,
                                      options.aa_candidate_models,
@@ -426,7 +430,7 @@ bool ModelTest::build_instance(mt_options & options)
          */
         new_part->sort_models(number_of_threads == 1);
 
-        partitions[part_id] = new_part;
+        partitioning_scheme->add_partition(part_id, new_part);
         cur_part_id++;
     }
 
@@ -435,14 +439,18 @@ bool ModelTest::build_instance(mt_options & options)
 
 vector<Model *> const& ModelTest::get_models(partition_id_t const& part_id)
 {
-    Partition const* part = partitions[part_id];
-    return part->get_models();
+    return partitioning_scheme->get_partition(part_id).get_models();
 }
 
 bool ModelTest::set_models(const std::vector<Model *> &c_models,
                            const partition_id_t &part_id)
 {
-    return partitions[part_id]->set_models(c_models);
+    return partitioning_scheme->get_partition(part_id).set_models(c_models);
+}
+
+PartitioningScheme & ModelTest::get_partitioning_scheme( void ) const
+{
+    return *partitioning_scheme;
 }
 
 void ModelTest::free_stuff()
@@ -453,9 +461,14 @@ void ModelTest::free_stuff()
             delete current_instance->msa;
         if (current_instance->tree)
             delete current_instance->tree;
-        for (partitions_map_t::iterator it=partitions.begin(); it!=partitions.end(); ++it)
-            delete it->second;
-        partitions.clear();
+
+        if (partitioning_scheme)
+        {
+            partitioning_scheme->delete_partitions();
+            delete partitioning_scheme;
+            partitioning_scheme = 0;
+        }
+
         delete current_instance;
         current_instance = 0;
     }

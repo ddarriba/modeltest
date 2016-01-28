@@ -150,11 +150,6 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   partitions = parse_partition (&input);
   if (partitions)
       Utils::sort_partitioning_scheme(*partitions);
-  else
-  {
-      mt_errno = MT_ERROR_IO_FORMAT;
-      snprintf(mt_errmsg, 200, "Wrong format in %s", filename.c_str());
-  }
 
   free (rawdata);
   return partitions;
@@ -584,7 +579,8 @@ static vector<partition_t> * parse_partition (int * inp)
         /* read partition type */
         if (token.tokenType != TOKEN_STRING)
         {
-            cerr << "Invalid datatype in partition "<< lines << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            snprintf(mt_errmsg, 200, "Invalid datatype in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -607,7 +603,8 @@ static vector<partition_t> * parse_partition (int * inp)
         }
         else
         {
-            cerr << "Invalid datatype in partition " << lines << ": " << tmpchar << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            snprintf(mt_errmsg, 200, "Invalid datatype in partition %d: %s", lines, tmpchar);
             delete partitions;
             free (tmpchar);
             return 0;
@@ -619,7 +616,8 @@ static vector<partition_t> * parse_partition (int * inp)
 
                 if (token.tokenType != TOKEN_COMMA)
         {
-            cerr << "Expecting ',' after datatype in partition " << lines << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            snprintf(mt_errmsg, 200, "Expecting ',' after datatype in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -629,7 +627,8 @@ static vector<partition_t> * parse_partition (int * inp)
                 /* read partition name */
                 if (token.tokenType != TOKEN_STRING)
         {
-            cerr << "Expecting partition name in partition "<< lines << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            snprintf(mt_errmsg, 200, "Expecting partition name in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -646,7 +645,8 @@ static vector<partition_t> * parse_partition (int * inp)
                 /* read equal sign */
                 if (token.tokenType != TOKEN_EQUAL)
         {
-            cerr << "Expecting '=' in partition " << lines << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            snprintf(mt_errmsg, 200, "Expecting '=' in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -658,7 +658,8 @@ static vector<partition_t> * parse_partition (int * inp)
         {
             if (token.tokenType != TOKEN_NUMBER)
             {
-                cerr << "Invalid numerical character (region start) in partition " << lines << endl;
+                mt_errno = MT_ERROR_IO_FORMAT;
+                snprintf(mt_errmsg, 200, "Invalid numerical character (region start) in partition %d", lines);
                 delete partitions;
                 return 0;
             }
@@ -673,14 +674,16 @@ static vector<partition_t> * parse_partition (int * inp)
                         CONSUME(TOKEN_WHITESPACE)
                         if (token.tokenType != TOKEN_NUMBER)
                 {
-                    cerr << "Invalid numerical character (region end) in partition " << lines << endl;
+                    mt_errno = MT_ERROR_IO_FORMAT;
+                    snprintf(mt_errmsg, 200, "Invalid numerical character (region end) in partition %d", lines);
                     delete partitions;
                     return 0;
                 }
                 region.end = (mt_index_t) atoi (token.lexeme);
                 if (region.end < region.start)
                 {
-                    cerr << "End is smaller than Start in partition " << lines << endl;
+                    mt_errno = MT_ERROR_IO_FORMAT;
+                    snprintf(mt_errmsg, 200, "End is smaller than Start in partition %d", lines);
                     delete partitions;
                     return 0;
                 }
@@ -692,7 +695,8 @@ static vector<partition_t> * parse_partition (int * inp)
                             CONSUME(TOKEN_WHITESPACE)
                             if (token.tokenType != TOKEN_NUMBER)
                     {
-                        cerr << "Invalid stride in partition " << lines << endl;
+                        mt_errno = MT_ERROR_IO_FORMAT;
+                        snprintf(mt_errmsg, 200, "Invalid stride in partition %d", lines);
                         delete partitions;
                         return 0;
                     }
@@ -712,6 +716,7 @@ static vector<partition_t> * parse_partition (int * inp)
         partitions->push_back(pi);
     }
 
+    mt_errno = 0;
     return (partitions);
 }
 

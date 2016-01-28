@@ -47,6 +47,13 @@ bool ModelTestService::destroy_instance( void )
     return true;
 }
 
+bool ModelTestService::reset_instance( mt_options & options )
+{
+    if (modeltest_instance)
+        destroy_instance();
+    return create_instance(options);
+}
+
 bool ModelTestService::optimize_single(const partition_id_t &part_id,
                      mt_index_t n_models,
                      modeltest::Model *model,
@@ -80,14 +87,19 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                                epsilon_opt);
 }
 
-mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id)
+mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const
 {
     return modeltest_instance->get_models(part_id).size();
 }
 
-Model * ModelTestService::get_model(partition_id_t const& part_id, mt_index_t model_idx)
+Model * ModelTestService::get_model(partition_id_t const& part_id, mt_index_t model_idx) const
 {
     return modeltest_instance->get_models(part_id).at(model_idx);
+}
+
+PartitioningScheme & ModelTestService::get_partitioning_scheme( void ) const
+{
+    return modeltest_instance->get_partitioning_scheme();
 }
 
 string ModelTestService::get_raxml_command_line(Model const& model)

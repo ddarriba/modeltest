@@ -79,6 +79,18 @@ ResultsDialog::ResultsDialog(modeltest::ModelSelection & aic_selection,
     fill_results(ui->table_results_dt, dt_selection,
                  ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
                  ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+
+    for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
+    {
+        ui->table_results_bic->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aic->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aicc->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_dt->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+    }
 }
 
 ResultsDialog::~ResultsDialog()
