@@ -563,7 +563,7 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-60</y>
+                 <y>0</y>
                  <width>821</width>
                  <height>583</height>
                 </rect>
@@ -949,6 +949,9 @@
                       </property>
                       <item>
                        <widget class="QRadioButton" name="radTopoFixedMp">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="font">
                          <font>
                           <family>Courier 10 Pitch</family>
@@ -965,6 +968,9 @@
                       </item>
                       <item>
                        <widget class="QRadioButton" name="radTopoFixedJc">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="font">
                          <font>
                           <family>Courier 10 Pitch</family>
@@ -981,6 +987,9 @@
                       </item>
                       <item>
                        <widget class="QRadioButton" name="radTopoFixedGtr">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="font">
                          <font>
                           <family>Courier 10 Pitch</family>
@@ -1000,6 +1009,9 @@
                       </item>
                       <item>
                        <widget class="QRadioButton" name="radTopoML">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="font">
                          <font>
                           <family>Courier 10 Pitch</family>

@@ -22,7 +22,7 @@ static const uint qt_meta_data_xmodeltest[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      58,   14, // methods
+      63,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -86,8 +86,13 @@ static const uint qt_meta_data_xmodeltest[] = {
     1558,   11,   11,   11, 0x08,
     1586,   11,   11,   11, 0x08,
     1619, 1614,   11,   11, 0x08,
-    1667, 1459,   11,   11, 0x08,
-    1708, 1699,   11,   11, 0x08,
+    1667,   11,   11,   11, 0x08,
+    1689,   11,   11,   11, 0x08,
+    1717,   11,   11,   11, 0x08,
+    1746,   11,   11,   11, 0x08,
+    1774,   11,   11,   11, 0x08,
+    1797, 1459,   11,   11, 0x08,
+    1838, 1829,   11,   11, 0x08,
 
        0        // eod
 };
@@ -147,6 +152,10 @@ static const char qt_meta_stringdata_xmodeltest[] = {
     "on_cbShowMatrices_clicked()\0"
     "on_radSchemesUser_clicked()\0item\0"
     "on_modelsListView_itemClicked(QListWidgetItem*)\0"
+    "on_radTopoU_clicked()\0on_radTopoFixedMp_clicked()\0"
+    "on_radTopoFixedGtr_clicked()\0"
+    "on_radTopoFixedJc_clicked()\0"
+    "on_radTopoML_clicked()\0"
     "on_sliderNCat_valueChanged(int)\0"
     "position\0on_sliderNCat_sliderMoved(int)\0"
 };
@@ -213,8 +222,13 @@ void xmodeltest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 53: _t->on_cbShowMatrices_clicked(); break;
         case 54: _t->on_radSchemesUser_clicked(); break;
         case 55: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
-        case 56: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 57: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 56: _t->on_radTopoU_clicked(); break;
+        case 57: _t->on_radTopoFixedMp_clicked(); break;
+        case 58: _t->on_radTopoFixedGtr_clicked(); break;
+        case 59: _t->on_radTopoFixedJc_clicked(); break;
+        case 60: _t->on_radTopoML_clicked(); break;
+        case 61: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 62: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -252,9 +266,9 @@ int xmodeltest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 58)
+        if (_id < 63)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 58;
+        _id -= 63;
     }
     return _id;
 }

@@ -111,6 +111,12 @@ private slots:
     void on_radSchemesUser_clicked();
     void on_modelsListView_itemClicked(QListWidgetItem *item);
 
+    void on_radTopoU_clicked();
+    void on_radTopoFixedMp_clicked();
+    void on_radTopoFixedGtr_clicked();
+    void on_radTopoFixedJc_clicked();
+    void on_radTopoML_clicked();
+
     void on_sliderNCat_valueChanged(int value);
     void on_sliderNCat_sliderMoved(int position);
 

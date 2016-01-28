@@ -247,6 +247,44 @@ void xmodeltest::on_radSchemesUser_clicked()
     on_cbShowMatrices_clicked();
 }
 
+void xmodeltest::on_radTopoU_clicked()
+{
+    assert(ui->tool_open_tree->isEnabled());
+    action_open_tree();
+}
+
+void xmodeltest::on_radTopoFixedMp_clicked()
+{
+    utree_filename = "";
+    ui->lbl_tree->setStyleSheet("color: #007;");
+    ui->lbl_tree->setText("Fixed Maximum Parsimony");
+    update_gui();
+}
+
+void xmodeltest::on_radTopoFixedGtr_clicked()
+{
+    utree_filename = "";
+    ui->lbl_tree->setStyleSheet("color: #007;");
+    ui->lbl_tree->setText("Fixed Maximum Likelihood (GTR)");
+    update_gui();
+}
+
+void xmodeltest::on_radTopoFixedJc_clicked()
+{
+    utree_filename = "";
+    ui->lbl_tree->setStyleSheet("color: #007;");
+    ui->lbl_tree->setText("Fixed Maximum Likelihood (JC)");
+    update_gui();
+}
+
+void xmodeltest::on_radTopoML_clicked()
+{
+    utree_filename = "";
+    ui->lbl_tree->setStyleSheet("color: #007;");
+    ui->lbl_tree->setText("Maximum Likelihood");
+    update_gui();
+}
+
 void xmodeltest::on_modelsListView_itemClicked(QListWidgetItem *item)
 {
     UNUSED(item);

@@ -161,6 +161,12 @@ void xmodeltest::update_gui( void )
     char txt[30];
     int n_model_sets, n_matrices, n_models;
 
+    /* topology search is not available! */
+    ui->radTopoFixedGtr->setEnabled(false);
+    ui->radTopoFixedJc->setEnabled(false);
+    ui->radTopoFixedMp->setEnabled(false);
+    ui->radTopoML->setEnabled(false);
+
     bool enable_open_msa = (status & st_active) && !(status & st_optimized);
     ui->act_open_msa->setEnabled(enable_open_msa);
     ui->mnu_open_msa->setEnabled(enable_open_msa);
@@ -169,6 +175,7 @@ void xmodeltest::update_gui( void )
            status & st_msa_loaded);
 
     bool enable_open_tree = (status & st_msa_loaded) && !(status & st_optimized);
+    ui->radTopoU->setEnabled(enable_open_tree);
     ui->act_open_tree->setEnabled(enable_open_tree);
     ui->mnu_open_tree->setEnabled(enable_open_tree);
     enable(ui->tool_open_tree,
@@ -455,6 +462,12 @@ void xmodeltest::action_run( void )
     if (!ui->tool_run->isEnabled())
         return;
 
+    if (!ui->radTopoU->isChecked())
+    {
+        QMessageBox::warning(0, "We are sorry...", "<p>ModelTest Light works only with fixed user-defined trees so far</p>");
+        return;
+    }
+
     toggle_settings(false);
     update_gui();
     ini_t = time(NULL);
@@ -644,12 +657,18 @@ void xmodeltest::action_open_tree()
             ui->radTopoFixedGtr->setChecked(!(status & st_tree_loaded));
         else
             ui->radTopoU->setChecked(status & st_tree_loaded);
+
+        if (!(status & st_tree_loaded))
+            ui->tool_settings->setChecked(false);
     }
 
     if (status & st_tree_loaded)
         ui->lbl_tree->setText(QString(modeltest::Utils::getBaseName(utree_filename).c_str()));
     else
+    {
         ui->lbl_tree->setText("-");
+        ui->radTopoFixedGtr->setChecked(true);
+    }
 
     update_gui();
 }

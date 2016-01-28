@@ -67,6 +67,8 @@ ResultsDialog::ResultsDialog(modeltest::ModelSelection & aic_selection,
 {
     ui->setupUi(this);
 
+    //ui->frame_results_header->setVisible(scheme.get_size() > 1);
+
     fill_results(ui->table_results_aic, aic_selection,
                  ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
                  ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);

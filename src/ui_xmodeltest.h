@@ -490,7 +490,7 @@ public:
         frame_settings->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, -60, 821, 583));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 821, 583));
         verticalLayout_9 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_9->setObjectName(QString::fromUtf8("verticalLayout_9"));
         frameData = new QFrame(scrollAreaWidgetContents);
@@ -642,18 +642,21 @@ public:
         horizontalLayout_11->setContentsMargins(-1, 0, -1, 0);
         radTopoFixedMp = new QRadioButton(frame_settings_4);
         radTopoFixedMp->setObjectName(QString::fromUtf8("radTopoFixedMp"));
+        radTopoFixedMp->setEnabled(false);
         radTopoFixedMp->setFont(font4);
 
         horizontalLayout_11->addWidget(radTopoFixedMp);
 
         radTopoFixedJc = new QRadioButton(frame_settings_4);
         radTopoFixedJc->setObjectName(QString::fromUtf8("radTopoFixedJc"));
+        radTopoFixedJc->setEnabled(false);
         radTopoFixedJc->setFont(font4);
 
         horizontalLayout_11->addWidget(radTopoFixedJc);
 
         radTopoFixedGtr = new QRadioButton(frame_settings_4);
         radTopoFixedGtr->setObjectName(QString::fromUtf8("radTopoFixedGtr"));
+        radTopoFixedGtr->setEnabled(false);
         radTopoFixedGtr->setFont(font4);
         radTopoFixedGtr->setChecked(true);
 
@@ -661,6 +664,7 @@ public:
 
         radTopoML = new QRadioButton(frame_settings_4);
         radTopoML->setObjectName(QString::fromUtf8("radTopoML"));
+        radTopoML->setEnabled(false);
         radTopoML->setFont(font4);
         radTopoML->setChecked(false);
 

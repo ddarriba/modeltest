@@ -8,6 +8,8 @@ ModelsDialog::ModelsDialog(modeltest::PartitioningScheme &scheme,
 {
     ui->setupUi(this);
 
+    ui->frame_header->setVisible(scheme.get_size() > 1);
+
     models_table_items = new QStandardItemModel(0,13);
     ui->table_models->setModel(models_table_items);
 
