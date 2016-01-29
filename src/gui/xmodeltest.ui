@@ -156,6 +156,21 @@
            </spacer>
           </item>
           <item>
+           <widget class="QToolButton" name="tool_models">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>models</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="tool_results">
             <property name="font">
              <font>

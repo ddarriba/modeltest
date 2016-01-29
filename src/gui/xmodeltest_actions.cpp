@@ -49,6 +49,7 @@ void xmodeltest::on_mnu_results_triggered()  {action_viewresults();}
 void xmodeltest::on_tool_results_clicked()  {action_viewresults();}
 
 void xmodeltest::on_mnu_models_triggered()  {action_viewmodels();}
+void xmodeltest::on_tool_models_clicked()  {action_viewmodels();}
 
 void xmodeltest::on_act_reset_triggered() {action_reset();}
 void xmodeltest::on_mnu_reset_triggered() {action_reset();}

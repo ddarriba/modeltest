@@ -70,6 +70,7 @@ public:
     QToolButton *tool_open_tree;
     QToolButton *tool_open_parts;
     QSpacerItem *horizontalSpacer;
+    QToolButton *tool_models;
     QToolButton *tool_results;
     QFrame *frame_tools_2;
     QHBoxLayout *horizontalLayout_4;
@@ -321,6 +322,12 @@ public:
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_3->addItem(horizontalSpacer);
+
+        tool_models = new QToolButton(frame_tools_1);
+        tool_models->setObjectName(QString::fromUtf8("tool_models"));
+        tool_models->setFont(font);
+
+        horizontalLayout_3->addWidget(tool_models);
 
         tool_results = new QToolButton(frame_tools_1);
         tool_results->setObjectName(QString::fromUtf8("tool_results"));
@@ -1264,6 +1271,7 @@ public:
         tool_open_parts->setStatusTip(QApplication::translate("xmodeltest", "Load partitions", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_open_parts->setText(QApplication::translate("xmodeltest", "partitions", 0, QApplication::UnicodeUTF8));
+        tool_models->setText(QApplication::translate("xmodeltest", "models", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_results->setToolTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP

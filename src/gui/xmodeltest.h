@@ -73,6 +73,7 @@ private slots:
     void on_tool_results_clicked();
 
     void on_mnu_models_triggered();
+    void on_tool_models_clicked();
 
     void on_act_reset_triggered();
     void on_mnu_reset_triggered();

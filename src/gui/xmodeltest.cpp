@@ -211,6 +211,8 @@ void xmodeltest::update_gui( void )
 
     bool enable_models = status & st_optimized;
     ui->mnu_models->setEnabled(enable_models);
+    enable(ui->tool_models,
+           enable_models);
 
     enable(ui->tool_reset,
            status & st_active);
