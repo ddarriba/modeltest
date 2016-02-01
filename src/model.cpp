@@ -8,6 +8,9 @@
 #include <cmath>
 #include <cassert>
 
+#include <cstdlib>
+#include <fstream>
+
 const double * prot_model_rates[N_PROT_MODEL_MATRICES] = {
    pll_aa_rates_dayhoff,
    pll_aa_rates_lg,
@@ -416,6 +419,87 @@ void DnaModel::print(std::ostream  &out)
         out << "-" << endl;
 }
 
+void DnaModel::output_log(std::ostream  &out)
+{
+    out << name << " ";
+    out << matrix_index << " ";
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+        out << matrix_symmetries[i] << " ";
+    out << n_free_variables << " ";
+    out << optimize_freqs << " " << optimize_pinv << " " << optimize_gamma << " ";
+    out << lnL << " ";
+    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+        out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
+    out << setprecision(MT_PRECISION_DIGITS) << prop_inv << " ";
+    out << setprecision(MT_PRECISION_DIGITS) << alpha << " ";
+    char *newick = pll_utree_export_newick(tree);
+    out << strlen(newick) << " ";
+    out << newick << " ";
+    free(newick);
+    out << endl;
+}
+
+static bool read_word(std::istream  &in, char *w, int maxlen)
+{
+    char c = '\0';
+    int l = 0;
+    while (in.get(c) && c!=' ' && l<maxlen)
+    {
+        *(w++) = c;
+        l++;
+    }
+    *w = '\0';
+    return c != '\0';
+}
+
+#define LOG_LEN 50
+void DnaModel::input_log(std::istream  &in)
+{
+    char str[LOG_LEN];
+    char *treestr;
+
+    read_word(in, str, LOG_LEN);       name = str;
+    read_word(in, str, LOG_LEN); matrix_index = atol(str);
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    {
+        read_word(in, str, LOG_LEN); matrix_symmetries[i] = atol(str);
+    }
+    read_word(in, str, LOG_LEN); n_free_variables = atol(str);
+    read_word(in, str, LOG_LEN); optimize_freqs = atol(str);
+    read_word(in, str, LOG_LEN); optimize_pinv = atol(str);
+    read_word(in, str, LOG_LEN); optimize_gamma = atol(str);
+    read_word(in, str, LOG_LEN); lnL = atof(str);
+    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+    {
+        read_word(in, str, LOG_LEN); frequencies[i] = atof(str);
+    }
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    {
+        read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
+    }
+    read_word(in, str, LOG_LEN); prop_inv = atof(str);
+    read_word(in, str, LOG_LEN); alpha    = atof(str);
+    read_word(in, str, LOG_LEN); mt_size_t treelen = atol(str);
+
+    treestr = (char *) Utils::allocate(treelen + 1, 1);
+    read_word(in, treestr, treelen);
+    //TODO: TEMPORARY DUMP TO FILE
+    char fname[16] = "temptree.XXXXXX";
+    int f_desc = mkstemp(fname);
+    ofstream f;
+    f.open(fname);
+    f << treestr << endl;
+    f.close();
+    mt_size_t n_tips;
+    tree = pll_utree_parse_newick(fname, &n_tips);
+    free(treestr);
+
+    //unlink(fname);
+}
+
+#undef LOG_LEN
 
 /* PROTEIN MODELS */
 
@@ -539,4 +623,32 @@ void ProtModel::print(std::ostream  &out)
     else
         out << "-" << endl;
 }
+
+void ProtModel::output_log(std::ostream  &out)
+{
+    out << get_name() << " ";
+    out << get_matrix_index() << " ";
+    out << is_F() << " " << is_I() << " " << is_G() << " ";
+    out << get_lnl() << " ";
+    for (mt_index_t i=0; i<N_PROT_STATES; i++)
+        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    if (is_I())
+        out << setprecision(MT_PRECISION_DIGITS) << prop_inv << " ";
+    else
+        out << "- ";
+    if (is_G())
+        out << setprecision(MT_PRECISION_DIGITS) << alpha << " ";
+    else
+        out << "- ";
+    char *newick = pll_utree_export_newick(tree);
+    out << newick << " ";
+    free(newick);
+    out << endl;
+}
+
+void ProtModel::input_log(std::istream  &in)
+{
+
+}
+
 }

@@ -6,6 +6,7 @@
 #include "thread/threadpool.h"
 
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <algorithm>
 
@@ -13,6 +14,10 @@ namespace modeltest {
 
 unsigned int mt_errno;
 char mt_errmsg[MT_ERROR_LENGTH] = {0};
+double alpha_guess = 0;
+double pinv_guess = 0;
+double alpha_inv_guess = 0;
+double pinv_alpha_guess = 0;
 
 using namespace std;
 
@@ -91,6 +96,14 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
         cerr << "ERROR OPTIMIZING MODEL" << endl;
         return(MT_ERROR_OPTIMIZE);
     }
+
+//    ostringstream out;
+//    model->output_log(out);
+
+//    istringstream sinstr;
+//    sinstr.str(out.str());
+//    cout << out.str() << endl;
+//    model->input_log(sinstr);
 
     /* print progress */
     cout << setw(5) << right << (cur_model+1) << "/"

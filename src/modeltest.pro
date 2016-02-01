@@ -64,7 +64,8 @@ HEADERS  += \
     gui/resultsdialog.h \
     partitionselection.h \
     service/modeltestservice.h \
-    gui/modelsdialog.h
+    gui/modelsdialog.h \
+    loggable.h
 
 FORMS    += \
     compute_options.ui \

@@ -52,6 +52,11 @@ namespace modeltest
 {
   extern unsigned int mt_errno;
   extern char mt_errmsg[MT_ERROR_LENGTH];
+
+  extern double alpha_guess;
+  extern double pinv_guess;
+  extern double alpha_inv_guess;
+  extern double pinv_alpha_guess;
 }
 
 typedef unsigned int mt_size_t;

@@ -2,15 +2,15 @@
 #define MODEL_H
 
 #include "model_defs.h"
+#include "loggable.h"
 
-#include <iostream>
 #include <time.h>
 
 #define PRINTMODEL_TABSIZE 20
 
 namespace modeltest {
 
-class Model
+class Model : public Loggable
 {
 public:
     /**
@@ -136,6 +136,14 @@ public:
      */
     virtual void print(std::ostream  &out = std::cout) = 0;
 
+    /**
+     * @brief Prints out the model for logging
+     * @param[in] out the output stream to print log to
+     */
+    virtual void output_log(std::ostream  &out) = 0;
+
+    virtual void input_log(std::istream  &in) = 0;
+
     bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
 
@@ -207,6 +215,8 @@ public:
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);
+    virtual void output_log(std::ostream  &out);
+    virtual void input_log(std::istream  &in);
 private:
     int matrix_symmetries[N_DNA_SUBST_RATES];
 };
@@ -230,6 +240,8 @@ public:
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);
+    virtual void output_log(std::ostream  &out);
+    virtual void input_log(std::istream  &in);
 
 private:
     const double *fixed_subst_rates;

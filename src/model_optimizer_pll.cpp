@@ -11,7 +11,7 @@
 #include <cassert>
 #include <iostream>
 
-#define CHECK_LOCAL_CONVERGENCE 0
+#define CHECK_LOCAL_CONVERGENCE 1
 
 #define JOB_WAIT             0
 #define JOB_UPDATE_MATRICES  1
@@ -410,7 +410,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       params->lk_params.operations = operations;
       params->lk_params.branch_lengths = branch_lengths;
       params->lk_params.matrix_indices = matrix_indices;
-      params->lk_params.alpha_value = default_alpha;
+      if (model->is_G())
+      {
+          if (model->is_I())
+            params->lk_params.alpha_value = alpha_inv_guess?alpha_inv_guess:default_alpha;
+          else
+            params->lk_params.alpha_value = alpha_guess?alpha_guess:default_alpha;
+      }
       params->lk_params.freqs_index = 0;
       params->lk_params.rooted = 0;
       params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
@@ -433,6 +439,40 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         params->subst_params_symmetries = 0;
       }
       params->factr = 1e9;
+
+      /* set initial model parameters */
+      double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
+
+      if (!model->is_I())
+          pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);
+      else
+      {
+          if (model->is_G())
+              pll_update_invariant_sites_proportion(pll_partition, 0, pinv_alpha_guess?pinv_alpha_guess:partition.empirical_pinv);
+          else
+              pll_update_invariant_sites_proportion(pll_partition, 0, pinv_guess?pinv_guess:partition.empirical_pinv);
+      }
+
+      if (model->is_F())
+          model->set_frequencies(partition.empirical_freqs);
+
+      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
+      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+
+      if (model->is_G())
+      {
+          pll_compute_gamma_cats (params->lk_params.alpha_value,
+                                  pll_partition->rate_cats,
+                                  rate_cats);
+      }
+      else
+      {
+          assert( pll_partition->rate_cats == 1);
+          rate_cats[0] = 1.0;
+      }
+
+      pll_set_category_rates (pll_partition, rate_cats);
+      free(rate_cats);
 
       return true;
   }
@@ -457,34 +497,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       if (params == NULL)
         build_parameters();
-
-      double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
-
-      if (!model->is_I())
-          pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);
-      else
-          pll_update_invariant_sites_proportion(pll_partition, 0, partition.empirical_pinv);
-
-      if (model->is_F())
-          model->set_frequencies(partition.empirical_freqs);
-
-      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
-      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
-
-      if (model->is_G())
-      {
-          pll_compute_gamma_cats (params->lk_params.alpha_value,
-                                  pll_partition->rate_cats,
-                                  rate_cats);
-      }
-      else
-      {
-          assert( pll_partition->rate_cats == 1);
-          rate_cats[0] = 1.0;
-      }
-
-      pll_set_category_rates (pll_partition, rate_cats);
-      free(rate_cats);
 
 #ifdef VERBOSE //TODO: Verbosity high
       std::cout << "Initial Frequencies:   ";
@@ -581,10 +593,26 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
       if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
           params_to_optimize.push_back(PLL_PARAMETER_SUBST_RATES);
-      if (model->is_G())
+      if (model->is_G() && model->is_I())
+      {
+          model->set_alpha(alpha_inv_guess);
+          model->set_prop_inv(pinv_alpha_guess);
           params_to_optimize.push_back(PLL_PARAMETER_ALPHA);
-      if (model->is_I())
           params_to_optimize.push_back(PLL_PARAMETER_PINV);
+      }
+      else
+      {
+          if (model->is_G())
+          {
+              model->set_alpha(alpha_guess);
+              params_to_optimize.push_back(PLL_PARAMETER_ALPHA);
+          }
+          if (model->is_I())
+          {
+              model->set_prop_inv(pinv_guess);
+              params_to_optimize.push_back(PLL_PARAMETER_PINV);
+          }
+      }
       if (model->get_datatype() == dt_dna && model->is_F())
           params_to_optimize.push_back(PLL_PARAMETER_FREQUENCIES);
 
@@ -597,6 +625,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   ((n_iters % params_to_optimize.size()) ||
                 (fabs (cur_logl - logl) > epsilon && cur_logl < logl)))
           {
+              double iter_logl;
               if (!(n_iters % params_to_optimize.size()))
                 logl = cur_logl;
 
@@ -607,7 +636,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   model->set_lnl(0.0);
                   model->set_exec_time(0);
 
-                  if (model->is_G())
+                   if (model->is_G())
                       model->set_alpha(0.0);
                   if (model->is_I())
                       model->set_prop_inv(0.0);
@@ -620,7 +649,28 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               {
                   test_logl = cur_logl;
 #endif
-                  cur_logl = opt_single_parameter(cur_parameter, tolerance, n_iters);
+                  bool full_range_search = n_iters<params_to_optimize.size();
+                  if (cur_parameter == PLL_PARAMETER_ALPHA)
+                  {
+                      if (model->is_I())
+                          full_range_search &= !alpha_inv_guess;
+                      else
+                          full_range_search &= !alpha_guess;
+                  }
+                  else if (cur_parameter == PLL_PARAMETER_PINV)
+                  {
+                      if (model->is_G())
+                          full_range_search &= !pinv_alpha_guess;
+                      else
+                          full_range_search &= !pinv_guess;
+                  }
+                  iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
+
+//                  printf(" iteration %3d %.10f %.10f\n", cur_parameter, iter_logl, cur_logl);
+
+                  /* ensure we never get a worse likelihood score */
+                  assert(iter_logl - cur_logl < 1e-5);
+                  cur_logl = iter_logl;
 
                   // notify parameter optimization
                   opt_delta = cur_logl;
@@ -638,6 +688,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               n_iters++;
               iters_hard_limit--;
               assert(iters_hard_limit);
+
           }
           /* TODO: if bl are reoptimized */
           if (keep_branch_lengths)
@@ -681,6 +732,18 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           if (model->is_I())
               model->set_prop_inv(pll_partition->prop_invar[0]);
 
+          if (model->is_G() && model->is_I())
+          {
+              alpha_inv_guess = params->lk_params.alpha_value;
+              pinv_alpha_guess = pll_partition->prop_invar[0];
+          }
+          else
+          {
+              if (model->is_G())
+                  alpha_guess = params->lk_params.alpha_value;
+              if (model->is_I())
+                  pinv_guess = pll_partition->prop_invar[0];
+          }
           if (model->get_datatype() == dt_dna)
           {
             model->set_frequencies(pll_partition->frequencies[0]);

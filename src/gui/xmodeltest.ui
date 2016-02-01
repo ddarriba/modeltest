@@ -101,6 +101,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>&gt;&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="tool_open_tree">
             <property name="font">
              <font>
@@ -122,6 +129,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>&gt;&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="tool_open_parts">
             <property name="font">
              <font>
@@ -139,6 +153,99 @@
             </property>
             <property name="text">
              <string>partitions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>&gt;&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="tool_settings">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>Configure model selection</string>
+            </property>
+            <property name="statusTip">
+             <string>Configure model selection</string>
+            </property>
+            <property name="text">
+             <string>settings</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>&gt;&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="tool_run">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>Run model selection</string>
+            </property>
+            <property name="statusTip">
+             <string>Run model selection</string>
+            </property>
+            <property name="text">
+             <string>run</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>&gt;&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="tool_results">
+            <property name="font">
+             <font>
+              <family>Courier 10 Pitch</family>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>View results</string>
+            </property>
+            <property name="statusTip">
+             <string>View results</string>
+            </property>
+            <property name="text">
+             <string>results</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -170,30 +277,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QToolButton" name="tool_results">
-            <property name="font">
-             <font>
-              <family>Courier 10 Pitch</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="toolTip">
-             <string>View results</string>
-            </property>
-            <property name="statusTip">
-             <string>View results</string>
-            </property>
-            <property name="text">
-             <string>results</string>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -218,54 +301,6 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QToolButton" name="tool_settings">
-            <property name="font">
-             <font>
-              <family>Courier 10 Pitch</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="toolTip">
-             <string>Configure model selection</string>
-            </property>
-            <property name="statusTip">
-             <string>Configure model selection</string>
-            </property>
-            <property name="text">
-             <string>settings</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="tool_run">
-            <property name="font">
-             <font>
-              <family>Courier 10 Pitch</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="toolTip">
-             <string>Run model selection</string>
-            </property>
-            <property name="statusTip">
-             <string>Run model selection</string>
-            </property>
-            <property name="text">
-             <string>run</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QToolButton" name="tool_reset">
             <property name="font">

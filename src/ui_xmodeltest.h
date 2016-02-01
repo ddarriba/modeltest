@@ -67,15 +67,20 @@ public:
     QFrame *frame_tools_1;
     QHBoxLayout *horizontalLayout_3;
     QToolButton *tool_open_msa;
+    QLabel *label;
     QToolButton *tool_open_tree;
+    QLabel *label_2;
     QToolButton *tool_open_parts;
+    QLabel *label_3;
+    QToolButton *tool_settings;
+    QLabel *label_4;
+    QToolButton *tool_run;
+    QLabel *label_5;
+    QToolButton *tool_results;
     QSpacerItem *horizontalSpacer;
     QToolButton *tool_models;
-    QToolButton *tool_results;
     QFrame *frame_tools_2;
     QHBoxLayout *horizontalLayout_4;
-    QToolButton *tool_settings;
-    QToolButton *tool_run;
     QToolButton *tool_reset;
     QSpacerItem *horizontalSpacer_2;
     QToolButton *tool_help;
@@ -307,17 +312,63 @@ public:
 
         horizontalLayout_3->addWidget(tool_open_msa);
 
+        label = new QLabel(frame_tools_1);
+        label->setObjectName(QString::fromUtf8("label"));
+
+        horizontalLayout_3->addWidget(label);
+
         tool_open_tree = new QToolButton(frame_tools_1);
         tool_open_tree->setObjectName(QString::fromUtf8("tool_open_tree"));
         tool_open_tree->setFont(font);
 
         horizontalLayout_3->addWidget(tool_open_tree);
 
+        label_2 = new QLabel(frame_tools_1);
+        label_2->setObjectName(QString::fromUtf8("label_2"));
+
+        horizontalLayout_3->addWidget(label_2);
+
         tool_open_parts = new QToolButton(frame_tools_1);
         tool_open_parts->setObjectName(QString::fromUtf8("tool_open_parts"));
         tool_open_parts->setFont(font);
 
         horizontalLayout_3->addWidget(tool_open_parts);
+
+        label_3 = new QLabel(frame_tools_1);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+
+        horizontalLayout_3->addWidget(label_3);
+
+        tool_settings = new QToolButton(frame_tools_1);
+        tool_settings->setObjectName(QString::fromUtf8("tool_settings"));
+        tool_settings->setFont(font);
+        tool_settings->setCheckable(true);
+        tool_settings->setChecked(false);
+
+        horizontalLayout_3->addWidget(tool_settings);
+
+        label_4 = new QLabel(frame_tools_1);
+        label_4->setObjectName(QString::fromUtf8("label_4"));
+
+        horizontalLayout_3->addWidget(label_4);
+
+        tool_run = new QToolButton(frame_tools_1);
+        tool_run->setObjectName(QString::fromUtf8("tool_run"));
+        tool_run->setFont(font);
+
+        horizontalLayout_3->addWidget(tool_run);
+
+        label_5 = new QLabel(frame_tools_1);
+        label_5->setObjectName(QString::fromUtf8("label_5"));
+
+        horizontalLayout_3->addWidget(label_5);
+
+        tool_results = new QToolButton(frame_tools_1);
+        tool_results->setObjectName(QString::fromUtf8("tool_results"));
+        tool_results->setFont(font);
+        tool_results->setCheckable(false);
+
+        horizontalLayout_3->addWidget(tool_results);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -328,13 +379,6 @@ public:
         tool_models->setFont(font);
 
         horizontalLayout_3->addWidget(tool_models);
-
-        tool_results = new QToolButton(frame_tools_1);
-        tool_results->setObjectName(QString::fromUtf8("tool_results"));
-        tool_results->setFont(font);
-        tool_results->setCheckable(false);
-
-        horizontalLayout_3->addWidget(tool_results);
 
 
         verticalLayout_2->addWidget(frame_tools_1);
@@ -347,20 +391,6 @@ public:
         horizontalLayout_4 = new QHBoxLayout(frame_tools_2);
         horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
         horizontalLayout_4->setContentsMargins(-1, 0, -1, 0);
-        tool_settings = new QToolButton(frame_tools_2);
-        tool_settings->setObjectName(QString::fromUtf8("tool_settings"));
-        tool_settings->setFont(font);
-        tool_settings->setCheckable(true);
-        tool_settings->setChecked(false);
-
-        horizontalLayout_4->addWidget(tool_settings);
-
-        tool_run = new QToolButton(frame_tools_2);
-        tool_run->setObjectName(QString::fromUtf8("tool_run"));
-        tool_run->setFont(font);
-
-        horizontalLayout_4->addWidget(tool_run);
-
         tool_reset = new QToolButton(frame_tools_2);
         tool_reset->setObjectName(QString::fromUtf8("tool_reset"));
         tool_reset->setFont(font);
@@ -1257,6 +1287,7 @@ public:
         tool_open_msa->setStatusTip(QApplication::translate("xmodeltest", "Load MSA file (FASTA)", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_open_msa->setText(QApplication::translate("xmodeltest", "msa", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("xmodeltest", ">>", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_open_tree->setToolTip(QApplication::translate("xmodeltest", "Load tree (NEWICK)", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1264,6 +1295,7 @@ public:
         tool_open_tree->setStatusTip(QApplication::translate("xmodeltest", "Load tree (NEWICK)", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_open_tree->setText(QApplication::translate("xmodeltest", "tree", 0, QApplication::UnicodeUTF8));
+        label_2->setText(QApplication::translate("xmodeltest", ">>", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_open_parts->setToolTip(QApplication::translate("xmodeltest", "Load partitions", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1271,14 +1303,7 @@ public:
         tool_open_parts->setStatusTip(QApplication::translate("xmodeltest", "Load partitions", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_open_parts->setText(QApplication::translate("xmodeltest", "partitions", 0, QApplication::UnicodeUTF8));
-        tool_models->setText(QApplication::translate("xmodeltest", "models", 0, QApplication::UnicodeUTF8));
-#ifndef QT_NO_TOOLTIP
-        tool_results->setToolTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_TOOLTIP
-#ifndef QT_NO_STATUSTIP
-        tool_results->setStatusTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
-#endif // QT_NO_STATUSTIP
-        tool_results->setText(QApplication::translate("xmodeltest", "results", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("xmodeltest", ">>", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_settings->setToolTip(QApplication::translate("xmodeltest", "Configure model selection", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1286,6 +1311,7 @@ public:
         tool_settings->setStatusTip(QApplication::translate("xmodeltest", "Configure model selection", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_settings->setText(QApplication::translate("xmodeltest", "settings", 0, QApplication::UnicodeUTF8));
+        label_4->setText(QApplication::translate("xmodeltest", ">>", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_run->setToolTip(QApplication::translate("xmodeltest", "Run model selection", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
@@ -1293,6 +1319,15 @@ public:
         tool_run->setStatusTip(QApplication::translate("xmodeltest", "Run model selection", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_STATUSTIP
         tool_run->setText(QApplication::translate("xmodeltest", "run", 0, QApplication::UnicodeUTF8));
+        label_5->setText(QApplication::translate("xmodeltest", ">>", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_TOOLTIP
+        tool_results->setToolTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_STATUSTIP
+        tool_results->setStatusTip(QApplication::translate("xmodeltest", "View results", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_STATUSTIP
+        tool_results->setText(QApplication::translate("xmodeltest", "results", 0, QApplication::UnicodeUTF8));
+        tool_models->setText(QApplication::translate("xmodeltest", "models", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         tool_reset->setToolTip(QApplication::translate("xmodeltest", "Reset everything", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP

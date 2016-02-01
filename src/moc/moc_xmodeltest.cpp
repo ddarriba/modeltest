@@ -22,7 +22,7 @@ static const uint qt_meta_data_xmodeltest[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      63,   14, // methods
+      64,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -58,41 +58,42 @@ static const uint qt_meta_data_xmodeltest[] = {
      755,   11,   11,   11, 0x08,
      780,   11,   11,   11, 0x08,
      805,   11,   11,   11, 0x08,
-     829,   11,   11,   11, 0x08,
-     872,  862,   11,   11, 0x08,
-     907,   11,   11,   11, 0x08,
+     830,   11,   11,   11, 0x08,
+     854,   11,   11,   11, 0x08,
+     897,  887,   11,   11, 0x08,
      932,   11,   11,   11, 0x08,
      957,   11,   11,   11, 0x08,
      982,   11,   11,   11, 0x08,
-    1008,   11,   11,   11, 0x08,
-    1035,   11,   11,   11, 0x08,
-    1064,   11,   11,   11, 0x08,
-    1091,   11,   11,   11, 0x08,
+    1007,   11,   11,   11, 0x08,
+    1033,   11,   11,   11, 0x08,
+    1060,   11,   11,   11, 0x08,
+    1089,   11,   11,   11, 0x08,
     1116,   11,   11,   11, 0x08,
-    1141,  482,   11,   11, 0x08,
-    1174,  482,   11,   11, 0x08,
-    1205,  482,   11,   11, 0x08,
-    1234,  482,   11,   11, 0x08,
-    1263,  482,   11,   11, 0x08,
-    1292,  482,   11,   11, 0x08,
-    1318,  482,   11,   11, 0x08,
-    1353,  482,   11,   11, 0x08,
-    1380,  482,   11,   11, 0x08,
-    1407,  482,   11,   11, 0x08,
-    1435,   11,   11,   11, 0x08,
-    1465, 1459,   11,   11, 0x08,
-    1501,   11,   11,   11, 0x08,
-    1529,   11,   11,   11, 0x08,
-    1558,   11,   11,   11, 0x08,
-    1586,   11,   11,   11, 0x08,
-    1619, 1614,   11,   11, 0x08,
-    1667,   11,   11,   11, 0x08,
-    1689,   11,   11,   11, 0x08,
-    1717,   11,   11,   11, 0x08,
-    1746,   11,   11,   11, 0x08,
-    1774,   11,   11,   11, 0x08,
-    1797, 1459,   11,   11, 0x08,
-    1838, 1829,   11,   11, 0x08,
+    1141,   11,   11,   11, 0x08,
+    1166,  482,   11,   11, 0x08,
+    1199,  482,   11,   11, 0x08,
+    1230,  482,   11,   11, 0x08,
+    1259,  482,   11,   11, 0x08,
+    1288,  482,   11,   11, 0x08,
+    1317,  482,   11,   11, 0x08,
+    1343,  482,   11,   11, 0x08,
+    1378,  482,   11,   11, 0x08,
+    1405,  482,   11,   11, 0x08,
+    1432,  482,   11,   11, 0x08,
+    1460,   11,   11,   11, 0x08,
+    1490, 1484,   11,   11, 0x08,
+    1526,   11,   11,   11, 0x08,
+    1554,   11,   11,   11, 0x08,
+    1583,   11,   11,   11, 0x08,
+    1611,   11,   11,   11, 0x08,
+    1644, 1639,   11,   11, 0x08,
+    1692,   11,   11,   11, 0x08,
+    1714,   11,   11,   11, 0x08,
+    1742,   11,   11,   11, 0x08,
+    1771,   11,   11,   11, 0x08,
+    1799,   11,   11,   11, 0x08,
+    1822, 1484,   11,   11, 0x08,
+    1863, 1854,   11,   11, 0x08,
 
        0        // eod
 };
@@ -121,6 +122,7 @@ static const char qt_meta_stringdata_xmodeltest[] = {
     "on_mnu_results_triggered()\0"
     "on_tool_results_clicked()\0"
     "on_mnu_models_triggered()\0"
+    "on_tool_models_clicked()\0"
     "on_act_reset_triggered()\0"
     "on_mnu_reset_triggered()\0"
     "on_tool_reset_clicked()\0"
@@ -191,44 +193,45 @@ void xmodeltest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 22: _t->on_mnu_results_triggered(); break;
         case 23: _t->on_tool_results_clicked(); break;
         case 24: _t->on_mnu_models_triggered(); break;
-        case 25: _t->on_act_reset_triggered(); break;
-        case 26: _t->on_mnu_reset_triggered(); break;
-        case 27: _t->on_tool_reset_clicked(); break;
-        case 28: _t->on_mnu_view_datainfo_triggered(); break;
-        case 29: _t->autoSelectSchemes((*reinterpret_cast< const int(*)[]>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 30: _t->on_radSchemes3_clicked(); break;
-        case 31: _t->on_radSchemes5_clicked(); break;
-        case 32: _t->on_radSchemes7_clicked(); break;
-        case 33: _t->on_radSchemes11_clicked(); break;
-        case 34: _t->on_radSchemes203_clicked(); break;
-        case 35: _t->on_radSetModelTest_clicked(); break;
-        case 36: _t->on_radSetMrbayes_clicked(); break;
-        case 37: _t->on_radSetRaxml_clicked(); break;
-        case 38: _t->on_radSetPhyml_clicked(); break;
-        case 39: _t->on_radSetModelTest_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 40: _t->on_radSetMrbayes_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 41: _t->on_radSetRaxml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 42: _t->on_radSetPhyml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 43: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 44: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 45: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 46: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 47: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 48: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 49: _t->on_cbAdvanced_clicked(); break;
-        case 50: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 51: _t->on_radDatatypeDna_clicked(); break;
-        case 52: _t->on_radDatatypeProt_clicked(); break;
-        case 53: _t->on_cbShowMatrices_clicked(); break;
-        case 54: _t->on_radSchemesUser_clicked(); break;
-        case 55: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
-        case 56: _t->on_radTopoU_clicked(); break;
-        case 57: _t->on_radTopoFixedMp_clicked(); break;
-        case 58: _t->on_radTopoFixedGtr_clicked(); break;
-        case 59: _t->on_radTopoFixedJc_clicked(); break;
-        case 60: _t->on_radTopoML_clicked(); break;
-        case 61: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 62: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 25: _t->on_tool_models_clicked(); break;
+        case 26: _t->on_act_reset_triggered(); break;
+        case 27: _t->on_mnu_reset_triggered(); break;
+        case 28: _t->on_tool_reset_clicked(); break;
+        case 29: _t->on_mnu_view_datainfo_triggered(); break;
+        case 30: _t->autoSelectSchemes((*reinterpret_cast< const int(*)[]>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 31: _t->on_radSchemes3_clicked(); break;
+        case 32: _t->on_radSchemes5_clicked(); break;
+        case 33: _t->on_radSchemes7_clicked(); break;
+        case 34: _t->on_radSchemes11_clicked(); break;
+        case 35: _t->on_radSchemes203_clicked(); break;
+        case 36: _t->on_radSetModelTest_clicked(); break;
+        case 37: _t->on_radSetMrbayes_clicked(); break;
+        case 38: _t->on_radSetRaxml_clicked(); break;
+        case 39: _t->on_radSetPhyml_clicked(); break;
+        case 40: _t->on_radSetModelTest_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 41: _t->on_radSetMrbayes_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 42: _t->on_radSetRaxml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 43: _t->on_radSetPhyml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 44: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 45: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 46: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 47: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 48: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 49: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 50: _t->on_cbAdvanced_clicked(); break;
+        case 51: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 52: _t->on_radDatatypeDna_clicked(); break;
+        case 53: _t->on_radDatatypeProt_clicked(); break;
+        case 54: _t->on_cbShowMatrices_clicked(); break;
+        case 55: _t->on_radSchemesUser_clicked(); break;
+        case 56: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
+        case 57: _t->on_radTopoU_clicked(); break;
+        case 58: _t->on_radTopoFixedMp_clicked(); break;
+        case 59: _t->on_radTopoFixedGtr_clicked(); break;
+        case 60: _t->on_radTopoFixedJc_clicked(); break;
+        case 61: _t->on_radTopoML_clicked(); break;
+        case 62: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 63: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -266,9 +269,9 @@ int xmodeltest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 63)
+        if (_id < 64)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 63;
+        _id -= 64;
     }
     return _id;
 }
