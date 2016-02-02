@@ -36,6 +36,8 @@ public:
     QFrame *frame_results_header;
     QHBoxLayout *horizontalLayout_6;
     QComboBox *cmb_results_partition;
+    QSpacerItem *horizontalSpacer;
+    QLabel *label;
     QSpacerItem *spacer_results_header;
     QTabWidget *results_content;
     QWidget *tab_results_bic;
@@ -107,6 +109,8 @@ public:
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/IMG/IMG/results-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
         ResultsDialog->setWindowIcon(icon);
+        ResultsDialog->setStyleSheet(QString::fromUtf8("background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #3c3b37, stop:0.55 #104BA9, stop:0.98 #000015, stop:1 #000015);\n"
+"QToolTip { color: #000s; border: none; }"));
         verticalLayout = new QVBoxLayout(ResultsDialog);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         frame_results_inner = new QFrame(ResultsDialog);
@@ -115,20 +119,43 @@ public:
         frame_results_inner->setFrameShadow(QFrame::Raised);
         verticalLayout_14 = new QVBoxLayout(frame_results_inner);
         verticalLayout_14->setObjectName(QString::fromUtf8("verticalLayout_14"));
+        verticalLayout_14->setContentsMargins(0, 0, 0, 0);
         frame_results_header = new QFrame(frame_results_inner);
         frame_results_header->setObjectName(QString::fromUtf8("frame_results_header"));
+        frame_results_header->setStyleSheet(QString::fromUtf8("background: #104BA9;"));
         frame_results_header->setFrameShape(QFrame::NoFrame);
         frame_results_header->setFrameShadow(QFrame::Raised);
         horizontalLayout_6 = new QHBoxLayout(frame_results_header);
         horizontalLayout_6->setSpacing(5);
         horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
-        horizontalLayout_6->setContentsMargins(0, 0, 0, 0);
+        horizontalLayout_6->setContentsMargins(5, 1, 5, 1);
         cmb_results_partition = new QComboBox(frame_results_header);
         cmb_results_partition->setObjectName(QString::fromUtf8("cmb_results_partition"));
         cmb_results_partition->setMinimumSize(QSize(200, 0));
         cmb_results_partition->setMaximumSize(QSize(200, 16777215));
+        QFont font;
+        font.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font.setPointSize(10);
+        cmb_results_partition->setFont(font);
+        cmb_results_partition->setStyleSheet(QString::fromUtf8("border: 1px; background: #fff2db; border-radius:5px;"));
 
         horizontalLayout_6->addWidget(cmb_results_partition);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_6->addItem(horizontalSpacer);
+
+        label = new QLabel(frame_results_header);
+        label->setObjectName(QString::fromUtf8("label"));
+        QFont font1;
+        font1.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font1.setPointSize(12);
+        font1.setBold(true);
+        font1.setWeight(75);
+        label->setFont(font1);
+        label->setStyleSheet(QString::fromUtf8("color: #fff;"));
+
+        horizontalLayout_6->addWidget(label);
 
         spacer_results_header = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -139,19 +166,20 @@ public:
 
         results_content = new QTabWidget(frame_results_inner);
         results_content->setObjectName(QString::fromUtf8("results_content"));
-        QFont font;
-        font.setFamily(QString::fromUtf8("Arial"));
         results_content->setFont(font);
+        results_content->setAutoFillBackground(false);
+        results_content->setStyleSheet(QString::fromUtf8("background: #fff2db; border-radius: 5px;"));
+        results_content->setTabShape(QTabWidget::Rounded);
+        results_content->setDocumentMode(false);
+        results_content->setTabsClosable(false);
+        results_content->setMovable(false);
         tab_results_bic = new QWidget();
         tab_results_bic->setObjectName(QString::fromUtf8("tab_results_bic"));
         verticalLayout_8 = new QVBoxLayout(tab_results_bic);
         verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
         table_results_bic = new QTableView(tab_results_bic);
         table_results_bic->setObjectName(QString::fromUtf8("table_results_bic"));
-        QFont font1;
-        font1.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font1.setPointSize(10);
-        table_results_bic->setFont(font1);
+        table_results_bic->setFont(font);
         table_results_bic->setAlternatingRowColors(true);
         table_results_bic->setSortingEnabled(true);
 
@@ -242,7 +270,7 @@ public:
         verticalLayout_10->setObjectName(QString::fromUtf8("verticalLayout_10"));
         table_results_aic = new QTableView(tab_results_aic);
         table_results_aic->setObjectName(QString::fromUtf8("table_results_aic"));
-        table_results_aic->setFont(font1);
+        table_results_aic->setFont(font);
         table_results_aic->setAlternatingRowColors(true);
         table_results_aic->setSortingEnabled(true);
 
@@ -326,7 +354,7 @@ public:
         verticalLayout_11->setObjectName(QString::fromUtf8("verticalLayout_11"));
         table_results_aicc = new QTableView(tab_results_aicc);
         table_results_aicc->setObjectName(QString::fromUtf8("table_results_aicc"));
-        table_results_aicc->setFont(font1);
+        table_results_aicc->setFont(font);
         table_results_aicc->setAlternatingRowColors(true);
         table_results_aicc->setSortingEnabled(true);
 
@@ -410,7 +438,7 @@ public:
         verticalLayout_13->setObjectName(QString::fromUtf8("verticalLayout_13"));
         table_results_dt = new QTableView(tab_results_dt);
         table_results_dt->setObjectName(QString::fromUtf8("table_results_dt"));
-        table_results_dt->setFont(font1);
+        table_results_dt->setFont(font);
         table_results_dt->setAlternatingRowColors(true);
         table_results_dt->setSortingEnabled(true);
 
@@ -506,6 +534,7 @@ public:
     void retranslateUi(QWidget *ResultsDialog)
     {
         ResultsDialog->setWindowTitle(QApplication::translate("ResultsDialog", "Results", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("ResultsDialog", "Results", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         results_content->setToolTip(QString());
 #endif // QT_NO_TOOLTIP

@@ -47,35 +47,28 @@ public slots:
     void optimization_interrupted( );
 
 private slots:
-    void on_act_open_msa_triggered();
     void on_mnu_open_msa_triggered();
     void on_tool_open_msa_clicked();
 
-    void on_act_open_tree_triggered();
     void on_mnu_open_tree_triggered();
     void on_tool_open_tree_clicked();
 
-    void on_act_open_parts_triggered();
     void on_mnu_open_parts_triggered();
     void on_tool_open_parts_clicked();
 
-    void on_act_toggle_settings_triggered();
     void on_mnu_toggle_settings_triggered(bool checked);
     void on_tool_settings_toggled(bool checked);
 
-    void on_act_run_triggered();
     void on_mnu_run_triggered();
     void on_tool_run_clicked();
     void run_modelselection();
 
-    void on_act_results_triggered();
     void on_mnu_results_triggered();
     void on_tool_results_clicked();
 
     void on_mnu_models_triggered();
     void on_tool_models_clicked();
 
-    void on_act_reset_triggered();
     void on_mnu_reset_triggered();
     void on_tool_reset_clicked();
 

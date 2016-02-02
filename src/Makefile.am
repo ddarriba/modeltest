@@ -98,5 +98,5 @@ pkginclude_HEADERS= \
 	ui_modeltest_gui.h \
 	ui_progressdialog.h
 
-imgdir=$(datadir)/modeltest/IMG
-dist_img_DATA=IMG/console-icon.png  IMG/gear.png  IMG/mt-icon.png  IMG/results-icon.png  IMG/run-icon.png  IMG/tool-icon.png
+imgdir=$(datadir)/modeltest/src/IMG
+dist_img_DATA=IMG/console-icon.png  IMG/gear.png  IMG/mt-icon.png  IMG/results-icon.png  IMG/run-icon.png  IMG/tool-icon.png IMG/arrows.png

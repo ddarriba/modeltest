@@ -128,6 +128,15 @@ typedef struct
     mt_index_t stride;
 } partition_region_t;
 
+typedef enum
+{
+    template_none = 0,
+    template_raxml,
+    template_phyml,
+    template_mrbayes,
+    template_paup
+} template_models_t;
+
 typedef struct
 {
     std::vector<partition_region_t> regions;

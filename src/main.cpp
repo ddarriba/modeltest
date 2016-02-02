@@ -144,6 +144,14 @@ static void print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "         JTTDCMUT FLU SMTREV" << endl;
 
+    out << setw(MAX_OPT_LENGTH) << left << "      --raxml"
+        << "sets candidate models according to RAxML" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --phyml"
+        << "sets candidate models according to PhyML" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --mrbayes"
+        << "sets candidate models according to MrBayes" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --paup"
+        << "sets candidate models according to PAUP*" << endl;
 
     /************************************************************/
 
@@ -194,6 +202,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     bool input_file_ok = false;
     bool exist_dna_models = false;
     bool exist_protein_models = false;
+    template_models_t template_models = template_none;
     dna_subst_schemes dna_ss = ss_undef;
     string user_candidate_models = "";
 
@@ -237,6 +246,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         { "version", no_argument, 0, 2 },
         { "psearch", required_argument, 0, 3 },
         { "smooth-frequencies", no_argument, 0, 4 },
+        { "raxml", no_argument, 0, 15 },
+        { "phyml", no_argument, 0, 16 },
+        { "mrbayes", no_argument, 0, 17 },
+        { "paup", no_argument, 0, 18 },
         { 0, 0, 0, 0 }
     };
 
@@ -284,6 +297,22 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         case 4:
             /* force frequencies smoothing */
             exec_opt.smooth_freqs = true;
+            break;
+        case 15:
+            /* RAxML template */
+            template_models = template_raxml;
+            break;
+        case 16:
+            /* PhyML template */
+            template_models = template_phyml;
+            break;
+        case 17:
+            /* MrBayes template */
+            template_models = template_mrbayes;
+            break;
+        case 18:
+            /* PAUP* template */
+            template_models = template_paup;
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
@@ -541,6 +570,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         exec_opt.partitions_desc->push_back(partition);
+    }
+
+    /* set models template */
+    if (template_models != template_none)
+    {
+        cerr << PACKAGE << ": Error: Temaplates are not available yet for console interface" << endl;
+        return false;
     }
 
     if (exist_protein_models)

@@ -15,22 +15,19 @@ using namespace std;
 
 static unsigned int model_index;
 
-static void enable(QToolButton * button, bool new_stat, bool set = false)
+static void enable(QPushButton * button, bool new_stat, bool set = false)
 {
     button->setEnabled(new_stat);
     if (new_stat)
     {
         if (set)
-            button->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
-            //button->setStyleSheet("color: #333;\nbackground-color: #7a3788;");
+            button->setStyleSheet("border:1px solid #005;border-radius: 10px;\ntext-align: left;padding-left: 5px;background-color: #cfefa8;");
         else
-            button->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
-            //button->setStyleSheet("color: #333;\nbackground-color: #88bc49;");
+            button->setStyleSheet("border:1px solid #050;border-radius: 10px;text-align: left;padding-left: 5px;");
     }
     else
     {
-        //button->setStyleSheet("color: #f59983;\nbackground-color: #ffc2b3;");
-        button->setStyleSheet("color: #999;\nbackground-color: #ddd;");
+        button->setStyleSheet("border:1px solid #999;border-radius: 10px;\ntext-align: left;padding-left: 5px;color:999;");
     }
 }
 
@@ -77,12 +74,11 @@ xmodeltest::xmodeltest(QWidget *parent) :
     qRegisterMetaType<mt_size_t>();
 
     ui->setupUi(this);
-    ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
-    ui->toolBar->setStyleSheet("color: #4b0c59;\nbackground-color: #f1fff4;");
-    ui->centralwidget->setStyleSheet("color: #333;\nbackground-color: #f1fff4;");
-    ui->frame_settings->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
-    ui->frame_models->setStyleSheet("color: #333;\nbackground-color: #b1df78;");
-    ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
+//    ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
+//    ui->centralwidget->setStyleSheet("color: #333;\nbackground-color: #f1fff4;");
+//    ui->frame_settings->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
+//    ui->frame_models->setStyleSheet("color: #333;\nbackground-color: #b1df78;");
+//    ui->frame_advanced->setStyleSheet("color: #333;\nbackground-color: #ba8bc4;");
     n_taxa = 0;
     n_sites = 0;
     scheme = 0;
@@ -98,7 +94,6 @@ xmodeltest::xmodeltest(QWidget *parent) :
     ui->sliderNThreads->setValue(QThread::idealThreadCount());
 
     on_radDatatypeDna_clicked();
-    update_gui();
 
     /* Redirect Console output to QTextEdit */
     redirect = new MyDebugStream(std::cout);
@@ -161,6 +156,7 @@ void xmodeltest::update_gui( void )
     char txt[30];
     int n_model_sets, n_matrices, n_models;
 
+
     /* topology search is not available! */
     ui->radTopoFixedGtr->setEnabled(false);
     ui->radTopoFixedJc->setEnabled(false);
@@ -168,7 +164,6 @@ void xmodeltest::update_gui( void )
     ui->radTopoML->setEnabled(false);
 
     bool enable_open_msa = (status & st_active) && !(status & st_optimized);
-    ui->act_open_msa->setEnabled(enable_open_msa);
     ui->mnu_open_msa->setEnabled(enable_open_msa);
     enable(ui->tool_open_msa,
            enable_open_msa,
@@ -176,24 +171,38 @@ void xmodeltest::update_gui( void )
 
     bool enable_open_tree = (status & st_msa_loaded) && !(status & st_optimized);
     ui->radTopoU->setEnabled(enable_open_tree);
-    ui->act_open_tree->setEnabled(enable_open_tree);
     ui->mnu_open_tree->setEnabled(enable_open_tree);
     enable(ui->tool_open_tree,
            enable_open_tree,
            status & st_tree_loaded);
 
     bool enable_open_parts = (status & st_msa_loaded) && !(status & st_optimized);
-    ui->act_open_parts->setEnabled(enable_open_parts);
     ui->mnu_open_parts->setEnabled(enable_open_parts);
     enable(ui->tool_open_parts,
            enable_open_parts,
            status & st_parts_loaded);
+
+    if (enable_open_msa)
+        ui->frame_tool_load->setStyleSheet("background: #c1d8ff;");
+    else
+        ui->frame_tool_load->setStyleSheet("background: #fff2db;");
 
     bool enable_run = (status & st_msa_loaded) && !(status & st_optimized);
     ui->mnu_run->setEnabled(enable_run);
     enable(ui->tool_run,
            enable_run,
            status & st_optimized);
+
+    if (enable_run)
+    {
+        ui->frame_tool_setup->setStyleSheet("background: #c1d8ff;");
+        ui->frame_tool_run->setStyleSheet("background: #c1d8ff;");
+    }
+    else
+    {
+        ui->frame_tool_setup->setStyleSheet("background: #fff2db;");
+        ui->frame_tool_run->setStyleSheet("background: #fff2db;");
+    }
 
     bool enable_settings = !(status & st_optimized);
     enable(ui->tool_settings,
@@ -206,13 +215,17 @@ void xmodeltest::update_gui( void )
     bool enable_results = status & st_optimized;
     enable(ui->tool_results,
            enable_results);
-    ui->act_results->setEnabled(enable_results);
     ui->mnu_results->setEnabled(enable_results);
 
     bool enable_models = status & st_optimized;
     ui->mnu_models->setEnabled(enable_models);
     enable(ui->tool_models,
            enable_models);
+
+    if (enable_results)
+        ui->frame_tool_results->setStyleSheet("background: #c1d8ff;");
+    else
+        ui->frame_tool_results->setStyleSheet("background: #fff2db;");
 
     enable(ui->tool_reset,
            status & st_active);
@@ -248,6 +261,19 @@ void xmodeltest::update_gui( void )
             ui->cbGModels->isChecked() +
             ui->cbIGModels->isChecked();
 
+    if (ui->radDatatypeDna->isChecked())
+    {
+        sprintf(txt, "DNA data");
+        ui->lbl_datatype->setText(txt);
+    }
+    else if (ui->radDatatypeProt->isChecked())
+    {
+        sprintf(txt, "Protein data");
+        ui->lbl_datatype->setText(txt);
+    }
+    else
+        assert(0);
+
     n_matrices = 0;
     if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
         n_matrices = N_DNA_ALLMATRIX_COUNT;
@@ -260,6 +286,8 @@ void xmodeltest::update_gui( void )
             (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
     sprintf(txt, "%d", n_models);
     ui->lblNumModels->setText(QString(txt));
+    sprintf(txt, "%d models", n_models);
+    ui->lbl_nmodels->setText(QString(txt));
 
     if (n_models == 0)
     {

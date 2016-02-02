@@ -22,7 +22,7 @@ static const uint qt_meta_data_xmodeltest[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      64,   14, // methods
+      57,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -37,63 +37,56 @@ static const uint qt_meta_data_xmodeltest[] = {
      162,   11,   11,   11, 0x0a,
      189,   11,   11,   11, 0x08,
      217,   11,   11,   11, 0x08,
-     245,   11,   11,   11, 0x08,
-     272,   11,   11,   11, 0x08,
+     244,   11,   11,   11, 0x08,
+     273,   11,   11,   11, 0x08,
      301,   11,   11,   11, 0x08,
-     330,   11,   11,   11, 0x08,
-     358,   11,   11,   11, 0x08,
-     388,   11,   11,   11, 0x08,
-     418,   11,   11,   11, 0x08,
-     447,   11,   11,   11, 0x08,
-     490,  482,   11,   11, 0x08,
-     529,  482,   11,   11, 0x08,
-     560,   11,   11,   11, 0x08,
+     331,   11,   11,   11, 0x08,
+     368,  360,   11,   11, 0x08,
+     407,  360,   11,   11, 0x08,
+     438,   11,   11,   11, 0x08,
+     461,   11,   11,   11, 0x08,
+     483,   11,   11,   11, 0x08,
+     504,   11,   11,   11, 0x08,
+     531,   11,   11,   11, 0x08,
+     557,   11,   11,   11, 0x08,
      583,   11,   11,   11, 0x08,
-     606,   11,   11,   11, 0x08,
-     628,   11,   11,   11, 0x08,
-     649,   11,   11,   11, 0x08,
-     676,   11,   11,   11, 0x08,
-     703,   11,   11,   11, 0x08,
-     729,   11,   11,   11, 0x08,
-     755,   11,   11,   11, 0x08,
-     780,   11,   11,   11, 0x08,
-     805,   11,   11,   11, 0x08,
-     830,   11,   11,   11, 0x08,
-     854,   11,   11,   11, 0x08,
-     897,  887,   11,   11, 0x08,
-     932,   11,   11,   11, 0x08,
-     957,   11,   11,   11, 0x08,
-     982,   11,   11,   11, 0x08,
-    1007,   11,   11,   11, 0x08,
-    1033,   11,   11,   11, 0x08,
-    1060,   11,   11,   11, 0x08,
-    1089,   11,   11,   11, 0x08,
-    1116,   11,   11,   11, 0x08,
-    1141,   11,   11,   11, 0x08,
-    1166,  482,   11,   11, 0x08,
-    1199,  482,   11,   11, 0x08,
-    1230,  482,   11,   11, 0x08,
-    1259,  482,   11,   11, 0x08,
-    1288,  482,   11,   11, 0x08,
-    1317,  482,   11,   11, 0x08,
-    1343,  482,   11,   11, 0x08,
-    1378,  482,   11,   11, 0x08,
-    1405,  482,   11,   11, 0x08,
-    1432,  482,   11,   11, 0x08,
-    1460,   11,   11,   11, 0x08,
-    1490, 1484,   11,   11, 0x08,
-    1526,   11,   11,   11, 0x08,
-    1554,   11,   11,   11, 0x08,
-    1583,   11,   11,   11, 0x08,
-    1611,   11,   11,   11, 0x08,
-    1644, 1639,   11,   11, 0x08,
-    1692,   11,   11,   11, 0x08,
-    1714,   11,   11,   11, 0x08,
-    1742,   11,   11,   11, 0x08,
-    1771,   11,   11,   11, 0x08,
-    1799,   11,   11,   11, 0x08,
-    1822, 1484,   11,   11, 0x08,
-    1863, 1854,   11,   11, 0x08,
+     608,   11,   11,   11, 0x08,
+     633,   11,   11,   11, 0x08,
+     657,   11,   11,   11, 0x08,
+     700,  690,   11,   11, 0x08,
+     735,   11,   11,   11, 0x08,
+     760,   11,   11,   11, 0x08,
+     785,   11,   11,   11, 0x08,
+     810,   11,   11,   11, 0x08,
+     836,   11,   11,   11, 0x08,
+     863,   11,   11,   11, 0x08,
+     892,   11,   11,   11, 0x08,
+     919,   11,   11,   11, 0x08,
+     944,   11,   11,   11, 0x08,
+     969,  360,   11,   11, 0x08,
+    1002,  360,   11,   11, 0x08,
+    1033,  360,   11,   11, 0x08,
+    1062,  360,   11,   11, 0x08,
+    1091,  360,   11,   11, 0x08,
+    1120,  360,   11,   11, 0x08,
+    1146,  360,   11,   11, 0x08,
+    1181,  360,   11,   11, 0x08,
+    1208,  360,   11,   11, 0x08,
+    1235,  360,   11,   11, 0x08,
+    1263,   11,   11,   11, 0x08,
+    1293, 1287,   11,   11, 0x08,
+    1329,   11,   11,   11, 0x08,
+    1357,   11,   11,   11, 0x08,
+    1386,   11,   11,   11, 0x08,
+    1414,   11,   11,   11, 0x08,
+    1447, 1442,   11,   11, 0x08,
+    1495,   11,   11,   11, 0x08,
+    1517,   11,   11,   11, 0x08,
+    1545,   11,   11,   11, 0x08,
+    1574,   11,   11,   11, 0x08,
+    1602,   11,   11,   11, 0x08,
+    1625, 1287,   11,   11, 0x08,
+    1666, 1657,   11,   11, 0x08,
 
        0        // eod
 };
@@ -104,26 +97,19 @@ static const char qt_meta_stringdata_xmodeltest[] = {
     "optimized_single_model(modeltest::Model*,uint)\0"
     "part_id\0optimized_partition(partition_id_t)\0"
     "optimization_done()\0optimization_interrupted()\0"
-    "on_act_open_msa_triggered()\0"
     "on_mnu_open_msa_triggered()\0"
     "on_tool_open_msa_clicked()\0"
-    "on_act_open_tree_triggered()\0"
     "on_mnu_open_tree_triggered()\0"
     "on_tool_open_tree_clicked()\0"
-    "on_act_open_parts_triggered()\0"
     "on_mnu_open_parts_triggered()\0"
-    "on_tool_open_parts_clicked()\0"
-    "on_act_toggle_settings_triggered()\0"
-    "checked\0on_mnu_toggle_settings_triggered(bool)\0"
+    "on_tool_open_parts_clicked()\0checked\0"
+    "on_mnu_toggle_settings_triggered(bool)\0"
     "on_tool_settings_toggled(bool)\0"
-    "on_act_run_triggered()\0on_mnu_run_triggered()\0"
-    "on_tool_run_clicked()\0run_modelselection()\0"
-    "on_act_results_triggered()\0"
-    "on_mnu_results_triggered()\0"
+    "on_mnu_run_triggered()\0on_tool_run_clicked()\0"
+    "run_modelselection()\0on_mnu_results_triggered()\0"
     "on_tool_results_clicked()\0"
     "on_mnu_models_triggered()\0"
     "on_tool_models_clicked()\0"
-    "on_act_reset_triggered()\0"
     "on_mnu_reset_triggered()\0"
     "on_tool_reset_clicked()\0"
     "on_mnu_view_datainfo_triggered()\0"
@@ -173,65 +159,58 @@ void xmodeltest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 2: _t->optimized_partition((*reinterpret_cast< partition_id_t(*)>(_a[1]))); break;
         case 3: _t->optimization_done(); break;
         case 4: _t->optimization_interrupted(); break;
-        case 5: _t->on_act_open_msa_triggered(); break;
-        case 6: _t->on_mnu_open_msa_triggered(); break;
-        case 7: _t->on_tool_open_msa_clicked(); break;
-        case 8: _t->on_act_open_tree_triggered(); break;
-        case 9: _t->on_mnu_open_tree_triggered(); break;
-        case 10: _t->on_tool_open_tree_clicked(); break;
-        case 11: _t->on_act_open_parts_triggered(); break;
-        case 12: _t->on_mnu_open_parts_triggered(); break;
-        case 13: _t->on_tool_open_parts_clicked(); break;
-        case 14: _t->on_act_toggle_settings_triggered(); break;
-        case 15: _t->on_mnu_toggle_settings_triggered((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 16: _t->on_tool_settings_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 17: _t->on_act_run_triggered(); break;
-        case 18: _t->on_mnu_run_triggered(); break;
-        case 19: _t->on_tool_run_clicked(); break;
-        case 20: _t->run_modelselection(); break;
-        case 21: _t->on_act_results_triggered(); break;
-        case 22: _t->on_mnu_results_triggered(); break;
-        case 23: _t->on_tool_results_clicked(); break;
-        case 24: _t->on_mnu_models_triggered(); break;
-        case 25: _t->on_tool_models_clicked(); break;
-        case 26: _t->on_act_reset_triggered(); break;
-        case 27: _t->on_mnu_reset_triggered(); break;
-        case 28: _t->on_tool_reset_clicked(); break;
-        case 29: _t->on_mnu_view_datainfo_triggered(); break;
-        case 30: _t->autoSelectSchemes((*reinterpret_cast< const int(*)[]>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 31: _t->on_radSchemes3_clicked(); break;
-        case 32: _t->on_radSchemes5_clicked(); break;
-        case 33: _t->on_radSchemes7_clicked(); break;
-        case 34: _t->on_radSchemes11_clicked(); break;
-        case 35: _t->on_radSchemes203_clicked(); break;
-        case 36: _t->on_radSetModelTest_clicked(); break;
-        case 37: _t->on_radSetMrbayes_clicked(); break;
-        case 38: _t->on_radSetRaxml_clicked(); break;
-        case 39: _t->on_radSetPhyml_clicked(); break;
-        case 40: _t->on_radSetModelTest_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 41: _t->on_radSetMrbayes_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 42: _t->on_radSetRaxml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 43: _t->on_radSetPhyml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 44: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 45: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 46: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 47: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 48: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 49: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 50: _t->on_cbAdvanced_clicked(); break;
-        case 51: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 52: _t->on_radDatatypeDna_clicked(); break;
-        case 53: _t->on_radDatatypeProt_clicked(); break;
-        case 54: _t->on_cbShowMatrices_clicked(); break;
-        case 55: _t->on_radSchemesUser_clicked(); break;
-        case 56: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
-        case 57: _t->on_radTopoU_clicked(); break;
-        case 58: _t->on_radTopoFixedMp_clicked(); break;
-        case 59: _t->on_radTopoFixedGtr_clicked(); break;
-        case 60: _t->on_radTopoFixedJc_clicked(); break;
-        case 61: _t->on_radTopoML_clicked(); break;
-        case 62: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 63: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 5: _t->on_mnu_open_msa_triggered(); break;
+        case 6: _t->on_tool_open_msa_clicked(); break;
+        case 7: _t->on_mnu_open_tree_triggered(); break;
+        case 8: _t->on_tool_open_tree_clicked(); break;
+        case 9: _t->on_mnu_open_parts_triggered(); break;
+        case 10: _t->on_tool_open_parts_clicked(); break;
+        case 11: _t->on_mnu_toggle_settings_triggered((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 12: _t->on_tool_settings_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 13: _t->on_mnu_run_triggered(); break;
+        case 14: _t->on_tool_run_clicked(); break;
+        case 15: _t->run_modelselection(); break;
+        case 16: _t->on_mnu_results_triggered(); break;
+        case 17: _t->on_tool_results_clicked(); break;
+        case 18: _t->on_mnu_models_triggered(); break;
+        case 19: _t->on_tool_models_clicked(); break;
+        case 20: _t->on_mnu_reset_triggered(); break;
+        case 21: _t->on_tool_reset_clicked(); break;
+        case 22: _t->on_mnu_view_datainfo_triggered(); break;
+        case 23: _t->autoSelectSchemes((*reinterpret_cast< const int(*)[]>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 24: _t->on_radSchemes3_clicked(); break;
+        case 25: _t->on_radSchemes5_clicked(); break;
+        case 26: _t->on_radSchemes7_clicked(); break;
+        case 27: _t->on_radSchemes11_clicked(); break;
+        case 28: _t->on_radSchemes203_clicked(); break;
+        case 29: _t->on_radSetModelTest_clicked(); break;
+        case 30: _t->on_radSetMrbayes_clicked(); break;
+        case 31: _t->on_radSetRaxml_clicked(); break;
+        case 32: _t->on_radSetPhyml_clicked(); break;
+        case 33: _t->on_radSetModelTest_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 34: _t->on_radSetMrbayes_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 35: _t->on_radSetRaxml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 36: _t->on_radSetPhyml_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 37: _t->on_cbEqualFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 38: _t->on_cbMlFreq_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 39: _t->on_cbNoRateVarModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 40: _t->on_cbIModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 41: _t->on_cbGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 42: _t->on_cbIGModels_toggled((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 43: _t->on_cbAdvanced_clicked(); break;
+        case 44: _t->on_sliderNThreads_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 45: _t->on_radDatatypeDna_clicked(); break;
+        case 46: _t->on_radDatatypeProt_clicked(); break;
+        case 47: _t->on_cbShowMatrices_clicked(); break;
+        case 48: _t->on_radSchemesUser_clicked(); break;
+        case 49: _t->on_modelsListView_itemClicked((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
+        case 50: _t->on_radTopoU_clicked(); break;
+        case 51: _t->on_radTopoFixedMp_clicked(); break;
+        case 52: _t->on_radTopoFixedGtr_clicked(); break;
+        case 53: _t->on_radTopoFixedJc_clicked(); break;
+        case 54: _t->on_radTopoML_clicked(); break;
+        case 55: _t->on_sliderNCat_valueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 56: _t->on_sliderNCat_sliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -269,9 +248,9 @@ int xmodeltest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 64)
+        if (_id < 57)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 64;
+        _id -= 57;
     }
     return _id;
 }
