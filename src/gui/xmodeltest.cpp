@@ -74,6 +74,7 @@ xmodeltest::xmodeltest(QWidget *parent) :
     qRegisterMetaType<mt_size_t>();
 
     ui->setupUi(this);
+
 //    ui->frame_header->setStyleSheet("color: #4b0c59;\nbackground-color: #cfefa8;");
 //    ui->centralwidget->setStyleSheet("color: #333;\nbackground-color: #f1fff4;");
 //    ui->frame_settings->setStyleSheet("color: #333;\nbackground-color: #cfefa8;");
@@ -123,9 +124,9 @@ void xmodeltest::reset_xmt( void )
     utree_filename = "";
     parts_filename = "";
 
-    ui->lbl_msa->setText("-");
-    ui->lbl_tree->setText("-");
-    ui->lbl_parts->setText("-");
+    ui->lbl_msa->setVisible(false);
+    ui->lbl_tree->setVisible(false);
+    ui->lbl_parts->setVisible(false);
 
     ui->consoleRun->clear();
     modeltest::Utils::print_header();
@@ -615,6 +616,7 @@ void xmodeltest::action_open_msa()
 
     if (status & st_msa_loaded)
     {
+        ui->lbl_msa->setVisible(true);
         ui->lbl_msa->setText(QString(modeltest::Utils::getBaseName(msa_filename).c_str()));
         int n_cats = ui->sliderNCat->value();
         if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
@@ -622,7 +624,11 @@ void xmodeltest::action_open_msa()
         compute_size(n_cats, ui->sliderNThreads->value());
     }
     else
+    {
+        ui->lbl_msa->setVisible(false);
+        ui->lbl_tree->setVisible(false);
         ui->lbl_tree->setText("-");
+    }
 
     update_gui();
 }
@@ -693,9 +699,13 @@ void xmodeltest::action_open_tree()
     }
 
     if (status & st_tree_loaded)
+    {
+        ui->lbl_tree->setVisible(true);
         ui->lbl_tree->setText(QString(modeltest::Utils::getBaseName(utree_filename).c_str()));
+    }
     else
     {
+        ui->lbl_tree->setVisible(false);
         ui->lbl_tree->setText("-");
         ui->radTopoFixedGtr->setChecked(true);
     }
@@ -772,9 +782,15 @@ void xmodeltest::action_open_parts()
     }
 
     if (status & st_parts_loaded)
+    {
+        ui->lbl_parts->setVisible(true);
         ui->lbl_parts->setText(QString(modeltest::Utils::getBaseName(parts_filename).c_str()));
+    }
     else
+    {
+        ui->lbl_parts->setVisible(false);
         ui->lbl_parts->setText("-");
+    }
 
     update_gui();
 }

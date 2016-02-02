@@ -161,7 +161,7 @@ QToolTip { color: #000s; border: none; }</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <property name="spacing">
-              <number>5</number>
+              <number>1</number>
              </property>
              <property name="leftMargin">
               <number>5</number>
@@ -232,6 +232,9 @@ padding-left: 5px;</string>
                <property name="text">
                 <string>-</string>
                </property>
+               <property name="indent">
+                <number>15</number>
+               </property>
               </widget>
              </item>
              <item>
@@ -286,6 +289,9 @@ margin-left: 5px;</string>
                </property>
                <property name="text">
                 <string>-</string>
+               </property>
+               <property name="indent">
+                <number>15</number>
                </property>
               </widget>
              </item>
@@ -342,7 +348,23 @@ margin-left: 5px;</string>
                <property name="text">
                 <string>-</string>
                </property>
+               <property name="indent">
+                <number>15</number>
+               </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>
