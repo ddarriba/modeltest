@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>877</width>
-    <height>800</height>
+    <width>842</width>
+    <height>739</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>740</width>
+    <width>842</width>
     <height>500</height>
    </size>
   </property>
@@ -983,8 +983,8 @@ margin-left: 5px;</string>
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-107</y>
-                 <width>821</width>
+                 <y>0</y>
+                 <width>786</width>
                  <height>583</height>
                 </rect>
                </property>
@@ -2747,7 +2747,7 @@ margin-left: 5px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>877</width>
+     <width>842</width>
      <height>25</height>
     </rect>
    </property>

@@ -14,6 +14,16 @@
 #define N_PROT_SUBST_RATES     190
 #define N_PROT_MODEL_MATRICES   19
 
+#define N_DNA_RAXML_MATRICES     3
+#define N_DNA_MRBAYES_MATRICES   3
+#define N_DNA_PHYML_MATRICES    11
+#define N_DNA_PAUP_MATRICES     11
+#define N_DNA_IQTREE_MATRICES   11
+#define N_PROT_RAXML_MATRICES   19
+#define N_PROT_PHYML_MATRICES   14
+#define N_PROT_MRBAYES_MATRICES 8
+#define N_PROT_PAUP_MATRICES    19
+
 #define DNA_JC_INDEX             0
 #define DNA_HKY_INDEX           18
 #define DNA_GTR_INDEX          202
@@ -63,6 +73,37 @@ const mt_index_t dna_model_matrices_indices[N_DNA_MODEL_MATRICES] = {
     202   /*    SYM/GTR    */
 };
 
+const dna_subst_schemes dna_raxml_schemes = ss_3;
+const mt_mask_t dna_raxml_parameters =
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const dna_subst_schemes dna_mrbayes_schemes = ss_3;
+const mt_mask_t dna_mrbayes_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const dna_subst_schemes dna_phyml_schemes = ss_11;
+const mt_mask_t dna_phyml_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const dna_subst_schemes dna_paup_schemes = ss_11;
+const mt_mask_t dna_paup_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+
 const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
     "000000",                                                             // 0
 
@@ -105,26 +146,66 @@ const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
 };
 
 const std::string prot_model_names[N_PROT_MODEL_MATRICES] = {
-    "DAYHOFF",
-    "LG",
-    "DCMUT",
-    "JTT",
-    "MTREV",
-    "WAG",
-    "RTREV",
-    "CPREV",
-    "VT",
-    "BLOSUM62",
-    "MTMAM",
-    "MTART",
-    "MTZOA",
-    "PMB",
-    "HIVB",
-    "HIVW",
-    "JTTDCMUT",
-    "FLU",
-    "STMTREV"
+    "DAYHOFF",   //  0
+    "LG",        //  1
+    "DCMUT",     //  2
+    "JTT",       //  3
+    "MTREV",     //  4
+    "WAG",       //  5
+    "RTREV",     //  6
+    "CPREV",     //  7
+    "VT",        //  8
+    "BLOSUM62",  //  9
+    "MTMAM",     // 10
+    "MTART",     // 11
+    "MTZOA",     // 12
+    "PMB",       // 13
+    "HIVB",      // 14
+    "HIVW",      // 15
+    "JTTDCMUT",  // 16
+    "FLU",       // 17
+    "STMTREV"    // 18
 };
+
+const mt_index_t prot_raxml_matrices_indices[N_PROT_RAXML_MATRICES] = {
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+};
+const mt_mask_t prot_raxml_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const mt_index_t prot_mrbayes_matrices_indices[N_PROT_MRBAYES_MATRICES] = {
+    0,4,10,5,6,7,8,9
+};
+const mt_mask_t prot_mrbayes_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const mt_index_t prot_phyml_matrices_indices[N_PROT_PHYML_MATRICES] = {
+    1,5,3,4,0,2,6,7,8,9,10,11,15,14
+};
+const mt_mask_t prot_phyml_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
+const mt_index_t prot_paup_matrices_indices[N_PROT_PAUP_MATRICES] = {
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+};
+const mt_mask_t prot_paup_parameters =
+        MOD_PARAM_FIXED_FREQ |
+        MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
+        MOD_PARAM_GAMMA |
+        MOD_PARAM_INV |
+        MOD_PARAM_INV_GAMMA;
 
 extern const double * prot_model_rates[N_PROT_MODEL_MATRICES];
 extern const double * prot_model_freqs[N_PROT_MODEL_MATRICES];

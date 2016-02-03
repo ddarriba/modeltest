@@ -301,6 +301,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         case 15:
             /* RAxML template */
             template_models = template_raxml;
+            cout << "Using RAxML template" << endl;
             break;
         case 16:
             /* PhyML template */
@@ -575,8 +576,66 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     /* set models template */
     if (template_models != template_none)
     {
-        cerr << PACKAGE << ": Error: Temaplates are not available yet for console interface" << endl;
-        return false;
+        for (partition_t & partition : (*exec_opt.partitions_desc))
+        {
+            switch (partition.datatype)
+            {
+            case dt_dna:
+            {
+                switch (template_models)
+                {
+                case template_raxml:
+                    partition.model_params = dna_raxml_parameters;
+                    dna_ss = dna_raxml_schemes;
+                    break;
+                case template_mrbayes:
+                    partition.model_params = dna_mrbayes_parameters;
+                    dna_ss = dna_mrbayes_schemes;
+                    break;
+                case template_phyml:
+                    partition.model_params = dna_phyml_parameters;
+                    dna_ss = dna_phyml_schemes;
+                    break;
+                case template_paup:
+                    partition.model_params = dna_paup_parameters;
+                    dna_ss = dna_paup_schemes;
+                    break;
+                default:
+                    assert(0);
+                }
+            }
+                break;
+            case dt_protein:
+            {
+                switch (template_models)
+                {
+                case template_raxml:
+                    partition.model_params = prot_raxml_parameters;
+                    for (mt_index_t i : prot_raxml_matrices_indices)
+                        exec_opt.aa_candidate_models.push_back(i);
+                    break;
+                case template_mrbayes:
+                    partition.model_params = prot_mrbayes_parameters;
+                    for (mt_index_t i : prot_mrbayes_matrices_indices)
+                        exec_opt.aa_candidate_models.push_back(i);
+                    break;
+                case template_phyml:
+                    partition.model_params = prot_phyml_parameters;
+                    for (mt_index_t i : prot_phyml_matrices_indices)
+                        exec_opt.aa_candidate_models.push_back(i);
+                    break;
+                case template_paup:
+                    partition.model_params = prot_paup_parameters;
+                    for (mt_index_t i : prot_paup_matrices_indices)
+                        exec_opt.aa_candidate_models.push_back(i);
+                    break;
+                default:
+                    assert(0);
+                }
+            }
+                break;
+            }
+        }
     }
 
     if (exist_protein_models)
@@ -586,6 +645,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
 
         if (user_candidate_models.compare(""))
         {
+            if (exec_opt.aa_candidate_models.size())
+                exec_opt.aa_candidate_models.clear();
+
             int prot_matrices_bitv = 0;
             /* parse user defined models */
             istringstream f(user_candidate_models);
@@ -616,7 +678,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
                 prot_matrices_bitv >>= 1;
             }
         }
-        else
+        else if (!exec_opt.aa_candidate_models.size())
         {
             /* the whole set is used */
             for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
@@ -627,6 +689,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     {
         if (user_candidate_models.compare("") && (dna_ss == ss_undef))
         {
+            if (exec_opt.nt_candidate_models.size())
+                exec_opt.nt_candidate_models.clear();
+
             int dna_matrices_bitv = 0;
             /* parse user defined models */
             istringstream f(user_candidate_models);

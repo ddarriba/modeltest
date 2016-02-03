@@ -145,6 +145,7 @@ typedef struct
     data_type datatype;
     mt_size_t states;
     std::string partition_name;
+    mt_mask_t model_params;
 } partition_t;
 
 typedef std::vector<partition_t> partitioning_scheme_t;
