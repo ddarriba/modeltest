@@ -124,9 +124,9 @@ void xmodeltest::reset_xmt( void )
     utree_filename = "";
     parts_filename = "";
 
-    ui->lbl_msa->setVisible(false);
-    ui->lbl_tree->setVisible(false);
-    ui->lbl_parts->setVisible(false);
+    ui->lbl_msa->setText("none");
+    ui->lbl_tree->setText("none");
+    ui->lbl_parts->setText("none");
 
     ui->consoleRun->clear();
     modeltest::Utils::print_header();
@@ -271,6 +271,23 @@ void xmodeltest::update_gui( void )
     {
         sprintf(txt, "Protein data");
         ui->lbl_datatype->setText(txt);
+        if (!(ui->radSetModelTest->isChecked()))
+        {
+            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+                ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Unchecked);
+            if (ui->radSetMrbayes->isChecked())
+                for (mt_index_t i : prot_mrbayes_matrices_indices)
+                    ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+            else if (ui->radSetPhyml->isChecked())
+                for (mt_index_t i : prot_phyml_matrices_indices)
+                    ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+            else if (ui->radSetRaxml->isChecked())
+                for (mt_index_t i : prot_raxml_matrices_indices)
+                    ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+            else if (ui->radSetPAUP->isChecked())
+                for (mt_index_t i : prot_paup_matrices_indices)
+                    ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+        }
     }
     else
         assert(0);
@@ -595,12 +612,26 @@ void xmodeltest::action_open_msa()
         if (load_file)
         {
             msa_filename = loaded_file;
+            data_type test_dt;
             if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_taxa,
-                                     &n_sites))
+                                     &n_sites,
+                                     &test_dt))
             {
                 cout << endl << "Loaded alignment" << endl;
+
+                if (test_dt == dt_dna)
+                {
+                    ui->radDatatypeDna->setChecked(true);
+                    on_radDatatypeDna_clicked();
+                }
+                else if (test_dt == dt_protein)
+                {
+                    ui->radDatatypeProt->setChecked(true);
+                    on_radDatatypeProt_clicked();
+                }
                 ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
+                cout << "Datatype:        " << (test_dt == dt_protein?"Protein":"DNA") << endl;
                 cout << "Num.Sequences:   " << n_taxa << endl;
                 cout << "Sequence Length: " << n_sites << endl;
                 status |= st_msa_loaded;
@@ -616,7 +647,6 @@ void xmodeltest::action_open_msa()
 
     if (status & st_msa_loaded)
     {
-        ui->lbl_msa->setVisible(true);
         ui->lbl_msa->setText(QString(modeltest::Utils::getBaseName(msa_filename).c_str()));
         int n_cats = ui->sliderNCat->value();
         if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
@@ -625,9 +655,9 @@ void xmodeltest::action_open_msa()
     }
     else
     {
-        ui->lbl_msa->setVisible(false);
-        ui->lbl_tree->setVisible(false);
-        ui->lbl_tree->setText("-");
+        ui->lbl_msa->setText("none");
+        ui->lbl_tree->setText("none");
+        ui->lbl_parts->setText("none");
     }
 
     update_gui();
@@ -700,13 +730,11 @@ void xmodeltest::action_open_tree()
 
     if (status & st_tree_loaded)
     {
-        ui->lbl_tree->setVisible(true);
         ui->lbl_tree->setText(QString(modeltest::Utils::getBaseName(utree_filename).c_str()));
     }
     else
     {
-        ui->lbl_tree->setVisible(false);
-        ui->lbl_tree->setText("-");
+        ui->lbl_tree->setText("none");
         ui->radTopoFixedGtr->setChecked(true);
     }
 
@@ -783,13 +811,11 @@ void xmodeltest::action_open_parts()
 
     if (status & st_parts_loaded)
     {
-        ui->lbl_parts->setVisible(true);
         ui->lbl_parts->setText(QString(modeltest::Utils::getBaseName(parts_filename).c_str()));
     }
     else
     {
-        ui->lbl_parts->setVisible(false);
-        ui->lbl_parts->setText("-");
+        ui->lbl_parts->setText("none");
     }
 
     update_gui();

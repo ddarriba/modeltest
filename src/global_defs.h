@@ -162,6 +162,7 @@ typedef struct {
     mt_size_t n_catg;                           //! Number of gamma rate cats
     std::vector<partition_t> * partitions_desc; //! Original partitioning
     std::vector<partition_t> * partitions_eff;  //! Effective partitioning
+    template_models_t template_models;
 
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites

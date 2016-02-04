@@ -13,9 +13,10 @@ ModelTestService::~ModelTestService()
 
 bool ModelTestService::test_msa( std::string const& msa_filename,
                mt_size_t * n_seqs,
-               mt_size_t * n_sites)
+               mt_size_t * n_sites,
+               data_type * datatype)
 {
-    return ModelTest::test_msa(msa_filename, n_seqs, n_sites);
+    return ModelTest::test_msa(msa_filename, n_seqs, n_sites, datatype);
 }
 
 bool ModelTestService::test_tree( std::string const& tree_filename,

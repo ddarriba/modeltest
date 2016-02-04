@@ -85,6 +85,16 @@ class Utils
 public:
     Utils();
 
+    static mt_mask_t get_parameters_from_template(template_models_t tool,
+                                                  data_type datatype);
+
+    static const mt_index_t *get_prot_matrices_from_template(template_models_t tool,
+                                                             mt_size_t *n_matrices);
+
+    static mt_size_t number_of_models(mt_size_t n_matrices, mt_mask_t model_params);
+
+    static dna_subst_schemes get_dna_matrices_from_template(template_models_t tool);
+
     /**
      * @brief Gets the base file of a path+filename
      * @param[in] filename The filename

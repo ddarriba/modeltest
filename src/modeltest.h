@@ -42,7 +42,8 @@ public:
      */
     static bool test_msa(std::string const& msa_filename,
                   mt_size_t *n_tips,
-                  mt_size_t *n_sites);
+                  mt_size_t *n_sites,
+                  data_type *datatype = 0);
 
     /**
      * @brief Tests whether a tree file is valid

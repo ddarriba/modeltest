@@ -65,6 +65,99 @@ Utils::Utils()
 {
 }
 
+mt_mask_t Utils::get_parameters_from_template(template_models_t tool,
+                                              data_type datatype)
+{
+    switch(tool)
+    {
+    case template_raxml:
+        if (datatype == dt_dna)
+            return dna_raxml_parameters;
+        else if (datatype == dt_protein)
+            return prot_raxml_parameters;
+        break;
+    case template_mrbayes:
+        if (datatype == dt_dna)
+            return dna_mrbayes_parameters;
+        else if (datatype == dt_protein)
+            return prot_mrbayes_parameters;
+        break;
+    case template_phyml:
+        if (datatype == dt_dna)
+            return dna_phyml_parameters;
+        else if (datatype == dt_protein)
+            return prot_phyml_parameters;
+        break;
+    case template_paup:
+        if (datatype == dt_dna)
+            return dna_paup_parameters;
+        else if (datatype == dt_protein)
+            return prot_paup_parameters;
+        break;
+    default:
+        return 0;
+    }
+    return 0;
+}
+
+const mt_index_t* Utils::get_prot_matrices_from_template(template_models_t tool,
+                                                         mt_size_t *n_matrices)
+{
+    switch(tool)
+    {
+    case template_raxml:
+        *n_matrices = N_PROT_RAXML_MATRICES;
+        return prot_raxml_matrices_indices;
+        break;
+    case template_mrbayes:
+        *n_matrices = N_PROT_MRBAYES_MATRICES;
+        return prot_mrbayes_matrices_indices;
+        break;
+    case template_phyml:
+        *n_matrices = N_PROT_PHYML_MATRICES;
+        return prot_phyml_matrices_indices;
+        break;
+    case template_paup:
+        *n_matrices = N_PROT_PAUP_MATRICES;
+        return prot_paup_matrices_indices;
+        break;
+    default:
+        *n_matrices = 0;
+        return 0;
+    }
+    return 0;
+}
+
+mt_size_t Utils::number_of_models(mt_size_t n_matrices, mt_mask_t model_params)
+{
+    mt_size_t n_models = n_matrices;
+    n_models *= count_bits(model_params & MOD_MASK_FREQ_PARAMS);
+    n_models *= count_bits(model_params & MOD_MASK_RATE_PARAMS);
+    return n_models;
+}
+
+dna_subst_schemes Utils::get_dna_matrices_from_template(template_models_t tool)
+{
+    switch(tool)
+    {
+    case template_raxml:
+        return dna_raxml_schemes;
+        break;
+    case template_mrbayes:
+        return dna_mrbayes_schemes;
+        break;
+    case template_phyml:
+        return dna_phyml_schemes;
+        break;
+    case template_paup:
+        return dna_paup_schemes;
+        break;
+    default:
+        return ss_undef;
+    }
+    return ss_undef;
+}
+
 string Utils::getBaseName(string const& filename)
 {
   return string(
@@ -191,6 +284,17 @@ void Utils::print_version(std::ostream& out)
     out << endl << "Written by Diego Darriba." << endl;
 }
 
+static void print_model_params(mt_mask_t model_params, ostream &out)
+{
+    out << "  " << left << setw(20) << "include model parameters:" << endl;
+    out << "    " << left << setw(17) << "Uniform:" << ((model_params&MOD_PARAM_NO_RATE_VAR)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "p-inv (+I):" << ((model_params&MOD_PARAM_INV)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "gamma (+G):" << ((model_params&MOD_PARAM_GAMMA)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "both (+I+G):" << ((model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "fixed freqs:" << ((model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
+}
+
 void Utils::print_options(mt_options & opts, ostream  &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
@@ -205,20 +309,42 @@ void Utils::print_options(mt_options & opts, ostream  &out)
 
     out << endl << "Selection options:" << endl;
     if (opts.nt_candidate_models.size())
+    {
         out << "  " << left << setw(20) << "# dna schemes:" << opts.nt_candidate_models.size() << endl;
+        mt_mask_t model_params = opts.model_params;
+        if (opts.partitions_desc)
+            for (partition_t part : *opts.partitions_desc)
+                if (part.datatype == dt_dna)
+                {
+                    model_params = part.model_params;
+                    break;
+                }
+        out << "  " << left << setw(20) << "# dna models:"
+            << number_of_models(opts.nt_candidate_models.size(), model_params)
+            << endl;
+        print_model_params(model_params, out);
+    }
     if (opts.aa_candidate_models.size())
+    {
         out << "  " << left << setw(20) << "# protein matrices:" << opts.aa_candidate_models.size() << endl;
-    out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
-    out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
-    out << "  " << left << setw(20) << "include model parameters:" << endl;
-    out << "    " << left << setw(17) << "Uniform:" << ((opts.model_params&MOD_PARAM_NO_RATE_VAR)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "p-inv (+I):" << ((opts.model_params&MOD_PARAM_INV)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "gamma (+G):" << ((opts.model_params&MOD_PARAM_GAMMA)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "both (+I+G):" << ((opts.model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "fixed freqs:" << ((opts.model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "estimated freqs:" << ((opts.model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
+        mt_mask_t model_params = opts.model_params;
+        if (opts.partitions_desc)
+            for (partition_t part : *opts.partitions_desc)
+                if (part.datatype == dt_protein)
+                {
+                    model_params = part.model_params;
+                    break;
+                }
+        out << "  " << left << setw(20) << "# protein models:"
+            << number_of_models(opts.aa_candidate_models.size(), model_params)
+            << endl;
+        print_model_params(model_params, out);
+
+    }
     if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
         out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
+    out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
+    out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
 
     out << endl << "Additional options:" << endl;
     out << "  " << left << setw(14) << "verbosity:";

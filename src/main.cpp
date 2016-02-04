@@ -574,64 +574,26 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     }
 
     /* set models template */
+    exec_opt.template_models = template_models;
     if (template_models != template_none)
     {
         for (partition_t & partition : (*exec_opt.partitions_desc))
         {
+            partition.model_params = modeltest::Utils::get_parameters_from_template(template_models, partition.datatype);
             switch (partition.datatype)
             {
             case dt_dna:
             {
-                switch (template_models)
-                {
-                case template_raxml:
-                    partition.model_params = dna_raxml_parameters;
-                    dna_ss = dna_raxml_schemes;
-                    break;
-                case template_mrbayes:
-                    partition.model_params = dna_mrbayes_parameters;
-                    dna_ss = dna_mrbayes_schemes;
-                    break;
-                case template_phyml:
-                    partition.model_params = dna_phyml_parameters;
-                    dna_ss = dna_phyml_schemes;
-                    break;
-                case template_paup:
-                    partition.model_params = dna_paup_parameters;
-                    dna_ss = dna_paup_schemes;
-                    break;
-                default:
-                    assert(0);
-                }
+                dna_ss = modeltest::Utils::get_dna_matrices_from_template(template_models);
             }
                 break;
             case dt_protein:
             {
-                switch (template_models)
-                {
-                case template_raxml:
-                    partition.model_params = prot_raxml_parameters;
-                    for (mt_index_t i : prot_raxml_matrices_indices)
-                        exec_opt.aa_candidate_models.push_back(i);
-                    break;
-                case template_mrbayes:
-                    partition.model_params = prot_mrbayes_parameters;
-                    for (mt_index_t i : prot_mrbayes_matrices_indices)
-                        exec_opt.aa_candidate_models.push_back(i);
-                    break;
-                case template_phyml:
-                    partition.model_params = prot_phyml_parameters;
-                    for (mt_index_t i : prot_phyml_matrices_indices)
-                        exec_opt.aa_candidate_models.push_back(i);
-                    break;
-                case template_paup:
-                    partition.model_params = prot_paup_parameters;
-                    for (mt_index_t i : prot_paup_matrices_indices)
-                        exec_opt.aa_candidate_models.push_back(i);
-                    break;
-                default:
-                    assert(0);
-                }
+                mt_size_t n_prot_matrices;
+                const mt_index_t *template_matrices = modeltest::Utils::get_prot_matrices_from_template(template_models,
+                                                                                                        &n_prot_matrices);
+                for (mt_index_t i=0; i<n_prot_matrices; ++i)
+                    exec_opt.aa_candidate_models.push_back(template_matrices[i]);
             }
                 break;
             }

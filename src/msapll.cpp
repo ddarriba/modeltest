@@ -80,9 +80,15 @@ namespace modeltest
     return sequences[index];
   }
 
+  const char aa_unique_chars[14] = {
+    'e','f','i','l','p','q','z',
+    'E','F','I','L','P','Q','Z'
+  };
+
   bool MsaPll::test(string const& msa_filename,
                mt_size_t *n_tips,
-               mt_size_t *n_sites)
+               mt_size_t *n_sites,
+               data_type *datatype)
   {
       mt_index_t cur_seq;
       char *hdr = NULL;
@@ -90,6 +96,7 @@ namespace modeltest
       long n_sites_read;
       long hdr_len;
       long seq_idx;
+      bool dt_unknown = true;
 
       /* reset error */
       errno = 0;
@@ -102,12 +109,26 @@ namespace modeltest
           return false;
       }
 
+      if (datatype)
+          *datatype = dt_dna;
+
       /* read FASTA sequences for finding the number of tips and seq len */
       /* make sure they are all of the same length */
       mt_size_t sites = MT_SIZE_UNDEF;
       for (cur_seq = 0;
            pll_fasta_getnext (fp, &hdr, &hdr_len, &seq, &n_sites_read, &seq_idx); ++cur_seq)
       {
+          if (datatype && dt_unknown)
+          {
+              for (char c : aa_unique_chars)
+              {
+                  if (strchr(seq, c))
+                  {
+                      dt_unknown = false;
+                      *datatype = dt_protein;
+                  }
+              }
+          }
           free (seq);
           free (hdr);
 

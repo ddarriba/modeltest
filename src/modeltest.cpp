@@ -168,9 +168,10 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 
 bool ModelTest::test_msa(std::string const& msa_filename,
                          mt_size_t *n_tips,
-                         mt_size_t *n_sites)
+                         mt_size_t *n_sites,
+                         data_type *datatype)
 {
-   return MsaPll::test(msa_filename, n_tips, n_sites);
+   return MsaPll::test(msa_filename, n_tips, n_sites, datatype);
 }
 
 bool ModelTest::test_tree(std::string const& tree_filename,

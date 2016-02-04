@@ -20,7 +20,6 @@ SOURCES += main.cpp\
     treepll.cpp \
     model_selection.cpp \
     main_console.cpp \
-    modeltest_gui.cpp \
     partition.cpp \
     partitioning_scheme.cpp \
     gui/xmodeltest.cpp \
@@ -49,7 +48,6 @@ HEADERS  += \
     treepll.h \
     model_selection.h \
     global_defs.h \
-    modeltest_gui.h \
     partition.h \
     partitioning_scheme.h \
     thread/threadpool.h \

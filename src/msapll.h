@@ -31,7 +31,8 @@ namespace modeltest
 
     static bool test(std::string const& msa_filename,
                mt_size_t *n_tips,
-               mt_size_t *n_sites);
+               mt_size_t *n_sites,
+               data_type *datatype = 0);
   private:
     std::vector <pll_partition_t *> pll_partitions;
     char **sequences;
