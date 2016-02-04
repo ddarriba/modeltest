@@ -148,8 +148,8 @@ private:
 
     //std::vector<modeltest::Model *> c_models;
     partitioning_scheme_t * scheme;
-    tree_type start_tree;
-    mt_options opts;
+    tree_type_t start_tree;
+    mt_options_t opts;
 
     time_t ini_t;
 

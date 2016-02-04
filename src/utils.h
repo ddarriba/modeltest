@@ -86,14 +86,14 @@ public:
     Utils();
 
     static mt_mask_t get_parameters_from_template(template_models_t tool,
-                                                  data_type datatype);
+                                                  data_type_t datatype);
 
     static const mt_index_t *get_prot_matrices_from_template(template_models_t tool,
                                                              mt_size_t *n_matrices);
 
     static mt_size_t number_of_models(mt_size_t n_matrices, mt_mask_t model_params);
 
-    static dna_subst_schemes get_dna_matrices_from_template(template_models_t tool);
+    static dna_subst_schemes_t get_dna_matrices_from_template(template_models_t tool);
 
     /**
      * @brief Gets the base file of a path+filename
@@ -154,7 +154,7 @@ public:
      * @param[in] opts      The execution options
      * @param[in,out] out  The output stream
      */
-    static void print_options(mt_options & opts, std::ostream  &out = std::cout);
+    static void print_options(mt_options_t & opts, std::ostream  &out = std::cout);
 
     /**
      * @brief Prints the header

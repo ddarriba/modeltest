@@ -46,7 +46,7 @@ DataInfoDialog::DataInfoDialog(std::string const& msa_filename,
         ui->text->append(line);
         ui->text->append("");
         mt_size_t n_dna_parts = 0, n_aa_parts = 0;
-        for (partition_t partition : scheme)
+        for (partition_descriptor_t partition : scheme)
             if (partition.datatype == dt_dna)
                 n_dna_parts++;
             else

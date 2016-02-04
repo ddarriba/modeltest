@@ -14,7 +14,7 @@ ModelTestService::~ModelTestService()
 bool ModelTestService::test_msa( std::string const& msa_filename,
                mt_size_t * n_seqs,
                mt_size_t * n_sites,
-               data_type * datatype)
+               data_type_t * datatype)
 {
     return ModelTest::test_msa(msa_filename, n_seqs, n_sites, datatype);
 }
@@ -25,7 +25,7 @@ bool ModelTestService::test_tree( std::string const& tree_filename,
     return ModelTest::test_tree(tree_filename, n_tips);
 }
 
-bool ModelTestService::create_instance( mt_options & options )
+bool ModelTestService::create_instance( mt_options_t & options )
 {
     bool build_ok;
     if(modeltest_instance)
@@ -48,7 +48,7 @@ bool ModelTestService::destroy_instance( void )
     return true;
 }
 
-bool ModelTestService::reset_instance( mt_options & options )
+bool ModelTestService::reset_instance( mt_options_t & options )
 {
     if (modeltest_instance)
         destroy_instance();

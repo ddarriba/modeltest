@@ -101,7 +101,7 @@ extern int mpi_numprocs;
 typedef enum {
     dt_dna,
     dt_protein
-} data_type;
+} data_type_t;
 
 typedef enum
 {
@@ -110,7 +110,7 @@ typedef enum
     tree_ml_gtr_fixed,
     tree_ml,
     tree_user_fixed
-} tree_type;
+} tree_type_t;
 
 typedef enum {
     ss_undef,
@@ -119,7 +119,7 @@ typedef enum {
     ss_7,
     ss_11,
     ss_203
-} dna_subst_schemes;
+} dna_subst_schemes_t;
 
 typedef struct
 {
@@ -142,40 +142,42 @@ typedef struct
     std::vector<partition_region_t> regions;
     std::vector<double> empirical_freqs;
     double empirical_pinv;
-    data_type datatype;
+    data_type_t datatype;
     mt_size_t states;
     std::string partition_name;
     mt_mask_t model_params;
-} partition_t;
+} partition_descriptor_t;
 
-typedef std::vector<partition_t> partitioning_scheme_t;
+typedef std::vector<partition_descriptor_t> partitioning_scheme_t;
 
 typedef struct {
+
+    /* input/output data */.
     std::string msa_filename;                   //! Input MSA filename
     std::string tree_filename;                  //! User tree filename
     std::string partitions_filename;            //! Partitions filename
     std::string output_filename;                //! Output filename
-    tree_type starting_tree;                    //! Starting tree type
+    mt_size_t n_taxa;        //! Number of taxa
+    mt_size_t n_sites;       //! Number of sites
+
+    /* configuration */
+    tree_type_t starting_tree;                    //! Starting tree type
+    dna_subst_schemes_t subst_schemes;  //! DNA substitution schemes
     std::vector<mt_index_t> nt_candidate_models;   //! Candidate models for DNA
     std::vector<mt_index_t> aa_candidate_models;   //! Candidate models for AA
     mt_mask_t model_params;                     //! Model parameters to opt
     mt_size_t n_catg;                           //! Number of gamma rate cats
-    std::vector<partition_t> * partitions_desc; //! Original partitioning
-    std::vector<partition_t> * partitions_eff;  //! Effective partitioning
-    template_models_t template_models;
-
-    mt_size_t n_taxa;        //! Number of taxa
-    mt_size_t n_sites;       //! Number of sites
-
+    std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning
+    std::vector<partition_descriptor_t> * partitions_eff;  //! Effective partitioning
+    template_models_t template_models; //! template for different tools
     double epsilon_param;    //! Parameter optimization epsilon
     double epsilon_opt;      //! Global optimization epsilon
 
     bool smooth_freqs;                //! Force frequencies smoothing
-    dna_subst_schemes subst_schemes;  //! DNA substitution schemes
     unsigned int rnd_seed;            //! RNG seed
     int verbose;                      //! Verbosity level
 
     mt_size_t n_threads;              //! Number of threads for optimiz.
-} mt_options;
+} mt_options_t;
 
 #endif // GLOBAL_DEFS_H

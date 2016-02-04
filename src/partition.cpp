@@ -8,7 +8,7 @@ using namespace std;
 namespace modeltest
 {
 
-static bool build_models(data_type datatype,
+static bool build_models(data_type_t datatype,
                          std::vector<mt_index_t> candidate_models,
                          mt_mask_t model_params,
                          vector<Model *> &c_models)
@@ -78,7 +78,7 @@ static bool build_models(data_type datatype,
 Partition::Partition(partition_id_t id,
                      Msa * _msa,
                      Tree * _tree,
-                     partition_t _descriptor,
+                     partition_descriptor_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params) :
     id(id), msa(_msa), tree(_tree),
@@ -103,12 +103,12 @@ Partition::~Partition()
         delete c_models[i];
 }
 
-const partition_t Partition::get_descriptor( void ) const
+const partition_descriptor_t Partition::get_descriptor( void ) const
 {
     return descriptor;
 }
 
-data_type Partition::get_datatype(void) const
+data_type_t Partition::get_datatype(void) const
 {
     return descriptor.datatype;
 }

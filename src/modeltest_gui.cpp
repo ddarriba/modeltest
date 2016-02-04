@@ -1006,13 +1006,13 @@ void jModelTest::on_btnRun_clicked()
     opts.starting_tree = start_tree;
     opts.partitions_desc = NULL;
     opts.partitions_eff = NULL;
-    data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+    data_type_t datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
     if (!scheme)
     {
         /* create single partition / single region */
         scheme = new partitioning_scheme_t();
         partition_region_t region;
-        partition_t partition;
+        partition_descriptor_t partition;
         region.start = 1;
         region.end = seq_len;
         region.stride = 1;

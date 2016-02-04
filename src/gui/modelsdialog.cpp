@@ -65,7 +65,7 @@ void ModelsDialog::fill_data( modeltest::Partition &partition )
     }
 }
 
-void ModelsDialog::fill_header( data_type type )
+void ModelsDialog::fill_header( data_type_t type )
 {
     if (models_table_items)
         models_table_items->clear();

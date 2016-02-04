@@ -88,7 +88,7 @@ namespace modeltest
   bool MsaPll::test(string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites,
-               data_type *datatype)
+               data_type_t *datatype)
   {
       mt_index_t cur_seq;
       char *hdr = NULL;
@@ -198,7 +198,7 @@ namespace modeltest
           reindex[i] = i;
 
       mt_index_t cur = 0;
-      for (partition_t & partition : scheme)
+      for (partition_descriptor_t & partition : scheme)
       {
           partition_region_t new_region;
           new_region.start = cur+1;
@@ -226,7 +226,7 @@ namespace modeltest
     return true;
   }
 
-  bool MsaPll::compute_empirical_frequencies(partition_t & partition,
+  bool MsaPll::compute_empirical_frequencies(partition_descriptor_t & partition,
                                              bool smooth,
                                              bool force_recompute)
   {
@@ -314,7 +314,7 @@ namespace modeltest
       return true;
   }
 
-  bool MsaPll::compute_empirical_pinv(partition_t &partition)
+  bool MsaPll::compute_empirical_pinv(partition_descriptor_t &partition)
   {
       mt_size_t n_inv = 0;
       mt_size_t n_sites = 0;

@@ -17,7 +17,7 @@ namespace modeltest
   class TreePll : public Tree
   {
   public:
-    TreePll (tree_type type,
+    TreePll (tree_type_t type,
              std::string const& filename,
              mt_size_t number_of_threads = 1,
              int random_seed = 12345);

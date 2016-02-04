@@ -26,7 +26,7 @@ public:
      */
     virtual void clone(const Model *other) = 0;
 
-    virtual data_type get_datatype( void ) const = 0;
+    virtual data_type_t get_datatype( void ) const = 0;
 
     mt_index_t get_matrix_index( void ) const;
 
@@ -201,7 +201,7 @@ public:
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
-    virtual data_type get_datatype( void ) const
+    virtual data_type_t get_datatype( void ) const
     {
         return dt_dna;
     }
@@ -230,7 +230,7 @@ public:
     virtual ~ProtModel( void );
     virtual void clone(const Model *other);
 
-    virtual data_type get_datatype( void ) const
+    virtual data_type_t get_datatype( void ) const
     {
         return dt_protein;
     }

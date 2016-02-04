@@ -55,7 +55,7 @@ static void print_help(std::ostream& out)
     /************************************************************/
 
     out << endl << " Main arguments:" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type"
+    out << setw(MAX_OPT_LENGTH) << left << "  -d, --datatype data_type_t"
         << "sets the data type" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           nt"
@@ -197,20 +197,20 @@ static void print_help(std::ostream& out)
     out << "ModelTest home page: <http://www.github.com/ddarriba/modeltest/>" << endl;
 }
 
-static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
+static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
 {
     bool input_file_ok = false;
     bool exist_dna_models = false;
     bool exist_protein_models = false;
     template_models_t template_models = template_none;
-    dna_subst_schemes dna_ss = ss_undef;
+    dna_subst_schemes_t dna_ss = ss_undef;
     string user_candidate_models = "";
 
     /* defaults */
-    dna_subst_schemes default_ss = ss_11;
+    dna_subst_schemes_t default_ss = ss_11;
 
     /* set default options */
-    data_type arg_datatype   = dt_dna;
+    data_type_t arg_datatype   = dt_dna;
     exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
@@ -546,7 +546,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
         }
 
         assert(exec_opt.partitions_desc);
-        for (partition_t & partition : (*exec_opt.partitions_desc))
+        for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
         {
             partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
                                                              N_PROT_STATES);
@@ -557,9 +557,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     else
     {
         /* create single partition / single region */
-        exec_opt.partitions_desc = new vector<partition_t>();
+        exec_opt.partitions_desc = new vector<partition_descriptor_t>();
         partition_region_t region;
-        partition_t partition;
+        partition_descriptor_t partition;
         region.start = 1;
         region.end = exec_opt.n_sites;
         region.stride = 1;
@@ -577,7 +577,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options & exec_opt)
     exec_opt.template_models = template_models;
     if (template_models != template_none)
     {
-        for (partition_t & partition : (*exec_opt.partitions_desc))
+        for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
         {
             partition.model_params = modeltest::Utils::get_parameters_from_template(template_models, partition.datatype);
             switch (partition.datatype)
@@ -762,7 +762,7 @@ int main(int argc, char *argv[])
     if (argc > 1)
     {
         /* command line */
-        mt_options opts;
+        mt_options_t opts;
         mt_size_t num_cores = modeltest::Utils::count_physical_cores();
         //time_t ini_global_time = time(NULL);
 

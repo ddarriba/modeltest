@@ -154,7 +154,7 @@ ModelOptimizer::~ModelOptimizer() {}
 ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       TreePll *_tree,
                                       Model *_model,
-                                      const partition_t &_partition,
+                                      const partition_descriptor_t &_partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_model, _partition, _thread_number),

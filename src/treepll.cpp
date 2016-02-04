@@ -51,7 +51,7 @@ namespace modeltest
 
   Tree::~Tree() {}
 
-  TreePll::TreePll (tree_type type,
+  TreePll::TreePll (tree_type_t type,
                     std::string const& filename,
                     mt_size_t number_of_threads,
                     int random_seed)

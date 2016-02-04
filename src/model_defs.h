@@ -73,13 +73,13 @@ const mt_index_t dna_model_matrices_indices[N_DNA_MODEL_MATRICES] = {
     202   /*    SYM/GTR    */
 };
 
-const dna_subst_schemes dna_raxml_schemes = ss_3;
+const dna_subst_schemes_t dna_raxml_schemes = ss_3;
 const mt_mask_t dna_raxml_parameters =
         MOD_PARAM_ESTIMATED_FREQ |
         MOD_PARAM_GAMMA |
         MOD_PARAM_INV |
         MOD_PARAM_INV_GAMMA;
-const dna_subst_schemes dna_mrbayes_schemes = ss_3;
+const dna_subst_schemes_t dna_mrbayes_schemes = ss_3;
 const mt_mask_t dna_mrbayes_parameters =
         MOD_PARAM_FIXED_FREQ |
         MOD_PARAM_ESTIMATED_FREQ |
@@ -87,7 +87,7 @@ const mt_mask_t dna_mrbayes_parameters =
         MOD_PARAM_GAMMA |
         MOD_PARAM_INV |
         MOD_PARAM_INV_GAMMA;
-const dna_subst_schemes dna_phyml_schemes = ss_11;
+const dna_subst_schemes_t dna_phyml_schemes = ss_11;
 const mt_mask_t dna_phyml_parameters =
         MOD_PARAM_FIXED_FREQ |
         MOD_PARAM_ESTIMATED_FREQ |
@@ -95,7 +95,7 @@ const mt_mask_t dna_phyml_parameters =
         MOD_PARAM_GAMMA |
         MOD_PARAM_INV |
         MOD_PARAM_INV_GAMMA;
-const dna_subst_schemes dna_paup_schemes = ss_11;
+const dna_subst_schemes_t dna_paup_schemes = ss_11;
 const mt_mask_t dna_paup_parameters =
         MOD_PARAM_FIXED_FREQ |
         MOD_PARAM_ESTIMATED_FREQ |

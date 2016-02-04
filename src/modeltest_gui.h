@@ -159,13 +159,13 @@ private:
     std::string partitions_filename;
     std::string partitions_basename;
 
-    tree_type start_tree;
+    tree_type_t start_tree;
 
     mt_size_t n_seqs;
     mt_size_t seq_len;
 
     ModelTest *mtest;
-    mt_options opts;
+    mt_options_t opts;
     std::vector<Model *> c_models;
     current_state state;
     QStandardItemModel * models_table_items;

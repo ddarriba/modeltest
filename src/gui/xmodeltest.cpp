@@ -413,14 +413,14 @@ void xmodeltest::run_modelselection()
     opts.epsilon_opt = ui->txtOptEpsilon->text().toDouble();
     opts.verbose = VERBOSITY_LOW;
 
-    data_type datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
+    data_type_t datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
 
     if (!scheme)
     {
         /* create single partition / single region */
         scheme = new partitioning_scheme_t();
         partition_region_t region;
-        partition_t partition;
+        partition_descriptor_t partition;
         region.start = 1;
         region.end = n_sites;
         region.stride = 1;
@@ -612,7 +612,7 @@ void xmodeltest::action_open_msa()
         if (load_file)
         {
             msa_filename = loaded_file;
-            data_type test_dt;
+            data_type_t test_dt;
             if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_taxa,
                                      &n_sites,

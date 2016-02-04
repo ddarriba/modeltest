@@ -169,7 +169,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 bool ModelTest::test_msa(std::string const& msa_filename,
                          mt_size_t *n_tips,
                          mt_size_t *n_sites,
-                         data_type *datatype)
+                         data_type_t *datatype)
 {
    return MsaPll::test(msa_filename, n_tips, n_sites, datatype);
 }
@@ -251,7 +251,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
 
     mt_errno = 0;
     char * sites = (char *) Utils::c_allocate(n_sites, sizeof(char));
-    for (const partition_t &partition : scheme)
+    for (const partition_descriptor_t &partition : scheme)
         for (const partition_region_t &region : partition.regions)
         {
             if (region.start < 1 || region.start > n_sites ||
@@ -291,7 +291,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
     return true;
 }
 
-bool ModelTest::build_instance(mt_options & options)
+bool ModelTest::build_instance(mt_options_t & options)
 {
     free_stuff ();
     create_instance ();
@@ -303,7 +303,7 @@ bool ModelTest::build_instance(mt_options & options)
     {
         if (options.partitions_eff)
             delete options.partitions_eff;
-        options.partitions_eff = new std::vector<partition_t>(*options.partitions_desc);
+        options.partitions_eff = new std::vector<partition_descriptor_t>(*options.partitions_desc);
         if (!current_instance->msa->reorder_sites(*options.partitions_eff))
         {
             return false;
@@ -312,7 +312,7 @@ bool ModelTest::build_instance(mt_options & options)
     }
 
     /* evaluate partitions */
-    for (partition_t & partition : *options.partitions_eff)
+    for (partition_descriptor_t & partition : *options.partitions_eff)
     {
         /* compute empirical frequencies */
         if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
@@ -416,7 +416,7 @@ bool ModelTest::build_instance(mt_options & options)
     assert(!partitioning_scheme);
     partitioning_scheme = new PartitioningScheme();
     mt_index_t cur_part_id = 0;
-    for (partition_t & partition : (*current_instance->partitions_eff))
+    for (partition_descriptor_t & partition : (*current_instance->partitions_eff))
     {
         partition_id_t part_id(1);
         part_id[0] = cur_part_id;

@@ -35,7 +35,7 @@ public:
     static bool test_msa(std::string const& msa_filename,
                          mt_size_t * n_seqs,
                          mt_size_t * n_sites,
-                         data_type * datatype = 0);
+                         data_type_t * datatype = 0);
 
     static bool test_tree( std::string const& tree_filename,
                            mt_size_t *n_tips );
@@ -45,9 +45,9 @@ public:
 //    static bool test_partitions( std::string const&parts_filename,
 //                                 mt_size_t * n_partitions ) {}
 
-    bool create_instance( mt_options & options );
+    bool create_instance( mt_options_t & options );
     bool destroy_instance( void );
-    bool reset_instance( mt_options & options );
+    bool reset_instance( mt_options_t & options );
 
     bool optimize_single(const partition_id_t &part_id,
                          mt_index_t n_models,

@@ -22,7 +22,7 @@ namespace modeltest
   class Tree
   {
   public:
-    Tree (tree_type _type,
+    Tree (tree_type_t _type,
           std::string const& filename,
           mt_size_t _number_of_threads = 1,
           int _random_seed = 12345)
@@ -104,7 +104,7 @@ namespace modeltest
     void set_bl_optimized( void ) { bl_optimized = true; }
 
   protected:
-    tree_type type;               //! type of starting tree
+    tree_type_t type;               //! type of starting tree
     const std::string tree_file;  //! NEWICK tree filename
     mt_size_t n_tips;             //! number of tips
     mt_size_t n_inner;            //! number of inner nodes (2n_tips - 3)

@@ -20,7 +20,7 @@ namespace modeltest
   {
   public:
     ModelOptimizer (Model *_model,
-                    const partition_t & _partition,
+                    const partition_descriptor_t & _partition,
                     mt_index_t _thread_number = 0)
         : model(_model),
           partition(_partition),
@@ -66,7 +66,7 @@ namespace modeltest
   protected:
     bool optimized; //! optimization state
     Model *model;   //! the model to optimize
-    const partition_t partition;
+    const partition_descriptor_t partition;
 
     mt_index_t thread_number;  //! the number of the current thread
 

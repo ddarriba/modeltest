@@ -52,11 +52,11 @@ namespace modeltest
      * @param[in] force_recompute if false, computes only if the frequencies are not initialized
      * @return true, if success
      */
-    virtual bool compute_empirical_frequencies(partition_t & partition,
+    virtual bool compute_empirical_frequencies(partition_descriptor_t & partition,
                                                bool smooth = false,
                                                bool force_recompute = false) = 0;
 
-    virtual bool compute_empirical_pinv(partition_t &partition) = 0;
+    virtual bool compute_empirical_pinv(partition_descriptor_t &partition) = 0;
 
     /**
      * @brief Prints the sequence

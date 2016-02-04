@@ -14,7 +14,7 @@ using namespace std;
 
 namespace modeltest {
 
-static vector<partition_t> * parse_partition (int * inp);
+static vector<partition_descriptor_t> * parse_partition (int * inp);
 static char * read_file (string filename, long * filesize);
 void init_lexan (const char * text, long n);
 
@@ -66,7 +66,7 @@ Utils::Utils()
 }
 
 mt_mask_t Utils::get_parameters_from_template(template_models_t tool,
-                                              data_type datatype)
+                                              data_type_t datatype)
 {
     switch(tool)
     {
@@ -136,7 +136,7 @@ mt_size_t Utils::number_of_models(mt_size_t n_matrices, mt_mask_t model_params)
     return n_models;
 }
 
-dna_subst_schemes Utils::get_dna_matrices_from_template(template_models_t tool)
+dna_subst_schemes_t Utils::get_dna_matrices_from_template(template_models_t tool)
 {
     switch(tool)
     {
@@ -225,7 +225,7 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   long n;
   char * rawdata;
   int input;
-  vector<partition_t> * partitions;
+  vector<partition_descriptor_t> * partitions;
 
   rawdata = read_file (filename, &n);
   if (!rawdata)
@@ -248,7 +248,7 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   return partitions;
 }
 
-static bool sort_partitions(partition_t p1, partition_t p2)
+static bool sort_partitions(partition_descriptor_t p1, partition_descriptor_t p2)
 {
     return p1.regions[0].start < p2.regions[0].start;
 }
@@ -260,7 +260,7 @@ static bool sort_regions(partition_region_t r1, partition_region_t r2)
 
 void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
 {
-    for (partition_t & partition : scheme)
+    for (partition_descriptor_t & partition : scheme)
     {
         sort(partition.regions.begin(), partition.regions.end(), sort_regions);
     }
@@ -295,7 +295,7 @@ static void print_model_params(mt_mask_t model_params, ostream &out)
     out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
 }
 
-void Utils::print_options(mt_options & opts, ostream  &out)
+void Utils::print_options(mt_options_t & opts, ostream  &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
@@ -313,7 +313,7 @@ void Utils::print_options(mt_options & opts, ostream  &out)
         out << "  " << left << setw(20) << "# dna schemes:" << opts.nt_candidate_models.size() << endl;
         mt_mask_t model_params = opts.model_params;
         if (opts.partitions_desc)
-            for (partition_t part : *opts.partitions_desc)
+            for (partition_descriptor_t part : *opts.partitions_desc)
                 if (part.datatype == dt_dna)
                 {
                     model_params = part.model_params;
@@ -329,7 +329,7 @@ void Utils::print_options(mt_options & opts, ostream  &out)
         out << "  " << left << setw(20) << "# protein matrices:" << opts.aa_candidate_models.size() << endl;
         mt_mask_t model_params = opts.model_params;
         if (opts.partitions_desc)
-            for (partition_t part : *opts.partitions_desc)
+            for (partition_descriptor_t part : *opts.partitions_desc)
                 if (part.datatype == dt_protein)
                 {
                     model_params = part.model_params;
@@ -681,7 +681,7 @@ static lexToken get_token (int * input)
   return (token);
 }
 
-static vector<partition_t> * parse_partition (int * inp)
+static vector<partition_descriptor_t> * parse_partition (int * inp)
 {
     int input;
     lexToken token;
@@ -693,11 +693,11 @@ static vector<partition_t> * parse_partition (int * inp)
 
     NEXT_TOKEN
 
-    vector<partition_t> * partitions = new vector<partition_t>();
+    vector<partition_descriptor_t> * partitions = new vector<partition_descriptor_t>();
     while (token.tokenType != TOKEN_EOF)
     {
         ++ lines;
-        partition_t pi;
+        partition_descriptor_t pi;
 
         CONSUME (TOKEN_WHITESPACE | TOKEN_NEWLINE)
 

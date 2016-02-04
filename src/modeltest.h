@@ -18,9 +18,9 @@ typedef struct
 {
   modeltest::Msa * msa;                       //! input MSA
   modeltest::Tree * tree;                     //! user defined tree (optional)
-  std::vector<partition_t> * partitions_eff;  //! partitioning
+  std::vector<partition_descriptor_t> * partitions_eff;  //! partitioning
 
-  tree_type start_tree;           //! starting tree type
+  tree_type_t start_tree;           //! starting tree type
   mt_size_t sample_size;          //! sample size for model selection
 
   mt_size_t n_tips;               //! number of tips
@@ -43,7 +43,7 @@ public:
     static bool test_msa(std::string const& msa_filename,
                   mt_size_t *n_tips,
                   mt_size_t *n_sites,
-                  data_type *datatype = 0);
+                  data_type_t *datatype = 0);
 
     /**
      * @brief Tests whether a tree file is valid
@@ -77,7 +77,7 @@ public:
      * @param options            general optimization options
      * @return true, if everything was OK, false in case of error
      */
-    bool build_instance(mt_options & options);
+    bool build_instance(mt_options_t & options);
 
     /**
      * @brief Optimizes the parameters for one single model

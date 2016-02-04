@@ -27,7 +27,7 @@ private slots:
     void on_toolButton_clicked();
 
 private:
-    void fill_header( data_type type = dt_dna );
+    void fill_header( data_type_t type = dt_dna );
     void fill_data( modeltest::Partition &partition );
 
     Ui::ModelsDialog *ui;
