@@ -78,7 +78,11 @@ public:
         return modeltest_instance;
     }
 
-    std::string get_raxml_command_line(modeltest::Model const& model);
+    std::string get_raxml_command_line(modeltest::Model const& model,
+                                       std::string const& msa_filename = "MSA_FILENAME");
+
+    std::string get_phyml_command_line(modeltest::Model const& model,
+                                       mt_options_t const& exec_opt);
 
 //public:
 //    ModelTestService(ModelTestService const&) = delete;

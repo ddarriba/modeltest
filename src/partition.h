@@ -2,6 +2,7 @@
 #define PARTITION_H
 
 #include "global_defs.h"
+#include "loggable.h"
 #include "model.h"
 #include "msa.h"
 #include "tree.h"
@@ -9,7 +10,7 @@
 namespace modeltest
 {
 
-class Partition
+class Partition : public Loggable
 {
 public:
     Partition(partition_id_t id,
@@ -32,6 +33,10 @@ public:
     const partition_id_t get_id( void ) const;
 
     bool set_models(const std::vector<Model *> &models);
+
+    /* Logging functions */
+    virtual void output_log(std::ostream  &out);
+    virtual void input_log(std::istream  &in);
 private:
     partition_id_t id;               //! id of the partition
     Msa * msa;                       //! input MSA

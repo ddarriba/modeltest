@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     msapll.cpp \
     treepll.cpp \
     model_selection.cpp \
-    main_console.cpp \
     partition.cpp \
     partitioning_scheme.cpp \
     gui/xmodeltest.cpp \

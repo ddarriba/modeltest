@@ -131,10 +131,16 @@ public:
     void set_lnl( double l );
 
     /**
-     * @brief Prints out the model
+     * @brief Prints out the model in a human readable way
      * @param[in] out the output stream to print to
      */
     virtual void print(std::ostream  &out = std::cout) = 0;
+
+    /**
+     * @brief Prints out the model in XML format
+     * @param[in] out the output stream to print to
+     */
+    virtual void print_xml(std::ostream  &out = std::cout) = 0;
 
     /**
      * @brief Prints out the model for logging
@@ -142,6 +148,10 @@ public:
      */
     virtual void output_log(std::ostream  &out) = 0;
 
+    /**
+     * @brief Load the model from a logging stream
+     * @param[in] in the input stream for reading the log
+     */
     virtual void input_log(std::istream  &in) = 0;
 
     bool evaluate_criteria (mt_size_t n_branches_params,
@@ -207,18 +217,37 @@ public:
     }
 
     /**
-     * @brief Gets the matrix symmetries
+     * @brief Get the matrix symmetries
      * @return the rate matrix symmetries
      */
     virtual const int * get_symmetries( void ) const;
+
+    /**
+     * @brief Get the number of substitution parameters
+     *
+     * For example, JC (000000) has 0 parameters, while
+     * GTR (012345) has 5.
+     *
+     * @return the number of substitution parameters
+     */
     virtual mt_size_t get_n_subst_params() const;
+
+    /**
+     * @brief Set the substitution rates
+     * @param[in] value an array containing the substitution rates
+     * @param full_vector false, if value contains only the non-symmetrical substituion rates
+     *
+     */
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
+
+    /* extended */
     virtual void print(std::ostream  &out = std::cout);
+    virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out);
     virtual void input_log(std::istream  &in);
 private:
-    int matrix_symmetries[N_DNA_SUBST_RATES];
+    int matrix_symmetries[N_DNA_SUBST_RATES]; //! The DNA matrix symmetries
 };
 
 class ProtModel : public Model
@@ -235,11 +264,13 @@ public:
         return dt_protein;
     }
 
+    /* extended */
     virtual mt_size_t get_n_subst_params( void ) const;
     virtual const double * get_subst_rates( void ) const;
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);
+    virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out);
     virtual void input_log(std::istream  &in);
 

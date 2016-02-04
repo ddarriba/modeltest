@@ -397,8 +397,8 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
 
 void DnaModel::print(std::ostream  &out)
 {
-    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << get_name() << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << get_lnl() << endl
+    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
     for (mt_index_t i=0; i<N_DNA_STATES; i++)
         out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
@@ -417,6 +417,29 @@ void DnaModel::print(std::ostream  &out)
         out << alpha << endl;
     else
         out << "-" << endl;
+}
+
+void DnaModel::print_xml(std::ostream  &out)
+{
+    out << "<model datatype=\"dna\" name=\"" << name
+        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << lnL
+        << "\">" << endl;
+    out << "  <frequencies type=\"";
+    if (is_F())
+        out << "maximum-likelihood";
+    else
+        out << "fixed";
+    out << "\">" << endl << "  ";
+    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+        out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
+    out << endl << "  </frequencies>" << endl;
+    out << "  <subst_rates>" << endl << "  ";
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+        out << "  " << setprecision(MT_PRECISION_DIGITS) << subst_rates[i];
+    out << endl << "  </subst_rates>" << endl;
+    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << prop_inv <<
+           "\" alpha=\"" << alpha << "\"/>" << endl;
+    out << "</model>" << endl;
 }
 
 void DnaModel::output_log(std::ostream  &out)
@@ -600,8 +623,8 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
 
 void ProtModel::print(std::ostream  &out)
 {
-    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << get_name() << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << get_lnl() << endl
+    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
     for (mt_index_t i=0; i<N_PROT_STATES; i++)
     {
@@ -622,6 +645,28 @@ void ProtModel::print(std::ostream  &out)
         out << alpha << endl;
     else
         out << "-" << endl;
+}
+
+void ProtModel::print_xml(std::ostream  &out)
+{
+    out << "<model type=\"aa\" name=\"" << name
+        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << lnL
+        << "\">" << endl;
+    out << "  <frequencies type=\"";
+    if (is_F())
+        out << "empirical";
+    else
+        out << "model";
+    out << "\">" << endl << "  ";
+    for (mt_index_t i=0; i<N_PROT_STATES; i++)
+    {
+        out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
+        if ((i%5)==4) out << endl << "  ";
+    }
+    out << "</frequencies>" << endl;
+    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << prop_inv <<
+           "\" alpha=\"" << alpha << "\"/>" << endl;
+    out << "</model>" << endl;
 }
 
 void ProtModel::output_log(std::ostream  &out)

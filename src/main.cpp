@@ -880,6 +880,8 @@ int main(int argc, char *argv[])
             modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], cout);
             if (opts.starting_tree != tree_ml)
                 modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], cout);
+//            cout << "phyml " << ModelTestService::instance()->get_phyml_command_line(*best_models[i][modeltest::ic_bic].model, opts) << endl;
+//            cout << "raxmlHPC-SSE3 " << ModelTestService::instance()->get_raxml_command_line(*best_models[i][modeltest::ic_bic].model, opts.msa_filename) << endl;
         }
 
         /* clean */

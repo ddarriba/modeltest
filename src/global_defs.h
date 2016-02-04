@@ -152,7 +152,7 @@ typedef std::vector<partition_descriptor_t> partitioning_scheme_t;
 
 typedef struct {
 
-    /* input/output data */.
+    /* input/output data */
     std::string msa_filename;                   //! Input MSA filename
     std::string tree_filename;                  //! User tree filename
     std::string partitions_filename;            //! Partitions filename

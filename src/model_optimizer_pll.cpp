@@ -372,7 +372,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       {
           params->which_parameters = which_parameter;
           if (first_guess)
-            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.02, 1.0, 100.0);
+            cur_logl = pll_optimize_parameters_brent_ranged(params,
+                                                            0.02,
+                                                            params->lk_params.alpha_value,
+                                                            100.0);
           else
               cur_logl = pll_optimize_parameters_brent(params);
       }
@@ -381,7 +384,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           params->which_parameters = which_parameter;
 
           if (first_guess)
-            cur_logl = pll_optimize_parameters_brent_ranged(params, 0.0, partition.empirical_pinv, 0.99);
+            cur_logl = pll_optimize_parameters_brent_ranged(params,
+                                                            0.0,
+                                                            partition.empirical_pinv,
+                                                            0.99);
           else
               cur_logl = pll_optimize_parameters_brent(params);
       }
@@ -666,7 +672,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   }
                   iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
 
-//                  printf(" iteration %3d %.10f %.10f\n", cur_parameter, iter_logl, cur_logl);
+                  //printf(" iteration %3d %.10f %.10f\n", cur_parameter, iter_logl, cur_logl);
 
                   /* ensure we never get a worse likelihood score */
                   assert(iter_logl - cur_logl < 1e-5);

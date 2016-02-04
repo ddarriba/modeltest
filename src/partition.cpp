@@ -212,4 +212,14 @@ bool Partition::set_models(const std::vector<Model *> &models)
     return true;
 }
 
+void Partition::output_log(std::ostream  &out)
+{
+
+}
+
+void Partition::input_log(std::istream  &in)
+{
+
+}
+
 } /* modeltest */

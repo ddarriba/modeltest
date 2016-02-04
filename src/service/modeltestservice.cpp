@@ -103,12 +103,13 @@ PartitioningScheme & ModelTestService::get_partitioning_scheme( void ) const
     return modeltest_instance->get_partitioning_scheme();
 }
 
-string ModelTestService::get_raxml_command_line(Model const& model)
+string ModelTestService::get_raxml_command_line(Model const& model,
+                                                string const& msa_filename)
 {
-    std::stringstream raxml_args;
+    stringstream raxml_args;
     mt_index_t matrix_index = model.get_matrix_index();
 
-    raxml_args << "-s FILENAME";
+    raxml_args << "-s " << msa_filename;
     if (model.get_datatype() == dt_dna)
     {
         raxml_args << " -m GTRGAMMA";
@@ -150,4 +151,46 @@ string ModelTestService::get_raxml_command_line(Model const& model)
     raxml_args << " -p PARSIMONY_SEED";
 
     return raxml_args.str();
+}
+
+string ModelTestService::get_phyml_command_line(modeltest::Model const& model,
+                                   mt_options_t const& exec_opt)
+{
+    stringstream phyml_args;
+    mt_index_t matrix_index = model.get_matrix_index();
+
+    phyml_args << " -i " << exec_opt.msa_filename;
+    if (model.get_datatype() == dt_dna)
+    {
+        stringstream matrix_symmetries;
+        const int *sym_v = model.get_symmetries();
+        for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+            matrix_symmetries << sym_v[i];
+        phyml_args << " -m " << matrix_symmetries;
+        if (model.is_F())
+            phyml_args << " -f m";
+        else
+            phyml_args << " -f 0.25,0.25,0.25,0.25";
+    }
+    else
+    {
+        phyml_args << " -d aa";
+        phyml_args << " -m ";
+        phyml_args << prot_model_names[matrix_index];
+        if (model.is_F())
+            phyml_args << " -f e";
+        else
+            phyml_args << " -f m";
+    }
+    if (model.is_I())
+        phyml_args << " -v e";
+    else
+        phyml_args << " -v 0";
+    if (model.is_G())
+        phyml_args << " -a e -c " << exec_opt.n_catg;
+    else
+        phyml_args << " -a 0 -c 1";
+    phyml_args << " -o tlr";
+
+    return phyml_args.str();
 }
