@@ -45,6 +45,12 @@ QToolTip { color: #000s; border: none; }</string>
       </property>
       <item>
        <widget class="QFrame" name="frame_results_header">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="styleSheet">
          <string notr="true">background: #104BA9;</string>
         </property>
@@ -138,6 +144,24 @@ QToolTip { color: #000s; border: none; }</string>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="tool_results_export">
+           <property name="font">
+            <font>
+             <family>Courier 10 Pitch</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border:1px solid #fff;border-radius: 10px;text-align: left;padding: 0 5px;color: #fff;</string>
+           </property>
+           <property name="text">
+            <string>Export</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

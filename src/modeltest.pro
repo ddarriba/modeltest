@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     gui/resultsdialog.cpp \
     partitionselection.cpp \
     service/modeltestservice.cpp \
-    gui/modelsdialog.cpp
+    gui/modelsdialog.cpp \
+    gui/resultsexportdialog.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -62,7 +63,8 @@ HEADERS  += \
     partitionselection.h \
     service/modeltestservice.h \
     gui/modelsdialog.h \
-    loggable.h
+    loggable.h \
+    gui/resultsexportdialog.h
 
 FORMS    += \
     compute_options.ui \
@@ -71,7 +73,8 @@ FORMS    += \
     gui/progressdialog.ui \
     gui/datainfodialog.ui \
     gui/resultsdialog.ui \
-    gui/modelsdialog.ui
+    gui/modelsdialog.ui \
+    gui/resultsexportdialog.ui
 
 RESOURCES = mtgraphics.qrc
 

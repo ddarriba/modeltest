@@ -19,6 +19,7 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
+#include <QtGui/QPushButton>
 #include <QtGui/QSpacerItem>
 #include <QtGui/QTabWidget>
 #include <QtGui/QTableView>
@@ -39,6 +40,7 @@ public:
     QSpacerItem *horizontalSpacer;
     QLabel *label;
     QSpacerItem *spacer_results_header;
+    QPushButton *tool_results_export;
     QTabWidget *results_content;
     QWidget *tab_results_bic;
     QVBoxLayout *verticalLayout_8;
@@ -122,6 +124,7 @@ public:
         verticalLayout_14->setContentsMargins(0, 0, 0, 0);
         frame_results_header = new QFrame(frame_results_inner);
         frame_results_header->setObjectName(QString::fromUtf8("frame_results_header"));
+        frame_results_header->setMinimumSize(QSize(0, 25));
         frame_results_header->setStyleSheet(QString::fromUtf8("background: #104BA9;"));
         frame_results_header->setFrameShape(QFrame::NoFrame);
         frame_results_header->setFrameShadow(QFrame::Raised);
@@ -160,6 +163,18 @@ public:
         spacer_results_header = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_6->addItem(spacer_results_header);
+
+        tool_results_export = new QPushButton(frame_results_header);
+        tool_results_export->setObjectName(QString::fromUtf8("tool_results_export"));
+        QFont font2;
+        font2.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font2.setPointSize(10);
+        font2.setBold(true);
+        font2.setWeight(75);
+        tool_results_export->setFont(font2);
+        tool_results_export->setStyleSheet(QString::fromUtf8("border:1px solid #fff;border-radius: 10px;text-align: left;padding: 0 5px;color: #fff;"));
+
+        horizontalLayout_6->addWidget(tool_results_export);
 
 
         verticalLayout_14->addWidget(frame_results_header);
@@ -201,11 +216,11 @@ public:
         sizePolicy.setHeightForWidth(lbl_imp_bic->sizePolicy().hasHeightForWidth());
         lbl_imp_bic->setSizePolicy(sizePolicy);
         lbl_imp_bic->setMinimumSize(QSize(0, 0));
-        QFont font2;
-        font2.setBold(true);
-        font2.setUnderline(false);
-        font2.setWeight(75);
-        lbl_imp_bic->setFont(font2);
+        QFont font3;
+        font3.setBold(true);
+        font3.setUnderline(false);
+        font3.setWeight(75);
+        lbl_imp_bic->setFont(font3);
         lbl_imp_bic->setLineWidth(1);
 
         gridLayout_5->addWidget(lbl_imp_bic, 0, 0, 1, 2, Qt::AlignHCenter);
@@ -289,7 +304,7 @@ public:
         sizePolicy.setHeightForWidth(lbl_imp_aic->sizePolicy().hasHeightForWidth());
         lbl_imp_aic->setSizePolicy(sizePolicy);
         lbl_imp_aic->setMinimumSize(QSize(0, 0));
-        lbl_imp_aic->setFont(font2);
+        lbl_imp_aic->setFont(font3);
         lbl_imp_aic->setLineWidth(1);
 
         gridLayout_6->addWidget(lbl_imp_aic, 0, 0, 1, 2, Qt::AlignHCenter);
@@ -373,7 +388,7 @@ public:
         sizePolicy.setHeightForWidth(lbl_imp_aicc->sizePolicy().hasHeightForWidth());
         lbl_imp_aicc->setSizePolicy(sizePolicy);
         lbl_imp_aicc->setMinimumSize(QSize(0, 0));
-        lbl_imp_aicc->setFont(font2);
+        lbl_imp_aicc->setFont(font3);
         lbl_imp_aicc->setLineWidth(1);
 
         gridLayout_8->addWidget(lbl_imp_aicc, 0, 0, 1, 2, Qt::AlignHCenter);
@@ -457,7 +472,7 @@ public:
         sizePolicy.setHeightForWidth(lbl_imp_dt->sizePolicy().hasHeightForWidth());
         lbl_imp_dt->setSizePolicy(sizePolicy);
         lbl_imp_dt->setMinimumSize(QSize(0, 0));
-        lbl_imp_dt->setFont(font2);
+        lbl_imp_dt->setFont(font3);
         lbl_imp_dt->setLineWidth(1);
 
         gridLayout_9->addWidget(lbl_imp_dt, 0, 0, 1, 2, Qt::AlignHCenter);
@@ -535,6 +550,7 @@ public:
     {
         ResultsDialog->setWindowTitle(QApplication::translate("ResultsDialog", "Results", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("ResultsDialog", "Results", 0, QApplication::UnicodeUTF8));
+        tool_results_export->setText(QApplication::translate("ResultsDialog", "Export", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         results_content->setToolTip(QString());
 #endif // QT_NO_TOOLTIP

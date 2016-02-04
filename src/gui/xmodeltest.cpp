@@ -525,21 +525,9 @@ void xmodeltest::action_run( void )
 
 void xmodeltest::action_viewresults( void )
 {
-    //TODO: Results view for all partitions!
-    //      MOVE the select_
     if (!results_dialog)
     {
-        modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_aic);
-        modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_aicc);
-        modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_bic);
-        modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models({0}, modeltest::ic_dt);
-
-        results_dialog = new ResultsDialog(*aic_selection, *aicc_selection, *bic_selection, *dt_selection);
-
-        delete aic_selection;
-        delete aicc_selection;
-        delete bic_selection;
-        delete dt_selection;
+        results_dialog = new ResultsDialog(ModelTestService::instance()->get_partitioning_scheme(), msa_filename);
     }
     results_dialog->show();
     results_dialog->raise();

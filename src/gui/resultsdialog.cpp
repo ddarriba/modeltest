@@ -2,10 +2,13 @@
 #include "ui_resultsdialog.h"
 
 #include "model.h"
+#include "service/modeltestservice.h"
 
+#include <QtGui/QFileDialog>
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QLabel>
+#include <sstream>
 
 
 static void fill_results(QTableView * result_table,
@@ -57,28 +60,36 @@ static void fill_results(QTableView * result_table,
 }
 
 
-ResultsDialog::ResultsDialog(modeltest::ModelSelection & aic_selection,
-                             modeltest::ModelSelection & aicc_selection,
-                             modeltest::ModelSelection & bic_selection,
-                             modeltest::ModelSelection & dt_selection,
+ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
+                             std::string const& base_name,
                              QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ResultsDialog)
+    ui(new Ui::ResultsDialog),
+    base_name(base_name)
 {
     ui->setupUi(this);
 
-    ui->cmb_results_partition->setVisible(false);
+    ui->cmb_results_partition->setVisible(scheme.get_size() > 1);
+    model_selection.resize(scheme.get_size());
+    for (mt_index_t i=0; i<scheme.get_size(); ++i)
+    {
+        ui->cmb_results_partition->addItem(scheme.get_partition(i).get_name().c_str());
+        model_selection[i][modeltest::ic_aic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aic);
+        model_selection[i][modeltest::ic_aicc] =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aicc);
+        model_selection[i][modeltest::ic_bic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_bic);
+        model_selection[i][modeltest::ic_dt]   =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_dt);
+    }
 
-    fill_results(ui->table_results_aic, aic_selection,
+    fill_results(ui->table_results_aic, *model_selection[0][modeltest::ic_aic],
                  ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
                  ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
-    fill_results(ui->table_results_aicc, aicc_selection,
+    fill_results(ui->table_results_aicc, *model_selection[0][modeltest::ic_aicc],
                  ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
                  ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
-    fill_results(ui->table_results_bic, bic_selection,
+    fill_results(ui->table_results_bic, *model_selection[0][modeltest::ic_bic],
                  ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
                  ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-    fill_results(ui->table_results_dt, dt_selection,
+    fill_results(ui->table_results_dt, *model_selection[0][modeltest::ic_dt],
                  ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
                  ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
@@ -97,6 +108,35 @@ ResultsDialog::ResultsDialog(modeltest::ModelSelection & aic_selection,
 
 ResultsDialog::~ResultsDialog()
 {
+    for (mt_index_t i=0; i<model_selection.size(); ++i)
+    {
+        delete model_selection[i][modeltest::ic_aic];
+        delete model_selection[i][modeltest::ic_aicc];
+        delete model_selection[i][modeltest::ic_bic];
+        delete model_selection[i][modeltest::ic_dt];
+    }
     delete ui;
 }
 
+
+void ResultsDialog::on_tool_results_export_clicked()
+{
+    std::stringstream default_filename;
+    default_filename << base_name << ".results.txt";
+    QString file_name = QFileDialog::getSaveFileName(this,
+                                                    tr("Export results"),
+                                                    default_filename.str().c_str());
+
+    const std::string save_file = file_name.toStdString();
+
+    if ( save_file.compare(""))
+    {
+        for (mt_index_t i=0; i<model_selection.size(); ++i)
+        {
+            model_selection[i][modeltest::ic_aic]->print(cout, 10);
+            model_selection[i][modeltest::ic_aicc]->print(cout, 10);
+            model_selection[i][modeltest::ic_bic]->print(cout, 10);
+            model_selection[i][modeltest::ic_dt]->print(cout, 10);
+        }
+    }
+}

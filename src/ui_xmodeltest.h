@@ -75,6 +75,7 @@ public:
     QLabel *lbl_tree;
     QPushButton *tool_open_parts;
     QLabel *lbl_parts;
+    QSpacerItem *verticalSpacer;
     QLabel *lbl_arrow1;
     QFrame *frame_tool_setup;
     QVBoxLayout *verticalLayout_8;
@@ -200,8 +201,8 @@ public:
     {
         if (xmodeltest->objectName().isEmpty())
             xmodeltest->setObjectName(QString::fromUtf8("xmodeltest"));
-        xmodeltest->resize(877, 800);
-        xmodeltest->setMinimumSize(QSize(740, 500));
+        xmodeltest->resize(842, 739);
+        xmodeltest->setMinimumSize(QSize(842, 500));
         xmodeltest->setWindowTitle(QString::fromUtf8("ModelTest Light"));
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/IMG/IMG/mt-icon.png"), QSize(), QIcon::Normal, QIcon::Off);
@@ -329,7 +330,7 @@ public:
         frame_tool_load->setFrameShadow(QFrame::Plain);
         frame_tool_load->setLineWidth(0);
         verticalLayout_6 = new QVBoxLayout(frame_tool_load);
-        verticalLayout_6->setSpacing(5);
+        verticalLayout_6->setSpacing(1);
         verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
         verticalLayout_6->setContentsMargins(5, 10, 10, 10);
         tool_open_msa = new QPushButton(frame_tool_load);
@@ -355,8 +356,11 @@ public:
         lbl_msa->setObjectName(QString::fromUtf8("lbl_msa"));
         QFont font1;
         font1.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font1.setPointSize(10);
+        font1.setPointSize(9);
+        font1.setBold(true);
+        font1.setWeight(75);
         lbl_msa->setFont(font1);
+        lbl_msa->setIndent(15);
 
         verticalLayout_6->addWidget(lbl_msa);
 
@@ -375,6 +379,7 @@ public:
         lbl_tree = new QLabel(frame_tool_load);
         lbl_tree->setObjectName(QString::fromUtf8("lbl_tree"));
         lbl_tree->setFont(font1);
+        lbl_tree->setIndent(15);
 
         verticalLayout_6->addWidget(lbl_tree);
 
@@ -393,8 +398,13 @@ public:
         lbl_parts = new QLabel(frame_tool_load);
         lbl_parts->setObjectName(QString::fromUtf8("lbl_parts"));
         lbl_parts->setFont(font1);
+        lbl_parts->setIndent(15);
 
         verticalLayout_6->addWidget(lbl_parts);
+
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout_6->addItem(verticalSpacer);
 
 
         horizontalLayout_3->addWidget(frame_tool_load);
@@ -457,7 +467,10 @@ public:
 
         lbl_mem = new QLabel(frame_tool_setup);
         lbl_mem->setObjectName(QString::fromUtf8("lbl_mem"));
-        lbl_mem->setFont(font1);
+        QFont font3;
+        font3.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font3.setPointSize(10);
+        lbl_mem->setFont(font3);
         lbl_mem->setIndent(30);
 
         verticalLayout_8->addWidget(lbl_mem);
@@ -612,21 +625,21 @@ public:
         splitter_2->setOrientation(Qt::Vertical);
         frame_settings = new QScrollArea(splitter_2);
         frame_settings->setObjectName(QString::fromUtf8("frame_settings"));
-        QFont font3;
-        font3.setFamily(QString::fromUtf8("Arial"));
-        font3.setPointSize(10);
-        frame_settings->setFont(font3);
+        QFont font4;
+        font4.setFamily(QString::fromUtf8("Arial"));
+        font4.setPointSize(10);
+        frame_settings->setFont(font4);
         frame_settings->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, -107, 821, 583));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -218, 786, 583));
         verticalLayout_9 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_9->setObjectName(QString::fromUtf8("verticalLayout_9"));
         frameData = new QFrame(scrollAreaWidgetContents);
         frameData->setObjectName(QString::fromUtf8("frameData"));
         frameData->setMinimumSize(QSize(0, 100));
         frameData->setMaximumSize(QSize(16777215, 140));
-        frameData->setFont(font1);
+        frameData->setFont(font3);
         frameData->setFrameShape(QFrame::NoFrame);
         frameData->setFrameShadow(QFrame::Plain);
         frameData->setLineWidth(0);
@@ -647,24 +660,24 @@ public:
         label_settings_datatype = new QLabel(frame_settings_datatype);
         label_settings_datatype->setObjectName(QString::fromUtf8("label_settings_datatype"));
         label_settings_datatype->setMinimumSize(QSize(100, 0));
-        QFont font4;
-        font4.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font4.setPointSize(10);
-        font4.setBold(false);
-        font4.setWeight(50);
-        label_settings_datatype->setFont(font4);
+        QFont font5;
+        font5.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font5.setPointSize(10);
+        font5.setBold(false);
+        font5.setWeight(50);
+        label_settings_datatype->setFont(font5);
 
         horizontalLayout_10->addWidget(label_settings_datatype);
 
         radDatatypeDna = new QRadioButton(frame_settings_datatype);
         radDatatypeDna->setObjectName(QString::fromUtf8("radDatatypeDna"));
-        QFont font5;
-        font5.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font5.setPointSize(10);
-        font5.setBold(false);
-        font5.setItalic(false);
-        font5.setWeight(50);
-        radDatatypeDna->setFont(font5);
+        QFont font6;
+        font6.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font6.setPointSize(10);
+        font6.setBold(false);
+        font6.setItalic(false);
+        font6.setWeight(50);
+        radDatatypeDna->setFont(font6);
         radDatatypeDna->setCursor(QCursor(Qt::PointingHandCursor));
         radDatatypeDna->setChecked(true);
 
@@ -672,7 +685,7 @@ public:
 
         radDatatypeProt = new QRadioButton(frame_settings_datatype);
         radDatatypeProt->setObjectName(QString::fromUtf8("radDatatypeProt"));
-        radDatatypeProt->setFont(font5);
+        radDatatypeProt->setFont(font6);
         radDatatypeProt->setCursor(QCursor(Qt::PointingHandCursor));
 
         horizontalLayout_10->addWidget(radDatatypeProt);
@@ -696,13 +709,13 @@ public:
         label_templates = new QLabel(frame_settings_templates);
         label_templates->setObjectName(QString::fromUtf8("label_templates"));
         label_templates->setMinimumSize(QSize(100, 0));
-        label_templates->setFont(font4);
+        label_templates->setFont(font5);
 
         horizontalLayout_14->addWidget(label_templates);
 
         radSetModelTest = new QRadioButton(frame_settings_templates);
         radSetModelTest->setObjectName(QString::fromUtf8("radSetModelTest"));
-        radSetModelTest->setFont(font5);
+        radSetModelTest->setFont(font6);
         radSetModelTest->setStyleSheet(QString::fromUtf8("border: none;"));
         radSetModelTest->setChecked(true);
 
@@ -710,28 +723,28 @@ public:
 
         radSetMrbayes = new QRadioButton(frame_settings_templates);
         radSetMrbayes->setObjectName(QString::fromUtf8("radSetMrbayes"));
-        radSetMrbayes->setFont(font5);
+        radSetMrbayes->setFont(font6);
         radSetMrbayes->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_14->addWidget(radSetMrbayes);
 
         radSetRaxml = new QRadioButton(frame_settings_templates);
         radSetRaxml->setObjectName(QString::fromUtf8("radSetRaxml"));
-        radSetRaxml->setFont(font5);
+        radSetRaxml->setFont(font6);
         radSetRaxml->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_14->addWidget(radSetRaxml);
 
         radSetPhyml = new QRadioButton(frame_settings_templates);
         radSetPhyml->setObjectName(QString::fromUtf8("radSetPhyml"));
-        radSetPhyml->setFont(font5);
+        radSetPhyml->setFont(font6);
         radSetPhyml->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_14->addWidget(radSetPhyml);
 
         radSetPAUP = new QRadioButton(frame_settings_templates);
         radSetPAUP->setObjectName(QString::fromUtf8("radSetPAUP"));
-        radSetPAUP->setFont(font5);
+        radSetPAUP->setFont(font6);
         radSetPAUP->setStyleSheet(QString::fromUtf8("border: none;"));
 
         horizontalLayout_14->addWidget(radSetPAUP);
@@ -747,15 +760,15 @@ public:
         label_settings_topo->setObjectName(QString::fromUtf8("label_settings_topo"));
         label_settings_topo->setMinimumSize(QSize(0, 20));
         label_settings_topo->setMaximumSize(QSize(16777215, 30));
-        QFont font6;
-        font6.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font6.setPointSize(10);
-        font6.setBold(false);
-        font6.setItalic(true);
-        font6.setUnderline(true);
-        font6.setWeight(50);
-        font6.setKerning(true);
-        label_settings_topo->setFont(font6);
+        QFont font7;
+        font7.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font7.setPointSize(10);
+        font7.setBold(false);
+        font7.setItalic(true);
+        font7.setUnderline(true);
+        font7.setWeight(50);
+        font7.setKerning(true);
+        label_settings_topo->setFont(font7);
 
         verticalLayout_5->addWidget(label_settings_topo);
 
@@ -772,21 +785,21 @@ public:
         radTopoFixedMp = new QRadioButton(frame_settings_topo);
         radTopoFixedMp->setObjectName(QString::fromUtf8("radTopoFixedMp"));
         radTopoFixedMp->setEnabled(false);
-        radTopoFixedMp->setFont(font5);
+        radTopoFixedMp->setFont(font6);
 
         horizontalLayout_11->addWidget(radTopoFixedMp);
 
         radTopoFixedJc = new QRadioButton(frame_settings_topo);
         radTopoFixedJc->setObjectName(QString::fromUtf8("radTopoFixedJc"));
         radTopoFixedJc->setEnabled(false);
-        radTopoFixedJc->setFont(font5);
+        radTopoFixedJc->setFont(font6);
 
         horizontalLayout_11->addWidget(radTopoFixedJc);
 
         radTopoFixedGtr = new QRadioButton(frame_settings_topo);
         radTopoFixedGtr->setObjectName(QString::fromUtf8("radTopoFixedGtr"));
         radTopoFixedGtr->setEnabled(false);
-        radTopoFixedGtr->setFont(font5);
+        radTopoFixedGtr->setFont(font6);
         radTopoFixedGtr->setChecked(true);
 
         horizontalLayout_11->addWidget(radTopoFixedGtr);
@@ -794,14 +807,14 @@ public:
         radTopoML = new QRadioButton(frame_settings_topo);
         radTopoML->setObjectName(QString::fromUtf8("radTopoML"));
         radTopoML->setEnabled(false);
-        radTopoML->setFont(font5);
+        radTopoML->setFont(font6);
         radTopoML->setChecked(false);
 
         horizontalLayout_11->addWidget(radTopoML);
 
         radTopoU = new QRadioButton(frame_settings_topo);
         radTopoU->setObjectName(QString::fromUtf8("radTopoU"));
-        radTopoU->setFont(font5);
+        radTopoU->setFont(font6);
 
         horizontalLayout_11->addWidget(radTopoU);
 
@@ -828,14 +841,14 @@ public:
         label_settings_models->setObjectName(QString::fromUtf8("label_settings_models"));
         label_settings_models->setMinimumSize(QSize(0, 20));
         label_settings_models->setMaximumSize(QSize(16777215, 20));
-        QFont font7;
-        font7.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font7.setPointSize(11);
-        font7.setBold(true);
-        font7.setItalic(true);
-        font7.setUnderline(false);
-        font7.setWeight(75);
-        label_settings_models->setFont(font7);
+        QFont font8;
+        font8.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font8.setPointSize(11);
+        font8.setBold(true);
+        font8.setItalic(true);
+        font8.setUnderline(false);
+        font8.setWeight(75);
+        label_settings_models->setFont(font8);
         label_settings_models->setStyleSheet(QString::fromUtf8("border-bottom: 1px dotted"));
 
         verticalLayout_9->addWidget(label_settings_models);
@@ -882,39 +895,39 @@ public:
         horizontalLayout_12->setContentsMargins(-1, 2, -1, 2);
         radSchemes3 = new QRadioButton(grpSubstSchemes);
         radSchemes3->setObjectName(QString::fromUtf8("radSchemes3"));
-        radSchemes3->setFont(font5);
+        radSchemes3->setFont(font6);
 
         horizontalLayout_12->addWidget(radSchemes3);
 
         radSchemes5 = new QRadioButton(grpSubstSchemes);
         radSchemes5->setObjectName(QString::fromUtf8("radSchemes5"));
-        radSchemes5->setFont(font5);
+        radSchemes5->setFont(font6);
 
         horizontalLayout_12->addWidget(radSchemes5);
 
         radSchemes7 = new QRadioButton(grpSubstSchemes);
         radSchemes7->setObjectName(QString::fromUtf8("radSchemes7"));
-        radSchemes7->setFont(font5);
+        radSchemes7->setFont(font6);
 
         horizontalLayout_12->addWidget(radSchemes7);
 
         radSchemes11 = new QRadioButton(grpSubstSchemes);
         radSchemes11->setObjectName(QString::fromUtf8("radSchemes11"));
-        radSchemes11->setFont(font5);
+        radSchemes11->setFont(font6);
         radSchemes11->setChecked(true);
 
         horizontalLayout_12->addWidget(radSchemes11);
 
         radSchemes203 = new QRadioButton(grpSubstSchemes);
         radSchemes203->setObjectName(QString::fromUtf8("radSchemes203"));
-        radSchemes203->setFont(font5);
+        radSchemes203->setFont(font6);
         radSchemes203->setChecked(false);
 
         horizontalLayout_12->addWidget(radSchemes203);
 
         radSchemesUser = new QRadioButton(grpSubstSchemes);
         radSchemesUser->setObjectName(QString::fromUtf8("radSchemesUser"));
-        radSchemesUser->setFont(font5);
+        radSchemesUser->setFont(font6);
         radSchemesUser->setChecked(false);
 
         horizontalLayout_12->addWidget(radSchemesUser);
@@ -930,14 +943,14 @@ public:
         label_settings_ratevar->setObjectName(QString::fromUtf8("label_settings_ratevar"));
         label_settings_ratevar->setMinimumSize(QSize(0, 20));
         label_settings_ratevar->setMaximumSize(QSize(16777215, 20));
-        QFont font8;
-        font8.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font8.setPointSize(10);
-        font8.setBold(false);
-        font8.setItalic(true);
-        font8.setUnderline(true);
-        font8.setWeight(50);
-        label_settings_ratevar->setFont(font8);
+        QFont font9;
+        font9.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font9.setPointSize(10);
+        font9.setBold(false);
+        font9.setItalic(true);
+        font9.setUnderline(true);
+        font9.setWeight(50);
+        label_settings_ratevar->setFont(font9);
 
         verticalLayout_3->addWidget(label_settings_ratevar);
 
@@ -955,7 +968,7 @@ public:
         cbNoRateVarModels->setObjectName(QString::fromUtf8("cbNoRateVarModels"));
         cbNoRateVarModels->setMinimumSize(QSize(0, 22));
         cbNoRateVarModels->setMaximumSize(QSize(160, 16777215));
-        cbNoRateVarModels->setFont(font5);
+        cbNoRateVarModels->setFont(font6);
         cbNoRateVarModels->setChecked(true);
 
         gridLayout_7->addWidget(cbNoRateVarModels, 0, 0, 1, 1);
@@ -963,7 +976,7 @@ public:
         cbIGModels = new QCheckBox(frame_settings_ratevar);
         cbIGModels->setObjectName(QString::fromUtf8("cbIGModels"));
         cbIGModels->setMinimumSize(QSize(0, 22));
-        cbIGModels->setFont(font5);
+        cbIGModels->setFont(font6);
         cbIGModels->setChecked(true);
 
         gridLayout_7->addWidget(cbIGModels, 0, 3, 1, 1);
@@ -972,7 +985,7 @@ public:
         cbIModels->setObjectName(QString::fromUtf8("cbIModels"));
         cbIModels->setMinimumSize(QSize(0, 22));
         cbIModels->setMaximumSize(QSize(180, 16777215));
-        cbIModels->setFont(font5);
+        cbIModels->setFont(font6);
         cbIModels->setChecked(true);
 
         gridLayout_7->addWidget(cbIModels, 0, 2, 1, 1);
@@ -985,7 +998,7 @@ public:
         lblNCat->setObjectName(QString::fromUtf8("lblNCat"));
         lblNCat->setMinimumSize(QSize(100, 20));
         lblNCat->setMaximumSize(QSize(100, 20));
-        lblNCat->setFont(font5);
+        lblNCat->setFont(font6);
 
         gridLayout_7->addWidget(lblNCat, 1, 2, 1, 1);
 
@@ -993,7 +1006,7 @@ public:
         cbGModels->setObjectName(QString::fromUtf8("cbGModels"));
         cbGModels->setMinimumSize(QSize(0, 22));
         cbGModels->setMaximumSize(QSize(220, 16777215));
-        cbGModels->setFont(font5);
+        cbGModels->setFont(font6);
         cbGModels->setChecked(true);
 
         gridLayout_7->addWidget(cbGModels, 0, 1, 1, 1);
@@ -1002,7 +1015,7 @@ public:
         sliderNCat->setObjectName(QString::fromUtf8("sliderNCat"));
         sliderNCat->setMinimumSize(QSize(100, 20));
         sliderNCat->setMaximumSize(QSize(100, 20));
-        sliderNCat->setFont(font5);
+        sliderNCat->setFont(font6);
         sliderNCat->setAutoFillBackground(false);
         sliderNCat->setMinimum(2);
         sliderNCat->setMaximum(20);
@@ -1018,7 +1031,7 @@ public:
         label_settings_freqs->setObjectName(QString::fromUtf8("label_settings_freqs"));
         label_settings_freqs->setMinimumSize(QSize(0, 20));
         label_settings_freqs->setMaximumSize(QSize(16777215, 20));
-        label_settings_freqs->setFont(font8);
+        label_settings_freqs->setFont(font9);
 
         verticalLayout_3->addWidget(label_settings_freqs);
 
@@ -1036,7 +1049,7 @@ public:
         cbEqualFreq->setObjectName(QString::fromUtf8("cbEqualFreq"));
         cbEqualFreq->setMinimumSize(QSize(180, 22));
         cbEqualFreq->setMaximumSize(QSize(180, 16777215));
-        cbEqualFreq->setFont(font5);
+        cbEqualFreq->setFont(font6);
         cbEqualFreq->setChecked(true);
 
         horizontalLayout_15->addWidget(cbEqualFreq);
@@ -1045,7 +1058,7 @@ public:
         cbMlFreq->setObjectName(QString::fromUtf8("cbMlFreq"));
         cbMlFreq->setMinimumSize(QSize(200, 22));
         cbMlFreq->setMaximumSize(QSize(200, 16777215));
-        cbMlFreq->setFont(font5);
+        cbMlFreq->setFont(font6);
         cbMlFreq->setChecked(true);
 
         horizontalLayout_15->addWidget(cbMlFreq);
@@ -1069,7 +1082,7 @@ public:
         lblTextNModels->setObjectName(QString::fromUtf8("lblTextNModels"));
         lblTextNModels->setMinimumSize(QSize(150, 22));
         lblTextNModels->setMaximumSize(QSize(150, 22));
-        lblTextNModels->setFont(font5);
+        lblTextNModels->setFont(font6);
 
         horizontalLayout_16->addWidget(lblTextNModels);
 
@@ -1077,7 +1090,7 @@ public:
         lblNumModels->setObjectName(QString::fromUtf8("lblNumModels"));
         lblNumModels->setMinimumSize(QSize(100, 22));
         lblNumModels->setMaximumSize(QSize(16777215, 22));
-        lblNumModels->setFont(font5);
+        lblNumModels->setFont(font6);
 
         horizontalLayout_16->addWidget(lblNumModels);
 
@@ -1092,7 +1105,7 @@ public:
         cbShowMatrices->setObjectName(QString::fromUtf8("cbShowMatrices"));
         cbShowMatrices->setMinimumSize(QSize(0, 20));
         cbShowMatrices->setMaximumSize(QSize(16777215, 20));
-        cbShowMatrices->setFont(font5);
+        cbShowMatrices->setFont(font6);
 
         verticalLayout_3->addWidget(cbShowMatrices);
 
@@ -1110,12 +1123,12 @@ public:
         modelsListView->setObjectName(QString::fromUtf8("modelsListView"));
         modelsListView->setMinimumSize(QSize(220, 0));
         modelsListView->setMaximumSize(QSize(220, 250));
-        QFont font9;
-        font9.setFamily(QString::fromUtf8("Courier"));
-        font9.setPointSize(10);
-        font9.setBold(true);
-        font9.setWeight(75);
-        modelsListView->setFont(font9);
+        QFont font10;
+        font10.setFamily(QString::fromUtf8("Courier"));
+        font10.setPointSize(10);
+        font10.setBold(true);
+        font10.setWeight(75);
+        modelsListView->setFont(font10);
         modelsListView->setFrameShape(QFrame::NoFrame);
         modelsListView->setFrameShadow(QFrame::Plain);
         modelsListView->setLineWidth(0);
@@ -1144,13 +1157,13 @@ public:
         cbAdvanced->setObjectName(QString::fromUtf8("cbAdvanced"));
         cbAdvanced->setMinimumSize(QSize(205, 22));
         cbAdvanced->setMaximumSize(QSize(16777215, 22));
-        QFont font10;
-        font10.setFamily(QString::fromUtf8("Courier"));
-        font10.setPointSize(10);
-        font10.setBold(true);
-        font10.setItalic(true);
-        font10.setWeight(75);
-        cbAdvanced->setFont(font10);
+        QFont font11;
+        font11.setFamily(QString::fromUtf8("Courier"));
+        font11.setPointSize(10);
+        font11.setBold(true);
+        font11.setItalic(true);
+        font11.setWeight(75);
+        cbAdvanced->setFont(font11);
 
         verticalLayout_9->addWidget(cbAdvanced);
 
@@ -1158,7 +1171,7 @@ public:
         frame_advanced->setObjectName(QString::fromUtf8("frame_advanced"));
         frame_advanced->setMinimumSize(QSize(0, 100));
         frame_advanced->setMaximumSize(QSize(16777215, 135));
-        frame_advanced->setFont(font3);
+        frame_advanced->setFont(font4);
         frame_advanced->setStyleSheet(QString::fromUtf8("background-color: #ffe7bb;"));
         gridLayout_3 = new QGridLayout(frame_advanced);
         gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
@@ -1168,13 +1181,13 @@ public:
         txtOptEpsilon->setObjectName(QString::fromUtf8("txtOptEpsilon"));
         txtOptEpsilon->setMinimumSize(QSize(0, 20));
         txtOptEpsilon->setMaximumSize(QSize(150, 25));
-        QFont font11;
-        font11.setFamily(QString::fromUtf8("Courier"));
-        font11.setPointSize(10);
-        font11.setBold(true);
-        font11.setItalic(false);
-        font11.setWeight(75);
-        txtOptEpsilon->setFont(font11);
+        QFont font12;
+        font12.setFamily(QString::fromUtf8("Courier"));
+        font12.setPointSize(10);
+        font12.setBold(true);
+        font12.setItalic(false);
+        font12.setWeight(75);
+        txtOptEpsilon->setFont(font12);
         txtOptEpsilon->setText(QString::fromUtf8("0.01"));
         txtOptEpsilon->setMaxLength(10);
         txtOptEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
@@ -1185,7 +1198,7 @@ public:
         txtParEpsilon->setObjectName(QString::fromUtf8("txtParEpsilon"));
         txtParEpsilon->setMinimumSize(QSize(0, 20));
         txtParEpsilon->setMaximumSize(QSize(150, 25));
-        txtParEpsilon->setFont(font11);
+        txtParEpsilon->setFont(font12);
         txtParEpsilon->setText(QString::fromUtf8("0.001"));
         txtParEpsilon->setMaxLength(10);
         txtParEpsilon->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
@@ -1196,7 +1209,7 @@ public:
         lblParEpsText->setObjectName(QString::fromUtf8("lblParEpsText"));
         lblParEpsText->setMinimumSize(QSize(0, 20));
         lblParEpsText->setMaximumSize(QSize(16777215, 25));
-        lblParEpsText->setFont(font11);
+        lblParEpsText->setFont(font12);
 
         gridLayout_3->addWidget(lblParEpsText, 1, 0, 1, 1);
 
@@ -1204,7 +1217,7 @@ public:
         lblOptEpsText->setObjectName(QString::fromUtf8("lblOptEpsText"));
         lblOptEpsText->setMinimumSize(QSize(0, 20));
         lblOptEpsText->setMaximumSize(QSize(16777215, 25));
-        lblOptEpsText->setFont(font11);
+        lblOptEpsText->setFont(font12);
 
         gridLayout_3->addWidget(lblOptEpsText, 2, 0, 1, 1);
 
@@ -1212,7 +1225,7 @@ public:
         lblNThreads->setObjectName(QString::fromUtf8("lblNThreads"));
         lblNThreads->setMinimumSize(QSize(100, 20));
         lblNThreads->setMaximumSize(QSize(16777215, 25));
-        lblNThreads->setFont(font9);
+        lblNThreads->setFont(font10);
 
         gridLayout_3->addWidget(lblNThreads, 0, 2, 1, 1);
 
@@ -1220,7 +1233,7 @@ public:
         sliderNThreads->setObjectName(QString::fromUtf8("sliderNThreads"));
         sliderNThreads->setMinimumSize(QSize(150, 20));
         sliderNThreads->setMaximumSize(QSize(150, 25));
-        sliderNThreads->setFont(font3);
+        sliderNThreads->setFont(font4);
         sliderNThreads->setAutoFillBackground(false);
         sliderNThreads->setMinimum(1);
         sliderNThreads->setMaximum(10);
@@ -1233,7 +1246,7 @@ public:
         lblNThreadText->setObjectName(QString::fromUtf8("lblNThreadText"));
         lblNThreadText->setMinimumSize(QSize(0, 20));
         lblNThreadText->setMaximumSize(QSize(16777215, 25));
-        lblNThreadText->setFont(font11);
+        lblNThreadText->setFont(font12);
 
         gridLayout_3->addWidget(lblNThreadText, 0, 0, 1, 1);
 
@@ -1259,10 +1272,10 @@ public:
         consoleRun->setMinimumSize(QSize(600, 0));
         consoleRun->setMaximumSize(QSize(16777215, 16777215));
         consoleRun->setBaseSize(QSize(0, 0));
-        QFont font12;
-        font12.setFamily(QString::fromUtf8("Courier 10 Pitch"));
-        font12.setPointSize(9);
-        consoleRun->setFont(font12);
+        QFont font13;
+        font13.setFamily(QString::fromUtf8("Courier 10 Pitch"));
+        font13.setPointSize(9);
+        consoleRun->setFont(font13);
         consoleRun->setStyleSheet(QString::fromUtf8("background: #fff2db;"));
         consoleRun->setLineWrapMode(QTextEdit::NoWrap);
 
@@ -1282,7 +1295,7 @@ public:
         xmodeltest->setCentralWidget(centralwidget);
         menubar = new QMenuBar(xmodeltest);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 877, 25));
+        menubar->setGeometry(QRect(0, 0, 842, 25));
         menubar->setStyleSheet(QString::fromUtf8("background: #3c3b37;"));
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
