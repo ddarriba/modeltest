@@ -16,8 +16,8 @@ static bool build_models(data_type_t datatype,
     mt_size_t n_matrices = (mt_size_t) candidate_models.size();
     mt_size_t n_models = 0;
 
-    int freq_params = model_params & MOD_MASK_FREQ_PARAMS;
-    int rate_params = model_params & MOD_MASK_RATE_PARAMS;
+    mt_mask_t freq_params = model_params & MOD_MASK_FREQ_PARAMS;
+    mt_mask_t rate_params = model_params & MOD_MASK_RATE_PARAMS;
     if (!freq_params)
     {
         mt_errno = MT_ERROR_MODELS;
@@ -25,7 +25,7 @@ static bool build_models(data_type_t datatype,
         return false;
     }
 
-    int it_model_params = rate_params;
+    mt_mask_t it_model_params = rate_params;
     while (it_model_params)
     {
         if (it_model_params & 1) n_models += n_matrices;
@@ -36,9 +36,9 @@ static bool build_models(data_type_t datatype,
         n_models *= 2;
     c_models.reserve(n_models);
 
-    for (int i=1; i<64; i*=2)
+    for (mt_index_t i=1; i<64; i*=2)
     {
-        int cur_rate_param = rate_params & i;
+        mt_mask_t cur_rate_param = rate_params & i;
         if (cur_rate_param)
         {
             for (mt_index_t j=0; j<n_matrices; j++)
@@ -75,13 +75,13 @@ static bool build_models(data_type_t datatype,
     return true;
 }
 
-Partition::Partition(partition_id_t id,
+Partition::Partition(partition_id_t _id,
                      Msa * _msa,
                      Tree * _tree,
                      partition_descriptor_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params) :
-    id(id), msa(_msa), tree(_tree),
+    id(_id), msa(_msa), tree(_tree),
     descriptor(_descriptor)
 {
     switch(descriptor.datatype)
@@ -184,7 +184,7 @@ void Partition::sort_models(bool forwards)
 
 mt_size_t Partition::get_number_of_models( void ) const
 {
-    return c_models.size();
+    return (mt_size_t) c_models.size();
 }
 
 std::vector<Model *> const& Partition::get_models() const

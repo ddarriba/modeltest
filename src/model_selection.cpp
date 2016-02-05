@@ -240,8 +240,9 @@ void ModelSelection::print_inline_best_model(ic_type type, selection_model &mode
     case ic_dt:
         out << setw(10) << "  DT";
         break;
-    default:
-        assert(0);
+    case ic_lnl:
+        out << setw(10) << "  lnL";
+        break;
     }
 
     out << setw(20) << model.model->get_name();

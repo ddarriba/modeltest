@@ -85,14 +85,38 @@ class Utils
 public:
     Utils();
 
+    /**
+     * @brief Get the set of parameters supported by a tool (RAxML, PhyML, ...)
+     * @param[in] tool the tool
+     * @param[in] datatype the data type (dna, amino acid)
+     * @return the set of supported parameters
+     */
     static mt_mask_t get_parameters_from_template(template_models_t tool,
                                                   data_type_t datatype);
 
+    /**
+     * @brief Get the protein empirical matrices supported by a tool (RAxML, PhyML, ...)
+     * @param[in] tool the tool
+     * @param[out] n_matrices the number of matrices supported
+     * @return the array of supported empirical matrices
+     */
     static const mt_index_t *get_prot_matrices_from_template(template_models_t tool,
                                                              mt_size_t *n_matrices);
 
-    static mt_size_t number_of_models(mt_size_t n_matrices, mt_mask_t model_params);
+    /**
+     * @brief Get the total number of models out of the number of matrices and set of model parameters
+     * @param[in] n_matrices the number of matrices
+     * @param[in] model_params the set of model parameters
+     * @return the total number of models that can be constructed with the given parameters
+     */
+    static mt_size_t number_of_models(mt_size_t n_matrices,
+                                      mt_mask_t model_params);
 
+    /**
+     * @brief Get the DNA substitution schemes supported by a tool (RAxML, PhyML, ...)
+     * @param[in] tool the tool
+     * @return the largest substitution scheme supported
+     */
     static dna_subst_schemes_t get_dna_matrices_from_template(template_models_t tool);
 
     /**
@@ -169,12 +193,37 @@ public:
     static void print_version(std::ostream& out = std::cout);
 
     /**
-     * @brief count the number of physical CPU cores
+     * @brief Count the number of physical CPU cores
      * @return the number of physical CPU cores
      */
     static mt_size_t count_physical_cores( void );
 
+    /**
+     * @brief Count the number of logical CPU cores
+     * @return the number of logical CPU cores
+     */
+    static mt_size_t count_logical_cores( void );
+
+    /**
+     * @brief Count the number of set bits
+     * @param[in] value the value
+     * @return the number of set bits
+     */
     static mt_size_t count_bits( uint32_t value);
+
+    /**
+     * @brief Parse a size variable from a string
+     * @param[in] str the string representation
+     * @return the size representation
+     */
+    static mt_size_t parse_size(const char *str);
+
+    /**
+     * @brief Parse an index variable from a string
+     * @param[in] str the string representation
+     * @return the index representation
+     */
+    static mt_index_t parse_index(const char *str);
 };
 
 }

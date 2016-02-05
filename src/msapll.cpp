@@ -253,7 +253,7 @@ namespace modeltest
           {
               for (mt_index_t j = region.start; j < region.end; j++)
               {
-                  double sum_site = 0.0;
+                  mt_size_t sum_site = 0;
                   mt_size_t ind = states_map[(int)sequences[i][j]];
                   if (!ind)
                   {

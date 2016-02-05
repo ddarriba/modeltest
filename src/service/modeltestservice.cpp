@@ -5,6 +5,7 @@
 #include <sstream>
 
 using namespace modeltest;
+using namespace std;
 
 ModelTestService::~ModelTestService()
 {
@@ -56,7 +57,6 @@ bool ModelTestService::reset_instance( mt_options_t & options )
 }
 
 bool ModelTestService::optimize_single(const partition_id_t &part_id,
-                     mt_index_t n_models,
                      modeltest::Model *model,
                      mt_index_t thread_id,
                      double epsilon_param,
@@ -90,7 +90,7 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
 
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const
 {
-    return modeltest_instance->get_models(part_id).size();
+    return (mt_size_t) modeltest_instance->get_models(part_id).size();
 }
 
 Model * ModelTestService::get_model(partition_id_t const& part_id, mt_index_t model_idx) const
@@ -119,7 +119,7 @@ string ModelTestService::get_raxml_command_line(Model const& model,
             raxml_args << "X";
 
         mt_index_t standard_matrix_index = (mt_index_t) (find(raxml_matrices_indices,
-                                         raxml_matrices_indices + N_DNA_MODEL_MATRICES,
+                                         raxml_matrices_indices + N_DNA_RAXML_MATRICES,
                                          matrix_index) - raxml_matrices_indices);
 
         switch (standard_matrix_index)

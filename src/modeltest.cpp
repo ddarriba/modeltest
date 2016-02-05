@@ -12,7 +12,7 @@
 
 namespace modeltest {
 
-unsigned int mt_errno;
+int mt_errno;
 char mt_errmsg[MT_ERROR_LENGTH] = {0};
 double alpha_guess = 0;
 double pinv_guess = 0;
@@ -337,6 +337,7 @@ bool ModelTest::build_instance(mt_options_t & options)
             }
             catch(int e)
             {
+                UNUSED(e);
                 free_stuff();
                 return false;
             }

@@ -2,34 +2,24 @@
 #define OBSERVER_H
 
 #include <vector>
-using namespace std;
 
 class Observable;
 
 class Observer
 {
   public:
-    Observer()
-    {
-    }
+    Observer();
+    virtual ~Observer();
     virtual void update(Observable * subject) = 0;
 };
 
 class Observable
 {
-    vector < Observer * > views;
-    int value;
+    std::vector < Observer * > views;
   public:
-    void attach(Observer *obs)
-    {
-        views.push_back(obs);
-    }
-    virtual void notify()
-    {
-        // publisher broadcasts
-        for (Observer * view : views)
-            view->update(this);
-    }
+    virtual ~Observable();
+    void attach(Observer *obs);
+    virtual void notify();
 };
 
 #endif // OBSERVER_H

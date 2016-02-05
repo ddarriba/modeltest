@@ -3,6 +3,7 @@ bin_PROGRAMS = modeltestx modeltest
 modeltest_SOURCES = \
 	moc/moc_progressdialog.cpp \
 	moc/moc_resultsdialog.cpp \
+	moc/moc_resultsexportdialog.cpp \
 	moc/moc_modelsdialog.cpp \
 	moc/moc_datainfodialog.cpp \
 	moc/moc_xmodeltest.cpp \
@@ -16,8 +17,10 @@ modeltest_SOURCES = \
 	gui/progressdialog.cpp \
 	gui/datainfodialog.cpp \
 	gui/resultsdialog.cpp \
+	gui/resultsexportdialog.cpp \
 	gui/modelsdialog.cpp \
 	gui/xutils.cpp \
+	thread/observer.cpp \
 	service/modeltestservice.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
@@ -48,6 +51,7 @@ endif
 
 modeltestx_SOURCES = \
 	service/modeltestservice.cpp \
+	thread/observer.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
@@ -77,6 +81,7 @@ endif
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
 	gui/progressdialog.h \
+	thread/observer.h \
 	thread/threadpool.h \
 	model_optimizer_pll.h \
 	utils.h \

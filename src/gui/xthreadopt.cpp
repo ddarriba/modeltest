@@ -66,7 +66,6 @@ void xThreadOpt::optimize_single(const partition_id_t &part_id,
         return;
 
     ModelTestService::instance()->optimize_single(part_id,
-                                                  n_models,
                                                   model,
                                                   thread_id,
                                                   epsilon_param,

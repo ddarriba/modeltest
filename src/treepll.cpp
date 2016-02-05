@@ -261,7 +261,7 @@ namespace modeltest
           cerr << "INER NODES FAIL" << endl;
       assert(pll_inner_nodes);
       /* move to random node */
-      int inner_index = rand () % n_inner;
+      int inner_index = rand () % (int) n_inner;
 //      int tip_index = rand () % n_tips;
 
       if (!pll_inner_nodes[thread_number])

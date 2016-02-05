@@ -94,7 +94,7 @@ mt_mask_t Utils::get_parameters_from_template(template_models_t tool,
         else if (datatype == dt_protein)
             return prot_paup_parameters;
         break;
-    default:
+    case template_none:
         return 0;
     }
     return 0;
@@ -121,7 +121,7 @@ const mt_index_t* Utils::get_prot_matrices_from_template(template_models_t tool,
         *n_matrices = N_PROT_PAUP_MATRICES;
         return prot_paup_matrices_indices;
         break;
-    default:
+    case template_none:
         *n_matrices = 0;
         return 0;
     }
@@ -320,7 +320,7 @@ void Utils::print_options(mt_options_t & opts, ostream  &out)
                     break;
                 }
         out << "  " << left << setw(20) << "# dna models:"
-            << number_of_models(opts.nt_candidate_models.size(), model_params)
+            << number_of_models((mt_size_t)opts.nt_candidate_models.size(), model_params)
             << endl;
         print_model_params(model_params, out);
     }
@@ -336,7 +336,7 @@ void Utils::print_options(mt_options_t & opts, ostream  &out)
                     break;
                 }
         out << "  " << left << setw(20) << "# protein models:"
-            << number_of_models(opts.aa_candidate_models.size(), model_params)
+            << number_of_models((mt_size_t)opts.aa_candidate_models.size(), model_params)
             << endl;
         print_model_params(model_params, out);
 
@@ -853,20 +853,26 @@ void init_lexan (const char * text, long n)
   pos          = 0;
 }
 
+mt_size_t Utils::count_logical_cores( void ) {
+    unsigned logicalcpucount;
+#if defined(_WIN32) || defined(WIN32)
+    SYSTEM_INFO systeminfo;
+    GetSystemInfo( &systeminfo );
+    logicalcpucount = (unsigned) systeminfo.dwNumberOfProcessors;
+#else
+    logicalcpucount = (unsigned) sysconf( _SC_NPROCESSORS_ONLN );
+#endif
+    return logicalcpucount;
+}
+
 mt_size_t Utils::count_physical_cores( void ) {
     uint32_t registers[4];
     unsigned logicalcpucount;
     unsigned physicalcpucount;
-#if defined(_WIN32) || defined(WIN32)
-    SYSTEM_INFO systeminfo;
-    GetSystemInfo( &systeminfo );
-    logicalcpucount = systeminfo.dwNumberOfProcessors;
-#else
-    logicalcpucount = sysconf( _SC_NPROCESSORS_ONLN );
-#endif
-    return logicalcpucount;
 
-    if (logicalcpucount % 2 != 0)
+    logicalcpucount = count_logical_cores();
+
+    if ((logicalcpucount % 2) != 0)
         return logicalcpucount;
     __asm__ __volatile__ ("cpuid " :
                           "=a" (registers[0]),
@@ -890,6 +896,16 @@ mt_size_t Utils::count_bits( uint32_t i)
      i = i - ((i >> 1) & 0x55555555);
      i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
      return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+mt_size_t Utils::parse_size(const char *str)
+{
+    return (mt_size_t) atol(str);
+}
+
+mt_index_t Utils::parse_index(const char *str)
+{
+    return (mt_index_t) atol(str);
 }
 
 } /* namespace */

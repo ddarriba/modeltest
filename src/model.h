@@ -207,7 +207,7 @@ class DnaModel : public Model
 {
 public:
     DnaModel(mt_index_t matrix_index,
-          int model_params);
+          mt_mask_t model_params);
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
@@ -254,7 +254,7 @@ class ProtModel : public Model
 {
 public:
     ProtModel(mt_index_t matrix_index,
-          int model_params);
+          mt_mask_t model_params);
     ProtModel(const Model &other);
     virtual ~ProtModel( void );
     virtual void clone(const Model *other);

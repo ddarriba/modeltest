@@ -50,7 +50,7 @@
 
 namespace modeltest
 {
-  extern unsigned int mt_errno;
+  extern int mt_errno;
   extern char mt_errmsg[MT_ERROR_LENGTH];
 
   extern double alpha_guess;

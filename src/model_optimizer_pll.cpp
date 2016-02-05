@@ -20,6 +20,8 @@
 #define JOB_REDUCE_LK_EDGE   4
 #define JOB_FINALIZE        -1
 
+extern "C" void* thread_worker( void * d );
+
 struct thread_wrap {
     void * data;
     modeltest::ModelOptimizerPll * instance;
@@ -47,7 +49,7 @@ static int cb_set_missing_branches(pll_utree_t * node)
 {
 
     /* reset branches */
-    if (!node->length)
+    if (!(node->length > 0.0))
     {
         node->length = 0.1;
         node->back->length = 0.1;
@@ -324,7 +326,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (which_parameter == PLL_PARAMETER_BRANCHES_ITERATIVE)
       {
           int smoothings = 2;
-          mt_index_t matrix_count, ops_count;
+          mt_index_t tmp_matrix_count, tmp_ops_count;
           pll_utree_t* pll_tree;
           pll_utree_t ** travbuffer;
           mt_size_t traversal_size;
@@ -337,8 +339,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           travbuffer = (pll_utree_t **) Utils::allocate (2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
           pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
           pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                       matrix_indices, operations, &matrix_count,
-                                       &ops_count);
+                                       matrix_indices, operations, &tmp_matrix_count,
+                                       &tmp_ops_count);
           pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
                                     tree->get_n_branches());
 //          for (mt_index_t i=0; i<num_threads; i++)
@@ -354,8 +356,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
           pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
           pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                       matrix_indices, operations, &matrix_count,
-                                       &ops_count);
+                                       matrix_indices, operations, &tmp_matrix_count,
+                                       &tmp_ops_count);
           //params->lk_params.partition->prop_invar[0] = 0.0;
           params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
           params->lk_params.where.unrooted_t.parent_scaler_index =
@@ -419,9 +421,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (model->is_G())
       {
           if (model->is_I())
-            params->lk_params.alpha_value = alpha_inv_guess?alpha_inv_guess:default_alpha;
+            params->lk_params.alpha_value = (alpha_inv_guess > 0.0)?alpha_inv_guess:default_alpha;
           else
-            params->lk_params.alpha_value = alpha_guess?alpha_guess:default_alpha;
+            params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
       }
       params->lk_params.freqs_index = 0;
       params->lk_params.rooted = 0;
@@ -454,9 +456,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       else
       {
           if (model->is_G())
-              pll_update_invariant_sites_proportion(pll_partition, 0, pinv_alpha_guess?pinv_alpha_guess:partition.empirical_pinv);
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:partition.empirical_pinv);
           else
-              pll_update_invariant_sites_proportion(pll_partition, 0, pinv_guess?pinv_guess:partition.empirical_pinv);
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:partition.empirical_pinv);
       }
 
       if (model->is_F())
@@ -659,16 +661,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   if (cur_parameter == PLL_PARAMETER_ALPHA)
                   {
                       if (model->is_I())
-                          full_range_search &= !alpha_inv_guess;
+                          full_range_search &= !(alpha_inv_guess > 0.0);
                       else
-                          full_range_search &= !alpha_guess;
+                          full_range_search &= !(alpha_guess > 0.0);
                   }
                   else if (cur_parameter == PLL_PARAMETER_PINV)
                   {
                       if (model->is_G())
-                          full_range_search &= !pinv_alpha_guess;
+                          full_range_search &= !(pinv_alpha_guess > 0.0);
                       else
-                          full_range_search &= !pinv_guess;
+                          full_range_search &= !(pinv_guess > 0.0);
                   }
                   iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
 
@@ -773,20 +775,20 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
   void * ModelOptimizerPll::worker(void * void_data)
   {
-    thread_data_t * thread_data;
+    thread_data_t * local_thread_data;
     unsigned int i;
     unsigned int id, mat_count, mat_offset, mat_start;
-    unsigned int * matrix_indices;
-    double * branch_lengths;
+    unsigned int * local_matrix_indices;
+    double * local_branch_lengths;
 
-    thread_data = (thread_data_t *) void_data;
-    id = thread_data->thread_id;
-    mat_count  = (thread_data->matrix_count / thread_data->num_threads);
-    mat_offset = (thread_data->matrix_count % thread_data->num_threads);
+    local_thread_data = (thread_data_t *) void_data;
+    id = (unsigned int) local_thread_data->thread_id;
+    mat_count  = (unsigned int) (local_thread_data->matrix_count / local_thread_data->num_threads);
+    mat_offset = (unsigned int) (local_thread_data->matrix_count % local_thread_data->num_threads);
     mat_start = id * mat_count + ((id<mat_offset)?id:mat_offset);
     mat_count += (id < mat_offset)?1:0;
-    matrix_indices = thread_data->matrix_indices + mat_start;
-    branch_lengths = thread_data->branch_lengths + mat_start;
+    local_matrix_indices = local_thread_data->matrix_indices + mat_start;
+    local_branch_lengths = local_thread_data->branch_lengths + mat_start;
 
     do
     {
@@ -796,73 +798,73 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         case JOB_FINALIZE:
           {
             /* finalize */
-            thread_data->trap = 0;
+            local_thread_data->trap = 0;
             break;
           }
         case JOB_UPDATE_MATRICES:
         {
-          barrier (thread_data);
+          barrier (local_thread_data);
 
             /* check eigen */
-            if (!thread_data->partition->eigen_decomp_valid[0])
+            if (!local_thread_data->partition->eigen_decomp_valid[0])
             {
-              barrier (thread_data);
+              barrier (local_thread_data);
               if (!id)
-                pll_update_eigen (thread_data->partition, 0);
-              barrier (thread_data);
+                pll_update_eigen (local_thread_data->partition, 0);
+              barrier (local_thread_data);
               if (!id)
-                thread_data->partition->eigen_decomp_valid[0] = 1;
+                local_thread_data->partition->eigen_decomp_valid[0] = 1;
             }
 
-            barrier (thread_data);
+            barrier (local_thread_data);
 
-            pll_update_prob_matrices (thread_data->partition, 0,
-                                      matrix_indices,
-                                      branch_lengths,
+            pll_update_prob_matrices (local_thread_data->partition, 0,
+                                      local_matrix_indices,
+                                      local_branch_lengths,
                                       mat_count);
 
             if (!id)
               thread_job = JOB_WAIT;
-            barrier (thread_data);
+            barrier (local_thread_data);
             break;
           }
         case JOB_UPDATE_PARTIALS:
           {
-            barrier (thread_data);
+            barrier (local_thread_data);
 
-            pll_update_partials (thread_data->partition,
-                                 thread_data->operations,
-                                 thread_data->ops_count);
+            pll_update_partials (local_thread_data->partition,
+                                 local_thread_data->operations,
+                                 local_thread_data->ops_count);
             if (!id)
               thread_job = JOB_WAIT;
-            barrier (thread_data);
+            barrier (local_thread_data);
             break;
           }
         case JOB_REDUCE_LK_EDGE:
           {
             if (!id)
               global_lnl = 0;
-            barrier (thread_data);
+            barrier (local_thread_data);
 
-            thread_data->result_buf[id] =
+            local_thread_data->result_buf[id] =
                 pll_compute_edge_loglikelihood (
-                  thread_data->partition,
-                  thread_data->vroot->clv_index,
-                  thread_data->vroot->scaler_index,
-                  thread_data->vroot->back->clv_index,
-                  thread_data->vroot->back->scaler_index,
-                  thread_data->vroot->pmatrix_index, 0);
+                  local_thread_data->partition,
+                  local_thread_data->vroot->clv_index,
+                  local_thread_data->vroot->scaler_index,
+                  local_thread_data->vroot->back->clv_index,
+                  local_thread_data->vroot->back->scaler_index,
+                  local_thread_data->vroot->pmatrix_index, 0);
 
             /* reduce */
-            barrier (thread_data);
+            barrier (local_thread_data);
             if (!id)
-              for (i=0; i<thread_data->num_threads; i++)
-                global_lnl += thread_data->result_buf[i];
-            barrier (thread_data);
+              for (i=0; i<local_thread_data->num_threads; i++)
+                global_lnl += local_thread_data->result_buf[i];
+            barrier (local_thread_data);
 
             if (!id)
               thread_job = JOB_WAIT;
-            barrier (thread_data);
+            barrier (local_thread_data);
             break;
           }
         case JOB_FULL_LK:
@@ -870,34 +872,34 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             /* execute */
             if (!id)
               global_lnl = 0;
-            barrier (thread_data);
+            barrier (local_thread_data);
 
-            pll_update_partials (thread_data->partition, thread_data->operations,
-                                 thread_data->ops_count);
+            pll_update_partials (local_thread_data->partition, local_thread_data->operations,
+                                 local_thread_data->ops_count);
 
-            thread_data->result_buf[id] =
+            local_thread_data->result_buf[id] =
                 pll_compute_edge_loglikelihood (
-                  thread_data->partition,
-                  thread_data->vroot->clv_index,
-                  thread_data->vroot->scaler_index,
-                  thread_data->vroot->back->clv_index,
-                  thread_data->vroot->back->scaler_index,
-                  thread_data->vroot->pmatrix_index, 0);
+                  local_thread_data->partition,
+                  local_thread_data->vroot->clv_index,
+                  local_thread_data->vroot->scaler_index,
+                  local_thread_data->vroot->back->clv_index,
+                  local_thread_data->vroot->back->scaler_index,
+                  local_thread_data->vroot->pmatrix_index, 0);
 
             /* reduce */
-            barrier (thread_data);
+            barrier (local_thread_data);
             if (!id)
-              for (i = 0; i < thread_data->num_threads; i++)
-                global_lnl += thread_data->result_buf[i];
-            barrier (thread_data);
+              for (i = 0; i < local_thread_data->num_threads; i++)
+                global_lnl += local_thread_data->result_buf[i];
+            barrier (local_thread_data);
 
             if (!id)
               thread_job = JOB_WAIT;
-            barrier (thread_data);
+            barrier (local_thread_data);
             break;
           }
         }
-    } while (thread_data->trap);
+    } while (local_thread_data->trap);
 
     return 0;
   }

@@ -50,7 +50,6 @@ public:
     bool reset_instance( mt_options_t & options );
 
     bool optimize_single(const partition_id_t &part_id,
-                         mt_index_t n_models,
                          modeltest::Model *model,
                          mt_index_t thread_id,
                          double epsilon_param,

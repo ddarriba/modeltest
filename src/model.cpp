@@ -274,7 +274,7 @@ void Model::set_tree( pll_utree_t * _tree )
 }
 
 DnaModel::DnaModel(mt_index_t _matrix_index,
-             int model_params)
+             mt_mask_t model_params)
     : Model(model_params)
 {
     stringstream ss_name;
@@ -464,10 +464,10 @@ void DnaModel::output_log(std::ostream  &out)
     out << endl;
 }
 
-static bool read_word(std::istream  &in, char *w, int maxlen)
+static bool read_word(std::istream  &in, char *w, mt_size_t maxlen)
 {
     char c = '\0';
-    int l = 0;
+    mt_index_t l = 0;
     while (in.get(c) && c!=' ' && l<maxlen)
     {
         *(w++) = c;
@@ -484,15 +484,15 @@ void DnaModel::input_log(std::istream  &in)
     char *treestr;
 
     read_word(in, str, LOG_LEN);       name = str;
-    read_word(in, str, LOG_LEN); matrix_index = atol(str);
+    read_word(in, str, LOG_LEN); matrix_index = Utils::parse_index(str);
     for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
     {
-        read_word(in, str, LOG_LEN); matrix_symmetries[i] = atol(str);
+        read_word(in, str, LOG_LEN); matrix_symmetries[i] = atoi(str);
     }
-    read_word(in, str, LOG_LEN); n_free_variables = atol(str);
-    read_word(in, str, LOG_LEN); optimize_freqs = atol(str);
-    read_word(in, str, LOG_LEN); optimize_pinv = atol(str);
-    read_word(in, str, LOG_LEN); optimize_gamma = atol(str);
+    read_word(in, str, LOG_LEN); n_free_variables = Utils::parse_size(str);
+    read_word(in, str, LOG_LEN); optimize_freqs = atoi(str);
+    read_word(in, str, LOG_LEN); optimize_pinv = atoi(str);
+    read_word(in, str, LOG_LEN); optimize_gamma = atoi(str);
     read_word(in, str, LOG_LEN); lnL = atof(str);
     for (mt_index_t i=0; i<N_DNA_STATES; i++)
     {
@@ -504,13 +504,19 @@ void DnaModel::input_log(std::istream  &in)
     }
     read_word(in, str, LOG_LEN); prop_inv = atof(str);
     read_word(in, str, LOG_LEN); alpha    = atof(str);
-    read_word(in, str, LOG_LEN); mt_size_t treelen = atol(str);
+    read_word(in, str, LOG_LEN); mt_size_t treelen = Utils::parse_size(str);
 
     treestr = (char *) Utils::allocate(treelen + 1, 1);
     read_word(in, treestr, treelen);
     //TODO: TEMPORARY DUMP TO FILE
     char fname[16] = "temptree.XXXXXX";
     int f_desc = mkstemp(fname);
+    if (f_desc == -1)
+    {
+        cerr << "ERROR: mkstemp returned error " << errno << endl;
+        assert(0);
+        return;
+    }
     ofstream f;
     f.open(fname);
     f << treestr << endl;
@@ -527,7 +533,7 @@ void DnaModel::input_log(std::istream  &in)
 /* PROTEIN MODELS */
 
 ProtModel::ProtModel(mt_index_t _matrix_index,
-             int model_params)
+             mt_mask_t model_params)
     : Model(model_params)
 {
     stringstream ss_name;
@@ -616,9 +622,7 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
     UNUSED(value);
     UNUSED(full_vector);
 
-    assert(0);
-    cerr << "INTERNAL ERROR: Protein substitution rates must be fixed" << endl;
-    exit(EXIT_FAILURE);
+    Utils::exit_with_error("INTERNAL ERROR: Protein substitution rates must be fixed");
 }
 
 void ProtModel::print(std::ostream  &out)

@@ -46,7 +46,7 @@ namespace modeltest
 
     /**
      * @brief Compute empirical frequencies for a partition
-     * @param[in,out] the partition
+     * @param[in,out] partition the partition
      * @param[in] smooth if true, assign a minimum frequency
      *                   if false, fail with zero frequencies
      * @param[in] force_recompute if false, computes only if the frequencies are not initialized

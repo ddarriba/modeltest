@@ -13,6 +13,8 @@
 class Loggable
 {
 public:
+    virtual ~Loggable() {}
+
     /**
      * @brief Prints out the log
      * @param[in] out the output stream to print log to

@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     partitionselection.cpp \
     service/modeltestservice.cpp \
     gui/modelsdialog.cpp \
-    gui/resultsexportdialog.cpp
+    gui/resultsexportdialog.cpp \
+    thread/observer.cpp
 
 HEADERS  += \
     model_defs.h \

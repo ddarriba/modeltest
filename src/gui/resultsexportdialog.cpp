@@ -87,7 +87,6 @@ void ResultsExportDialog::export_results(std::ostream  &out)
 
 void ResultsExportDialog::on_box_buttons_accepted()
 {
-    return;
     if (ui->cb_toconsole->isChecked())
         export_results(cout);
 
