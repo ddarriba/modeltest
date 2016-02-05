@@ -1,5 +1,6 @@
 #include "resultsdialog.h"
 #include "ui_resultsdialog.h"
+#include "gui/resultsexportdialog.h"
 
 #include "model.h"
 #include "service/modeltestservice.h"
@@ -123,20 +124,6 @@ void ResultsDialog::on_tool_results_export_clicked()
 {
     std::stringstream default_filename;
     default_filename << base_name << ".results.txt";
-    QString file_name = QFileDialog::getSaveFileName(this,
-                                                    tr("Export results"),
-                                                    default_filename.str().c_str());
-
-    const std::string save_file = file_name.toStdString();
-
-    if ( save_file.compare(""))
-    {
-        for (mt_index_t i=0; i<model_selection.size(); ++i)
-        {
-            model_selection[i][modeltest::ic_aic]->print(cout, 10);
-            model_selection[i][modeltest::ic_aicc]->print(cout, 10);
-            model_selection[i][modeltest::ic_bic]->print(cout, 10);
-            model_selection[i][modeltest::ic_dt]->print(cout, 10);
-        }
-    }
+    ResultsExportDialog exportdialog(model_selection, default_filename.str());
+    exportdialog.exec();
 }

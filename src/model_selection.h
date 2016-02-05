@@ -52,6 +52,13 @@ public:
     void print(std::ostream  &out = std::cout, mt_size_t limit = 0);
 
     /**
+     * @brief Prints out the model in XML format
+     * @param[in] out the output stream to print to
+     * @param[in] limit the number of models to print
+     */
+    void print_xml(std::ostream  &out = std::cout, mt_size_t limit = 0);
+
+    /**
      * @brief Print out the best model
      * @param[in] out the output stream to print to
      */

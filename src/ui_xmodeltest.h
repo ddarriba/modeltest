@@ -369,9 +369,10 @@ public:
         tool_open_tree->setMinimumSize(QSize(150, 20));
         tool_open_tree->setMaximumSize(QSize(150, 20));
         tool_open_tree->setFont(font);
-        tool_open_tree->setStyleSheet(QString::fromUtf8("border: 0px;\n"
+        tool_open_tree->setStyleSheet(QString::fromUtf8("border:1px solid #050;\n"
+"border-radius: 10px;\n"
 "text-align: left;\n"
-"margin-left: 5px;"));
+"padding-left: 5px;"));
         tool_open_tree->setIcon(icon2);
 
         verticalLayout_6->addWidget(tool_open_tree);
@@ -388,9 +389,10 @@ public:
         tool_open_parts->setMinimumSize(QSize(0, 20));
         tool_open_parts->setMaximumSize(QSize(150, 20));
         tool_open_parts->setFont(font);
-        tool_open_parts->setStyleSheet(QString::fromUtf8("border: 0px;\n"
+        tool_open_parts->setStyleSheet(QString::fromUtf8("border:1px solid #050;\n"
+"border-radius: 10px;\n"
 "text-align: left;\n"
-"margin-left: 5px;"));
+"padding-left: 5px;"));
         tool_open_parts->setIcon(icon3);
 
         verticalLayout_6->addWidget(tool_open_parts);
@@ -632,7 +634,7 @@ public:
         frame_settings->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, -218, 786, 583));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 786, 583));
         verticalLayout_9 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_9->setObjectName(QString::fromUtf8("verticalLayout_9"));
         frameData = new QFrame(scrollAreaWidgetContents);

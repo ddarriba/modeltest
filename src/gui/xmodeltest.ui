@@ -268,9 +268,10 @@ padding-left: 5px;</string>
                 <string>Load tree (NEWICK)</string>
                </property>
                <property name="styleSheet">
-                <string notr="true">border: 0px;
+                <string notr="true">border:1px solid #050;
+border-radius: 10px;
 text-align: left;
-margin-left: 5px;</string>
+padding-left: 5px;</string>
                </property>
                <property name="text">
                 <string>load tree</string>
@@ -328,9 +329,10 @@ margin-left: 5px;</string>
                 <string>Load partitions</string>
                </property>
                <property name="styleSheet">
-                <string notr="true">border: 0px;
+                <string notr="true">border:1px solid #050;
+border-radius: 10px;
 text-align: left;
-margin-left: 5px;</string>
+padding-left: 5px;</string>
                </property>
                <property name="text">
                 <string>load partitions</string>
@@ -989,7 +991,7 @@ margin-left: 5px;</string>
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-218</y>
+                 <y>0</y>
                  <width>786</width>
                  <height>583</height>
                 </rect>

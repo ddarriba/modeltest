@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>127</height>
+    <width>575</width>
+    <height>216</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,9 +19,19 @@
   <property name="windowTitle">
    <string>Export options</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #3c3b37, stop:0.55 #104BA9, stop:0.98 #000015, stop:1 #000015);
+QToolTip { color: #000s; border: none; }</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
+   </property>
    <item>
-    <widget class="QFrame" name="frame">
+    <widget class="QFrame" name="frame_options">
+     <property name="styleSheet">
+      <string notr="true">background: #fff2db; border-radius: 5px;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -29,8 +39,8 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="4" column="0">
+       <widget class="QLabel" name="lbl_nmodels">
         <property name="minimumSize">
          <size>
           <width>160</width>
@@ -54,8 +64,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QFrame" name="frame_2">
+      <item row="2" column="1">
+       <widget class="QFrame" name="frame_criteria">
         <property name="font">
          <font>
           <family>Courier 10 Pitch</family>
@@ -82,38 +92,56 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="checkBox">
+          <widget class="QCheckBox" name="cb_aic">
+           <property name="toolTip">
+            <string>Akaike Information Criterion</string>
+           </property>
            <property name="text">
             <string>AIC</string>
            </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="checkBox_2">
+          <widget class="QCheckBox" name="cb_bic">
+           <property name="toolTip">
+            <string>Bayesian Information Criterion</string>
+           </property>
            <property name="text">
             <string>BIC</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_3">
-           <property name="text">
-            <string>AICc</string>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="checkBox_4">
+          <widget class="QCheckBox" name="cb_aicc">
+           <property name="text">
+            <string>AICc</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_dt">
            <property name="text">
             <string>DT</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbl_criteria">
         <property name="minimumSize">
          <size>
           <width>160</width>
@@ -137,8 +165,8 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QFrame" name="frame_3">
+      <item row="4" column="1">
+       <widget class="QFrame" name="frame_nmodels">
         <property name="font">
          <font>
           <family>Courier 10 Pitch</family>
@@ -165,7 +193,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="lbl_slidervalue">
            <property name="minimumSize">
             <size>
              <width>40</width>
@@ -190,7 +218,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QSlider" name="horizontalSlider">
+          <widget class="QSlider" name="slider_nmodels">
            <property name="value">
             <number>10</number>
            </property>
@@ -202,11 +230,240 @@
         </layout>
        </widget>
       </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QFrame" name="frame_type">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <spacer name="spacer_type_left">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rad_human">
+           <property name="minimumSize">
+            <size>
+             <width>160</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>160</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Courier 10 Pitch</family>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Human readable</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rad_xml">
+           <property name="font">
+            <font>
+             <family>Courier 10 Pitch</family>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>XML</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="spacer_type_right">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbl_outfile">
+        <property name="font">
+         <font>
+          <family>Courier 10 Pitch</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Output file:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QFrame" name="frame_outfile">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="txt_outfile">
+           <property name="styleSheet">
+            <string notr="true">background: #fff; border-radius: 5px; border: 1px solid #555 ;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="tool_outfile">
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid #555; background: #eee;</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QFrame" name="frame_whereto">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="cb_toconsole">
+           <property name="minimumSize">
+            <size>
+             <width>130</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Courier 10 Pitch</family>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>To console</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_tofile">
+           <property name="minimumSize">
+            <size>
+             <width>130</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>130</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Courier 10 Pitch</family>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>To file</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="box_buttons">
+     <property name="styleSheet">
+      <string notr="true">background: #ccc;</string>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -220,7 +477,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>box_buttons</sender>
    <signal>accepted()</signal>
    <receiver>ResultsExportDialog</receiver>
    <slot>accept()</slot>
@@ -236,7 +493,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>box_buttons</sender>
    <signal>rejected()</signal>
    <receiver>ResultsExportDialog</receiver>
    <slot>reject()</slot>

@@ -185,6 +185,26 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }
 
+void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit)
+{
+    mt_size_t n_models = limit;
+    if (n_models<=0 || (size_t) n_models > models.size())
+        n_models = (mt_size_t) models.size();
+
+    out << "<selection type=\""<<ic_name<<"\">" << endl;
+    for (size_t i=0; i<n_models; i++)
+    {
+        out << "  <model rank=\"" << i+1
+            << "\" name=\"" << models[i].model->get_name()
+            << "\" lnL=\"" << setprecision(4) << models[i].model->get_lnl()
+            << "\" score=\"" << setprecision(4) << models[i].score
+            << "\" delta=\"" << setprecision(4) << models[i].delta
+            << "\" weight=\"" << setprecision(4) << models[i].weight
+            << "\" />" << endl;
+    }
+    out << "</selection>" << endl;
+}
+
 void ModelSelection::print_best_model(std::ostream  &out)
 {
     selection_model &best_sel_model = models[0];
