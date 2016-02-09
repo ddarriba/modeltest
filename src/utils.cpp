@@ -2,6 +2,7 @@
 #include "model_defs.h"
 
 #include <algorithm>
+#include <sstream>
 #include <cassert>
 #include <cerrno>
 #include <cstdarg>
@@ -906,6 +907,20 @@ mt_size_t Utils::parse_size(const char *str)
 mt_index_t Utils::parse_index(const char *str)
 {
     return (mt_index_t) atol(str);
+}
+
+string Utils::format_time(time_t seconds)
+{
+    time_t exec_time_h, exec_time_m, exec_time_s;
+    exec_time_s = seconds;
+    exec_time_h = exec_time_s / 3600;
+    exec_time_s -= exec_time_h * 3600;
+    exec_time_m = exec_time_s / 60;
+    exec_time_s -= exec_time_m * 60;
+
+    stringstream ss;
+    ss << setfill('0') << exec_time_h <<"h:" << setw(2) << exec_time_m << ":" << setw(2) << exec_time_s << setfill(' ');
+    return string(ss.str().c_str());
 }
 
 } /* namespace */

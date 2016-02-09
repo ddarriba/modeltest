@@ -658,19 +658,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   test_logl = cur_logl;
 #endif
                   bool full_range_search = n_iters<params_to_optimize.size();
-                  if (cur_parameter == PLL_PARAMETER_ALPHA)
+                  if (false)
                   {
-                      if (model->is_I())
-                          full_range_search &= !(alpha_inv_guess > 0.0);
-                      else
-                          full_range_search &= !(alpha_guess > 0.0);
-                  }
-                  else if (cur_parameter == PLL_PARAMETER_PINV)
-                  {
-                      if (model->is_G())
-                          full_range_search &= !(pinv_alpha_guess > 0.0);
-                      else
-                          full_range_search &= !(pinv_guess > 0.0);
+                      if (cur_parameter == PLL_PARAMETER_ALPHA)
+                      {
+                          if (model->is_I())
+                              full_range_search &= !(alpha_inv_guess > 0.0);
+                          else
+                              full_range_search &= !(alpha_guess > 0.0);
+                      }
+                      else if (cur_parameter == PLL_PARAMETER_PINV)
+                      {
+                          if (model->is_G())
+                              full_range_search &= !(pinv_alpha_guess > 0.0);
+                          else
+                              full_range_search &= !(pinv_guess > 0.0);
+                      }
                   }
                   iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
 
@@ -695,9 +698,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
               n_iters++;
               iters_hard_limit--;
-              assert(iters_hard_limit);
-
+              if (!iters_hard_limit)
+                  break;
           }
+
           /* TODO: if bl are reoptimized */
           if (keep_branch_lengths)
             tree->set_bl_optimized();

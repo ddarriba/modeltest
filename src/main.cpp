@@ -764,7 +764,7 @@ int main(int argc, char *argv[])
         /* command line */
         mt_options_t opts;
         mt_size_t num_cores = modeltest::Utils::count_physical_cores();
-        //time_t ini_global_time = time(NULL);
+        time_t ini_global_time = time(NULL);
 
         if (!parse_arguments(argc, argv, opts))
         {
@@ -810,7 +810,8 @@ int main(int argc, char *argv[])
             ModelTestService::instance()->evaluate_models(part_id, n_procs,
                                opts.epsilon_param, opts.epsilon_opt);
 
-            std::cout << "Done" << std::endl;
+            std::cout << std::endl << "Computation of likelihood scores completed. It took " <<
+                         modeltest::Utils::format_time(time(NULL) - ini_global_time) << std::endl;
 
             modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
             bic_selection->print(cout, 10);

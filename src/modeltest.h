@@ -149,7 +149,8 @@ private:
                               modeltest::Model *model,
                               mt_index_t thread_id,
                               double epsilon_param,
-                              double epsilon_opt);
+                              double epsilon_opt,
+                              time_t global_ini_time = 0);
 };
 
 }

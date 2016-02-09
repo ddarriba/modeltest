@@ -81,7 +81,8 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
                           modeltest::Model *model,
                           mt_index_t thread_id,
                           double epsilon_param,
-                          double epsilon_opt)
+                          double epsilon_opt,
+                          time_t global_ini_time)
 {
     time_t ini_t = time(NULL);
 
@@ -109,9 +110,11 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
     cout << setw(5) << right << (cur_model+1) << "/"
          << setw(5) << left << n_models
          << setw(15) << left << model->get_name()
-         << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+         << setw(11) << Utils::format_time(time(NULL) - ini_t);
+    if (global_ini_time)
+        cout << setw(11) << Utils::format_time(time(NULL) - global_ini_time);
+    cout << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
          << model->get_lnl()
-         << setw(8) << time(NULL) - ini_t
          << setw(8) << model->get_alpha()
          << setw(8) << model->get_prop_inv() << endl;
 
@@ -127,6 +130,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 
     mt_index_t cur_model;
     mt_size_t n_models = partition.get_number_of_models();
+    time_t global_ini_time = time(NULL);
 
     if (!n_models)
         return true;
@@ -137,7 +141,8 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
         {
             Model *model = partition.get_model(cur_model);
             eval_and_print(part_id, cur_model, n_models, model, 0,
-                           epsilon_param, epsilon_opt);
+                           epsilon_param, epsilon_opt,
+                           global_ini_time);
         }
     }
     else
@@ -153,11 +158,12 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
             Model *model = partition.get_model(cur_model);
 
             results.emplace_back(
-              pool.enqueue([cur_model, model, n_models, part_id, epsilon_param, epsilon_opt, this, &thread_map] {
+              pool.enqueue([cur_model, model, n_models, part_id, epsilon_param, epsilon_opt, this, &thread_map, global_ini_time] {
                 thread::id my_id(__gthread_self());
                 int res = eval_and_print(part_id, cur_model, n_models, model,
                                          thread_map[my_id],
-                                         epsilon_param, epsilon_opt);
+                                         epsilon_param, epsilon_opt,
+                                         global_ini_time);
                 return res;
               })
             );

@@ -224,6 +224,13 @@ public:
      * @return the index representation
      */
     static mt_index_t parse_index(const char *str);
+
+    /**
+     * @brief Converts a time (seconds) to string
+     * @param[in] seconds the time in seconds
+     * @return The string representation
+     */
+    static std::string format_time(time_t seconds);
 };
 
 }
