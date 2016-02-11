@@ -67,8 +67,10 @@ static void set_subst_params(int * m_ind, string const& matrix)
 
 Model::Model(mt_mask_t model_params)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
-      optimize_gamma(model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA)),
-      optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ)
+      optimize_gamma((model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+                     && !(model_params & MOD_PARAM_FREE_RATES)),
+      optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ),
+      mixture(model_params & MOD_PARAM_MIXTURE)
 {
     matrix_index = 0;
     prop_inv = 0.0;
@@ -126,6 +128,11 @@ bool Model::is_G() const
 bool Model::is_F() const
 {
     return optimize_freqs;
+}
+
+bool Model::is_mixture( void ) const
+{
+    return mixture;
 }
 
 const int * Model::get_symmetries( void ) const

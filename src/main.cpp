@@ -33,14 +33,13 @@ static mt_size_t n_procs = 1;
 static void print_usage(std::ostream& out)
 {
     out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
-    out << "            [-c n_categories] [-d nt|aa] [-F] [-N] [-O findModel|gtr]"
+    out << "            [-c n_categories] [-d nt|aa] [-F] [-N]"
         << endl;
-    out << "            [-p numberOfThreads] [-q configFile] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
-        << endl;
-    out << "            [-S greedy|greedyext|hcluster|random|exhaustive]"
+    out << "            [-p numberOfThreads] [-q partitionsFile]"
         << endl;
     out << "            [-t mp|fixed|user] [-u treeFile] [-v] [-V]" << endl;
-    out << "            [--config-help] [--config-template]" << endl;
+    out << "            [-T raxml|phyml|mrbayes|paup]" << endl;
+    out << "            [--eps optimizationEpsilonValue] [--tol parameterTolerance]" << endl;
 }
 
 static void print_help(std::ostream& out)
@@ -63,9 +62,6 @@ static void print_help(std::ostream& out)
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           aa"
         << "amino acid" << endl;
-
-    out << setw(MAX_OPT_LENGTH) << left << "  -e, --epsilon epsilon_value"
-        << "sets the model optimization epsilon" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
         << "sets the input alignment file (FASTA format, required)" << endl;
@@ -116,9 +112,9 @@ static void print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -f, --frequencies [ef]"
         << "sets the candidate models frequencies" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "e: equal (DNA) / empirical (AA)" << endl;
+        << "e: estimated - maximum likelihood (DNA) / empirical (AA)" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "f: maximum likelihood (DNA) / model defined (AA)" << endl;
+        << "f: fixed - equal (DNA) / model defined (AA)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -h, --model-het [uigf]"
         << "sets the candidate models rate heterogeneity" << endl;
@@ -144,14 +140,33 @@ static void print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "         JTTDCMUT FLU SMTREV" << endl;
 
-    out << setw(MAX_OPT_LENGTH) << left << "      --raxml"
-        << "sets candidate models according to RAxML" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "      --phyml"
-        << "sets candidate models according to PhyML" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "      --mrbayes"
-        << "sets candidate models according to MrBayes" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "      --paup"
-        << "sets candidate models according to PAUP*" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -s, --schemes [3|5|7|11|203]"
+        << "sets the number of predefined DNA substitution schemes evaluated" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << " " << "3:   JC/F81, K80/HKY, SYM/GTR" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << " " << "5:   + TrNef/TrN, TPM1/TPM1uf" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << " " << "7:   + TIM1ef/TIM1, TVMef/TVM" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << " " << "11:  + TPM2/TPM2uf, TPM3/TPM3uf, TIM2ef/TIM2, TIM3ef/TIM3" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << " " << "203: All possible GTR submatrices" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -T, --template [tool]"
+        << "sets candidate models according to a specified tool" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           raxml"
+        << "RAxML (DNA 3 schemes / AA full search)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           phyml"
+        << "PhyML (DNA full search / 14 AA matrices)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           mrbayes"
+        << "MrBayes (DNA 3 schemes / 8 AA matrices)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           paup"
+        << "PAUP* (DNA full search / AA full search)" << endl;
 
     /************************************************************/
 
@@ -174,6 +189,10 @@ static void print_help(std::ostream& out)
     /************************************************************/
 
     out << endl << " Other options:" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --eps epsilon_value"
+        << "sets the model optimization epsilon" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --tol tolerance_value"
+        << "sets the parameter optimization tolerance" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
         << "forces frequencies smoothing" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
@@ -228,7 +247,6 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
     {
         { "categories", required_argument, 0, 'c' },
         { "datatype", required_argument, 0, 'd' },
-        { "epsilon", required_argument, 0, 'e' },
         { "model-freqs", required_argument, 0, 'f' },
         { "model-het", required_argument, 0, 'h' },
         { "input", required_argument, 0, 'i' },
@@ -237,7 +255,8 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         { "processes", required_argument, 0, 'p' },
         { "partitions", required_argument, 0, 'q' },
         { "rngseed", required_argument, 0, 'r' },
-        { "schemes", required_argument, 0, 'S' },
+        { "schemes", required_argument, 0, 's' },
+        { "template", required_argument, 0, 'T' },
         { "tree", required_argument, 0, 't' },
         { "utree", required_argument, 0, 'u' },
         { "verbose", no_argument, 0, 'v' },
@@ -246,15 +265,13 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         { "version", no_argument, 0, 2 },
         { "psearch", required_argument, 0, 3 },
         { "smooth-frequencies", no_argument, 0, 4 },
-        { "raxml", no_argument, 0, 15 },
-        { "phyml", no_argument, 0, 16 },
-        { "mrbayes", no_argument, 0, 17 },
-        { "paup", no_argument, 0, 18 },
+        { "eps", required_argument, 0, 10 },
+        { "tol", required_argument, 0, 11 },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:e:f:h:i:m:o:p:q:r:S:t:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "c:d:f:h:i:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -298,22 +315,21 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
             /* force frequencies smoothing */
             exec_opt.smooth_freqs = true;
             break;
-        case 15:
-            /* RAxML template */
-            template_models = template_raxml;
-            cout << "Using RAxML template" << endl;
+        case 10:
+            exec_opt.epsilon_opt = atof(optarg);
+            if (exec_opt.epsilon_opt <= 0.0)
+            {
+                cerr << PACKAGE << ": Invalid optimization epsilon: " << exec_opt.epsilon_opt << endl;
+                return false;
+            }
             break;
-        case 16:
-            /* PhyML template */
-            template_models = template_phyml;
-            break;
-        case 17:
-            /* MrBayes template */
-            template_models = template_mrbayes;
-            break;
-        case 18:
-            /* PAUP* template */
-            template_models = template_paup;
+        case 11:
+            exec_opt.epsilon_param = atof(optarg);
+            if (exec_opt.epsilon_param <= 0.0)
+            {
+                cerr << PACKAGE << ": Invalid parameter tolerance: " << exec_opt.epsilon_param << endl;
+                return false;
+            }
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
@@ -337,10 +353,6 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
                 cerr <<  PACKAGE << ": Invalid datatype " << optarg << endl;
                 return false;
             }
-            break;
-        case 'e':
-            exec_opt.epsilon_opt = atof(optarg);
-            exec_opt.epsilon_param = atof(optarg);
             break;
         case 'f':
             for (mt_index_t i=0; i<strlen(optarg); i++)
@@ -417,7 +429,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         case 'r':
             exec_opt.rnd_seed = (unsigned int) atoi(optarg);
             break;
-        case 'S':
+        case 's':
             if (!strcmp(optarg, "3"))
             {
                 dna_ss = ss_3;
@@ -468,6 +480,30 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
             else
             {
                 cerr << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
+                return false;
+            }
+            break;
+        case 'T':
+            /* load template */
+            if (!strcasecmp(optarg, "raxml"))
+            {
+                template_models = template_raxml;
+            }
+            else if (!strcasecmp(optarg, "phyml"))
+            {
+                template_models = template_phyml;
+            }
+            else if (!strcasecmp(optarg, "mrbayes"))
+            {
+                template_models = template_mrbayes;
+            }
+            else if (!strcasecmp(optarg, "paup"))
+            {
+                template_models = template_paup;
+            }
+            else
+            {
+                cerr <<  PACKAGE << ": Invalid template: " << optarg << endl;
                 return false;
             }
             break;

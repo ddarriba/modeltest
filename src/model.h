@@ -61,6 +61,12 @@ public:
     bool is_F( void ) const;
 
     /**
+     * @brief checks whether the model is a mixture model
+     * @return true, if it is a mixture model
+     */
+    bool is_mixture( void ) const;
+
+    /**
      * @brief Gets the matrix symmetries
      * @return the rate matrix symmetries
      */
@@ -178,9 +184,12 @@ protected:
     mt_index_t matrix_index;
     std::string name;
 
+    /* model parameters */
+    /* NOTE: If model is mixture and not gamma, rates are free */
     bool optimize_pinv;
     bool optimize_gamma;
     bool optimize_freqs;
+    bool mixture;
 
     double prop_inv;
     double alpha;

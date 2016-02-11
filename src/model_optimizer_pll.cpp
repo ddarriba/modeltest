@@ -181,6 +181,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     {
         n_sites += (region.end - region.start + 1)/region.stride;
     }
+
+    /* create partition */
     pll_partition = pll_partition_create (
                 n_tips,                           /* tips */
                 n_inner,                          /* clv buffers */
@@ -312,92 +314,127 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       pll_partition_destroy(pll_partition);
   }
 
-  double ModelOptimizerPll::opt_single_parameter(mt_index_t which_parameter,
+  double ModelOptimizerPll::opt_single_parameter(mt_parameter_t which_parameter,
                                                  double tolerance,
                                                  bool first_guess)
   {
-      double cur_logl;
+      double cur_logl = 0.0;
 
       if (params == NULL)
           build_parameters();
 
+      switch(which_parameter)
+      {
+      case mt_param_branch_lengths:
+        cur_logl = opt_branch_lengths(tolerance);
+        break;
+      case mt_param_alpha:
+          cur_logl = opt_alpha(tolerance, first_guess);
+          break;
+      case mt_param_pinv:
+          cur_logl = opt_pinv(tolerance, first_guess);
+          break;
+      case mt_param_subst_rates:
+          params->which_parameters = PLL_PARAMETER_SUBST_RATES;
+          cur_logl = pll_optimize_parameters_lbfgsb(params);
+          break;
+      case mt_param_frequencies:
+          params->which_parameters = PLL_PARAMETER_FREQUENCIES;
+          cur_logl = pll_optimize_parameters_lbfgsb(params);
+          break;
+      }
+
+      return cur_logl;
+  }
+
+#define MIN_ALPHA 0.02
+#define MAX_ALPHA 100.0
+
+  double ModelOptimizerPll::opt_alpha(double tolerance,
+                           bool first_guess)
+  {
+      double cur_logl;
+      params->pgtol = tolerance;
+      params->which_parameters = PLL_PARAMETER_ALPHA;
+      cur_logl = pll_optimize_parameters_brent_ranged(params,
+                                                      MIN_ALPHA,
+                                                      params->lk_params.alpha_value,
+                                                      MAX_ALPHA);
+      return cur_logl;
+  }
+
+#undef MIN_ALPHA
+#undef MAX_ALPHA
+
+#define MIN_PINV 0.0
+
+  double ModelOptimizerPll::opt_pinv(double tolerance,
+                                     bool first_guess)
+  {
+      double cur_logl;
+      double max_pinv = std::min(partition.empirical_pinv, 0.99);
+      params->pgtol = tolerance;
+      params->which_parameters = PLL_PARAMETER_PINV;
+      cur_logl = pll_optimize_parameters_brent_ranged(params,
+                                                      MIN_PINV,
+                                                      params->lk_params.partition->prop_invar[0],
+                                                      max_pinv);
+      return cur_logl;
+  }
+
+#undef MIN_PINV
+
+  double ModelOptimizerPll::opt_branch_lengths(double tolerance)
+  {
+      int smoothings = 2;
+      mt_index_t tmp_matrix_count, tmp_ops_count;
+      pll_utree_t* pll_tree;
+      pll_utree_t ** travbuffer;
+      mt_size_t traversal_size;
+      double cur_logl;
+
       params->pgtol = tolerance;
 
-      if (which_parameter == PLL_PARAMETER_BRANCHES_ITERATIVE)
-      {
-          int smoothings = 2;
-          mt_index_t tmp_matrix_count, tmp_ops_count;
-          pll_utree_t* pll_tree;
-          pll_utree_t ** travbuffer;
-          mt_size_t traversal_size;
-
-          /* move to random node */
-          tree->reroot_random(thread_number);
-          pll_tree = tree->get_pll_tree(thread_number);
+      /* move to random node */
+      tree->reroot_random(thread_number);
+      pll_tree = tree->get_pll_tree(thread_number);
 
 
-          travbuffer = (pll_utree_t **) Utils::allocate (2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
-          pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
-          pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                       matrix_indices, operations, &tmp_matrix_count,
-                                       &tmp_ops_count);
-          pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
-                                    tree->get_n_branches());
+      travbuffer = (pll_utree_t **) Utils::allocate (2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
+      pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
+      pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
+                                   matrix_indices, operations, &tmp_matrix_count,
+                                   &tmp_ops_count);
+      pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
+                                tree->get_n_branches());
+
 //          for (mt_index_t i=0; i<num_threads; i++)
 //            thread_data[i].vroot = tree->get_pll_tree();
 //          start_job_sync (JOB_UPDATE_PARTIALS, thread_data);
-          pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
-          params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
+      pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
 
-          cur_logl = pll_optimize_branch_lengths_iterative (
-                      pll_partition, pll_tree, params->params_index, params->lk_params.freqs_index,
-                      params->pgtol, smoothings, true);
+      params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
 
-          pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
-          pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                       matrix_indices, operations, &tmp_matrix_count,
-                                       &tmp_ops_count);
-          //params->lk_params.partition->prop_invar[0] = 0.0;
-          params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
-          params->lk_params.where.unrooted_t.parent_scaler_index =
-                  pll_tree->scaler_index;
-          params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
-          params->lk_params.where.unrooted_t.child_scaler_index =
-                  pll_tree->back->scaler_index;
-          params->lk_params.where.unrooted_t.edge_pmatrix_index =
-                  pll_tree->pmatrix_index;
+      cur_logl = pll_optimize_branch_lengths_iterative (
+                  pll_partition, pll_tree, params->params_index, params->lk_params.freqs_index,
+                  params->pgtol, smoothings, true);
 
-          free(travbuffer);
-      }
-      else if (which_parameter == PLL_PARAMETER_ALPHA)
-      {
-          params->which_parameters = which_parameter;
-          if (first_guess)
-            cur_logl = pll_optimize_parameters_brent_ranged(params,
-                                                            0.02,
-                                                            params->lk_params.alpha_value,
-                                                            100.0);
-          else
-              cur_logl = pll_optimize_parameters_brent(params);
-      }
-      else if (which_parameter == PLL_PARAMETER_PINV)
-      {
-          params->which_parameters = which_parameter;
+      pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
+      pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
+                                   matrix_indices, operations, &tmp_matrix_count,
+                                   &tmp_ops_count);
 
-          if (first_guess)
-            cur_logl = pll_optimize_parameters_brent_ranged(params,
-                                                            0.0,
-                                                            partition.empirical_pinv,
-                                                            0.99);
-          else
-              cur_logl = pll_optimize_parameters_brent(params);
-      }
-      else
-      {
-          params->which_parameters = which_parameter;
-          cur_logl = pll_optimize_parameters_lbfgsb(params);
-      }
+      params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
+      params->lk_params.where.unrooted_t.parent_scaler_index =
+              pll_tree->scaler_index;
+      params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
+      params->lk_params.where.unrooted_t.child_scaler_index =
+              pll_tree->back->scaler_index;
+      params->lk_params.where.unrooted_t.edge_pmatrix_index =
+              pll_tree->pmatrix_index;
+
+      free(travbuffer);
 
       return cur_logl;
   }
@@ -406,7 +443,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   {
       assert (params == NULL);
 
-      double default_alpha = 1.5;
+      double default_alpha = 1.0;
       pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
 
       params = new pll_optimize_options_t;
@@ -456,9 +493,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       else
       {
           if (model->is_G())
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:partition.empirical_pinv);
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.empirical_pinv/2));
           else
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:partition.empirical_pinv);
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.empirical_pinv/2));
       }
 
       if (model->is_F())
@@ -595,34 +632,35 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-      std::vector<mt_index_t> params_to_optimize;
+      std::vector<mt_parameter_t> params_to_optimize;
 
       if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
-          params_to_optimize.push_back(PLL_PARAMETER_BRANCHES_ITERATIVE);
+          params_to_optimize.push_back(mt_param_branch_lengths);
       if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
-          params_to_optimize.push_back(PLL_PARAMETER_SUBST_RATES);
+          params_to_optimize.push_back(mt_param_subst_rates);
       if (model->is_G() && model->is_I())
       {
           model->set_alpha(alpha_inv_guess);
           model->set_prop_inv(pinv_alpha_guess);
-          params_to_optimize.push_back(PLL_PARAMETER_ALPHA);
-          params_to_optimize.push_back(PLL_PARAMETER_PINV);
+          params_to_optimize.push_back(mt_param_alpha);
+          params_to_optimize.push_back(mt_param_pinv);
       }
       else
       {
           if (model->is_G())
           {
               model->set_alpha(alpha_guess);
-              params_to_optimize.push_back(PLL_PARAMETER_ALPHA);
+              params_to_optimize.push_back(mt_param_alpha);
           }
           if (model->is_I())
           {
+              pinv_guess = partition.empirical_pinv/2;
               model->set_prop_inv(pinv_guess);
-              params_to_optimize.push_back(PLL_PARAMETER_PINV);
+              params_to_optimize.push_back(mt_param_pinv);
           }
       }
       if (model->get_datatype() == dt_dna && model->is_F())
-          params_to_optimize.push_back(PLL_PARAMETER_FREQUENCIES);
+          params_to_optimize.push_back(mt_param_frequencies);
 
       mt_index_t cur_parameter_index = 0;
 
@@ -651,7 +689,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   return false;
               }
 
-              mt_index_t cur_parameter = params_to_optimize[cur_parameter_index];
+              mt_parameter_t cur_parameter = params_to_optimize[cur_parameter_index];
 #if(CHECK_LOCAL_CONVERGENCE)
               if (!(converged & cur_parameter))
               {
@@ -660,14 +698,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   bool full_range_search = n_iters<params_to_optimize.size();
                   if (false)
                   {
-                      if (cur_parameter == PLL_PARAMETER_ALPHA)
+                      if (cur_parameter == mt_param_alpha)
                       {
                           if (model->is_I())
                               full_range_search &= !(alpha_inv_guess > 0.0);
                           else
                               full_range_search &= !(alpha_guess > 0.0);
                       }
-                      else if (cur_parameter == PLL_PARAMETER_PINV)
+                      else if (cur_parameter == mt_param_pinv)
                       {
                           if (model->is_G())
                               full_range_search &= !(pinv_alpha_guess > 0.0);

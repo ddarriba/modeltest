@@ -35,9 +35,12 @@
 #define MOD_PARAM_INV             (1<<3)
 #define MOD_PARAM_GAMMA           (1<<4)
 #define MOD_PARAM_INV_GAMMA       (1<<5)
+#define MOD_PARAM_MIXTURE         (1<<6)
+#define MOD_PARAM_FREE_RATES      (1<<7)
 
 #define MOD_MASK_FREQ_PARAMS   3
-#define MOD_MASK_RATE_PARAMS  60
+#define MOD_MASK_RATE_PARAMS   60
+#define MOD_MASK_MIXT_PARAMS  192
 
 const mt_index_t raxml_matrices_indices[3] = {
     DNA_JC_INDEX,

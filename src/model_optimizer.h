@@ -14,6 +14,14 @@
 namespace modeltest
 {
 
+  typedef enum {
+      mt_param_branch_lengths,
+      mt_param_subst_rates,
+      mt_param_frequencies,
+      mt_param_alpha,
+      mt_param_pinv,
+  } mt_parameter_t;
+
   extern bool on_run;
 
   class ModelOptimizer : public Observable
@@ -37,9 +45,32 @@ namespace modeltest
      * @param[in] tolerance         tolerance for parameter optimization
      * @return the resulting log-Likelihood of the model
      */
-    virtual double opt_single_parameter(mt_index_t which_parameter,
+    virtual double opt_single_parameter(mt_parameter_t which_parameter,
                                         double tolerance = DEFAULT_PARAM_EPSILON,
                                         bool first_guess = false) = 0;
+
+    /**
+     * @brief Optimizes branch lengths
+     * @param[in] tolerance         tolerance for parameter optimization
+     * @return the resulting log-Likelihood of the model
+     */
+    virtual double opt_branch_lengths(double tolerance = DEFAULT_PARAM_EPSILON) = 0;
+
+    /**
+     * @brief Optimizes Gamma shape
+     * @param[in] tolerance         tolerance for parameter optimization
+     * @return the resulting log-Likelihood of the model
+     */
+    virtual double opt_alpha(double tolerance = DEFAULT_PARAM_EPSILON,
+                             bool first_guess = false) = 0;
+
+    /**
+     * @brief Optimizes proportion of invariant sites
+     * @param[in] tolerance         tolerance for parameter optimization
+     * @return the resulting log-Likelihood of the model
+     */
+    virtual double opt_pinv(double tolerance = DEFAULT_PARAM_EPSILON,
+                             bool first_guess = false) = 0;
 
     /**
      * @brief Optimizes all parameters for the model

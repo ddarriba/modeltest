@@ -46,9 +46,17 @@ namespace modeltest
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
 
-    virtual double opt_single_parameter(mt_index_t which_parameter,
+    virtual double opt_single_parameter(mt_parameter_t which_parameter,
                                         double tolerance = DEFAULT_PARAM_EPSILON,
                                         bool first_guess = false);
+
+    virtual double opt_branch_lengths(double tolerance = DEFAULT_PARAM_EPSILON);
+
+    virtual double opt_alpha(double tolerance = DEFAULT_PARAM_EPSILON,
+                             bool first_guess = false);
+
+    virtual double opt_pinv(double tolerance = DEFAULT_PARAM_EPSILON,
+                             bool first_guess = false);
 
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001,
