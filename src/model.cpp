@@ -550,9 +550,28 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     n_frequencies = N_PROT_STATES;
     n_subst_rates = N_PROT_SUBST_RATES;
 
-    frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
-    memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
-    fixed_subst_rates = prot_model_rates[matrix_index];
+    if (mixture)
+    {
+        assert(!is_F());
+        if (optimize_gamma)
+        {
+            /* LG4M model */
+            mixture_frequencies = pll_aa_freqs_lg4m;
+            mixture_subst_rates = pll_aa_rates_lg4m;
+        }
+        else
+        {
+            /* LG4X model / free rates */
+            mixture_frequencies = pll_aa_freqs_lg4x;
+            mixture_subst_rates = pll_aa_rates_lg4x;
+        }
+    }
+    else
+    {
+        frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
+        memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
+        fixed_subst_rates = prot_model_rates[matrix_index];
+    }
 
     ss_name << prot_model_names[matrix_index];
     if (optimize_pinv)

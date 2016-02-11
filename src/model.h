@@ -285,6 +285,8 @@ public:
 
 private:
     const double *fixed_subst_rates;
+    const double (*mixture_frequencies)[N_PROT_STATES];
+    const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
 };
 
 }
