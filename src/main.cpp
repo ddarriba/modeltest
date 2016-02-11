@@ -584,6 +584,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         assert(exec_opt.partitions_desc);
         for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
         {
+            partition.model_params = exec_opt.model_params;
             partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
                                                              N_PROT_STATES);
             exist_dna_models     |= (partition.datatype == dt_dna);
@@ -606,6 +607,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         exist_protein_models = (arg_datatype == dt_protein);
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
+        partition.model_params = exec_opt.model_params;
         exec_opt.partitions_desc->push_back(partition);
     }
 
@@ -652,7 +654,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
             string s;
             while (getline(f, s, ',')) {
                 mt_index_t i, c_matrix = 0;
-                for (i=0; i<N_PROT_MODEL_MATRICES; i++)
+                for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
                 {
                     if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
                     {
@@ -660,14 +662,14 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
                         break;
                     }
                 }
-                if (i == N_PROT_MODEL_MATRICES)
+                if (i == N_PROT_MODEL_ALL_MATRICES)
                 {
                     cerr << PACKAGE << ": Invalid protein matrix: " << s << endl;
                     return false;
                 }
                 prot_matrices_bitv |= 1<<c_matrix;
             }
-            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            for (mt_index_t i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
             {
                 if (prot_matrices_bitv&1)
                 {

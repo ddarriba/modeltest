@@ -91,6 +91,13 @@ public:
     const double * get_frequencies( void ) const;
 
     /**
+     * @brief Gets the model state frequencies for mixture model
+     * @param[in] matrix_idx the index of the mixture matrix
+     * @return the state frequencies for the matrix
+     */
+    virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
+
+    /**
      * @brief Sets the model state frequencies
      * @param[in] value the model state frequencies
      */
@@ -102,6 +109,13 @@ public:
      * @return the substitution rates
      */
     virtual const double * get_subst_rates( void ) const;
+
+    /**
+     * @brief Gets the substitution rates for mixture model
+     * @param[in] matrix_idx the index of the mixture matrix
+     * @return the substitution rates for the matrix
+     */
+    virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
 
     /**
      * @brief Sets the substitution rates
@@ -275,7 +289,9 @@ public:
 
     /* extended */
     virtual mt_size_t get_n_subst_params( void ) const;
+    virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
     virtual const double * get_subst_rates( void ) const;
+    virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
     virtual void set_subst_rates(const double value[],
                                  bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);

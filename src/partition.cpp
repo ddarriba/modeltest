@@ -36,41 +36,64 @@ static bool build_models(data_type_t datatype,
         n_models *= 2;
     c_models.reserve(n_models);
 
+    /* check for mixture models */
+    if (datatype == dt_protein)
+    {
+        for (mt_index_t model_matrix : candidate_models)
+            if (model_matrix == LG4M_INDEX)
+            {
+                if (model_params & MOD_PARAM_GAMMA)
+                    c_models.push_back(
+                        new ProtModel(LG4M_INDEX, MOD_PARAM_GAMMA | MOD_PARAM_FIXED_FREQ)
+                        );
+            }
+        else if (model_matrix == LG4X_INDEX)
+            {
+                if (model_params & MOD_PARAM_GAMMA)
+                    c_models.push_back(
+                            new ProtModel(LG4X_INDEX, MOD_PARAM_FIXED_FREQ)
+                            );
+            }
+    }
+
     for (mt_index_t i=1; i<64; i*=2)
     {
         mt_mask_t cur_rate_param = rate_params & i;
         if (cur_rate_param)
         {
-            for (mt_index_t j=0; j<n_matrices; j++)
+            for (mt_index_t model_matrix : candidate_models)
             {
                 if (datatype == dt_dna)
                 {
                     if (freq_params & MOD_PARAM_FIXED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                    new DnaModel(model_matrix, cur_rate_param | MOD_PARAM_FIXED_FREQ)
                                     );
                     if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
+                                    new DnaModel(model_matrix, cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
                                     );
                 }
                 else if (datatype == dt_protein)
                 {
-                    if (freq_params & MOD_PARAM_FIXED_FREQ)
-                        c_models.push_back(
-                                    new ProtModel(candidate_models[j], cur_rate_param | MOD_PARAM_FIXED_FREQ)
-                                    );
-                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
-                        c_models.push_back(
-                                    new ProtModel(candidate_models[j], cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
-                                    );
+                    if (model_matrix < N_PROT_MODEL_MATRICES)
+                    {
+                        if (freq_params & MOD_PARAM_FIXED_FREQ)
+                            c_models.push_back(
+                                        new ProtModel(model_matrix, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                        );
+                        if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
+                            c_models.push_back(
+                                        new ProtModel(model_matrix, cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
+                                        );
+                    }
                 }
                 else
                     assert(0);
             }
         }
     }
-    assert(c_models.size() == n_models);
+    assert(datatype == dt_protein || (c_models.size() == n_models));
 
     return true;
 }

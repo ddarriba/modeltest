@@ -195,6 +195,12 @@ const double * Model::get_frequencies( void ) const
     return frequencies;
 }
 
+const double * Model::get_mixture_frequencies( mt_index_t matrix_idx ) const
+{
+    UNUSED(matrix_idx);
+    return 0;
+}
+
 void Model::set_frequencies(const double value[])
 {
     memcpy(frequencies, value, n_frequencies * sizeof(double));
@@ -208,6 +214,12 @@ void Model::set_frequencies(const vector<double> & value)
 const double * Model::get_subst_rates( void ) const
 {
     return subst_rates;
+}
+
+const double * Model::get_mixture_subst_rates( mt_index_t matrix_idx ) const
+{
+    UNUSED(matrix_idx);
+    return 0;
 }
 
 void Model::set_subst_rates(const double value[], bool full_vector)
@@ -546,7 +558,9 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     stringstream ss_name;
 
     matrix_index = _matrix_index;
-    assert(matrix_index < N_PROT_MODEL_MATRICES);
+    assert(matrix_index < N_PROT_MODEL_ALL_MATRICES);
+    mixture = (matrix_index >= N_PROT_MODEL_MATRICES);
+
     n_frequencies = N_PROT_STATES;
     n_subst_rates = N_PROT_SUBST_RATES;
 
@@ -565,9 +579,12 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
             mixture_frequencies = pll_aa_freqs_lg4x;
             mixture_subst_rates = pll_aa_rates_lg4x;
         }
+
+        assert (!optimize_freqs);
     }
     else
     {
+        assert(matrix_index < N_PROT_MODEL_MATRICES);
         frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
         memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
         fixed_subst_rates = prot_model_rates[matrix_index];
@@ -576,7 +593,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     ss_name << prot_model_names[matrix_index];
     if (optimize_pinv)
         ss_name << "+I";
-    if (optimize_gamma)
+    if (optimize_gamma && !mixture)
         ss_name << "+G";
     if (optimize_freqs)
         ss_name << "+F";
@@ -589,6 +606,8 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         n_free_variables ++;
     if (optimize_gamma)
         n_free_variables ++;
+    if (mixture && !optimize_gamma)
+        n_free_variables += 3;
 }
 
 ProtModel::ProtModel(const Model & other)
@@ -638,9 +657,19 @@ mt_size_t ProtModel::get_n_subst_params() const
     return 0;
 }
 
+const double * ProtModel::get_mixture_frequencies( mt_index_t matrix_idx ) const
+{
+    return mixture_frequencies[matrix_idx];
+}
+
 const double * ProtModel::get_subst_rates( void ) const
 {
     return fixed_subst_rates;
+}
+
+const double * ProtModel::get_mixture_subst_rates( mt_index_t matrix_idx ) const
+{
+    return mixture_subst_rates[matrix_idx];
 }
 
 void ProtModel::set_subst_rates(const double value[], bool full_vector)
@@ -656,15 +685,33 @@ void ProtModel::print(std::ostream  &out)
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
         << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-    for (mt_index_t i=0; i<N_PROT_STATES; i++)
+    if (mixture)
     {
-        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
-        if ((i+1)<N_PROT_STATES && !((i+1)%5))
+        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
         {
-            out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+            for (mt_index_t i=0; i<N_PROT_STATES; i++)
+            {
+                out << setprecision(MT_PRECISION_DIGITS) << mixture_frequencies[j][i] << " ";
+                if ((i+1)<N_PROT_STATES && !((i+1)%5))
+                {
+                    out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+                }
+            }
+            out << endl << endl << setw(PRINTMODEL_TABSIZE) << " ";
         }
     }
-    out << endl;
+    else
+    {
+        for (mt_index_t i=0; i<N_PROT_STATES; i++)
+        {
+            out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+            if ((i+1)<N_PROT_STATES && !((i+1)%5))
+            {
+                out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+            }
+        }
+        out << endl;
+    }
     out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
     if (is_I())
         out << prop_inv << endl;

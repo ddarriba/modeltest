@@ -176,6 +176,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     mt_size_t n_branches = tree->get_n_branches ();
     mt_size_t n_nodes = tree->get_n_nodes ();
     mt_size_t n_sites = 0;
+    mt_size_t mixture = 0;
 
     for (const partition_region_t & region : partition.regions)
     {
@@ -183,18 +184,27 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     }
 
     /* create partition */
+    if (model->is_mixture())
+    {
+        mixture = N_MIXTURE_CATS;
+        assert(mixture == _n_cat_g);
+    }
+
     pll_partition = pll_partition_create (
                 n_tips,                           /* tips */
                 n_inner,                          /* clv buffers */
                 model->get_n_states(),            /* states */
                 n_sites,                          /* sites */
-                0,                                /* mixture model */
+                mixture,                          /* mixture model */
                 1,                                /* rate matrices */
                 n_branches,                       /* prob matrices */
                 model->is_G () ? _n_cat_g : 1,    /* rate cats */
                 n_inner,                          /* scale buffers */
                 PLL_ATTRIB_ARCH_SSE               /* attributes */
                 );
+
+    if (!pll_partition)
+        std::cout << "  MIXTURE CATS " << pll_errno << " " << pll_errmsg << std::endl;
     assert(pll_partition);
 
     pll_utree_t* pll_tree = tree->get_pll_start_tree (_thread_number);
@@ -501,11 +511,24 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (model->is_F())
           model->set_frequencies(partition.empirical_freqs);
 
-      pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
-      pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+      if (model->is_mixture())
+      {
+          assert (pll_partition->mixture = N_MIXTURE_CATS);
+          for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
+          {
+              pll_set_frequencies (pll_partition, 0, i, model->get_mixture_frequencies(i));
+              pll_set_subst_params (pll_partition, 0, i, model->get_mixture_subst_rates(i));
+          }
+      }
+      else
+      {
+        pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
+        pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+      }
 
       if (model->is_G())
       {
+          printf("Computing gamma categories for alpha = %f\n", params->lk_params.alpha_value);
           pll_compute_gamma_cats (params->lk_params.alpha_value,
                                   pll_partition->rate_cats,
                                   rate_cats);
@@ -540,8 +563,35 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       double * result_buf = NULL;
       pthread_barrier_t barrier_buf;
 
-      if (params == NULL)
-        build_parameters();
+      std::vector<mt_parameter_t> params_to_optimize;
+
+      if (!model->is_mixture() && (model->get_datatype() == dt_dna || !tree->is_bl_optimized()))
+          params_to_optimize.push_back(mt_param_branch_lengths);
+      if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
+          params_to_optimize.push_back(mt_param_subst_rates);
+      if (model->is_G() && model->is_I())
+      {
+          model->set_alpha(alpha_inv_guess);
+          model->set_prop_inv(pinv_alpha_guess);
+          params_to_optimize.push_back(mt_param_alpha);
+          params_to_optimize.push_back(mt_param_pinv);
+      }
+      else
+      {
+          if (model->is_G())
+          {
+              model->set_alpha(alpha_guess);
+              params_to_optimize.push_back(mt_param_alpha);
+          }
+          if (model->is_I())
+          {
+              pinv_guess = partition.empirical_pinv/2;
+              model->set_prop_inv(pinv_guess);
+              params_to_optimize.push_back(mt_param_pinv);
+          }
+      }
+      if (model->get_datatype() == dt_dna && model->is_F())
+          params_to_optimize.push_back(mt_param_frequencies);
 
 #ifdef VERBOSE //TODO: Verbosity high
       std::cout << "Initial Frequencies:   ";
@@ -594,6 +644,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 //      tree->reroot_random(thread_number);
       pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
 
+      if (params == NULL)
+        build_parameters();
+
 //      tree->set_branches(0.15, thread_number);
 //      for (mt_index_t i=0; i<n_branches; i++)
 //          branch_lengths[i] = 0.15;
@@ -614,6 +667,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                                     pll_tree->pmatrix_index,
                                                     0);
 
+      printf("initial LOGL %f %f\n", pll_partition->rates[0], logl);
+
       /* current logl changes the sign of the lk, such that the optimization
        * function can minimize the score
        */
@@ -631,36 +686,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       double test_logl;         /* temporary variable */
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
-
-      std::vector<mt_parameter_t> params_to_optimize;
-
-      if (model->get_datatype() == dt_dna || !tree->is_bl_optimized())
-          params_to_optimize.push_back(mt_param_branch_lengths);
-      if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
-          params_to_optimize.push_back(mt_param_subst_rates);
-      if (model->is_G() && model->is_I())
-      {
-          model->set_alpha(alpha_inv_guess);
-          model->set_prop_inv(pinv_alpha_guess);
-          params_to_optimize.push_back(mt_param_alpha);
-          params_to_optimize.push_back(mt_param_pinv);
-      }
-      else
-      {
-          if (model->is_G())
-          {
-              model->set_alpha(alpha_guess);
-              params_to_optimize.push_back(mt_param_alpha);
-          }
-          if (model->is_I())
-          {
-              pinv_guess = partition.empirical_pinv/2;
-              model->set_prop_inv(pinv_guess);
-              params_to_optimize.push_back(mt_param_pinv);
-          }
-      }
-      if (model->get_datatype() == dt_dna && model->is_F())
-          params_to_optimize.push_back(mt_param_frequencies);
 
       mt_index_t cur_parameter_index = 0;
 
@@ -715,7 +740,32 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   }
                   iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
 
-                  //printf(" iteration %3d %.10f %.10f\n", cur_parameter, iter_logl, cur_logl);
+                  pll_update_prob_matrices (pll_partition,
+                                            0,
+                                            matrix_indices,
+                                            branch_lengths,
+                                            n_branches);
+                  pll_update_partials (pll_partition,
+                                       operations,
+                                       tree->get_n_inner());
+
+                  double logl2 = pll_compute_edge_loglikelihood (pll_partition,
+                                                                pll_tree->clv_index,
+                                                                pll_tree->scaler_index,
+                                                                pll_tree->back->clv_index,
+                                                                pll_tree->back->scaler_index,
+                                                                pll_tree->pmatrix_index,
+                                                                0);
+
+//                  printf("NEXT LOGL %f %f\n", pll_partition->rates[0], logl2);
+//                  printf("NEXT LOGL %d %d %d %d %d\n", pll_tree->clv_index, pll_tree->scaler_index, pll_tree->back->clv_index, pll_tree->back->scaler_index, pll_tree->pmatrix_index);
+//                  printf("NEXT LOGL %d %d %d %d %d\n", params->lk_params.where.unrooted_t.parent_clv_index,
+//                         params->lk_params.where.unrooted_t.parent_scaler_index,
+//                         params->lk_params.where.unrooted_t.child_clv_index,
+//                         params->lk_params.where.unrooted_t.child_scaler_index,
+//                         params->lk_params.where.unrooted_t.edge_pmatrix_index);
+
+//                  printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
 
                   /* ensure we never get a worse likelihood score */
                   assert(iter_logl - cur_logl < 1e-5);
@@ -782,18 +832,18 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           if (model->is_I())
               model->set_prop_inv(pll_partition->prop_invar[0]);
 
-          if (model->is_G() && model->is_I())
-          {
-              alpha_inv_guess = params->lk_params.alpha_value;
-              pinv_alpha_guess = pll_partition->prop_invar[0];
-          }
-          else
-          {
-              if (model->is_G())
-                  alpha_guess = params->lk_params.alpha_value;
-              if (model->is_I())
-                  pinv_guess = pll_partition->prop_invar[0];
-          }
+//          if (model->is_G() && model->is_I())
+//          {
+//              alpha_inv_guess = params->lk_params.alpha_value;
+//              pinv_alpha_guess = pll_partition->prop_invar[0];
+//          }
+//          else
+//          {
+//              if (model->is_G())
+//                  alpha_guess = params->lk_params.alpha_value;
+//              if (model->is_I())
+//                  pinv_guess = pll_partition->prop_invar[0];
+//          }
           if (model->get_datatype() == dt_dna)
           {
             model->set_frequencies(pll_partition->frequencies[0]);

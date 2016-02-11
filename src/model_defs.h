@@ -6,13 +6,18 @@
 
 #include <string>
 
-#define N_DNA_STATES             4
-#define N_DNA_SUBST_RATES        6
-#define N_DNA_MODEL_MATRICES    11
-#define N_DNA_ALLMATRIX_COUNT  203
-#define N_PROT_STATES           20
-#define N_PROT_SUBST_RATES     190
-#define N_PROT_MODEL_MATRICES   19
+#define N_DNA_STATES                 4
+#define N_DNA_SUBST_RATES            6
+#define N_DNA_MODEL_MATRICES        11
+#define N_DNA_ALLMATRIX_COUNT      203
+#define N_PROT_STATES               20
+#define N_PROT_SUBST_RATES         190
+#define N_PROT_MODEL_MATRICES       19 //! protein non-mixture matrices
+#define N_PROT_MODEL_ALL_MATRICES   21 //! all protein matrices
+
+#define N_MIXTURE_CATS  4
+#define LG4M_INDEX      19
+#define LG4X_INDEX      20
 
 #define N_DNA_RAXML_MATRICES     3
 #define N_DNA_MRBAYES_MATRICES   3
@@ -148,7 +153,7 @@ const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
     "012345"                                                              //202
 };
 
-const std::string prot_model_names[N_PROT_MODEL_MATRICES] = {
+const std::string prot_model_names[N_PROT_MODEL_ALL_MATRICES] = {
     "DAYHOFF",   //  0
     "LG",        //  1
     "DCMUT",     //  2
@@ -167,7 +172,10 @@ const std::string prot_model_names[N_PROT_MODEL_MATRICES] = {
     "HIVW",      // 15
     "JTTDCMUT",  // 16
     "FLU",       // 17
-    "STMTREV"    // 18
+    "STMTREV",   // 18
+    /* additional mixture matrices */
+    "LG4M",      // 19
+    "LG4X"       // 20
 };
 
 const mt_index_t prot_raxml_matrices_indices[N_PROT_RAXML_MATRICES] = {
