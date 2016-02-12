@@ -191,6 +191,9 @@ public:
     time_t get_exec_time() const;
     void set_exec_time( time_t t);
 
+    virtual pll_partition_t * build_partition( mt_size_t n_tips,
+                                               mt_size_t n_sites,
+                                               mt_size_t n_cat_g ) const = 0;
     pll_utree_t * get_tree( void ) const;
     void set_tree( pll_utree_t * tree );
 
@@ -265,6 +268,9 @@ public:
                                  bool full_vector=true);
 
     /* extended */
+    virtual pll_partition_t * build_partition( mt_size_t n_tips,
+                                               mt_size_t n_sites,
+                                               mt_size_t n_cat_g ) const;
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out);
@@ -288,6 +294,9 @@ public:
     }
 
     /* extended */
+    virtual pll_partition_t * build_partition( mt_size_t n_tips,
+                                               mt_size_t n_sites,
+                                               mt_size_t n_cat_g ) const;
     virtual mt_size_t get_n_subst_params( void ) const;
     virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
     virtual const double * get_subst_rates( void ) const;

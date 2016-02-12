@@ -414,6 +414,25 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
+pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
+                                            mt_size_t n_sites,
+                                            mt_size_t n_cat_g) const
+{
+    pll_partition_t * part = pll_partition_create (
+                n_tips,                           /* tips */
+                n_tips-2,                         /* clv buffers */
+                N_DNA_STATES,                     /* states */
+                n_sites,                          /* sites */
+                0,                                /* mixture model */
+                1,                                /* rate matrices */
+                2*n_tips-3,                       /* prob matrices */
+                optimize_gamma ? n_cat_g : 1,     /* rate cats */
+                n_tips-2,                         /* scale buffers */
+                PLL_ATTRIB_ARCH_SSE               /* attributes */
+                );
+    return part;
+}
+
 void DnaModel::print(std::ostream  &out)
 {
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
@@ -678,6 +697,32 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
     UNUSED(full_vector);
 
     Utils::exit_with_error("INTERNAL ERROR: Protein substitution rates must be fixed");
+}
+
+pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
+                                            mt_size_t n_sites,
+                                            mt_size_t n_cat_g) const
+{
+    mt_mask_t attributes = PLL_ATTRIB_ARCH_SSE;
+    mt_size_t n_cats = optimize_gamma?n_cat_g:1;
+    if (mixture)
+    {
+        n_cats = N_MIXTURE_CATS;
+        attributes |= PLL_ATTRIB_MIXT_LINKED;
+    }
+    pll_partition_t * part = pll_partition_create (
+                n_tips,                           /* tips */
+                n_tips-2,                         /* clv buffers */
+                N_PROT_STATES,                    /* states */
+                n_sites,                          /* sites */
+                mixture?N_MIXTURE_CATS:1,         /* mixture model */
+                1,                                /* rate matrices */
+                2*n_tips-3,                       /* prob matrices */
+                n_cats,                           /* rate cats */
+                n_tips-2,                         /* scale buffers */
+                attributes                        /* attributes */
+                );
+    return part;
 }
 
 void ProtModel::print(std::ostream  &out)

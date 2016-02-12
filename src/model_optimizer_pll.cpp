@@ -177,6 +177,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     mt_size_t n_nodes = tree->get_n_nodes ();
     mt_size_t n_sites = 0;
     mt_size_t mixture = 0;
+    unsigned int attributes = PLL_ATTRIB_ARCH_SSE;
 
     for (const partition_region_t & region : partition.regions)
     {
@@ -187,21 +188,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     if (model->is_mixture())
     {
         mixture = N_MIXTURE_CATS;
+        attributes |= PLL_ATTRIB_MIXT_LINKED;
         assert(mixture == _n_cat_g);
     }
 
-    pll_partition = pll_partition_create (
-                n_tips,                           /* tips */
-                n_inner,                          /* clv buffers */
-                model->get_n_states(),            /* states */
-                n_sites,                          /* sites */
-                mixture,                          /* mixture model */
-                1,                                /* rate matrices */
-                n_branches,                       /* prob matrices */
-                model->is_G () ? _n_cat_g : 1,    /* rate cats */
-                n_inner,                          /* scale buffers */
-                PLL_ATTRIB_ARCH_SSE               /* attributes */
-                );
+    pll_partition = model->build_partition(n_tips, n_sites, _n_cat_g);
 
     if (!pll_partition)
         std::cout << "  MIXTURE CATS " << pll_errno << " " << pll_errmsg << std::endl;
@@ -324,14 +315,197 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       pll_partition_destroy(pll_partition);
   }
 
+  static void fill_rates   (double *rates,
+                            double *x,
+                            int *bt, double *lb, double *ub,
+                            mt_size_t n_rates)
+  {
+    for (mt_index_t i = 0; i < n_rates; i++)
+    {
+      bt[i] = PLL_LBFGSB_BOUND_BOTH;
+      lb[i] = 1e-3;
+      ub[i] = 100;
+      assert(rates[i] > lb[i] && rates[i] < ub[i]);
+      x[i] = rates[i];
+//      double r = rates[i];
+//      x[i] = (r > lb[i] && r < ub[i]) ? r : 1.0;
+    }
+  }
+
+  static void fill_weights (double *weights,
+                            unsigned int * highest_weight_index,
+                            double *x,
+                            int *bt, double *lb, double *ub,
+                            mt_size_t n_weights)
+  {
+    mt_index_t cur_index = 0;
+
+    for (mt_index_t i = 1; i < (n_weights-1); i++)
+    {
+        bt[i] = PLL_LBFGSB_BOUND_BOTH;
+        x[i] = 1.0;
+        lb[i] = PLL_OPT_MIN_FREQ;
+        ub[i] = PLL_OPT_MAX_FREQ;
+    }
+    return;
+
+    *highest_weight_index = 0;
+    for (mt_index_t i = 1; i < n_weights; i++)
+      if (weights[i] > weights[*highest_weight_index])
+        *highest_weight_index = i;
+
+    for (mt_index_t i = 0; i < n_weights; i++)
+    {
+      if (i != *highest_weight_index)
+      {
+        bt[cur_index] = PLL_LBFGSB_BOUND_BOTH;
+        double r = weights[i] / weights[*highest_weight_index];
+        lb[cur_index] = PLL_OPT_MIN_FREQ;
+        ub[cur_index] = PLL_OPT_MAX_FREQ;
+        x[cur_index] = (r > lb[i] && r < ub[i]) ? r : 1.0;
+        cur_index++;
+      }
+    }
+  }
+
+  typedef struct
+  {
+    pll_partition_t * partition;
+    unsigned int parent_clv_index;
+    unsigned int parent_scaler_index;
+    unsigned int child_clv_index;
+    unsigned int child_scaler_index;
+    unsigned int edge_pmatrix_index;
+    unsigned int freqs_index;
+    unsigned int params_index;
+    unsigned int mixture_index;
+
+    /* traverse */
+    unsigned int * matrix_indices;
+    double * branch_lengths;
+    pll_operation_t * operations;
+
+    /* rate specific */
+    unsigned int highest_weight_state;
+  } my_params_t;
+
+  static void update_clvs(pll_partition_t * partition,
+                          unsigned int params_index,
+                          unsigned int * matrix_indices,
+                          double * branch_lengths,
+                          pll_operation_t * operations)
+  {
+    unsigned int n_branches = 2*partition->tips - 3;
+    unsigned int n_inner    = partition->tips - 2;
+
+    if (matrix_indices)
+      pll_update_prob_matrices (partition, 0,
+                                matrix_indices,
+                                branch_lengths,
+                                n_branches);
+    if (operations)
+      pll_update_partials (partition,
+                           operations,
+                           n_inner);
+  }
+
+  static double target_rates_opt (void * p, double * x)
+  {
+    my_params_t * params = (my_params_t *) p;
+    pll_partition_t * pll_partition = params->partition;
+    double score;
+
+//    /* set x to partition */
+//    int n_rates = pll_partition->rate_cats;
+
+    for (mt_index_t i=0; i<(pll_partition->mixture); i++)
+       pll_partition->rates[i] = x[i];
+
+//    /* rescale rates */
+//    double sumWR = 0.0;
+//    for (mt_index_t i=0; i<pll_partition->mixture; i++)
+//      sumWR += x[i] * pll_partition->rate_weights[i];
+//    for (mt_index_t i=0; i<pll_partition->mixture; i++)
+//      pll_partition->rates[i] = x[i] / sumWR;
+
+    update_clvs (pll_partition, params->params_index, params->matrix_indices,
+                 params->branch_lengths, params->operations);
+
+    score = -1
+        * pll_compute_edge_loglikelihood (pll_partition, params->parent_clv_index,
+                                          params->parent_scaler_index,
+                                          params->child_clv_index,
+                                          params->child_scaler_index,
+                                          params->edge_pmatrix_index,
+                                          params->freqs_index);
+
+    return score;
+  }
+
+  static double target_weights_opt (void * p, double * x)
+  {
+    my_params_t * params = (my_params_t *) p;
+    pll_partition_t * partition = params->partition;
+    double score;
+    unsigned int i;
+
+    unsigned int n_weights = partition->mixture;
+    unsigned int cur_index;
+    double sum_ratios = 1.0;
+    double *weights = (double *) malloc ((size_t) partition->mixture * sizeof(double));
+    unsigned int highest_weight_state = params->highest_weight_state;
+
+    for (i = 0; i < (n_weights - 1); ++i)
+    {
+      sum_ratios += x[i];
+    }
+    cur_index = 0;
+    for (i = 0; i < (n_weights - 1); ++i)
+    {
+      weights[i] = x[i] / sum_ratios;
+    }
+    weights[n_weights - 1] = 1.0 / sum_ratios;
+
+//    for (i = 0; i < (n_weights); ++i)
+//    {
+//      if (i != highest_weight_state)
+//      {
+//        weights[i] = x[cur_index] / sum_ratios;
+//        cur_index++;
+//      }
+//    }
+//    weights[highest_weight_state] = 1.0 / sum_ratios;
+    pll_set_category_weights(partition, weights);
+    free (weights);
+
+//    /* rescale rates */
+//    double sumWR = 0.0;
+//    for (mt_index_t i=0; i<partition->mixture; i++)
+//      sumWR += partition->rates[i] * partition->rate_weights[i];
+//    for (mt_index_t i=0; i<partition->mixture; i++)
+//      partition->rates[i] /= sumWR;
+
+//    update_clvs (partition, params->params_index, params->matrix_indices,
+//                 params->branch_lengths, params->operations);
+
+    score = -1
+        * pll_compute_edge_loglikelihood (partition, params->parent_clv_index,
+                                          params->parent_scaler_index,
+                                          params->child_clv_index,
+                                          params->child_scaler_index,
+                                          params->edge_pmatrix_index,
+                                          params->freqs_index);
+
+    return score;
+  }
+
   double ModelOptimizerPll::opt_single_parameter(mt_parameter_t which_parameter,
                                                  double tolerance,
                                                  bool first_guess)
   {
       double cur_logl = 0.0;
 
-      if (params == NULL)
-          build_parameters();
+      assert(params);
 
       switch(which_parameter)
       {
@@ -352,6 +526,59 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           params->which_parameters = PLL_PARAMETER_FREQUENCIES;
           cur_logl = pll_optimize_parameters_lbfgsb(params);
           break;
+      case mt_param_mixture_rates_weights:
+      {
+          double x[4], lb[4],
+                ub[4];
+            int bt[4];
+
+          my_params_t my_params;
+          my_params.partition = pll_partition;
+          my_params.parent_clv_index = params->lk_params.where.unrooted_t.parent_clv_index;
+          my_params.parent_scaler_index = params->lk_params.where.unrooted_t.parent_scaler_index;
+          my_params.child_clv_index = params->lk_params.where.unrooted_t.child_clv_index;
+          my_params.child_scaler_index = params->lk_params.where.unrooted_t.child_scaler_index;
+          my_params.edge_pmatrix_index = params->lk_params.where.unrooted_t.edge_pmatrix_index;
+          my_params.freqs_index = 0;
+          my_params.params_index = 0;
+          my_params.mixture_index = 0;
+
+          my_params.matrix_indices = params->lk_params.matrix_indices;
+          my_params.branch_lengths = params->lk_params.branch_lengths;
+          my_params.operations = params->lk_params.operations;
+
+          /* 2 step BFGS */
+
+          /* optimize mixture weights */
+
+          double * weights = pll_partition->rate_weights;
+          fill_weights(weights, &(my_params.highest_weight_state), x,
+                            bt, lb, ub, pll_partition->mixture);
+
+          cur_logl = -1
+              * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->mixture-1, params->factr,
+                                     params->pgtol, &my_params, target_weights_opt);
+
+          /* optimize mixture rates */
+
+          fill_rates (pll_partition->rates, x, bt, lb, ub, pll_partition->rate_cats);
+
+          cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->mixture,
+                                         params->factr, params->pgtol,
+                                         &my_params, target_rates_opt);
+
+//          /* rescale rates */
+//          double sumWR = 0.0;
+//          for (mt_index_t i=0; i<pll_partition->mixture; i++)
+//            sumWR += pll_partition->rates[i] * pll_partition->rate_weights[i];
+//          for (mt_index_t i=0; i<pll_partition->mixture; i++)
+//            pll_partition->rates[i] /= sumWR;
+
+//          update_clvs (pll_partition, my_params.params_index, my_params.matrix_indices,
+//                       my_params.branch_lengths, my_params.operations);
+      }
+          break;
+
       }
 
       return cur_logl;
@@ -449,22 +676,19 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       return cur_logl;
   }
 
-  bool ModelOptimizerPll::build_parameters()
+  bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
   {
-      assert (params == NULL);
-
       double default_alpha = 1.0;
-      pll_utree_t* pll_tree = tree->get_pll_tree(thread_number);
 
-      params = new pll_optimize_options_t;
       if (!params)
-          return false;
+        params = new pll_optimize_options_t;
 
       /* pll stuff */
       params->lk_params.partition = pll_partition;
       params->lk_params.operations = operations;
       params->lk_params.branch_lengths = branch_lengths;
       params->lk_params.matrix_indices = matrix_indices;
+      params->lk_params.alpha_value = 1.0;
       if (model->is_G())
       {
           if (model->is_I())
@@ -526,20 +750,19 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
       }
 
-      if (model->is_G())
+      if (model->is_G() || model->is_mixture())
       {
-          printf("Computing gamma categories for alpha = %f\n", params->lk_params.alpha_value);
           pll_compute_gamma_cats (params->lk_params.alpha_value,
                                   pll_partition->rate_cats,
                                   rate_cats);
       }
       else
       {
-          assert( pll_partition->rate_cats == 1);
           rate_cats[0] = 1.0;
       }
 
       pll_set_category_rates (pll_partition, rate_cats);
+
       free(rate_cats);
 
       return true;
@@ -565,7 +788,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       std::vector<mt_parameter_t> params_to_optimize;
 
-      if (!model->is_mixture() && (model->get_datatype() == dt_dna || !tree->is_bl_optimized()))
+      if ((model->get_datatype() == dt_dna || !tree->is_bl_optimized()))
           params_to_optimize.push_back(mt_param_branch_lengths);
       if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
           params_to_optimize.push_back(mt_param_subst_rates);
@@ -592,6 +815,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       }
       if (model->get_datatype() == dt_dna && model->is_F())
           params_to_optimize.push_back(mt_param_frequencies);
+
+      if (model->is_mixture() && !model->is_G())
+      {
+          params_to_optimize.push_back(mt_param_mixture_rates_weights);
+      }
 
 #ifdef VERBOSE //TODO: Verbosity high
       std::cout << "Initial Frequencies:   ";
@@ -641,15 +869,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       }
       /* /PTHREADS */
 
-//      tree->reroot_random(thread_number);
+      //tree->reroot_random(thread_number);
       pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
+      build_parameters(pll_tree);
 
-      if (params == NULL)
-        build_parameters();
-
-//      tree->set_branches(0.15, thread_number);
-//      for (mt_index_t i=0; i<n_branches; i++)
-//          branch_lengths[i] = 0.15;
       pll_update_prob_matrices (pll_partition,
                                 0,
                                 matrix_indices,
@@ -667,11 +890,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                                     pll_tree->pmatrix_index,
                                                     0);
 
-      printf("initial LOGL %f %f\n", pll_partition->rates[0], logl);
-
       /* current logl changes the sign of the lk, such that the optimization
-       * function can minimize the score
-       */
+       * function can minimize the score */
       double cur_logl = logl * -1;
 
       /* notify initial likelihood */
@@ -680,7 +900,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       /* logl intialized to an arbitrary value above the current lk */
       logl = cur_logl + 10;
-      mt_index_t n_iters = 0;       /* iterations counter */
+      mt_index_t n_iters = 0;   /* iterations counter */
 
 #if(CHECK_LOCAL_CONVERGENCE)
       double test_logl;         /* temporary variable */
@@ -738,34 +958,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                               full_range_search &= !(pinv_guess > 0.0);
                       }
                   }
+
                   iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
 
-                  pll_update_prob_matrices (pll_partition,
-                                            0,
-                                            matrix_indices,
-                                            branch_lengths,
-                                            n_branches);
-                  pll_update_partials (pll_partition,
-                                       operations,
-                                       tree->get_n_inner());
-
-                  double logl2 = pll_compute_edge_loglikelihood (pll_partition,
-                                                                pll_tree->clv_index,
-                                                                pll_tree->scaler_index,
-                                                                pll_tree->back->clv_index,
-                                                                pll_tree->back->scaler_index,
-                                                                pll_tree->pmatrix_index,
-                                                                0);
-
-//                  printf("NEXT LOGL %f %f\n", pll_partition->rates[0], logl2);
-//                  printf("NEXT LOGL %d %d %d %d %d\n", pll_tree->clv_index, pll_tree->scaler_index, pll_tree->back->clv_index, pll_tree->back->scaler_index, pll_tree->pmatrix_index);
-//                  printf("NEXT LOGL %d %d %d %d %d\n", params->lk_params.where.unrooted_t.parent_clv_index,
-//                         params->lk_params.where.unrooted_t.parent_scaler_index,
-//                         params->lk_params.where.unrooted_t.child_clv_index,
-//                         params->lk_params.where.unrooted_t.child_scaler_index,
-//                         params->lk_params.where.unrooted_t.edge_pmatrix_index);
-
-//                  printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
+                  //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
 
                   /* ensure we never get a worse likelihood score */
                   assert(iter_logl - cur_logl < 1e-5);

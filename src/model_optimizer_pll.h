@@ -67,7 +67,7 @@ namespace modeltest
 
   private:
 
-    bool build_parameters();
+    bool build_parameters(pll_utree_t * pll_tree);
     MsaPll *msa;     //! the MSA instance
     TreePll *tree;   //! the tree instance
 

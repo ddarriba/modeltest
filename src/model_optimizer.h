@@ -20,6 +20,7 @@ namespace modeltest
       mt_param_frequencies,
       mt_param_alpha,
       mt_param_pinv,
+      mt_param_mixture_rates_weights
   } mt_parameter_t;
 
   extern bool on_run;
