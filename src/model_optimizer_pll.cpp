@@ -390,7 +390,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   } my_params_t;
 
   static void update_clvs(pll_partition_t * partition,
-                          unsigned int params_index,
                           unsigned int * matrix_indices,
                           double * branch_lengths,
                           pll_operation_t * operations)
@@ -428,7 +427,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 //    for (mt_index_t i=0; i<pll_partition->mixture; i++)
 //      pll_partition->rates[i] = x[i] / sumWR;
 
-    update_clvs (pll_partition, params->params_index, params->matrix_indices,
+    update_clvs (pll_partition, params->matrix_indices,
                  params->branch_lengths, params->operations);
 
     score = -1
@@ -450,16 +449,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     unsigned int i;
 
     unsigned int n_weights = partition->mixture;
-    unsigned int cur_index;
     double sum_ratios = 1.0;
     double *weights = (double *) malloc ((size_t) partition->mixture * sizeof(double));
-    unsigned int highest_weight_state = params->highest_weight_state;
 
     for (i = 0; i < (n_weights - 1); ++i)
     {
       sum_ratios += x[i];
     }
-    cur_index = 0;
     for (i = 0; i < (n_weights - 1); ++i)
     {
       weights[i] = x[i] / sum_ratios;
@@ -590,6 +586,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
   double ModelOptimizerPll::opt_alpha(double tolerance,
                            bool first_guess)
   {
+      UNUSED(first_guess);
       double cur_logl;
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_ALPHA;
