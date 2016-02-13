@@ -92,7 +92,7 @@ xmodeltest::xmodeltest(QWidget *parent) :
     enable(ui->tool_help, true);
 
     ui->sliderNThreads->setRange(1, QThread::idealThreadCount());
-    ui->sliderNThreads->setValue(QThread::idealThreadCount());
+    ui->sliderNThreads->setValue(modeltest::Utils::count_physical_cores());
 
     on_radDatatypeDna_clicked();
 
@@ -892,6 +892,7 @@ void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n
 
 void xmodeltest::optimized_partition( partition_id_t part_id )
 {
+    UNUSED(part_id);
     cout << "Finished partition " << endl;
 }
 
