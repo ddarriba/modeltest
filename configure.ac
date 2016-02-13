@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.50])
-AC_INIT(modeltest, 1.0.0, ddarriba@udc.es)
-AM_INIT_AUTOMAKE([subdir-objects]) # (partest, 1.0)
+AC_INIT(modeltest, 0.1.0, diego.darriba@h-its.org)
+AM_INIT_AUTOMAKE([subdir-objects]) 
 
 CXXFLAGS="-g -O3 -Wall"
 

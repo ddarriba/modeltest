@@ -278,7 +278,7 @@ void Utils::print_header(std::ostream  &out)
 void Utils::print_version(std::ostream& out)
 {
     out << PACKAGE << " " << VERSION << endl;
-    out << "Copyright (C) 2015 Diego Darriba" << endl;
+    out << "Copyright (C) 2015 Diego Darriba, David Posada, Alexandros Stamatakis" << endl;
     out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
     out << "This is free software: you are free to change and redistribute it." << endl;
     out << "There is NO WARRANTY, to the extent permitted by law." << endl;

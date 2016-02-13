@@ -6,8 +6,9 @@ $ make install
 Set a custom install directory if you don't have root access or you prefer a
 different location.
 
-This will compile non-mpi version, and also mpi if available.
-Run 'man partest' or 'partest -h' for help.
+This will compile pthreads version
+Run 'modeltest' without arguments for loading the GUI
+Run 'modeltest --help' for help about the console interface.
 
 To compile a Windows executable, install MinGW and run:
 $ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
@@ -17,4 +18,4 @@ In case the configure script does not exist, it must be generated using autotool
 $ autoreconf -i
 
 Phylogenetic Likelihood Library is available at http://www.libpll.org
-PartitionTest requires at least version 1.0.11
+ModelTest requires at least version x.y.z

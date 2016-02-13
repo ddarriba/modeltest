@@ -81,9 +81,20 @@ endif
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
 	gui/progressdialog.h \
+	gui/datainfodialog.h \
+	gui/mydebugstream.h \
+	gui/qdebugstream.h \
+	gui/resultsexportdialog.h \
+	gui/xthreadopt.h \
+	gui/modelsdialog.h  \
+	gui/resultsdialog.h \
+	gui/xmodeltest.h \
+	gui/xutils.h \
+	service/modeltestservice.h \
 	thread/observer.h \
 	thread/threadpool.h \
 	model_optimizer_pll.h \
+	loggable.h \
 	utils.h \
 	tree.h \
 	modeltest_gui.h \
@@ -100,8 +111,13 @@ pkginclude_HEADERS= \
 	global_defs.h \
 	modeltest.h \
 	ui_compute_options.h \
-	ui_modeltest_gui.h \
-	ui_progressdialog.h
+	ui_progressdialog.h \
+	ui_modelsdialog.h \
+	ui_resultsexportdialog.h \
+	ui_datainfodialog.h \
+	ui_resultsdialog.h \
+	ui_xmodeltest.h
+
 
 imgdir=$(datadir)/modeltest/src/IMG
 dist_img_DATA=IMG/console-icon.png  IMG/gear.png  IMG/mt-icon.png  IMG/results-icon.png  IMG/run-icon.png  IMG/tool-icon.png IMG/arrows.png
