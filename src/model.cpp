@@ -428,6 +428,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                 2*n_tips-3,                       /* prob matrices */
                 optimize_gamma ? n_cat_g : 1,     /* rate cats */
                 n_tips-2,                         /* scale buffers */
+                pll_map_nt,
                 PLL_ATTRIB_ARCH_SSE               /* attributes */
                 );
     return part;
@@ -720,6 +721,7 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                 2*n_tips-3,                       /* prob matrices */
                 n_cats,                           /* rate cats */
                 n_tips-2,                         /* scale buffers */
+                pll_map_aa,
                 attributes                        /* attributes */
                 );
     return part;

@@ -516,11 +516,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           break;
       case mt_param_subst_rates:
           params->which_parameters = PLL_PARAMETER_SUBST_RATES;
-          cur_logl = pll_optimize_parameters_lbfgsb(params);
+          cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
           break;
       case mt_param_frequencies:
           params->which_parameters = PLL_PARAMETER_FREQUENCIES;
-          cur_logl = pll_optimize_parameters_lbfgsb(params);
+          cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
           break;
       case mt_param_mixture_rates_weights:
       {
@@ -590,10 +590,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       double cur_logl;
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_ALPHA;
-      cur_logl = pll_optimize_parameters_brent_ranged(params,
-                                                      MIN_ALPHA,
-                                                      params->lk_params.alpha_value,
-                                                      MAX_ALPHA);
+      cur_logl = pll_optimize_parameters_onedim(params, MIN_ALPHA, MAX_ALPHA);
       return cur_logl;
   }
 
@@ -609,10 +606,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       double max_pinv = std::min(partition.empirical_pinv, 0.99);
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_PINV;
-      cur_logl = pll_optimize_parameters_brent_ranged(params,
-                                                      MIN_PINV,
-                                                      params->lk_params.partition->prop_invar[0],
-                                                      max_pinv);
+      cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
       return cur_logl;
   }
 
