@@ -530,6 +530,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
                                     &exec_opt.n_sites))
         {
             cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
+            cerr << PACKAGE << ": [" << pll_errno << "]: " << pll_errmsg << endl;
             return false;
         }
     }

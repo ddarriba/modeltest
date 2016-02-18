@@ -150,6 +150,8 @@ public:
      */
     void set_lnl( double l );
 
+    bool optimize( void );
+
     /**
      * @brief Prints out the model in a human readable way
      * @param[in] out the output stream to print to

@@ -106,6 +106,7 @@ namespace modeltest
       if (!fp)
       {
           errno = pll_errno;
+          cout << "cannot read file" << endl;
           return false;
       }
 
@@ -129,22 +130,27 @@ namespace modeltest
                   }
               }
           }
-          free (seq);
-          free (hdr);
 
           assert(n_sites_read < MT_SIZE_UNDEF);
 
           if (n_sites_read < 0)
+          {
+              cout << "wrong sites read" << endl;
               return false;
+          }
 
-          /* if parsing fail, we continue for avoid memory leaks */
+          /* if parsing fail, we continue for avoiding memory leaks */
           if (sites != MT_SIZE_UNDEF && (long)sites != n_sites_read)
           {
+              cout << "wrong sites read " << sites << " vs " << n_sites_read << " seq " << cur_seq << endl;
+              cout << hdr << endl;
               errno = MT_ERROR_ALIGNMENT;
               break;
           }
           else if (sites == MT_SIZE_UNDEF)
               sites = (mt_size_t) n_sites_read;
+          free (seq);
+          free (hdr);
       }
 
       if (sites == MT_SIZE_UNDEF)
@@ -158,6 +164,7 @@ namespace modeltest
       {
           *n_tips = 0;
           *n_sites = 0;
+          cout << "errno = " << errno << endl;
           return false;
       }
       else

@@ -87,23 +87,28 @@ static pll_partition_t * pll_partition_clone_partial(
   sites += (id < offset)?1:0;
 
   new_partition = (pll_partition_t *) malloc(sizeof(pll_partition_t));
-  new_partition->tips = partition->tips;
-  new_partition->clv_buffers = partition->clv_buffers;
-  new_partition->states = partition->states;
-  new_partition->sites = sites;
+  new_partition->tips          = partition->tips;
+  new_partition->clv_buffers   = partition->clv_buffers;
+  new_partition->states        = partition->states;
+  new_partition->sites         = sites;
   new_partition->rate_matrices = partition->rate_matrices;
   new_partition->prob_matrices = partition->prob_matrices;
-  new_partition->rate_cats = partition->rate_cats;
+  new_partition->rate_cats     = partition->rate_cats;
   new_partition->scale_buffers = partition->scale_buffers;
-  new_partition->attributes = partition->attributes;
+  new_partition->attributes    = partition->attributes;
+  new_partition->revmap        = partition->revmap;
 
     /* vectorization options */
-  new_partition->alignment = partition->alignment;
+  new_partition->alignment     = partition->alignment;
   new_partition->states_padded = partition->states_padded;
 
-  new_partition->mixture = partition->mixture;
-  new_partition->clv = (double **)calloc(partition->tips + partition->clv_buffers,
-                                            sizeof(double *));
+  new_partition->mixture  = partition->mixture;
+  new_partition->clv      = (double **) modeltest::Utils::c_allocate (
+                                      partition->tips + partition->clv_buffers,
+                                      sizeof(double *));
+  new_partition->tipchars = (char **) modeltest::Utils::c_allocate (
+                                             partition->tips,
+                                             sizeof(double *));
   if (!new_partition->clv)
   {
     dealloc_partition_local (new_partition);
@@ -113,8 +118,13 @@ static pll_partition_t * pll_partition_clone_partial(
     new_partition->clv[i] = partition->clv[i]
         + (start * partition->states_padded * partition->rate_cats);
 
-  new_partition->scale_buffer = (unsigned int **) calloc (
-      new_partition->scale_buffers, sizeof(unsigned int *));
+  for (i = 0; i < new_partition->tips; ++i)
+      new_partition->tipchars[i] = partition->tipchars[i] + start;
+
+    new_partition->scale_buffer =
+                   (unsigned int **) modeltest::Utils::c_allocate (
+                                                new_partition->scale_buffers,
+                                                sizeof(unsigned int *));
   if (!new_partition->scale_buffer)
   {
     dealloc_partition_local (new_partition);
@@ -176,20 +186,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     mt_size_t n_branches = tree->get_n_branches ();
     mt_size_t n_nodes = tree->get_n_nodes ();
     mt_size_t n_sites = 0;
-    mt_size_t mixture = 0;
-    unsigned int attributes = PLL_ATTRIB_ARCH_SSE;
 
     for (const partition_region_t & region : partition.regions)
     {
         n_sites += (region.end - region.start + 1)/region.stride;
-    }
-
-    /* create partition */
-    if (model->is_mixture())
-    {
-        mixture = N_MIXTURE_CATS;
-        attributes |= PLL_ATTRIB_MIXT_LINKED;
-        assert(mixture == _n_cat_g);
     }
 
     pll_partition = model->build_partition(n_tips, n_sites, _n_cat_g);

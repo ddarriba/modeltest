@@ -292,6 +292,80 @@ void Model::set_tree( pll_utree_t * _tree )
     tree = _tree;
 }
 
+bool Model::optimize( void )
+{
+//        mt_size_t iters_hard_limit = 200;
+//        while (fabs (cur_logl - logl) > epsilon && cur_logl < logl)
+//        {
+//            double iter_logl;
+//            if (!(n_iters % params_to_optimize.size()))
+//              logl = cur_logl;
+
+//            mt_parameter_t cur_parameter = params_to_optimize[cur_parameter_index];
+//#if(CHECK_LOCAL_CONVERGENCE)
+//            if (!(converged & cur_parameter))
+//            {
+//                test_logl = cur_logl;
+//#endif
+//                bool full_range_search = n_iters<params_to_optimize.size();
+
+//                iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
+
+//                //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
+
+//                /* ensure we never get a worse likelihood score */
+//                assert(iter_logl - cur_logl < 1e-5);
+//                cur_logl = iter_logl;
+
+//                // notify parameter optimization
+//                opt_delta = cur_logl;
+//                notify();
+
+//#if(CHECK_LOCAL_CONVERGENCE)
+//                if (fabs(test_logl - cur_logl) < tolerance)
+//                    converged |= cur_parameter;
+//            }
+//#endif
+
+//            cur_parameter_index++;
+//            cur_parameter_index %= params_to_optimize.size();
+
+//            n_iters++;
+//            iters_hard_limit--;
+//            if (!iters_hard_limit)
+//                break;
+//        }
+
+//        /* TODO: if bl are reoptimized */
+//        if (keep_branch_lengths)
+//          tree->set_bl_optimized();
+
+
+//    cur_logl *= -1;
+
+//    time_t end_time = time(NULL);
+
+//    if (_num_threads > 1)
+//    {
+//        /* finalize */
+//        thread_job = JOB_FINALIZE;
+
+//        /* join threads */
+//        for (mt_index_t i=1; i<_num_threads; i++)
+//          pthread_join (threads[i], NULL);
+
+//        /* clean */
+//        for (mt_index_t i=0; i<_num_threads; i++)
+//          dealloc_partition_local(thread_data[i].partition);
+
+//        free(result_buf);
+//        free(threads);
+//        free(thread_data);
+//        free(partition_local);
+//    }
+    return true;
+}
+
 DnaModel::DnaModel(mt_index_t _matrix_index,
              mt_mask_t model_params)
     : Model(model_params)
@@ -418,6 +492,15 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
 {
+    unsigned int attributes = PLL_ATTRIB_PATTERN_TIP;
+#if (HAVE_AVX)
+    attributes |= PLL_ATTRIB_ARCH_AVX;
+#elif (HAVE_SSE)
+    attributes |= PLL_ATTRIB_ARCH_SSE;
+#else
+    attributes |= PLL_ATTRIB_ARCH_CPU;
+#endif
+
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
                 n_tips-2,                         /* clv buffers */
@@ -429,7 +512,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                 optimize_gamma ? n_cat_g : 1,     /* rate cats */
                 n_tips-2,                         /* scale buffers */
                 pll_map_nt,
-                PLL_ATTRIB_ARCH_SSE               /* attributes */
+                attributes
                 );
     return part;
 }
@@ -704,7 +787,7 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
 {
-    mt_mask_t attributes = PLL_ATTRIB_ARCH_SSE;
+    mt_mask_t attributes = PLL_ATTRIB_ARCH_SSE | PLL_ATTRIB_PATTERN_TIP;
     mt_size_t n_cats = optimize_gamma?n_cat_g:1;
     if (mixture)
     {
