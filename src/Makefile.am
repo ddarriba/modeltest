@@ -37,7 +37,7 @@ modeltest_CPPFLAGS = -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltest_CPPFLAGS += -DHAVE_PTHREADS
 modeltest_CPPFLAGS += $(QT4_CFLAGS)
 modeltest_LDFLAGS =
-modeltest_LDADD = $(QT4_LIBS) -lpll -lpll_optimize
+modeltest_LDADD = $(QT4_LIBS) -lpll -lpll_optimize -lpll_msa -lpll_tree
 
 if HAVE_AVX
   modeltest_CPPFLAGS += -DHAVE_AVX
@@ -66,7 +66,7 @@ modeltestx_SOURCES = \
 modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
-modeltestx_LDADD = -lpll -lpll_optimize
+modeltestx_LDADD = -lpll -lpll_optimize -lpll_msa -lpll_tree
 
 if HAVE_AVX
   modeltestx_CPPFLAGS += -DHAVE_AVX

@@ -21,7 +21,7 @@ static bool build_models(data_type_t datatype,
     if (!freq_params)
     {
         mt_errno = MT_ERROR_MODELS;
-         snprintf(mt_errmsg, 200, "Model frequencies is empty");
+         snprintf(mt_errmsg, ERR_MSG_SIZE, "Model frequencies is empty");
         return false;
     }
 

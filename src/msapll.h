@@ -21,6 +21,7 @@ namespace modeltest
     virtual ~MsaPll ();
 
     virtual const char * get_header (mt_index_t index) const;
+    virtual const char * const *get_headers() const;
     virtual const char * get_sequence (mt_index_t index) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme);
     virtual bool compute_empirical_frequencies(partition_descriptor_t &partition,

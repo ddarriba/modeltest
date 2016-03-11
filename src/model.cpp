@@ -8,7 +8,6 @@
 #include <cmath>
 #include <cassert>
 
-#include <cstdlib>
 #include <fstream>
 
 const double * prot_model_rates[N_PROT_MODEL_MATRICES] = {
@@ -82,6 +81,8 @@ Model::Model(mt_mask_t model_params)
     aicc = 0.0;
     dt   = 0.0;
 
+    n_categories = 0;
+
     frequencies = 0;
     subst_rates = 0;
 
@@ -139,6 +140,16 @@ const int * Model::get_symmetries( void ) const
 {
     assert(0);
     return 0;
+}
+
+mt_size_t Model::get_n_categories() const
+{
+    return n_categories;
+}
+
+void Model::set_n_categories( mt_size_t ncat )
+{
+    n_categories = ncat;
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -440,6 +451,7 @@ void DnaModel::clone(const Model * other_model)
     memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
     memcpy(subst_rates, other->subst_rates, N_DNA_SUBST_RATES * sizeof(double));
 
+    n_categories     = other->n_categories;
     n_free_variables = other->n_free_variables;
 
     lnL  = other->lnL;
@@ -741,6 +753,7 @@ void ProtModel::clone(const Model * other_model)
     memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
     fixed_subst_rates = other->fixed_subst_rates;
 
+    n_categories     = other->n_categories;
     n_free_variables = other->n_free_variables;
 
     lnL  = other->lnL;

@@ -52,10 +52,10 @@ namespace modeltest
   Tree::~Tree() {}
 
   TreePll::TreePll (tree_type_t type,
-                    std::string const& filename,
+                    Msa &msa,
                     mt_size_t number_of_threads,
                     int random_seed)
-      : Tree(type, filename, number_of_threads, random_seed)
+    : Tree(type, msa, number_of_threads, random_seed)
   {
       bl_optimized = false;
       pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
@@ -67,10 +67,14 @@ namespace modeltest
       {
       case tree_user_fixed:
       {
+          assert(0);
+      }
+      case tree_random:
+      {
+          pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
-              /*TODO: copy this for other tree types or move it outside */
-              pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+              pll_tree[i] = pll_utree_clone(random_tree);
               pll_start_tree[i] = pll_tree[i];
               if (pll_tree[i])
               {
@@ -90,110 +94,23 @@ namespace modeltest
                   pll_tip_nodes = 0;
                   pll_inner_nodes = 0;
                   mt_errno = pll_errno;
-                  snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-                  throw EXCEPTION_TREE_USER;
+                  snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_MP;
               }
           }
       }
           break;
       case tree_mp:
-      {
-          /* Temporary call to RAxML */
-          cout << "Testing MP starting tree!" << endl;
-          string mp_tree_filename = "mtTempMpTree";
-          char command[500];
-          sprintf(command, "scripts/makeParsimony.sh %s %s %d", filename.c_str(), mp_tree_filename.c_str(), random_seed);
-          int retval = system(command);
-          if (retval)
-          {
-              snprintf(mt_errmsg, 400, "External script failed: %s", command);
-              throw EXCEPTION_TREE_SCRIPT;
-          }
-          for (mt_index_t i=0; i<number_of_threads; i++)
-          {
-              pll_tree[i] = pll_utree_parse_newick (mp_tree_filename.c_str(), &(n_tips));
-              pll_start_tree[i] = pll_tree[i];
-              if (pll_tree[i])
-              {
-                  pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-                  pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-                  pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-                  pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-              }
-              else
-              {
-                  free (pll_tree);
-                  free (pll_start_tree);
-                  free (pll_tip_nodes);
-                  free (pll_inner_nodes);
-                  pll_tree = 0;
-                  pll_start_tree = 0;
-                  pll_tip_nodes = 0;
-                  pll_inner_nodes = 0;
-                  mt_errno = pll_errno;
-                  snprintf(mt_errmsg, 400, "PLL Error %d parsing MP tree: %s", pll_errno, pll_errmsg);
-                  throw EXCEPTION_TREE_MISSING;
-              }
-          }
-      }
-          break;
       case tree_ml_gtr_fixed:
-      {
-          /* Temporary call to RAxML */
-          cout << "Testing ML GTR starting tree!" << endl;
-          string ml_tree_filename = "mtTempMpTree";
-          char command[500];
-          sprintf(command, "scripts/makeGtrML.sh %s %s %d", filename.c_str(), ml_tree_filename.c_str(), random_seed);
-          int retval = system(command);
-          if (retval)
-          {
-              snprintf(mt_errmsg, 400, "External script failed: %s", command);
-              throw EXCEPTION_TREE_SCRIPT;
-          }
-          for (mt_index_t i=0; i<number_of_threads; i++)
-          {
-              pll_tree[i] = pll_utree_parse_newick (ml_tree_filename.c_str(), &(n_tips));
-              pll_start_tree[i] = pll_tree[i];
-              if (pll_tree[i])
-              {
-                  pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-                  pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-                  pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-                  pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-              }
-              else
-              {
-                  free (pll_tree);
-                  free (pll_start_tree);
-                  free (pll_tip_nodes);
-                  free (pll_inner_nodes);
-                  pll_tree = 0;
-                  pll_start_tree = 0;
-                  pll_tip_nodes = 0;
-                  pll_inner_nodes = 0;
-                  mt_errno = pll_errno;
-                  snprintf(mt_errmsg, 400, "PLL Error %d parsing ML/GTR tree: %s", pll_errno, pll_errmsg);
-                  throw EXCEPTION_TREE_MISSING;
-              }
-          }
-      }
-          break;
       case tree_ml_jc_fixed:
+      case tree_ml:
       {
-          /* Temporary call to RAxML */
-          cout << "Testing ML GTR starting tree!" << endl;
-          string ml_tree_filename = "mtTempMpTree";
-          char command[500];
-          sprintf(command, "scripts/makeJcML.sh %s %s %d", filename.c_str(), ml_tree_filename.c_str(), random_seed);
-          int retval = system(command);
-          if (retval)
-          {
-              snprintf(mt_errmsg, 400, "External script failed: %s", command);
-              throw EXCEPTION_TREE_SCRIPT;
-          }
+          /*TODO: WARNING: Temporary use a RANDOM tree */
+          cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
+          pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
-              pll_tree[i] = pll_utree_parse_newick (ml_tree_filename.c_str(), &(n_tips));
+              pll_tree[i] = pll_utree_clone(random_tree);
               pll_start_tree[i] = pll_tree[i];
               if (pll_tree[i])
               {
@@ -213,26 +130,81 @@ namespace modeltest
                   pll_tip_nodes = 0;
                   pll_inner_nodes = 0;
                   mt_errno = pll_errno;
-                  snprintf(mt_errmsg, 400, "PLL Error %d parsing ML/JC tree: %s", pll_errno, pll_errmsg);
-                  throw EXCEPTION_TREE_MISSING;
+                  snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
+                  throw EXCEPTION_TREE_MP;
               }
           }
       }
           break;
-      case tree_ml:
-          /* unimplemented */
-          cout << "Unimplemented" << endl;
-          assert(0);
-          break;
+      }
+
+      n_inner = n_tips-2;
+  }
+
+  TreePll::TreePll (tree_type_t type,
+                    std::string const& filename,
+                    mt_size_t number_of_threads,
+                    int random_seed)
+      : Tree(type, filename, number_of_threads, random_seed)
+  {
+      assert(type == tree_user_fixed);
+
+      bl_optimized = false;
+      pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
+      pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
+      pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
+      pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
+
+      switch(type)
+      {
+          case tree_user_fixed:
+            {
+              for (mt_index_t i=0; i<number_of_threads; i++)
+              {
+                  /*TODO: copy this for other tree types or move it outside */
+                  pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+                  pll_start_tree[i] = pll_tree[i];
+                  if (pll_tree[i])
+                  {
+                      pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+                      pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+                      pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+                      pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+                  }
+                  else
+                  {
+                      free (pll_tree);
+                      free (pll_start_tree);
+                      free (pll_tip_nodes);
+                      free (pll_inner_nodes);
+                      pll_tree = 0;
+                      pll_start_tree = 0;
+                      pll_tip_nodes = 0;
+                      pll_inner_nodes = 0;
+                      mt_errno = pll_errno;
+                      snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
+                      throw EXCEPTION_TREE_USER;
+                  }
+              }
+            }
+            break;
+          case tree_mp:
+          case tree_ml_gtr_fixed:
+          case tree_ml_jc_fixed:
+          case tree_ml:
+          case tree_random:
+            {
+                assert(0);
+            }
+            break;
       }
 
       n_inner = n_tips-2;
       /* fix all missing branch lengths to 0.00001 */
       for (mt_index_t i=0; i<number_of_threads; i++)
       {
-        set_branch_length (pll_tree[i], 0.00001, false);
+          set_branch_length (pll_tree[i], 0.00001, false);
       }
-
   }
 
   TreePll::~TreePll ()
@@ -308,12 +280,13 @@ namespace modeltest
           return pll_tip_nodes[thread_number][index]->label;
   }
 
-  void TreePll::print(mt_index_t thread_number) const
+  string TreePll::newick(mt_index_t thread_number) const
   {
       assert(thread_number < number_of_threads);
-      char *newick = pll_utree_export_newick(pll_tree[thread_number]);
-      cout << newick << endl;
-      free (newick);
+      char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]);
+      string nw = string(nw_cstr);
+      free (nw_cstr);
+      return (nw);
   }
 
   void * TreePll::extract_tree ( mt_index_t thread_number) const

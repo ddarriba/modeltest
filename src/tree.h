@@ -9,12 +9,15 @@
 #define TREE_H_
 
 #include "global_defs.h"
+#include "msa.h"
+#include <cassert>
 #include <string>
 
 /* exceptions */
 #define EXCEPTION_TREE_SCRIPT  101
 #define EXCEPTION_TREE_MISSING 102
 #define EXCEPTION_TREE_USER    103
+#define EXCEPTION_TREE_MP      104
 
 namespace modeltest
 {
@@ -32,6 +35,20 @@ namespace modeltest
       number_of_threads(_number_of_threads),
       random_seed(_random_seed)
     {
+    }
+
+    Tree (tree_type_t _type,
+          Msa &_msa,
+          mt_size_t _number_of_threads,
+          int _random_seed)
+        : type(_type),
+          tree_file(""),
+          n_tips(_msa.get_n_sequences()),
+          number_of_threads(_number_of_threads),
+          random_seed(_random_seed)
+    {
+        assert(type != tree_user_fixed);
+        UNUSED(_msa);
     }
 
     virtual ~Tree ();
@@ -83,7 +100,7 @@ namespace modeltest
      */
     virtual bool reset_branches(mt_index_t thread_number = 0) = 0;
 
-    virtual void print( mt_index_t thread_number = 0 ) const = 0;
+    virtual std::string newick( mt_index_t thread_number = 0 ) const = 0;
 
     /**
      * @brief extract a copy of the tree structure with branch lengths

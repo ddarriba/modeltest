@@ -74,6 +74,11 @@ namespace modeltest
     return tipnames[index];
   }
 
+  const char * const* MsaPll::get_headers() const
+  {
+      return tipnames;
+  }
+
   const char * MsaPll::get_sequence (mt_index_t index) const
   {
     assert(index < n_taxa);
@@ -99,14 +104,21 @@ namespace modeltest
       bool dt_unknown = true;
 
       /* reset error */
-      errno = 0;
+      mt_errno = 0;
+
+      if (!modeltest::Utils::file_exists(msa_filename))
+      {
+          mt_errno = MT_ERROR_IO;
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "input file does not exist");
+          return false;
+      }
 
       pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
       if (!fp)
       {
-          errno = pll_errno;
-          cout << "cannot read file" << endl;
+          mt_errno = pll_errno;
+          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
           return false;
       }
 
@@ -135,16 +147,16 @@ namespace modeltest
 
           if (n_sites_read < 0)
           {
-              cout << "wrong sites read" << endl;
-              return false;
+              mt_errno = MT_ERROR_ALIGNMENT;
+              snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read");
+              break;
           }
 
           /* if parsing fail, we continue for avoiding memory leaks */
           if (sites != MT_SIZE_UNDEF && (long)sites != n_sites_read)
           {
-              cout << "wrong sites read " << sites << " vs " << n_sites_read << " seq " << cur_seq << endl;
-              cout << hdr << endl;
-              errno = MT_ERROR_ALIGNMENT;
+              mt_errno = MT_ERROR_ALIGNMENT;
+              snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read [Seq %d] %d vs %ld", cur_seq, sites, n_sites_read);
               break;
           }
           else if (sites == MT_SIZE_UNDEF)
@@ -155,16 +167,31 @@ namespace modeltest
 
       if (sites == MT_SIZE_UNDEF)
       {
-          errno = pll_errno;
+          switch (pll_errno)
+          {
+          case PLL_ERROR_FASTA_ILLEGALCHAR:
+              mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
+              break;
+          case PLL_ERROR_FASTA_INVALIDHEADER:
+              mt_errno = MT_ERROR_ALIGNMENT_HEADER;
+              break;
+          case PLL_ERROR_FASTA_UNPRINTABLECHAR:
+              mt_errno = MT_ERROR_ALIGNMENT_UNPRINTABLECHAR;
+              break;
+          default:
+              assert(0);
+          }
+
+          mt_errno = pll_errno;
+          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
       }
 
       pll_fasta_close (fp);
 
-      if (errno)
+      if (mt_errno)
       {
           *n_tips = 0;
           *n_sites = 0;
-          cout << "errno = " << errno << endl;
           return false;
       }
       else
@@ -265,7 +292,7 @@ namespace modeltest
                   if (!ind)
                   {
                       mt_errno = MT_ERROR_FREQUENCIES;
-                      snprintf(mt_errmsg, 200, "MSA does not match the data type [%s]", partition.partition_name.c_str());
+                      snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA does not match the data type [%s]", partition.partition_name.c_str());
                       return false;
                   }
                   for (unsigned int k=0; k<states; ++k)
@@ -295,7 +322,7 @@ namespace modeltest
       if( (checksum != checksum) || (fabs(1-checksum) > 1e-10 ))
       {
           mt_errno = MT_ERROR_FREQUENCIES;
-          snprintf(mt_errmsg, 200, "Empirical frequencies do not sum to 1 [%s]", partition.partition_name.c_str());
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "Empirical frequencies do not sum to 1 [%s]", partition.partition_name.c_str());
           return false;
       }
 
@@ -312,7 +339,7 @@ namespace modeltest
           else
           {
               mt_errno = MT_ERROR_FREQUENCIES;
-              snprintf(mt_errmsg, 200, "There are [%d] missing states [%s]", missing_states, partition.partition_name.c_str());
+              snprintf(mt_errmsg, ERR_MSG_SIZE, "There are [%d] missing states [%s]", missing_states, partition.partition_name.c_str());
               return false;
           }
       }

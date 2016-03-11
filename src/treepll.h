@@ -21,13 +21,17 @@ namespace modeltest
              std::string const& filename,
              mt_size_t number_of_threads = 1,
              int random_seed = 12345);
+    TreePll (tree_type_t _type,
+             Msa &_msa,
+             mt_size_t _number_of_threads = 1,
+             int _random_seed = 12345);
     virtual ~TreePll ();
 
     virtual const std::string get_label(mt_index_t index, mt_index_t thread_number = 0) const;
     virtual void reroot_random(mt_index_t thread_number = 0);
     virtual bool set_branches(double length, mt_index_t thread_number = 0);
     virtual bool reset_branches(mt_index_t thread_number = 0);
-    virtual void print(mt_index_t thread_number = 0) const;
+    virtual std::string newick(mt_index_t thread_number = 0) const;
     virtual void * extract_tree ( mt_index_t thread_number = 0 ) const;
 
     /**

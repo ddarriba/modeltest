@@ -96,11 +96,15 @@ static void print_help(std::ostream& out)
         << "           fixed-mp"
         << "fixed maximum parsimony" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           random"
+        << "random generated tree" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           user"
         << "fixed user defined (requires -u argument)" << endl;
-
     out << setw(MAX_OPT_LENGTH) << left << "  -u, --utree tree_file"
         << "sets a user tree" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --force"
+        << "force output overriding" << endl;
 
     /************************************************************/
 
@@ -219,11 +223,13 @@ static void print_help(std::ostream& out)
 static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
 {
     bool input_file_ok = false;
+    bool output_files_ok = false;
     bool exist_dna_models = false;
     bool exist_protein_models = false;
     template_models_t template_models = template_none;
     dna_subst_schemes_t dna_ss = ss_undef;
     string user_candidate_models = "";
+    string output_basename = "";
 
     /* defaults */
     dna_subst_schemes_t default_ss = ss_11;
@@ -242,6 +248,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
     exec_opt.verbose         = VERBOSITY_DEFAULT;
     exec_opt.n_threads       = 1;
     exec_opt.starting_tree   = tree_mp;
+    exec_opt.force_override  = false;
 
     static struct option long_options[] =
     {
@@ -267,6 +274,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         { "smooth-frequencies", no_argument, 0, 4 },
         { "eps", required_argument, 0, 10 },
         { "tol", required_argument, 0, 11 },
+        { "force", no_argument, 0, 20 },
         { 0, 0, 0, 0 }
     };
 
@@ -330,6 +338,9 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
                 cerr << PACKAGE << ": Invalid parameter tolerance: " << exec_opt.epsilon_param << endl;
                 return false;
             }
+            break;
+        case 20:
+            exec_opt.force_override = true;
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
@@ -412,7 +423,7 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
             break;
         }
         case 'o':
-            exec_opt.output_filename = optarg;
+            output_basename = optarg;
             break;
         case 'p':
             n_procs = (mt_size_t) atoi(optarg);
@@ -477,6 +488,10 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
             {
                 exec_opt.starting_tree = tree_ml_jc_fixed;
             }
+            else if (!strcasecmp(optarg, "random"))
+            {
+                exec_opt.starting_tree = tree_random;
+            }
             else
             {
                 cerr << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
@@ -530,13 +545,77 @@ static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
                                     &exec_opt.n_sites))
         {
             cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
-            cerr << PACKAGE << ": [" << pll_errno << "]: " << pll_errmsg << endl;
+            cerr << PACKAGE << ": [" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
             return false;
         }
     }
     else
     {
         cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
+        return false;
+    }
+
+    /* set output files */
+    if (!output_basename.compare(""))
+        output_basename = exec_opt.msa_filename;
+
+    exec_opt.output_log_file =
+            exec_opt.output_tree_file =
+            exec_opt.output_results_file =
+            output_basename;
+    exec_opt.output_log_file.append(OUTPUT_LOG_SUFFIX);
+    exec_opt.output_tree_file.append(OUTPUT_TREE_SUFFIX);
+    exec_opt.output_results_file.append(OUTPUT_RESULTS_SUFFIX);
+    exec_opt.output_tree_to_file = (exec_opt.starting_tree == tree_mp ||
+                                 exec_opt.starting_tree == tree_ml_gtr_fixed ||
+                                 exec_opt.starting_tree == tree_ml_jc_fixed);
+
+    /* validate output files */
+    output_files_ok = true;
+    if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))
+    {
+        cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " already exists" << endl;
+        output_files_ok = false;
+    }
+    else
+    {
+        if (!modeltest::Utils::file_writable(exec_opt.output_log_file))
+        {
+            cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " cannot be open for writing" << endl;
+            output_files_ok = false;
+        }
+    }
+    if (!exec_opt.force_override && exec_opt.output_tree_to_file && modeltest::Utils::file_exists(exec_opt.output_tree_file))
+    {
+        cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " already exists" << endl;
+        output_files_ok = false;
+    }
+    else
+    {
+        if (exec_opt.output_tree_to_file && !modeltest::Utils::file_writable(exec_opt.output_tree_file))
+        {
+            cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " cannot be open for writing" << endl;
+            output_files_ok = false;
+        }
+    }
+    if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_results_file))
+    {
+        cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " already exists" << endl;
+        output_files_ok = false;
+    }
+    else
+    {
+        if (!modeltest::Utils::file_writable(exec_opt.output_results_file))
+        {
+            cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " cannot be open for writing" << endl;
+            output_files_ok = false;
+        }
+    }
+    if (!output_files_ok)
+    {
+        cerr << PACKAGE << ": - Remove the existing files, or" << endl;
+        cerr << PACKAGE << ": - Select a different output basename (-o argument), or" << endl;
+        cerr << PACKAGE << ": - Fore overriding (--force argument)" << endl;
         return false;
     }
 
@@ -838,6 +917,10 @@ int main(int argc, char *argv[])
 
         vector<map<modeltest::ic_type, modeltest::selection_model>> best_models(opts.partitions_eff->size());
 
+        ofstream * results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
+        if (results_stream)
+            modeltest::Utils::print_options(opts, *results_stream);
+
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
 
@@ -853,42 +936,23 @@ int main(int argc, char *argv[])
                          modeltest::Utils::format_time(time(NULL) - ini_global_time) << std::endl;
 
             modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
-            bic_selection->print(cout, 10);
-            cout << "Best model according to BIC" << endl;
-            cout << "---------------------------" << endl;
-            bic_selection->print_best_model(cout);
-            cout << "---------------------------" << endl;
-            cout << "Parameter importances" << endl;
-            cout << "---------------------------" << endl;
-            bic_selection->print_importances(cout);
-            cout << endl;
-            cout << ModelTestService::instance()->get_raxml_command_line(*(bic_selection->get_model(0).model)) << endl;
+            ModelTestService::instance()->print_selection(bic_selection, cout);
+            if (results_stream)
+                ModelTestService::instance()->print_selection(bic_selection, *results_stream);
             best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
             delete bic_selection;
 
             modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
-            aic_selection->print(cout, 10);
-            cout << "Best model according to AIC" << endl;
-            cout << "---------------------------" << endl;
-            aic_selection->print_best_model(cout);
-            cout << "---------------------------" << endl;
-            cout << "Parameter importances" << endl;
-            cout << "---------------------------" << endl;
-            aic_selection->print_importances(cout);
-            cout << endl;
+            ModelTestService::instance()->print_selection(aic_selection, cout);
+            if (results_stream)
+                ModelTestService::instance()->print_selection(aic_selection, *results_stream);
             best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
             delete aic_selection;
 
             modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
-            aicc_selection->print(cout, 10);
-            cout << "Best model according to AICc" << endl;
-            cout << "----------------------------" << endl;
-            aicc_selection->print_best_model(cout);
-            cout << "---------------------------" << endl;
-            cout << "Parameter importances" << endl;
-            cout << "---------------------------" << endl;
-            aicc_selection->print_importances(cout);
-            cout << endl;
+            ModelTestService::instance()->print_selection(aicc_selection, cout);
+            if (results_stream)
+                ModelTestService::instance()->print_selection(aicc_selection, *results_stream);
             best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
             delete aicc_selection;
 
@@ -896,18 +960,18 @@ int main(int argc, char *argv[])
             if (opts.starting_tree != tree_ml)
             {
                 modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
-                dt_selection->print(cout, 10);
-                cout << "Best model according to DT" << endl;
-                cout << "--------------------------" << endl;
-                dt_selection->print_best_model(cout);
-                cout << "---------------------------" << endl;
-                cout << "Parameter importances" << endl;
-                cout << "---------------------------" << endl;
-                dt_selection->print_importances(cout);
-                cout << endl;
+                ModelTestService::instance()->print_selection(dt_selection, cout);
+                if (results_stream)
+                    ModelTestService::instance()->print_selection(dt_selection, *results_stream);
                 best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
                 delete dt_selection;
             }
+        }
+
+        if (results_stream)
+        {
+            results_stream->close();
+            delete results_stream;
         }
 
         cout << "Summary:" << endl;
@@ -920,9 +984,13 @@ int main(int argc, char *argv[])
             modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], cout);
             if (opts.starting_tree != tree_ml)
                 modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], cout);
-//            cout << "phyml " << ModelTestService::instance()->get_phyml_command_line(*best_models[i][modeltest::ic_bic].model, opts) << endl;
-//            cout << "raxmlHPC-SSE3 " << ModelTestService::instance()->get_raxml_command_line(*best_models[i][modeltest::ic_bic].model, opts.msa_filename) << endl;
         }
+
+        cout << endl;
+        cout << "Execution results written to " << opts.output_results_file << endl;
+        if (opts.output_tree_to_file)
+            cout << "Starting tree written to " << opts.output_tree_file << endl;
+        //cout << "Log written to " << opts.output_log_file << endl;
 
         /* clean */
         if (opts.partitions_desc)

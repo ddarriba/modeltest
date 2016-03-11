@@ -10,6 +10,7 @@
 
 extern "C" {
 #include <pll_optimize.h>
+#include <pll_tree.h>
 }
 
 typedef unsigned int pll_index_t;

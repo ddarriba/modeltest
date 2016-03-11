@@ -66,6 +66,8 @@ public:
         return new modeltest::ModelSelection(modeltest_instance->get_models(part_id), type);
     }
 
+    bool print_selection(modeltest::ModelSelection * selection, std::ostream  &out = std::cout) const;
+
     mt_size_t get_number_of_models(partition_id_t const& part_id) const;
 
     modeltest::PartitioningScheme & get_partitioning_scheme( void ) const;
@@ -77,11 +79,17 @@ public:
         return modeltest_instance;
     }
 
+    std::string get_iqtree_command_line(modeltest::Model const& model,
+                                       std::string const& msa_filename = "MSA_FILENAME") const;
+
+    std::string get_paup_command_line(modeltest::Model const& model,
+                                       std::string const& msa_filename = "MSA_FILENAME") const;
+
     std::string get_raxml_command_line(modeltest::Model const& model,
-                                       std::string const& msa_filename = "MSA_FILENAME");
+                                       std::string const& msa_filename = "MSA_FILENAME") const;
 
     std::string get_phyml_command_line(modeltest::Model const& model,
-                                       mt_options_t const& exec_opt);
+                                       const std::string &msa_filename = "MSA_FILENAME") const;
 
 //public:
 //    ModelTestService(ModelTestService const&) = delete;

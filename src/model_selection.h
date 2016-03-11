@@ -108,6 +108,16 @@ public:
     {
         return importance_freqs;
     }
+
+    /**
+     * @brief Get the criterion name
+     * @return the criterion name
+     */
+    std::string & get_name()
+    {
+        return ic_name;
+    }
+
 private:
     std::vector<selection_model> models; //! selection wrappers
     std::string ic_name;                 //! criterion name

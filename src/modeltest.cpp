@@ -135,6 +135,18 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
     if (!n_models)
         return true;
 
+    /* print header */
+    cout << setw(11) << right << " ----ID--- "
+         << setw(15) << left << " ----MODEL---- "
+         << setw(11) << "---Time---";
+    if (global_ini_time)
+        cout << setw(11) << "-Elapsed---";
+    cout << setw(18) << right
+         << " -------LnL-------"
+         << setw(8) << " -Alpha-"
+         << setw(8) << " -P-inv-"
+         << endl;
+
     if (n_procs == 1)
     {
         for (cur_model=0; cur_model < n_models; cur_model++)
@@ -198,7 +210,7 @@ bool ModelTest::test_link(Msa const *msa,
     else
     {
         mt_errno = MT_ERROR_IO;
-        snprintf(mt_errmsg, 200,
+        snprintf(mt_errmsg, ERR_MSG_SIZE,
                  "Number of sequences/taxa differs: %d tips / %d sequences",
                  msa->get_n_sequences(), tree->get_n_tips());
         return false;
@@ -218,7 +230,7 @@ bool ModelTest::test_link(Msa const *msa,
                 if (tree_taxa_found[j])
                 {
                     mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
-                    snprintf(mt_errmsg, 200, "Duplicated sequence %s", header);
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "Duplicated sequence %s", header);
                     return false;
                 }
                 tree_taxa_found[j] = true;
@@ -230,7 +242,7 @@ bool ModelTest::test_link(Msa const *msa,
         if (!found)
         {
             mt_errno = MT_ERROR_TREE_MISSING;
-            snprintf(mt_errmsg, 200, "Missing taxon %s in tree", header);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Missing taxon %s in tree", header);
             return false;
         }
     }
@@ -240,7 +252,7 @@ bool ModelTest::test_link(Msa const *msa,
         if (!(tree_taxa_found[i] ))
         {
             mt_errno = MT_ERROR_ALIGNMENT_MISSING;
-             snprintf(mt_errmsg, 200, "Missing sequence %s in MSA",tree->get_label(i).c_str());
+             snprintf(mt_errmsg, ERR_MSG_SIZE, "Missing sequence %s in MSA",tree->get_label(i).c_str());
             return false;
         }
     }
@@ -266,7 +278,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
             {
                 /* out of bounds */
                 mt_errno = MT_ERROR_PARTITIONS_OUTBOUNDS;
-                snprintf(mt_errmsg, 200, "Partition %s is out of bounds",partition.partition_name.c_str());
+                snprintf(mt_errmsg, ERR_MSG_SIZE, "Partition %s is out of bounds",partition.partition_name.c_str());
                 free(sites);
                 return false;
             }
@@ -276,7 +288,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
                 {
                     /* overlapping */
                     mt_errno = MT_ERROR_PARTITIONS_OVERLAP;
-                    snprintf(mt_errmsg, 200, "Partition %s overlaps another partition",partition.partition_name.c_str());
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "Partition %s overlaps another partition",partition.partition_name.c_str());
                     free(sites);
                     return false;
                 }
@@ -289,7 +301,7 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
         {
             /* uncovered site */
             mt_errno = MT_WARN_PARTITIONS_UNASIGNED;
-            snprintf(mt_errmsg, 200, "Site %d is not assigned to any partition", i+1);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Site %d is not assigned to any partition", i+1);
             break;
         }
     }
@@ -333,6 +345,7 @@ bool ModelTest::build_instance(mt_options_t & options)
         }
     }
 
+    /* create starting tree */
     switch (options.starting_tree)
     {
     case tree_user_fixed:
@@ -361,15 +374,16 @@ bool ModelTest::build_instance(mt_options_t & options)
       {
         /* unimplemented */
         mt_errno = MT_ERROR_TREE;
-        snprintf(mt_errmsg, 200, "User tree is not defined");
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "User tree is not defined");
         return false;
       }
         break;
+    case tree_random:
     case tree_mp:
     case tree_ml_gtr_fixed:
     case tree_ml_jc_fixed:
         try {
-          current_instance->tree = new TreePll (options.starting_tree, options.msa_filename, number_of_threads);
+          current_instance->tree = new TreePll (options.starting_tree, *current_instance->msa, number_of_threads);
         }
         catch(int e)
         {
@@ -390,19 +404,31 @@ bool ModelTest::build_instance(mt_options_t & options)
             free_stuff();
             return false;
         }
-        current_instance->tree->print();
         break;
     case tree_ml:
         mt_errno = MT_ERROR_UNIMPLEMENTED;
-        snprintf(mt_errmsg, 200, "Per-model ML tree is not implemented yet");
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "Per-model ML tree is not implemented yet");
         return false;
+    }
+
+    /* print tree */
+    if (options.output_tree_to_file)
+    {
+        string nw = current_instance->tree->newick();
+        if (!Utils::append_to_file(options.output_tree_file, nw))
+        {
+            mt_errno = MT_ERROR_IO;
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot write starting tree: %s",
+                     options.output_tree_file.c_str());
+            return false;
+        }
     }
 
     if (current_instance->msa->get_n_sequences() !=
 	current_instance->tree->get_n_tips())
       {
         mt_errno = MT_ERROR_TREE;
-         snprintf(mt_errmsg, 200, "Tips do not agree! %d sequences vs %d tips",
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "Tips do not agree! %d sequences vs %d tips",
                  current_instance->msa->get_n_sequences(),
                  current_instance->tree->get_n_tips());
         return false;

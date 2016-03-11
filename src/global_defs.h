@@ -28,6 +28,8 @@
 #define FALLTHROUGH
 #endif
 
+#define ERR_MSG_SIZE 200
+
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define MT_PRECISION_DIGITS 4
 
@@ -47,6 +49,10 @@
 #define MT_MIN_SMOOTH_FREQ        0.02
 
 #define MT_ERROR_LENGTH 400
+
+#define OUTPUT_LOG_SUFFIX         ".log"
+#define OUTPUT_TREE_SUFFIX        ".tree"
+#define OUTPUT_RESULTS_SUFFIX     ".out"
 
 namespace modeltest
 {
@@ -90,11 +96,14 @@ extern int mpi_numprocs;
 #define MT_ERROR_OPTIMIZE      10700
 
 /* fine grain errors */
-#define MT_ERROR_ALIGNMENT_DUPLICATED  10201
-#define MT_ERROR_ALIGNMENT_MISSING     10202
-#define MT_ERROR_TREE_MISSING          10301
-#define MT_ERROR_PARTITIONS_OUTBOUNDS  10401
-#define MT_ERROR_PARTITIONS_OVERLAP    10402
+#define MT_ERROR_ALIGNMENT_DUPLICATED      10201
+#define MT_ERROR_ALIGNMENT_MISSING         10202
+#define MT_ERROR_ALIGNMENT_ILLEGAL         10203
+#define MT_ERROR_ALIGNMENT_HEADER          10204
+#define MT_ERROR_ALIGNMENT_UNPRINTABLECHAR 10205
+#define MT_ERROR_TREE_MISSING              10301
+#define MT_ERROR_PARTITIONS_OUTBOUNDS      10401
+#define MT_ERROR_PARTITIONS_OVERLAP        10402
 
 #define MT_WARN_PARTITIONS_UNASIGNED   10410
 
@@ -109,7 +118,8 @@ typedef enum
     tree_ml_jc_fixed,
     tree_ml_gtr_fixed,
     tree_ml,
-    tree_user_fixed
+    tree_user_fixed,
+    tree_random
 } tree_type_t;
 
 typedef enum {
@@ -152,11 +162,19 @@ typedef std::vector<partition_descriptor_t> partitioning_scheme_t;
 
 typedef struct {
 
-    /* input/output data */
+    /* input data */
     std::string msa_filename;                   //! Input MSA filename
     std::string tree_filename;                  //! User tree filename
     std::string partitions_filename;            //! Partitions filename
-    std::string output_filename;                //! Output filename
+
+    /* output data */
+    std::string output_log_file;                //! Output log filename
+    std::string output_tree_file;               //! Output tree filename
+    std::string output_results_file;            //! Output results filename
+    bool redirect_output;             //! Redirect standard output to a file
+    bool force_override;              //! Force overriding existing files
+    bool output_tree_to_file;         //! Whether the starting tree is printed
+
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
 

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 namespace modeltest {
@@ -231,6 +232,44 @@ public:
      * @return The string representation
      */
     static std::string format_time(time_t seconds);
+
+    /* File utils */
+
+    /**
+     * @brief Check if a file exists
+     * @param filename the file to check
+     * @return true, if file with name `filename` exists
+     */
+    static bool file_exists(const std::string & filename);
+
+    /**
+     * @brief Check if a file is writable
+     * Warning: The content of the file is removed
+     * @param filename the file to check
+     * @return true, if file with name `filename` is writable
+     */
+    static bool file_writable(const std::string & filename);
+
+    static std::ofstream * open_file_for_writing(const std::string & filename);
+
+    /**
+     * @brief Appends a text to a file
+     * Open the file, append the `text`, close the file
+     * @param filename the file to write to
+     * @param text the text to append
+     * @return true, if text was written
+     */
+    static bool append_to_file(const std::string & filename,
+                               const std::string & text);
+
+    /**
+     * @brief Appends a text to a file
+     * @param filename the file to write to
+     * @param text the text to append
+     * @return true, if text was written
+     */
+    static bool append_to_file(std::ofstream & outfile,
+                               const std::string & text);
 };
 
 }

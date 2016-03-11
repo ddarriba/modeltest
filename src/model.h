@@ -79,6 +79,13 @@ public:
     mt_size_t get_n_states( void ) const;
 
     /**
+     * @brief Gets the number of categories
+     * @return the number of categories
+     */
+    mt_size_t get_n_categories( void ) const;
+    void set_n_categories( mt_size_t ncat );
+
+    /**
      * @brief Gets the number of substitution rates
      * @return the number of substitution rates
      */
@@ -225,6 +232,7 @@ protected:
 
     time_t exec_time;
 
+    mt_size_t n_categories;
     mt_size_t n_frequencies;
     mt_size_t n_subst_rates;
 

@@ -1013,6 +1013,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           optimized = true;
           model->set_lnl(cur_logl);
           model->set_exec_time(end_time - start_time);
+          model->set_n_categories(pll_partition->rate_cats);
 
           if (model->is_G())
               model->set_alpha(params->lk_params.alpha_value);

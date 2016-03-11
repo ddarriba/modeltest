@@ -31,6 +31,12 @@ namespace modeltest
     virtual const char * get_header (mt_index_t index) const = 0;
 
     /**
+     * @brief Gets the list of headers
+     * @return an array of headers
+     */
+    virtual const char* const* get_headers () const = 0;
+
+    /**
      * @brief Gets the sequence at a certain position
      * @param[in] index The sequence to recover
      * @return the sequence at 'index'

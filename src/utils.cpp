@@ -232,7 +232,7 @@ partitioning_scheme_t *Utils::parse_partitions_file(string filename)
   if (!rawdata)
    {
      mt_errno = MT_ERROR_IO;
-     snprintf(mt_errmsg, 200, "Cannot read file %s", filename.c_str());
+     snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot read file %s", filename.c_str());
      return 0;
    }
 
@@ -303,10 +303,38 @@ void Utils::print_options(mt_options_t & opts, ostream  &out)
 
     out << "Input data:" << endl;
     out << "  " << left << setw(10) << "MSA:" << opts.msa_filename << endl;
-    if (opts.tree_filename.compare(""))
-        out << "  " << left << setw(10) << "Tree:" << opts.tree_filename << endl;
+    out << "  " << left << setw(10) << "Tree:";
+    switch(opts.starting_tree)
+    {
+    case tree_user_fixed:
+        assert (opts.tree_filename.compare(""));
+        out << opts.tree_filename << endl;
+        break;
+    case tree_mp:
+        out << "Maximum parsimony" << endl;
+        break;
+    case tree_ml_gtr_fixed:
+        out << "Fixed ML GTR" << endl;
+        break;
+    case tree_ml_jc_fixed:
+        out << "Fixed ML JC" << endl;
+        break;
+    case tree_ml:
+        out << "Maximum likelihood" << endl;
+        break;
+    case tree_random:
+        out << "Random" << endl;
+        break;
+    }
+
     out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
     out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;
+
+    out << endl << "Output:" << endl;
+    out << "  " << left << setw(15) << "Log:" << opts.output_log_file << endl;
+    if (opts.output_tree_to_file)
+        out << "  " << left << setw(15) << "Starting tree:" << opts.output_tree_file << endl;
+    out << "  " << left << setw(15) << "Results:" << opts.output_results_file << endl;
 
     out << endl << "Selection options:" << endl;
     if (opts.nt_candidate_models.size())
@@ -707,7 +735,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         if (token.tokenType != TOKEN_STRING)
         {
             mt_errno = MT_ERROR_IO_FORMAT;
-            snprintf(mt_errmsg, 200, "Invalid datatype in partition %d", lines);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Invalid datatype in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -731,7 +759,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         else
         {
             mt_errno = MT_ERROR_IO_FORMAT;
-            snprintf(mt_errmsg, 200, "Invalid datatype in partition %d: %s", lines, tmpchar);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Invalid datatype in partition %d: %s", lines, tmpchar);
             delete partitions;
             free (tmpchar);
             return 0;
@@ -744,7 +772,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                 if (token.tokenType != TOKEN_COMMA)
         {
             mt_errno = MT_ERROR_IO_FORMAT;
-            snprintf(mt_errmsg, 200, "Expecting ',' after datatype in partition %d", lines);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Expecting ',' after datatype in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -755,7 +783,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                 if (token.tokenType != TOKEN_STRING)
         {
             mt_errno = MT_ERROR_IO_FORMAT;
-            snprintf(mt_errmsg, 200, "Expecting partition name in partition %d", lines);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Expecting partition name in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -773,7 +801,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                 if (token.tokenType != TOKEN_EQUAL)
         {
             mt_errno = MT_ERROR_IO_FORMAT;
-            snprintf(mt_errmsg, 200, "Expecting '=' in partition %d", lines);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Expecting '=' in partition %d", lines);
             delete partitions;
             return 0;
         }
@@ -786,7 +814,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
             if (token.tokenType != TOKEN_NUMBER)
             {
                 mt_errno = MT_ERROR_IO_FORMAT;
-                snprintf(mt_errmsg, 200, "Invalid numerical character (region start) in partition %d", lines);
+                snprintf(mt_errmsg, ERR_MSG_SIZE, "Invalid numerical character (region start) in partition %d", lines);
                 delete partitions;
                 return 0;
             }
@@ -802,7 +830,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                         if (token.tokenType != TOKEN_NUMBER)
                 {
                     mt_errno = MT_ERROR_IO_FORMAT;
-                    snprintf(mt_errmsg, 200, "Invalid numerical character (region end) in partition %d", lines);
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "Invalid numerical character (region end) in partition %d", lines);
                     delete partitions;
                     return 0;
                 }
@@ -810,7 +838,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                 if (region.end < region.start)
                 {
                     mt_errno = MT_ERROR_IO_FORMAT;
-                    snprintf(mt_errmsg, 200, "End is smaller than Start in partition %d", lines);
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "End is smaller than Start in partition %d", lines);
                     delete partitions;
                     return 0;
                 }
@@ -823,7 +851,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
                             if (token.tokenType != TOKEN_NUMBER)
                     {
                         mt_errno = MT_ERROR_IO_FORMAT;
-                        snprintf(mt_errmsg, 200, "Invalid stride in partition %d", lines);
+                        snprintf(mt_errmsg, ERR_MSG_SIZE, "Invalid stride in partition %d", lines);
                         delete partitions;
                         return 0;
                     }
@@ -921,6 +949,69 @@ string Utils::format_time(time_t seconds)
     stringstream ss;
     ss << setfill('0') << exec_time_h <<"h:" << setw(2) << exec_time_m << ":" << setw(2) << exec_time_s << setfill(' ');
     return string(ss.str().c_str());
+}
+
+bool Utils::file_exists(const string &filename)
+{
+  FILE *fp;
+  int res;
+  fp = fopen(filename.c_str(),"rb");
+
+  if(fp)
+    {
+      res = true;
+      fclose(fp);
+    }
+  else
+    res = false;
+
+  return res;
+}
+
+bool Utils::file_writable(const string & filename)
+{
+  FILE *fp;
+  int res;
+  fp = fopen(filename.c_str(),"w");
+
+  if(fp)
+    {
+      res = true;
+      fclose(fp);
+    }
+  else
+    res = false;
+
+  return res;
+}
+
+ofstream * Utils::open_file_for_writing(const string &filename)
+{
+    ofstream * outfile = new ofstream();
+    outfile->open(filename, ios_base::app);
+    return outfile;
+}
+
+bool Utils::append_to_file(const string &filename,
+                           const string &text)
+{
+    ofstream outfile;
+
+    outfile.open(filename, ios_base::app);
+    if (!outfile.is_open())
+        return false;
+    outfile << text;
+    outfile.close();
+
+    return true;
+}
+
+bool Utils::append_to_file(ofstream & outfile,
+                           const string &text)
+{
+    assert(outfile.is_open());
+    outfile << text;
+    return true;
 }
 
 } /* namespace */
