@@ -8,6 +8,7 @@
 #include "msapll.h"
 #include "utils.h"
 
+#include <pll_msa.h>
 #include <cerrno>
 #include <cassert>
 #include <vector>
@@ -48,6 +49,7 @@ namespace modeltest
     }
 
     pll_fasta_close(fp);
+    weights = 0;
 
     /* reset pll errno */
     pll_errno = 0;
@@ -62,6 +64,9 @@ namespace modeltest
     for (mt_index_t i = 0; i < n_taxa; i++)
       free (tipnames[i]);
     free (tipnames);
+
+    if (weights)
+        free(weights);
 
     for (pll_partition_t *pll_part : pll_partitions)
         if (pll_part)
@@ -83,6 +88,11 @@ namespace modeltest
   {
     assert(index < n_taxa);
     return sequences[index];
+  }
+
+  const unsigned int * MsaPll::get_weights( void ) const
+  {
+      return weights;
   }
 
   const char aa_unique_chars[14] = {
@@ -231,11 +241,16 @@ namespace modeltest
       for (mt_index_t i=0; i<n_sites; i++)
           reindex[i] = i;
 
+      vector<unsigned int *> partition_weights;
+      char ** partition_sequences = (char **) malloc(n_taxa * sizeof(char *));
+      partition_weights.reserve(scheme.size());
       mt_index_t cur = 0;
       for (partition_descriptor_t & partition : scheme)
       {
           partition_region_t new_region;
           new_region.start = cur+1;
+
+          /* merge all regions into a single one */
           for (partition_region_t & region : partition.regions)
           {
               for (mt_index_t j=(region.start-1); j<region.end; j+=region.stride)
@@ -251,12 +266,41 @@ namespace modeltest
                   cur++;
               }
           }
+
+          /* compress patterns */
+          for (mt_index_t i=0; i<n_taxa; ++i)
+            partition_sequences[i] = sequences[i] + new_region.start - 1;
+
+//          for (mt_index_t i=0; i<n_taxa; ++i)
+//          {
+//              cout << "t" << i << " : ";
+//              for (mt_index_t j=0; j<cur; ++j)
+//                  cout << partition_sequences[i][j];
+//              cout << endl;
+//          }
+
+          int compressed_length = cur;
+          unsigned int * pw = pll_compress_site_patterns(partition_sequences, n_taxa, &compressed_length);
+          cur = new_region.start + compressed_length - 1;
+          partition_weights.push_back(pw);
+          cout << "SITES = " << cur << ", PATTERNS = " << compressed_length << endl;
+
+
           new_region.end = cur;
           new_region.stride = 1;
           partition.regions.clear();
           partition.regions.push_back(new_region);
       }
 
+      assert (!weights);
+      weights = (unsigned int *) malloc (cur * sizeof(unsigned int));
+      unsigned int * weights_ptr = weights;
+      for (mt_index_t i=0; i<scheme.size(); ++i)
+      {
+          memcpy(weights_ptr, partition_weights[i], sizeof(unsigned int) * (scheme[i].regions[0].end - scheme[i].regions[0].start + 1));
+          free(partition_weights[i]);
+      }
+      free(partition_sequences);
     return true;
   }
 
@@ -275,9 +319,11 @@ namespace modeltest
       for (mt_index_t i=0; i<states; i++)
           partition.empirical_freqs[i] = 0;
 
-      mt_size_t cum_sites = 0;
+      mt_size_t cum_weights = 0;
+      mt_size_t cum_abs_freq = 0;
       for (partition_region_t region : partition.regions)
-          cum_sites += region.end - region.start;
+          for (mt_index_t j = region.start - 1; j < region.end; j++)
+              cum_weights += weights[j];
 
       uint32_t existing_states = 0;
       const unsigned int * states_map = (partition.datatype == dt_dna)?pll_map_nt:pll_map_aa;
@@ -285,7 +331,7 @@ namespace modeltest
       {
           for (partition_region_t region : partition.regions)
           {
-              for (mt_index_t j = region.start; j < region.end; j++)
+              for (mt_index_t j = region.start - 1; j < region.end; j++)
               {
                   mt_size_t sum_site = 0;
                   mt_size_t ind = states_map[(int)sequences[i][j]];
@@ -297,10 +343,10 @@ namespace modeltest
                   }
                   for (unsigned int k=0; k<states; ++k)
                   {
-                      sum_site += (ind & (1<<k)) > 0;
+                      sum_site += ((ind & (1<<k)) > 0);
                   }
                   for (unsigned int k=0; k<states; ++k)
-                      partition.empirical_freqs[k] += 1.0 * ((ind & (1<<k))>0) / sum_site;
+                      partition.empirical_freqs[k] += 1.0 * weights[j] * ((ind & (1<<k))>0) / sum_site;
                   if (sum_site == 1)
                       existing_states |= ind;
               }
@@ -309,7 +355,8 @@ namespace modeltest
 
       for (mt_index_t i=0; i<states; i++)
       {
-          partition.empirical_freqs[i] /= n_taxa * cum_sites;
+          cum_abs_freq += partition.empirical_freqs[i];
+          partition.empirical_freqs[i] /= n_taxa * cum_weights;
       }
 
       /* validate */
@@ -322,7 +369,7 @@ namespace modeltest
       if( (checksum != checksum) || (fabs(1-checksum) > 1e-10 ))
       {
           mt_errno = MT_ERROR_FREQUENCIES;
-          snprintf(mt_errmsg, ERR_MSG_SIZE, "Empirical frequencies do not sum to 1 [%s]", partition.partition_name.c_str());
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "Empirical frequencies sum to %.4f instead of 1 [%s]", checksum, partition.partition_name.c_str());
           return false;
       }
 
@@ -348,29 +395,117 @@ namespace modeltest
       return true;
   }
 
+  bool MsaPll::compute_empirical_subst_rates(partition_descriptor_t &partition,
+                                             bool force_recompute)
+  {
+      unsigned int i, j, k, n;
+      mt_size_t states = partition.states;
+      assert (states);
+
+      if (partition.empirical_subst_rates.size())
+          if(!force_recompute || partition.empirical_subst_rates.size() != states)
+              return false;
+
+        unsigned int n_subst_rates  = (states * (states - 1) / 2);
+        const unsigned int * states_map = (partition.datatype == dt_dna)?pll_map_nt:pll_map_aa;
+
+        partition.empirical_subst_rates.resize(n_subst_rates);
+        for (mt_index_t i=0; i<states; i++)
+            partition.empirical_subst_rates[i] = 0;
+
+        unsigned *pair_rates = (unsigned *) calloc(
+            states * states, sizeof(unsigned));
+        unsigned *state_freq = (unsigned *) malloc(states * sizeof(unsigned));
+
+        if (!(pair_rates && state_freq))
+        {
+          pll_errno = PLL_ERROR_MEM_ALLOC;
+          snprintf (pll_errmsg, 200,
+                    "Cannot allocate memory for empirical subst rates");
+          if (pair_rates)
+            free (pair_rates);
+          if (state_freq)
+            free (state_freq);
+          return NULL;
+        }
+
+        mt_size_t undef_state = (unsigned int) (1<<states) - 1;
+          for (n = 0; n < n_sites; ++n)
+          {
+            memset (state_freq, 0, sizeof(unsigned) * (states));
+            for (i = 0; i < n_taxa; ++i)
+            {
+              mt_index_t state = states_map[(int)sequences[i][n]];
+              if (state == undef_state)
+                continue;
+              for (k = 0; k < states; ++k)
+              {
+                if (state & 1)
+                  state_freq[k]++;
+                state >>= 1;
+              }
+            }
+
+            for (i = 0; i < states; i++)
+            {
+              if (state_freq[i] == 0)
+                continue;
+              for (j = i + 1; j < states; j++)
+              {
+                pair_rates[i * states + j] += state_freq[i] * state_freq[j]
+                    * weights[n];
+              }
+            }
+          }
+
+        k = 0;
+        double last_rate = pair_rates[(states - 2) * states + states - 1];
+        if (last_rate < 1e-7)
+          last_rate = 1;
+        for (i = 0; i < states - 1; i++)
+        {
+          for (j = i + 1; j < states; j++)
+          {
+            partition.empirical_subst_rates[k++] = pair_rates[i * states + j] / last_rate;
+            if (partition.empirical_subst_rates[k - 1] < 0.01)
+              partition.empirical_subst_rates[k - 1] = 0.01;
+            if (partition.empirical_subst_rates[k - 1] > 50.0)
+              partition.empirical_subst_rates[k - 1] = 50.0;
+          }
+        }
+
+        partition.empirical_subst_rates[k - 1] = 1.0;
+
+        free(pair_rates);
+        free(state_freq);
+
+    return true;
+  }
+
   bool MsaPll::compute_empirical_pinv(partition_descriptor_t &partition)
   {
       mt_size_t n_inv = 0;
-      mt_size_t n_sites = 0;
+      double sum_wgt = 0.0;
       for (partition_region_t region : partition.regions)
       {
-          n_sites += region.end - region.start;
-          n_inv   += region.end - region.start;
-          for (mt_index_t j = region.start; j < region.end; j++)
+          for (mt_index_t j = region.start - 1; j < region.end; j++)
           {
+              sum_wgt += weights[j];
+              n_inv   += weights[j];
               char state = sequences[0][j];
-              for (mt_index_t i=0; i<n_taxa; ++i)
+              for (mt_index_t i=1; i<n_taxa; ++i)
               {
                   if (sequences[i][j] != state)
                   {
-                      n_inv--;
+                      n_inv -= weights[j];
                       break;
                   }
               }
           }
       }
-      double empirical_pinv = (double)1.0*n_inv/n_sites;
+      double empirical_pinv = (double)1.0*n_inv/sum_wgt;
       partition.empirical_pinv = empirical_pinv;
+
       return true;
   }
 

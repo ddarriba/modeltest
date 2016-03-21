@@ -134,6 +134,7 @@ namespace modeltest
                   throw EXCEPTION_TREE_MP;
               }
           }
+          pll_utree_destroy(random_tree);
       }
           break;
       }

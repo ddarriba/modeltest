@@ -240,14 +240,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 if (region.stride == 1)
                 {
                     /* copy consecutive sites in sequence */
-                    memcpy(seq, msa->get_sequence (i) + region.start - 1, region_sites);
+                    memcpy(seq, msa->get_sequence (i) + region.start - 1, region_sites * sizeof(char));
                 }
                 else
                 {
                     /* copy strided sites in sequence */
                     mt_index_t k = 0;
                     const char * f_seq = msa->get_sequence (i);
-                    for (mt_index_t s = region.start; s <= region.end && s < n_sites; s+=region.stride)
+                    for (mt_index_t s = region.start - 1; s <= region.end && s < n_sites; s+=region.stride)
                     {
                         seq[k++] = f_seq[s];
                     }
@@ -270,6 +270,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             assert(0);
         }
     }
+
+    /* set weights */
+    if (partition.regions.size() > 1)
+    {
+        for (const partition_region_t & region : partition.regions)
+        {
+            assert(region.stride == 1);
+            unsigned int * weights_ptr = pll_partition->pattern_weights;
+            mt_size_t region_sites = (region.end - region.start + 1);
+            /* copy consecutive weights */
+            memcpy(weights_ptr, msa->get_weights() + region.start - 1, region_sites * sizeof(unsigned int));
+            weights_ptr += region_sites;
+        }
+    }
+    else
+        pll_set_pattern_weights(pll_partition, msa->get_weights() + partition.regions[0].start - 1);
 
     free (tipnodes);
 
@@ -701,8 +717,36 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       if (partition.datatype == dt_dna)
       {
         int *symmetries = new int[N_DNA_SUBST_RATES];
+        double *empirical_rates = new double[N_DNA_SUBST_RATES];
         memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
         params->subst_params_symmetries = symmetries;
+
+        if (model->get_n_subst_params() > 0)
+        {
+            for (mt_index_t i=0; i<model->get_n_subst_params(); ++i)
+            {
+                double sum_rate = 0;
+                int count = 0;
+                for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
+                {
+                    if (symmetries[j] == i)
+                    {
+                        ++count;
+                        sum_rate += partition.empirical_subst_rates[j];
+                    }
+                }
+                assert(count);
+                sum_rate /= count;
+
+                for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
+                    if (symmetries[j] == i)
+                        empirical_rates[j] = sum_rate;
+            }
+            for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
+                empirical_rates[j] /= empirical_rates[N_DNA_SUBST_RATES-1];
+            pll_set_subst_params(pll_partition, 0, 0, empirical_rates);
+            delete[] empirical_rates;
+        }
       }
       else
       {

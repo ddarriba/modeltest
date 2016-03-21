@@ -44,6 +44,12 @@ namespace modeltest
     virtual const char * get_sequence (mt_index_t index) const = 0;
 
     /**
+     * @brief Gets the pattern weights
+     * @return the pattern weights
+     */
+    virtual const unsigned int * get_weights( void ) const = 0;
+
+    /**
      * @brief Reorder the sites according to a partitioning scheme
      * @param[in,out] scheme valid partitioning scheme
      * @return true, if success
@@ -63,6 +69,9 @@ namespace modeltest
                                                bool force_recompute = false) = 0;
 
     virtual bool compute_empirical_pinv(partition_descriptor_t &partition) = 0;
+
+    virtual bool compute_empirical_subst_rates(partition_descriptor_t &partition,
+                                               bool force_recompute = false) = 0;
 
     /**
      * @brief Prints the sequence

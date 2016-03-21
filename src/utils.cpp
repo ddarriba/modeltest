@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "model_defs.h"
+#include "service/modeltestservice.h"
 
 #include <algorithm>
 #include <sstream>
@@ -215,6 +216,9 @@ void Utils::exit_with_error(const char * message, ...) {
 
         va_end(arg);
     }
+
+    ModelTestService::instance()->destroy_instance();
+
 #ifdef HAVE_MPI
     MPI_Finalize();
 #endif

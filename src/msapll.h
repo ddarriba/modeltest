@@ -23,11 +23,16 @@ namespace modeltest
     virtual const char * get_header (mt_index_t index) const;
     virtual const char * const *get_headers() const;
     virtual const char * get_sequence (mt_index_t index) const;
+    virtual const unsigned int * get_weights( void ) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme);
+
     virtual bool compute_empirical_frequencies(partition_descriptor_t &partition,
                                                bool smooth = false,
                                                bool force_recompute = false);
     virtual bool compute_empirical_pinv(partition_descriptor_t &partition);
+    virtual bool compute_empirical_subst_rates(partition_descriptor_t &partition,
+                                               bool force_recompute = false);
+
     virtual void print() const;
 
     static bool test(std::string const& msa_filename,
@@ -38,6 +43,7 @@ namespace modeltest
     std::vector <pll_partition_t *> pll_partitions;
     char **sequences;
     char **tipnames;
+    unsigned int * weights;
   };
 
 } /* namespace modeltest */

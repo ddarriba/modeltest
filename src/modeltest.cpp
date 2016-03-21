@@ -343,6 +343,11 @@ bool ModelTest::build_instance(mt_options_t & options)
             std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
             return false;
         }
+        if (partition.datatype == dt_dna && !current_instance->msa->compute_empirical_subst_rates(partition))
+        {
+            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
+            return false;
+        }
     }
 
     /* create starting tree */
