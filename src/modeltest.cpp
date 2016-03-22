@@ -52,10 +52,25 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
     Partition &partition = partitioning_scheme->get_partition(part_id);
-    return new ModelOptimizerPll(msa, tree, model,
-                                 partition.get_descriptor(),
+    return new ModelOptimizerPll(*msa, *tree, *model,
+                                 partition,
                                  current_instance->n_catg,
                                  thread_number);
+}
+
+static void print_execution_header( bool print_elapsed_time )
+{
+    /* print header */
+    cout << setw(11) << right << " ----ID--- "
+         << setw(15) << left << " ----MODEL---- "
+         << setw(11) << "---Time---";
+    if (print_elapsed_time)
+        cout << setw(11) << "-Elapsed---";
+    cout << setw(18) << right
+         << " -------LnL-------"
+         << setw(8) << " -Alpha-"
+         << setw(8) << " -P-inv-"
+         << endl;
 }
 
 bool ModelTest::evaluate_single_model(Model * model,
@@ -132,23 +147,15 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
     mt_size_t n_models = partition.get_number_of_models();
     time_t global_ini_time = time(NULL);
 
+    assert(n_procs > 0);
+
     if (!n_models)
         return true;
 
-    /* print header */
-    cout << setw(11) << right << " ----ID--- "
-         << setw(15) << left << " ----MODEL---- "
-         << setw(11) << "---Time---";
-    if (global_ini_time)
-        cout << setw(11) << "-Elapsed---";
-    cout << setw(18) << right
-         << " -------LnL-------"
-         << setw(8) << " -Alpha-"
-         << setw(8) << " -P-inv-"
-         << endl;
-
     if (n_procs == 1)
     {
+        print_execution_header( global_ini_time );
+
         for (cur_model=0; cur_model < n_models; cur_model++)
         {
             Model *model = partition.get_model(cur_model);
@@ -164,7 +171,11 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
         std::vector< std::future<int> > results;
         std::map<thread::id, mt_index_t> thread_map = pool.worker_ids;
 
-        std::cerr << "Starting jobs... (output might be unsorted)" << std::endl;
+        std::cerr << "Starting jobs... (output might be unsorted)"
+                  << std::endl << std::endl;
+
+        print_execution_header( global_ini_time );
+
         for (cur_model=0; cur_model < n_models; cur_model++)
         {
             Model *model = partition.get_model(cur_model);
@@ -329,26 +340,26 @@ bool ModelTest::build_instance(mt_options_t & options)
         current_instance->partitions_eff = options.partitions_eff;
     }
 
-    /* evaluate partitions */
-    for (partition_descriptor_t & partition : *options.partitions_eff)
-    {
-        /* compute empirical frequencies */
-        if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
-        {
-            std::cerr << "Error computing frequencies in " << partition.partition_name << std::endl;
-            return false;
-        }
-        if (!current_instance->msa->compute_empirical_pinv(partition))
-        {
-            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
-            return false;
-        }
-        if (partition.datatype == dt_dna && !current_instance->msa->compute_empirical_subst_rates(partition))
-        {
-            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
-            return false;
-        }
-    }
+//    /* evaluate partitions */
+//    for (partition_descriptor_t & partition : *options.partitions_eff)
+//    {
+//        /* compute empirical frequencies */
+//        if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
+//        {
+//            std::cerr << "Error computing frequencies in " << partition.partition_name << std::endl;
+//            return false;
+//        }
+//        if (!current_instance->msa->compute_empirical_pinv(partition))
+//        {
+//            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
+//            return false;
+//        }
+//        if (partition.datatype == dt_dna && !current_instance->msa->compute_empirical_subst_rates(partition))
+//        {
+//            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
+//            return false;
+//        }
+//    }
 
     /* create starting tree */
     switch (options.starting_tree)
@@ -459,22 +470,43 @@ bool ModelTest::build_instance(mt_options_t & options)
         partition_id_t part_id(1);
         part_id[0] = cur_part_id;
         Partition * new_part;
-        if (partition.datatype == dt_dna)
-            new_part = new Partition(part_id,
-                                     current_instance->msa,
-                                     current_instance->tree,
+        try {
+            if (partition.datatype == dt_dna)
+                new_part = new Partition(part_id,
+                                     *current_instance->msa,
+                                     *current_instance->tree,
                                      partition,
                                      options.nt_candidate_models,
                                      options.model_params);
-        else if (partition.datatype == dt_protein)
-            new_part = new Partition(part_id,
-                                     current_instance->msa,
-                                     current_instance->tree,
+            else if (partition.datatype == dt_protein)
+                new_part = new Partition(part_id,
+                                     *current_instance->msa,
+                                     *current_instance->tree,
                                      partition,
                                      options.aa_candidate_models,
                                      options.model_params);
-        else
-            assert(0);
+            else
+                assert(0);
+        }
+        catch(int e)
+        {
+            switch (e)
+            {
+            case EXCEPTION_PARTITION_EMP_FREQS:
+                mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
+                break;
+            case EXCEPTION_PARTITION_EMP_RATES:
+                mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
+                break;
+            case EXCEPTION_PARTITION_EMP_PINV:
+                mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
+                break;
+            default:
+                assert(0);
+            }
+            free_stuff();
+            return false;
+        }
 
         /*
          * sort candidate models by

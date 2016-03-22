@@ -26,13 +26,6 @@ namespace modeltest
     virtual const unsigned int * get_weights( void ) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme);
 
-    virtual bool compute_empirical_frequencies(partition_descriptor_t &partition,
-                                               bool smooth = false,
-                                               bool force_recompute = false);
-    virtual bool compute_empirical_pinv(partition_descriptor_t &partition);
-    virtual bool compute_empirical_subst_rates(partition_descriptor_t &partition,
-                                               bool force_recompute = false);
-
     virtual void print() const;
 
     static bool test(std::string const& msa_filename,

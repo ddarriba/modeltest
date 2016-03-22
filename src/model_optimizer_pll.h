@@ -38,10 +38,10 @@ namespace modeltest
   class ModelOptimizerPll : public ModelOptimizer
   {
   public:
-    ModelOptimizerPll (MsaPll *_msa,
-                       TreePll *_tree,
-                       Model *_model,
-                       const partition_descriptor_t & partition,
+    ModelOptimizerPll (MsaPll & _msa,
+                       TreePll & _tree,
+                       Model & _model,
+                       Partition &partition,
                        mt_size_t _n_cat_g = DEFAULT_GAMMA_RATE_CATS,
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
@@ -68,7 +68,7 @@ namespace modeltest
   private:
 
     bool build_parameters(pll_utree_t * pll_tree);
-    TreePll *tree;   //! the tree instance
+    TreePll & tree;   //! the tree instance
 
     pll_optimize_options_t * params; //! optimization parameters
     pll_partition_t * pll_partition; //! partition

@@ -163,10 +163,10 @@ static bool keep_branch_lengths = false;
 
 ModelOptimizer::~ModelOptimizer() {}
 
-ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
-                                      TreePll *_tree,
-                                      Model *_model,
-                                      const partition_descriptor_t &_partition,
+ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
+                                      TreePll &_tree,
+                                      Model &_model,
+                                      Partition &_partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_msa, _model, _partition, _thread_number),
@@ -180,24 +180,20 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     branch_lengths = NULL;
     matrix_indices = NULL;
 
-    mt_size_t n_tips = tree->get_n_tips ();
-    mt_size_t n_inner = tree->get_n_inner ();
-    mt_size_t n_branches = tree->get_n_branches ();
-    mt_size_t n_nodes = tree->get_n_nodes ();
-    mt_size_t n_sites = 0;
+    mt_size_t n_tips = tree.get_n_tips ();
+    mt_size_t n_inner = tree.get_n_inner ();
+    mt_size_t n_branches = tree.get_n_branches ();
+    mt_size_t n_nodes = tree.get_n_nodes ();
+    mt_size_t n_sites = partition.get_n_sites();
+    mt_size_t n_patterns = partition.get_n_patterns();
 
-    for (const partition_region_t & region : partition.regions)
-    {
-        n_sites += (region.end - region.start + 1)/region.stride;
-    }
-
-    pll_partition = model->build_partition(n_tips, n_sites, _n_cat_g);
+    pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
 
     if (!pll_partition)
         std::cout << "  MIXTURE CATS " << pll_errno << " " << pll_errmsg << std::endl;
     assert(pll_partition);
 
-    pll_utree_t* pll_tree = tree->get_pll_start_tree (_thread_number);
+    pll_utree_t* pll_tree = tree.get_pll_start_tree (_thread_number);
 
     pll_utree_t ** tipnodes = (pll_utree_t **) Utils::c_allocate (n_tips,
                                                        sizeof(pll_utree_t *));
@@ -210,7 +206,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
     for (mt_index_t i = 0; i < n_tips; ++i)
     {
         mt_index_t tip_clv_index = MT_SIZE_UNDEF;
-        const char * header = msa->get_header (i);
+        const char * header = msa.get_header (i);
 
         for (mt_index_t j = 0; j < n_tips; ++j)
         {
@@ -226,65 +222,24 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
         assert(tip_clv_index != MT_SIZE_UNDEF);
 
         //TODO: keep tip states between models
-        char *seq;
-        const char *c_seq;
-        if (partition.regions.size() > 1 || partition.regions[0].stride > 1)
-        {
-            /* complex partition */
-            seq = (char *) Utils::allocate(n_sites, sizeof(char));
-            c_seq = seq;
-            for (const partition_region_t & region : partition.regions)
-            {
-                mt_size_t region_sites = (region.end - region.start + 1)/region.stride;
-                if (region.stride == 1)
-                {
-                    /* copy consecutive sites in sequence */
-                    memcpy(seq, msa->get_sequence (i) + region.start - 1, region_sites * sizeof(char));
-                }
-                else
-                {
-                    /* copy strided sites in sequence */
-                    mt_index_t k = 0;
-                    const char * f_seq = msa->get_sequence (i);
-                    for (mt_index_t s = region.start - 1; s <= region.end && s < n_sites; s+=region.stride)
-                    {
-                        seq[k++] = f_seq[s];
-                    }
-                }
-                seq += region_sites;
-            }
-        }
-        else
-        {
-            /* simple partition */
-            c_seq = msa->get_sequence (i);
-        }
+        const char *c_seq = partition.get_sequence(i);
         if (!pll_set_tip_states (pll_partition,
                             (unsigned int)tip_clv_index,
-                            (model->get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
+                            (model.get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
                              c_seq))
         {
             /* data type and tip states should be validated beforehand */
             std::cerr << "ERROR: Sequence does not match the datatype" << std::endl;
             assert(0);
         }
+
+        delete[] c_seq;
     }
 
     /* set weights */
-    if (partition.regions.size() > 1)
-    {
-        for (const partition_region_t & region : partition.regions)
-        {
-            assert(region.stride == 1);
-            unsigned int * weights_ptr = pll_partition->pattern_weights;
-            mt_size_t region_sites = (region.end - region.start + 1);
-            /* copy consecutive weights */
-            memcpy(weights_ptr, msa->get_weights() + region.start - 1, region_sites * sizeof(unsigned int));
-            weights_ptr += region_sites;
-        }
-    }
-    else
-        pll_set_pattern_weights(pll_partition, msa->get_weights() + partition.regions[0].start - 1);
+    const mt_size_t * weights = partition.get_weights();
+    pll_set_pattern_weights(pll_partition, weights);
+    delete[] weights;
 
     free (tipnodes);
 
@@ -618,7 +573,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                      bool first_guess)
   {
       double cur_logl;
-      double max_pinv = std::min(partition.empirical_pinv, 0.99);
+      double max_pinv = std::min(partition.get_empirical_pinv(), 0.99);
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_PINV;
       cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
@@ -639,23 +594,23 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       params->pgtol = tolerance;
 
       /* move to random node */
-      tree->reroot_random(thread_number);
-      pll_tree = tree->get_pll_tree(thread_number);
+      tree.reroot_random(thread_number);
+      pll_tree = tree.get_pll_tree(thread_number);
 
 
-      travbuffer = (pll_utree_t **) Utils::allocate (2*tree->get_n_tips() - 2, sizeof(pll_utree_t *));
+      travbuffer = (pll_utree_t **) Utils::allocate (tree.get_n_nodes(), sizeof(pll_utree_t *));
       pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
       pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
                                    matrix_indices, operations, &tmp_matrix_count,
                                    &tmp_ops_count);
       pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
-                                tree->get_n_branches());
+                                tree.get_n_branches());
 
 //          for (mt_index_t i=0; i<num_threads; i++)
-//            thread_data[i].vroot = tree->get_pll_tree();
+//            thread_data[i].vroot = tree.get_pll_tree();
 //          start_job_sync (JOB_UPDATE_PARTIALS, thread_data);
 
-      pll_update_partials (pll_partition, operations, tree->get_n_tips() - 2);
+      pll_update_partials (pll_partition, operations, tree.get_n_tips() - 2);
 
       params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
 
@@ -695,9 +650,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       params->lk_params.branch_lengths = branch_lengths;
       params->lk_params.matrix_indices = matrix_indices;
       params->lk_params.alpha_value = 1.0;
-      if (model->is_G())
+      if (model.is_G())
       {
-          if (model->is_I())
+          if (model.is_I())
             params->lk_params.alpha_value = (alpha_inv_guess > 0.0)?alpha_inv_guess:default_alpha;
           else
             params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
@@ -713,16 +668,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       /* optimization parameters */
       params->mixture_index = 0;
       params->params_index = 0;
-      if (partition.datatype == dt_dna)
+      if (partition.get_datatype() == dt_dna)
       {
         int *symmetries = new int[N_DNA_SUBST_RATES];
         double *empirical_rates = new double[N_DNA_SUBST_RATES];
-        memcpy(symmetries, model->get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
+        memcpy(symmetries, model.get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
         params->subst_params_symmetries = symmetries;
 
-        if (model->get_n_subst_params() > 0)
+        if (model.get_n_subst_params() > 0)
         {
-            for (mt_index_t i=0; i<model->get_n_subst_params(); ++i)
+            for (mt_index_t i=0; i<model.get_n_subst_params(); ++i)
             {
                 double sum_rate = 0;
                 int count = 0;
@@ -731,7 +686,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                     if ((mt_index_t)symmetries[j] == i)
                     {
                         ++count;
-                        sum_rate += partition.empirical_subst_rates[j];
+                        sum_rate += partition.get_empirical_subst_rates()[j];
                     }
                 }
                 assert(count);
@@ -756,35 +711,35 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       /* set initial model parameters */
       double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
 
-      if (!model->is_I())
+      if (!model.is_I())
           pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);
       else
       {
-          if (model->is_G())
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.empirical_pinv/2));
+          if (model.is_G())
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
           else
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.empirical_pinv/2));
+              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.get_empirical_pinv()/2));
       }
 
-      if (model->is_F())
-          model->set_frequencies(partition.empirical_freqs);
+      if (model.is_F())
+          model.set_frequencies(partition.get_empirical_frequencies());
 
-      if (model->is_mixture())
+      if (model.is_mixture())
       {
           assert (pll_partition->mixture = N_MIXTURE_CATS);
           for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
           {
-              pll_set_frequencies (pll_partition, 0, i, model->get_mixture_frequencies(i));
-              pll_set_subst_params (pll_partition, 0, i, model->get_mixture_subst_rates(i));
+              pll_set_frequencies (pll_partition, 0, i, model.get_mixture_frequencies(i));
+              pll_set_subst_params (pll_partition, 0, i, model.get_mixture_subst_rates(i));
           }
       }
       else
       {
-        pll_set_frequencies (pll_partition, 0, 0, model->get_frequencies());
-        pll_set_subst_params (pll_partition, 0, 0, model->get_subst_rates());
+        pll_set_frequencies (pll_partition, 0, 0, model.get_frequencies());
+        pll_set_subst_params (pll_partition, 0, 0, model.get_subst_rates());
       }
 
-      if (model->is_G() || model->is_mixture())
+      if (model.is_G() || model.is_mixture())
       {
           pll_compute_gamma_cats (params->lk_params.alpha_value,
                                   pll_partition->rate_cats,
@@ -810,10 +765,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       //num_threads = 2;
 
 #ifdef VERBOSE //TODO: Verbosity medium
-      std::cout << "Optimizing model " << model->get_name() <<  " with " << _num_threads << " threads" << std::endl;
+      std::cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << std::endl;
 #endif
       time_t start_time = time(NULL);
-      mt_size_t n_branches = tree->get_n_branches();
+      mt_size_t n_branches = tree.get_n_branches();
 
       pthread_t * threads = NULL;
       pll_partition_t ** partition_local = NULL;
@@ -822,35 +777,35 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
       std::vector<mt_parameter_t> params_to_optimize;
 
-      if ((model->get_datatype() == dt_dna || !tree->is_bl_optimized()))
+      if ((model.get_datatype() == dt_dna || !tree.is_bl_optimized()))
           params_to_optimize.push_back(mt_param_branch_lengths);
-      if (model->get_datatype() == dt_dna && model->get_n_subst_params() > 0)
+      if (model.get_datatype() == dt_dna && model.get_n_subst_params() > 0)
           params_to_optimize.push_back(mt_param_subst_rates);
-      if (model->is_G() && model->is_I())
+      if (model.is_G() && model.is_I())
       {
-          model->set_alpha(alpha_inv_guess);
-          model->set_prop_inv(pinv_alpha_guess);
+          model.set_alpha(alpha_inv_guess);
+          model.set_prop_inv(pinv_alpha_guess);
           params_to_optimize.push_back(mt_param_alpha);
           params_to_optimize.push_back(mt_param_pinv);
       }
       else
       {
-          if (model->is_G())
+          if (model.is_G())
           {
-              model->set_alpha(alpha_guess);
+              model.set_alpha(alpha_guess);
               params_to_optimize.push_back(mt_param_alpha);
           }
-          if (model->is_I())
+          if (model.is_I())
           {
-              pinv_guess = partition.empirical_pinv/2;
-              model->set_prop_inv(pinv_guess);
+              pinv_guess = partition.get_empirical_pinv()/2;
+              model.set_prop_inv(pinv_guess);
               params_to_optimize.push_back(mt_param_pinv);
           }
       }
-      if (model->get_datatype() == dt_dna && model->is_F())
+      if (model.get_datatype() == dt_dna && model.is_F())
           params_to_optimize.push_back(mt_param_frequencies);
 
-      if (model->is_mixture() && !model->is_G())
+      if (model.is_mixture() && !model.is_G())
       {
           params_to_optimize.push_back(mt_param_mixture_rates_weights);
       }
@@ -885,7 +840,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
           thread_data[i].operations = operations;
           thread_data[i].ops_count = ops_count;
           thread_data[i].branch_lengths = branch_lengths;
-          thread_data[i].vroot = tree->get_pll_tree();
+          thread_data[i].vroot = tree.get_pll_tree();
           thread_data[i].barrier_buf = &barrier_buf;
           thread_data[i].trap = 1;
           thread_data[i].result_buf = result_buf;
@@ -904,7 +859,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       /* /PTHREADS */
 
       //tree->reroot_random(thread_number);
-      pll_utree_t * pll_tree = tree->get_pll_start_tree(thread_number);
+      pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
       build_parameters(pll_tree);
 
       pll_update_prob_matrices (pll_partition,
@@ -914,7 +869,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                 n_branches);
       pll_update_partials (pll_partition,
                            operations,
-                           tree->get_n_inner());
+                           tree.get_n_inner());
 
       double logl = pll_compute_edge_loglikelihood (pll_partition,
                                                     pll_tree->clv_index,
@@ -958,13 +913,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
               {
                   optimized = false;
 
-                  model->set_lnl(0.0);
-                  model->set_exec_time(0);
+                  model.set_lnl(0.0);
+                  model.set_exec_time(0);
 
-                   if (model->is_G())
-                      model->set_alpha(0.0);
-                  if (model->is_I())
-                      model->set_prop_inv(0.0);
+                   if (model.is_G())
+                      model.set_alpha(0.0);
+                  if (model.is_I())
+                      model.set_prop_inv(0.0);
                   return false;
               }
 
@@ -979,14 +934,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                   {
                       if (cur_parameter == mt_param_alpha)
                       {
-                          if (model->is_I())
+                          if (model.is_I())
                               full_range_search &= !(alpha_inv_guess > 0.0);
                           else
                               full_range_search &= !(alpha_guess > 0.0);
                       }
                       else if (cur_parameter == mt_param_pinv)
                       {
-                          if (model->is_G())
+                          if (model.is_G())
                               full_range_search &= !(pinv_alpha_guess > 0.0);
                           else
                               full_range_search &= !(pinv_guess > 0.0);
@@ -1022,7 +977,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
 
           /* TODO: if bl are reoptimized */
           if (keep_branch_lengths)
-            tree->set_bl_optimized();
+            tree.set_bl_optimized();
       }
       cur_logl *= -1;
 
@@ -1054,35 +1009,35 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
       else
       {
           optimized = true;
-          model->set_lnl(cur_logl);
-          model->set_exec_time(end_time - start_time);
-          model->set_n_categories(pll_partition->rate_cats);
+          model.set_lnl(cur_logl);
+          model.set_exec_time(end_time - start_time);
+          model.set_n_categories(pll_partition->rate_cats);
 
-          if (model->is_G())
-              model->set_alpha(params->lk_params.alpha_value);
-          if (model->is_I())
-              model->set_prop_inv(pll_partition->prop_invar[0]);
+          if (model.is_G())
+              model.set_alpha(params->lk_params.alpha_value);
+          if (model.is_I())
+              model.set_prop_inv(pll_partition->prop_invar[0]);
 
-//          if (model->is_G() && model->is_I())
+//          if (model.is_G() && model.is_I())
 //          {
 //              alpha_inv_guess = params->lk_params.alpha_value;
 //              pinv_alpha_guess = pll_partition->prop_invar[0];
 //          }
 //          else
 //          {
-//              if (model->is_G())
+//              if (model.is_G())
 //                  alpha_guess = params->lk_params.alpha_value;
-//              if (model->is_I())
+//              if (model.is_I())
 //                  pinv_guess = pll_partition->prop_invar[0];
 //          }
-          if (model->get_datatype() == dt_dna)
+          if (model.get_datatype() == dt_dna)
           {
-            model->set_frequencies(pll_partition->frequencies[0]);
-            model->set_subst_rates(pll_partition->subst_params[0]);
+            model.set_frequencies(pll_partition->frequencies[0]);
+            model.set_subst_rates(pll_partition->subst_params[0]);
           }
 
-          model->evaluate_criteria(n_branches, msa->get_n_sites());
-          model->set_tree((pll_utree_t *) tree->extract_tree(thread_number));
+          model.evaluate_criteria(n_branches, msa.get_n_sites());
+          model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
           return true;
       }
   }

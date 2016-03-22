@@ -1,12 +1,16 @@
 #include "partition.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
 namespace modeltest
 {
+
+
 
 static bool build_models(data_type_t datatype,
                          std::vector<mt_index_t> candidate_models,
@@ -99,8 +103,8 @@ static bool build_models(data_type_t datatype,
 }
 
 Partition::Partition(partition_id_t _id,
-                     Msa * _msa,
-                     Tree * _tree,
+                     Msa & _msa,
+                     Tree & _tree,
                      partition_descriptor_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params) :
@@ -111,11 +115,40 @@ Partition::Partition(partition_id_t _id,
     {
     case dt_dna:
         emp_freqs.resize(N_DNA_STATES);
+        emp_subst_rates.resize(N_DNA_SUBST_RATES);
         break;
     case dt_protein:
         emp_freqs.resize(N_PROT_STATES);
         break;
     }
+
+    n_patterns = 0;
+    n_sites = 0;
+    const unsigned int * wgt = msa.get_weights();
+    for (const partition_region_t & region : descriptor.regions)
+    {
+        n_patterns += (region.end - region.start + 1)/region.stride;
+        for (mt_index_t s = region.start - 1; s < region.end; s+=region.stride)
+        {
+            n_sites += wgt[s];
+        }
+     }
+
+    assert(n_patterns > 0);
+    assert(n_sites >= n_patterns);
+
+    if (!compute_empirical_frequencies( false ))
+        throw EXCEPTION_PARTITION_EMP_FREQS;
+
+    if (descriptor.datatype == dt_dna)
+    {
+        if (!compute_empirical_subst_rates())
+            throw EXCEPTION_PARTITION_EMP_RATES;
+    }
+
+    if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
+        if (!compute_empirical_pinv())
+            throw EXCEPTION_PARTITION_EMP_PINV;
 
     build_models(descriptor.datatype, candidate_models, model_params, c_models);
 }
@@ -210,7 +243,17 @@ mt_size_t Partition::get_number_of_models( void ) const
     return (mt_size_t) c_models.size();
 }
 
-std::vector<Model *> const& Partition::get_models() const
+mt_size_t Partition::get_n_sites( void ) const
+{
+    return n_sites;
+}
+
+mt_size_t Partition::get_n_patterns( void ) const
+{
+    return n_patterns;
+}
+
+std::vector<Model *> const& Partition::get_models(void) const
 {
     return c_models;
 }
@@ -235,6 +278,103 @@ bool Partition::set_models(const std::vector<Model *> &models)
     return true;
 }
 
+const char * Partition::get_sequence(mt_index_t idx) const
+{
+    char *seq = new char[n_patterns];
+    const char * msa_seq = msa.get_sequence (idx);
+
+    if (descriptor.regions.size() > 1 || descriptor.regions[0].stride > 1)
+    {
+        /* complex partition */
+        char *seq_ptr = seq;
+        for (const partition_region_t & region : descriptor.regions)
+        {
+            mt_index_t region_start  = region.start-1;
+            mt_index_t region_end    = region.end;
+            mt_index_t region_stride = region.stride;
+            mt_size_t region_patterns   = (region_end - region_start)/region_stride;
+            if (region_stride == 1)
+            {
+                /* copy consecutive sites in sequence */
+                memcpy(seq_ptr, msa_seq + region_start, region_patterns * sizeof(char));
+            }
+            else
+            {
+                /* copy strided sites in sequence */
+                mt_index_t k = 0;
+                for (mt_index_t s = region_start; s < region_end; s+=region.stride)
+                {
+                    seq_ptr[k++] = msa_seq[s];
+                }
+            }
+            seq_ptr += region_patterns;
+        }
+    }
+    else
+    {
+        /* simple partition */
+        memcpy(seq, msa_seq + descriptor.regions[0].start - 1, n_patterns * sizeof(char));
+    }
+
+    return seq;
+}
+
+const mt_size_t * Partition::get_weights( void ) const
+{
+    mt_size_t *wgt = new mt_size_t[n_patterns];
+    const mt_size_t * msa_wgt = msa.get_weights();
+
+    if (descriptor.regions.size() > 1 || descriptor.regions[0].stride > 1)
+    {
+        /* complex partition */
+        mt_size_t *wgt_ptr = wgt;
+        for (const partition_region_t & region : descriptor.regions)
+        {
+            mt_index_t region_start  = region.start-1;
+            mt_index_t region_end    = region.end;
+            mt_index_t region_stride = region.stride;
+            mt_size_t region_patterns   = (region_end - region_start)/region_stride;
+            if (region_stride == 1)
+            {
+                /* copy consecutive sites in sequence */
+                memcpy(wgt_ptr, msa_wgt + region_start, region_patterns * sizeof(mt_size_t));
+            }
+            else
+            {
+                /* copy strided sites in sequence */
+                mt_index_t k = 0;
+                for (mt_index_t s = region_start; s < region_end; s+=region.stride)
+                {
+                    wgt_ptr[k++] = msa_wgt[s];
+                }
+            }
+            wgt_ptr += region_patterns;
+        }
+    }
+    else
+    {
+        /* simple partition */
+        memcpy(wgt, msa_wgt + descriptor.regions[0].start - 1, n_patterns * sizeof(mt_size_t));
+    }
+
+    return wgt;
+}
+
+vector<double> const& Partition::get_empirical_frequencies( void ) const
+{
+    return emp_freqs;
+}
+
+vector<double> const& Partition::get_empirical_subst_rates( void ) const
+{
+    return emp_subst_rates;
+}
+
+double Partition::get_empirical_pinv( void ) const
+{
+    return emp_pinv;
+}
+
 void Partition::output_log(std::ostream  &out)
 {
     UNUSED(out);
@@ -245,6 +385,198 @@ void Partition::input_log(std::istream  &in)
 {
     UNUSED(in);
     assert(0);
+}
+
+/* private methods */
+
+bool Partition::compute_empirical_frequencies(bool smooth)
+{
+    const mt_size_t * weights = msa.get_weights();
+    mt_size_t states = descriptor.states;
+    assert (states);
+
+    for (mt_index_t i=0; i<states; i++)
+        emp_freqs[i] = 0;
+
+    mt_size_t cum_weights = n_sites;
+    mt_size_t cum_abs_freq = 0;
+
+    uint32_t existing_states = 0;
+    const unsigned int * states_map = (descriptor.datatype == dt_dna)?pll_map_nt:pll_map_aa;
+    for (mt_index_t i=0; i<msa.get_n_sequences(); ++i)
+    {
+        for (partition_region_t region : descriptor.regions)
+        {
+            for (mt_index_t j = region.start - 1; j < region.end; ++j)
+            {
+                mt_size_t sum_site = 0;
+                mt_size_t ind = states_map[(int)msa.get_sequence(i)[j]];
+                if (!ind)
+                {
+                    mt_errno = MT_ERROR_FREQUENCIES;
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA does not match the data type [%s]", descriptor.partition_name.c_str());
+                    return false;
+                }
+                for (unsigned int k=0; k<states; ++k)
+                {
+                    sum_site += ((ind & (1<<k)) > 0);
+                }
+                for (unsigned int k=0; k<states; ++k)
+                    emp_freqs[k] += 1.0 * weights[j] * ((ind & (1<<k))>0) / sum_site;
+                if (sum_site == 1)
+                    existing_states |= ind;
+            }
+        }
+    }
+
+    for (mt_index_t i=0; i<states; i++)
+    {
+        cum_abs_freq += emp_freqs[i];
+        emp_freqs[i] /= msa.get_n_sequences() * cum_weights;
+    }
+
+    /* validate */
+    double checksum = 0.0;
+    for (mt_index_t i=0; i<states; ++i)
+    {
+        checksum += emp_freqs[i];
+    }
+
+    if( (checksum != checksum) || (fabs(1-checksum) > 1e-10 ))
+    {
+        mt_errno = MT_ERROR_FREQUENCIES;
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "Empirical frequencies sum to %.4f instead of 1 [%s]", checksum, descriptor.partition_name.c_str());
+        return false;
+    }
+
+    /* check missing states */
+    mt_size_t missing_states = states - Utils::count_bits(existing_states);
+    if (missing_states)
+    {
+        if (smooth)
+        {
+            std::cerr << "WARNING: Forced freq. smoothing" << std::endl;
+            for (mt_index_t i=0; i<states; i++)
+                emp_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
+        }
+        else
+        {
+            mt_errno = MT_ERROR_FREQUENCIES;
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "There are [%d] missing states [%s]", missing_states, descriptor.partition_name.c_str());
+            return false;
+        }
+    }
+
+    mt_errno = 0;
+    return true;
+}
+
+bool Partition::compute_empirical_subst_rates( void )
+{
+    mt_size_t states = descriptor.states;
+    assert (states);
+
+    const unsigned int * states_map = (descriptor.datatype == dt_dna)?pll_map_nt:pll_map_aa;
+    const mt_size_t * weights = msa.get_weights();
+
+    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; ++i)
+        emp_subst_rates[i] = 0;
+
+    mt_index_t * pair_rates = new mt_index_t[states * states];
+    mt_index_t * state_freq = new mt_index_t[states];
+
+    memset (pair_rates , 0, sizeof(mt_index_t) * states * states);
+
+    if (!(pair_rates && state_freq))
+    {
+        pll_errno = PLL_ERROR_MEM_ALLOC;
+        snprintf (pll_errmsg, 200,
+                  "Cannot allocate memory for empirical subst rates");
+        if (pair_rates)
+            delete[] pair_rates;
+        if (state_freq)
+            delete[] state_freq;
+        return false;
+    }
+
+    mt_size_t undef_state = (unsigned int) (1<<states) - 1;
+    for (mt_index_t n = 0; n < n_patterns; ++n)
+    {
+        memset (state_freq, 0, sizeof(mt_index_t) * states);
+        for (mt_index_t i = 0; i < msa.get_n_sequences(); ++i)
+        {
+            mt_index_t state = states_map[(int)msa.get_sequence(i)[n]];
+            if (state == undef_state)
+                continue;
+            for (mt_index_t k = 0; k < states; ++k)
+            {
+                if (state & 1)
+                    state_freq[k]++;
+                state >>= 1;
+            }
+        }
+
+        for (mt_index_t i = 0; i < states; ++i)
+        {
+            if (state_freq[i] == 0)
+                continue;
+            for (mt_index_t j = i + 1; j < states; ++j)
+            {
+                pair_rates[i * states + j] += state_freq[i] * state_freq[j] * weights[n];
+            }
+        }
+    }
+
+    mt_index_t k = 0;
+    double last_rate = pair_rates[(states - 2) * states + states - 1];
+    if (last_rate < 1e-7)
+        last_rate = 1;
+    for (mt_index_t i = 0; i < states - 1; ++i)
+    {
+        for (mt_index_t j = i + 1; j < states; ++j)
+        {
+            emp_subst_rates[k] = pair_rates[i * states + j] / last_rate;
+            if (emp_subst_rates[k] < 0.01)
+                emp_subst_rates[k] = 0.01;
+            if (emp_subst_rates[k] > 50.0)
+                emp_subst_rates[k] = 50.0;
+            ++k;
+        }
+    }
+
+    emp_subst_rates[k - 1] = 1.0;
+
+    delete[] pair_rates;
+    delete[] state_freq;
+
+    return true;
+}
+
+bool Partition::compute_empirical_pinv( void )
+{
+    const mt_size_t * weights = msa.get_weights();
+    const char * sequence0 = msa.get_sequence(0);
+    mt_size_t n_inv = 0;
+    double sum_wgt = 0.0;
+    for (partition_region_t region : descriptor.regions)
+    {
+        for (mt_index_t j = region.start - 1; j < region.end; j += region.stride)
+        {
+            sum_wgt += weights[j];
+            n_inv   += weights[j];
+            char state = sequence0[j];
+            for (mt_index_t i=1; i<msa.get_n_sequences(); ++i)
+            {
+                if (msa.get_sequence(i)[j] != state)
+                {
+                    n_inv -= weights[j];
+                    break;
+                }
+            }
+        }
+    }
+    emp_pinv = (double)1.0*n_inv/sum_wgt;
+    return true;
 }
 
 } /* modeltest */
