@@ -169,8 +169,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                                       const partition_descriptor_t &_partition,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
-    : ModelOptimizer(_model, _partition, _thread_number),
-      msa(_msa),
+    : ModelOptimizer(_msa, _model, _partition, _thread_number),
       tree(_tree)
 {
     thread_job = 0;
@@ -729,7 +728,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 int count = 0;
                 for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
                 {
-                    if (symmetries[j] == i)
+                    if ((mt_index_t)symmetries[j] == i)
                     {
                         ++count;
                         sum_rate += partition.empirical_subst_rates[j];
@@ -739,7 +738,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
                 sum_rate /= count;
 
                 for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-                    if (symmetries[j] == i)
+                    if ((mt_index_t)symmetries[j] == i)
                         empirical_rates[j] = sum_rate;
             }
             for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
@@ -1082,7 +1081,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll *_msa,
             model->set_subst_rates(pll_partition->subst_params[0]);
           }
 
-          model->evaluate_criteria(n_branches, params->lk_params.partition->sites);
+          model->evaluate_criteria(n_branches, msa->get_n_sites());
           model->set_tree((pll_utree_t *) tree->extract_tree(thread_number));
           return true;
       }

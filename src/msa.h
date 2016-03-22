@@ -82,15 +82,22 @@ namespace modeltest
     {
       return n_taxa;
     }
+
     mt_size_t get_n_sites (void) const
     {
       return n_sites;
+    }
+
+    mt_size_t get_n_patterns(void) const
+    {
+      return n_patterns;
     }
 
   protected:
     const std::string msa_filename;
     mt_size_t n_taxa;
     mt_size_t n_sites;
+    mt_size_t n_patterns;
   };
 
 } /* namespace modeltest */

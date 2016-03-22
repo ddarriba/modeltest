@@ -33,6 +33,7 @@ namespace modeltest
     /* MSA should be always checked beforehand */
     /* Therefore it should never fail here */
     assert(MsaPll::test(msa_filename, &n_taxa, &n_sites));
+    n_patterns = n_sites;
 
     pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
@@ -283,8 +284,7 @@ namespace modeltest
           unsigned int * pw = pll_compress_site_patterns(partition_sequences, n_taxa, &compressed_length);
           cur = new_region.start + compressed_length - 1;
           partition_weights.push_back(pw);
-          cout << "SITES = " << cur << ", PATTERNS = " << compressed_length << endl;
-
+          n_patterns = compressed_length;
 
           new_region.end = cur;
           new_region.stride = 1;

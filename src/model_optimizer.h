@@ -9,6 +9,7 @@
 #define MODEL_OPTIMIZER_H_
 
 #include "model.h"
+#include "msa.h"
 #include "thread/observer.h"
 
 namespace modeltest
@@ -28,10 +29,12 @@ namespace modeltest
   class ModelOptimizer : public Observable
   {
   public:
-    ModelOptimizer (Model *_model,
+    ModelOptimizer (Msa * _msa,
+                    Model *_model,
                     const partition_descriptor_t & _partition,
                     mt_index_t _thread_number = 0)
-        : model(_model),
+        : msa(_msa),
+          model(_model),
           partition(_partition),
           thread_number(_thread_number)
     {
@@ -97,8 +100,11 @@ namespace modeltest
 
   protected:
     bool optimized; //! optimization state
+    Msa *msa;       //! the multiple sequence alignment
     Model *model;   //! the model to optimize
     const partition_descriptor_t partition;
+    mt_size_t n_sites;    //! original number of sites
+    mt_size_t n_patterns; //! crunched number of sites
 
     mt_index_t thread_number;  //! the number of the current thread
 
