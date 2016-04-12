@@ -64,6 +64,14 @@ if test "$have_avx" = "yes"; then
 	fi
 fi
 
+have_avx=no
+
+AX_EXT
+
+if test "x${ax_cv_have_avx_ext}" = "xyes"; then
+  have_avx=yes
+fi
+
 AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
 AM_CONDITIONAL(HAVE_SSE, test "x$have_sse" = "xyes")

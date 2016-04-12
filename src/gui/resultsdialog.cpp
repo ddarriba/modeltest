@@ -127,3 +127,19 @@ void ResultsDialog::on_tool_results_export_clicked()
     ResultsExportDialog exportdialog(model_selection, default_filename.str());
     exportdialog.exec();
 }
+
+void ResultsDialog::on_cmb_results_partition_currentIndexChanged(int index)
+{
+    fill_results(ui->table_results_aic, *model_selection[index][modeltest::ic_aic],
+                 ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
+                 ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
+    fill_results(ui->table_results_aicc, *model_selection[index][modeltest::ic_aicc],
+                 ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
+                 ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
+    fill_results(ui->table_results_bic, *model_selection[index][modeltest::ic_bic],
+                 ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
+                 ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
+    fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
+                 ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                 ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+}

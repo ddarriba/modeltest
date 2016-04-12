@@ -96,7 +96,7 @@ static pll_partition_t * pll_partition_clone_partial(
   new_partition->rate_cats     = partition->rate_cats;
   new_partition->scale_buffers = partition->scale_buffers;
   new_partition->attributes    = partition->attributes;
-  new_partition->revmap        = partition->revmap;
+  new_partition->tipmap       = partition->tipmap;
 
     /* vectorization options */
   new_partition->alignment     = partition->alignment;
@@ -184,7 +184,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     mt_size_t n_inner = tree.get_n_inner ();
     mt_size_t n_branches = tree.get_n_branches ();
     mt_size_t n_nodes = tree.get_n_nodes ();
-    mt_size_t n_sites = partition.get_n_sites();
     mt_size_t n_patterns = partition.get_n_patterns();
 
     pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);

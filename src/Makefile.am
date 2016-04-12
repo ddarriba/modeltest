@@ -31,6 +31,7 @@ modeltest_SOURCES = \
 	partitioning_scheme.cpp \
 	treepll.cpp \
 	utils.cpp \
+	meta.cpp \
 	main.cpp
 
 modeltest_CPPFLAGS = -g -O3 -std=c++11 -Wall -DPTHREADS
@@ -39,15 +40,15 @@ modeltest_CPPFLAGS += $(QT4_CFLAGS)
 modeltest_LDFLAGS =
 modeltest_LDADD = $(QT4_LIBS) -lpll -lpll_optimize -lpll_msa -lpll_tree
 
-if HAVE_AVX
-  modeltest_CPPFLAGS += -DHAVE_AVX
-  modeltest_LDFLAGS += -DHAVE_AVX
-endif
+#if HAVE_AVX
+#  modeltest_CPPFLAGS += -DHAVE_AVX
+#  modeltest_LDFLAGS += -DHAVE_AVX
+#endif
 
-if HAVE_SSE
-  modeltest_CPPFLAGS += -DHAVE_SSE
-  modeltest_LDFLAGS += -DHAVE_SSE
-endif
+#if HAVE_SSE
+#  modeltest_CPPFLAGS += -DHAVE_SSE
+#  modeltest_LDFLAGS += -DHAVE_SSE
+#endif
 
 modeltestx_SOURCES = \
 	service/modeltestservice.cpp \
@@ -61,6 +62,7 @@ modeltestx_SOURCES = \
 	partitioning_scheme.cpp \
 	treepll.cpp \
 	utils.cpp \
+	meta.cpp \
 	main.cpp
 
 modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
@@ -68,15 +70,15 @@ modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
 modeltestx_LDADD = -lpll -lpll_optimize -lpll_msa -lpll_tree
 
-if HAVE_AVX
-  modeltestx_CPPFLAGS += -DHAVE_AVX
-  modeltestx_LDFLAGS += -DHAVE_AVX
-endif
+#if HAVE_AVX
+#  modeltestx_CPPFLAGS += -DHAVE_AVX
+#  modeltestx_LDFLAGS += -DHAVE_AVX
+#endif
 
-if HAVE_SSE
-  modeltestx_CPPFLAGS += -DHAVE_SSE
-  modeltestx_LDFLAGS += -DHAVE_SSE
-endif
+#if HAVE_SSE
+#  modeltestx_CPPFLAGS += -DHAVE_SSE
+#  modeltestx_LDFLAGS += -DHAVE_SSE
+#endif
 
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
@@ -95,6 +97,7 @@ pkginclude_HEADERS= \
 	thread/threadpool.h \
 	model_optimizer_pll.h \
 	loggable.h \
+	meta.h \
 	utils.h \
 	tree.h \
 	modeltest_gui.h \

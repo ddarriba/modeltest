@@ -25,6 +25,8 @@ public:
 private slots:
     void on_tool_results_export_clicked();
 
+    void on_cmb_results_partition_currentIndexChanged(int index);
+
 private:
     Ui::ResultsDialog *ui;
     std::string const& base_name;

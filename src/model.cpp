@@ -504,13 +504,15 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
 {
-    unsigned int attributes = PLL_ATTRIB_PATTERN_TIP;
-#if (HAVE_AVX)
+    mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+#ifdef HAVE_AVX
     attributes |= PLL_ATTRIB_ARCH_AVX;
-#elif (HAVE_SSE)
+#else
+#ifdef HAVE_SSE
     attributes |= PLL_ATTRIB_ARCH_SSE;
 #else
     attributes |= PLL_ATTRIB_ARCH_CPU;
+#endif
 #endif
 
     pll_partition_t * part = pll_partition_create (
@@ -800,7 +802,17 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
 {
-    mt_mask_t attributes = PLL_ATTRIB_ARCH_SSE | PLL_ATTRIB_PATTERN_TIP;
+    mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+#ifdef HAVE_AVX
+    attributes |= PLL_ATTRIB_ARCH_AVX;
+#else
+#ifdef HAVE_SSE
+    attributes |= PLL_ATTRIB_ARCH_SSE;
+#else
+    attributes |= PLL_ATTRIB_ARCH_CPU;
+#endif
+#endif
+
     mt_size_t n_cats = optimize_gamma?n_cat_g:1;
     if (mixture)
     {

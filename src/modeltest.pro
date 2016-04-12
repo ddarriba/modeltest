@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     service/modeltestservice.cpp \
     gui/modelsdialog.cpp \
     gui/resultsexportdialog.cpp \
-    thread/observer.cpp
+    thread/observer.cpp \
+    meta.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -65,7 +66,8 @@ HEADERS  += \
     service/modeltestservice.h \
     gui/modelsdialog.h \
     loggable.h \
-    gui/resultsexportdialog.h
+    gui/resultsexportdialog.h \
+    meta.h
 
 FORMS    += \
     compute_options.ui \

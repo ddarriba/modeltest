@@ -2,7 +2,7 @@
 #include "ui_xmodeltest.h"
 
 #include "service/modeltestservice.h"
-#include "utils.h"
+#include "meta.h"
 #include "gui/progressdialog.h"
 #include "gui/datainfodialog.h"
 
@@ -129,7 +129,7 @@ void xmodeltest::reset_xmt( void )
     ui->lbl_parts->setText("none");
 
     ui->consoleRun->clear();
-    modeltest::Utils::print_header();
+    Meta::print_header();
 
     if (scheme)
     {
@@ -445,7 +445,7 @@ void xmodeltest::run_modelselection()
     }
 
     /* print settings */
-   modeltest::Utils::print_options(opts);
+   Meta::print_options(opts);
 
    modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
 

@@ -12,6 +12,8 @@
 #include <fstream>
 #include <iomanip>
 
+#define BYTE_TO_GB 1073741824
+
 namespace modeltest {
 
 #ifdef WIN32
@@ -175,37 +177,6 @@ public:
     static void sort_partitioning_scheme(partitioning_scheme_t & scheme);
 
     /**
-     * @brief Prints the execution options
-     * @param[in] opts      The execution options
-     * @param[in,out] out  The output stream
-     */
-    static void print_options(mt_options_t & opts, std::ostream  &out = std::cout);
-
-    /**
-     * @brief Prints the header
-     * @param[in,out] out  The output stream
-     */
-    static void print_header(std::ostream  &out = std::cout);
-
-    /**
-     * @brief Prints the version
-     * @param[in,out] out  The output stream
-     */
-    static void print_version(std::ostream& out = std::cout);
-
-    /**
-     * @brief Count the number of physical CPU cores
-     * @return the number of physical CPU cores
-     */
-    static mt_size_t count_physical_cores( void );
-
-    /**
-     * @brief Count the number of logical CPU cores
-     * @return the number of logical CPU cores
-     */
-    static mt_size_t count_logical_cores( void );
-
-    /**
      * @brief Count the number of set bits
      * @param[in] value the value
      * @return the number of set bits
@@ -270,6 +241,26 @@ public:
      */
     static bool append_to_file(std::ofstream & outfile,
                                const std::string & text);
+
+    /* System utils */
+
+    /**
+     * @brief Count the number of physical CPU cores
+     * @return the number of physical CPU cores
+     */
+    static mt_size_t count_physical_cores( void );
+
+    /**
+     * @brief Count the number of logical CPU cores
+     * @return the number of logical CPU cores
+     */
+    static mt_size_t count_logical_cores( void );
+
+    /**
+     * @brief Get the available memory
+     * @return the amount of memory
+     */
+    static unsigned long get_memtotal();
 };
 
 }

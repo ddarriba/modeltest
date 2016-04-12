@@ -272,204 +272,7 @@ void Utils::sort_partitioning_scheme(partitioning_scheme_t & scheme)
     sort(scheme.begin(), scheme.end(), sort_partitions);
 }
 
-void Utils::print_header(std::ostream  &out)
-{
-    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    print_version(out);
-    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-}
 
-void Utils::print_version(std::ostream& out)
-{
-    out << PACKAGE << " " << VERSION << endl;
-    out << "Copyright (C) 2015 Diego Darriba, David Posada, Alexandros Stamatakis" << endl;
-    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
-    out << "This is free software: you are free to change and redistribute it." << endl;
-    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
-    out << endl << "Written by Diego Darriba." << endl;
-}
-
-static void print_model_params(mt_mask_t model_params, ostream &out)
-{
-    out << "  " << left << setw(20) << "include model parameters:" << endl;
-    out << "    " << left << setw(17) << "Uniform:" << ((model_params&MOD_PARAM_NO_RATE_VAR)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "p-inv (+I):" << ((model_params&MOD_PARAM_INV)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "gamma (+G):" << ((model_params&MOD_PARAM_GAMMA)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "both (+I+G):" << ((model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "fixed freqs:" << ((model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
-}
-
-void Utils::print_options(mt_options_t & opts, ostream  &out)
-{
-    mt_size_t num_cores = modeltest::Utils::count_physical_cores();
-    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-
-    out << "Input data:" << endl;
-    out << "  " << left << setw(10) << "MSA:" << opts.msa_filename << endl;
-    out << "  " << left << setw(10) << "Tree:";
-    switch(opts.starting_tree)
-    {
-    case tree_user_fixed:
-        assert (opts.tree_filename.compare(""));
-        out << opts.tree_filename << endl;
-        break;
-    case tree_mp:
-        out << "Maximum parsimony" << endl;
-        break;
-    case tree_ml_gtr_fixed:
-        out << "Fixed ML GTR" << endl;
-        break;
-    case tree_ml_jc_fixed:
-        out << "Fixed ML JC" << endl;
-        break;
-    case tree_ml:
-        out << "Maximum likelihood" << endl;
-        break;
-    case tree_random:
-        out << "Random" << endl;
-        break;
-    }
-
-    out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
-    out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;
-
-    out << endl << "Output:" << endl;
-    out << "  " << left << setw(15) << "Log:" << opts.output_log_file << endl;
-    if (opts.output_tree_to_file)
-        out << "  " << left << setw(15) << "Starting tree:" << opts.output_tree_file << endl;
-    out << "  " << left << setw(15) << "Results:" << opts.output_results_file << endl;
-
-    out << endl << "Selection options:" << endl;
-    if (opts.nt_candidate_models.size())
-    {
-        out << "  " << left << setw(20) << "# dna schemes:" << opts.nt_candidate_models.size() << endl;
-        mt_mask_t model_params = opts.model_params;
-        if (opts.partitions_desc)
-            for (partition_descriptor_t part : *opts.partitions_desc)
-                if (part.datatype == dt_dna)
-                {
-                    model_params = part.model_params;
-                    break;
-                }
-        out << "  " << left << setw(20) << "# dna models:"
-            << number_of_models((mt_size_t)opts.nt_candidate_models.size(), model_params)
-            << endl;
-        print_model_params(model_params, out);
-    }
-    if (opts.aa_candidate_models.size())
-    {
-        out << "  " << left << setw(20) << "# protein matrices:" << opts.aa_candidate_models.size() << endl;
-        mt_mask_t model_params = opts.model_params;
-        if (opts.partitions_desc)
-            for (partition_descriptor_t part : *opts.partitions_desc)
-                if (part.datatype == dt_protein)
-                {
-                    model_params = part.model_params;
-                    break;
-                }
-        out << "  " << left << setw(20) << "# protein models:"
-            << number_of_models((mt_size_t)opts.aa_candidate_models.size(), model_params)
-            << endl;
-        print_model_params(model_params, out);
-
-    }
-    if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
-        out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
-    out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
-    out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
-
-    out << endl << "Additional options:" << endl;
-    out << "  " << left << setw(14) << "verbosity:";
-    switch (opts.verbose)
-    {
-    case 0:
-        out << "very low" << endl;
-        break;
-    case VERBOSITY_LOW:
-        out << "low" << endl;
-        break;
-    case VERBOSITY_MID:
-        out << "medium" << endl;
-        break;
-    case VERBOSITY_HIGH:
-        out << "high" << endl;
-        break;
-    default:
-        assert(0);
-    }
-    out << "  " << left << setw(14) << "threads:" << opts.n_threads << "/" << num_cores << endl;
-    out << "  " << left << setw(14) << "RNG seed:" << opts.rnd_seed << endl;
-    if (opts.verbose == VERBOSITY_MID)
-        out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
-
-    if (opts.partitions_desc)
-    {
-        if (opts.partitions_filename.compare(""))
-        {
-          out << left << setw(15) << "Partitions:" << opts.partitions_filename << endl;
-          out << left << setw(15) << "" << opts.partitions_desc->size() << " partitions" << endl;
-          mt_size_t n_prot_parts = 0;
-          mt_size_t n_dna_parts = 0;
-          if (opts.verbose > VERBOSITY_DEFAULT)
-          {
-            out << setw(15) << " " << setw(10) << setfill('-') << ""
-                << setfill(' ') << endl;
-            for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
-            {
-                out << left << setw(15) << " "
-                    << setw(4) << right << i+1 << " ";
-                switch (opts.partitions_desc->at(i).datatype)
-                {
-                case dt_dna:
-                    out << "[NT] ";
-                    n_dna_parts++;
-                    break;
-                case dt_protein:
-                    out << "[AA] ";
-                    n_prot_parts++;
-                    break;
-                }
-                out << opts.partitions_desc->at(i).partition_name << " : ";
-                for (partition_region_t & region : opts.partitions_desc->at(i).regions)
-                {
-                    out << region.start << "-" << region.end;
-                    if (region.stride != 1)
-                        out << "/" << region.stride;
-                    out << " ";
-                }
-                out << endl;
-            }
-            out << setw(15) << " " << setw(10) << setfill('-') << ""
-                << setfill(' ') << endl;
-          }
-          else
-          {
-            for (mt_index_t i=0; i<opts.partitions_desc->size(); i++)
-            {
-                switch (opts.partitions_desc->at(i).datatype)
-                {
-                case dt_dna:
-                    n_dna_parts++;
-                    break;
-                case dt_protein:
-                    n_prot_parts++;
-                    break;
-                }
-            }
-          }
-          if (n_dna_parts)
-            out << left << setw(15) << " "
-                << setw(4) << right << n_dna_parts
-                << " DNA partitions" << endl;
-          if (n_prot_parts)
-            out << left << setw(15) << " "
-                << setw(4) << right << n_prot_parts
-                << " protein partitions" << endl;
-        }
-    }
-    out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
-}
 
 static char * read_file (string filename, long * filesize)
 {
@@ -886,44 +689,6 @@ void init_lexan (const char * text, long n)
   pos          = 0;
 }
 
-mt_size_t Utils::count_logical_cores( void ) {
-    unsigned logicalcpucount;
-#if defined(_WIN32) || defined(WIN32)
-    SYSTEM_INFO systeminfo;
-    GetSystemInfo( &systeminfo );
-    logicalcpucount = (unsigned) systeminfo.dwNumberOfProcessors;
-#else
-    logicalcpucount = (unsigned) sysconf( _SC_NPROCESSORS_ONLN );
-#endif
-    return logicalcpucount;
-}
-
-mt_size_t Utils::count_physical_cores( void ) {
-    uint32_t registers[4];
-    unsigned logicalcpucount;
-    unsigned physicalcpucount;
-
-    logicalcpucount = count_logical_cores();
-
-    if ((logicalcpucount % 2) != 0)
-        return logicalcpucount;
-    __asm__ __volatile__ ("cpuid " :
-                          "=a" (registers[0]),
-            "=b" (registers[1]),
-            "=c" (registers[2]),
-            "=d" (registers[3])
-        : "a" (1), "c" (0));
-
-    unsigned CPUFeatureSet = registers[3];
-    bool hyperthreading = CPUFeatureSet & (1 << 28);
-    if (hyperthreading){
-        physicalcpucount = logicalcpucount / 2;
-    } else {
-        physicalcpucount = logicalcpucount;
-    }
-    return physicalcpucount;
-}
-
 mt_size_t Utils::count_bits( uint32_t i)
 {
      i = i - ((i >> 1) & 0x55555555);
@@ -1016,6 +781,89 @@ bool Utils::append_to_file(ofstream & outfile,
     assert(outfile.is_open());
     outfile << text;
     return true;
+}
+
+
+
+
+/* System utils */
+
+mt_size_t Utils::count_logical_cores( void ) {
+    unsigned logicalcpucount;
+#if defined(_WIN32) || defined(WIN32)
+    SYSTEM_INFO systeminfo;
+    GetSystemInfo( &systeminfo );
+    logicalcpucount = (unsigned) systeminfo.dwNumberOfProcessors;
+#else
+    logicalcpucount = (unsigned) sysconf( _SC_NPROCESSORS_ONLN );
+#endif
+    return logicalcpucount;
+}
+
+mt_size_t Utils::count_physical_cores( void ) {
+    uint32_t registers[4];
+    unsigned logicalcpucount;
+    unsigned physicalcpucount;
+
+    logicalcpucount = count_logical_cores();
+
+    if ((logicalcpucount % 2) != 0)
+        return logicalcpucount;
+    __asm__ __volatile__ ("cpuid " :
+                          "=a" (registers[0]),
+            "=b" (registers[1]),
+            "=c" (registers[2]),
+            "=d" (registers[3])
+        : "a" (1), "c" (0));
+
+    unsigned CPUFeatureSet = registers[3];
+    bool hyperthreading = CPUFeatureSet & (1 << 28);
+    if (hyperthreading){
+        physicalcpucount = logicalcpucount / 2;
+    } else {
+        physicalcpucount = logicalcpucount;
+    }
+    return physicalcpucount;
+}
+
+/* Copyright (C) 2014-2015 Tomas Flouri, Torbjorn Rognes, Jeff Epler */
+unsigned long Utils::get_memtotal()
+{
+#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+
+  long phys_pages = sysconf(_SC_PHYS_PAGES);
+  long pagesize = sysconf(_SC_PAGESIZE);
+
+  if ((phys_pages == -1) || (pagesize == -1))
+    exit_with_error("Cannot determine amount of RAM");
+
+  // sysconf(3) notes that pagesize * phys_pages can overflow, such as
+  // when long is 32-bits and there's more than 4GB RAM.  Since vsearch
+  // apparently targets LP64 systems like x86_64 linux, this will not
+  // arise in practice on the intended platform.
+
+  if (pagesize > LONG_MAX / phys_pages)
+    return LONG_MAX;
+  else
+    return (unsigned long)pagesize * (unsigned long)phys_pages;
+
+#elif defined(__APPLE__)
+
+  int mib [] = { CTL_HW, HW_MEMSIZE };
+  int64_t ram = 0;
+  size_t length = sizeof(ram);
+  if(-1 == sysctl(mib, 2, &ram, &length, NULL, 0))
+    exit_with_error("Cannot determine amount of RAM");
+  return ram;
+
+#else
+
+  struct sysinfo si;
+  if (sysinfo(&si))
+    exit_with_error("Cannot determine amount of RAM");
+  return si.totalram * si.mem_unit;
+
+#endif
 }
 
 } /* namespace */
