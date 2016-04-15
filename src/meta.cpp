@@ -666,8 +666,15 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 }
 
 
-
-
+void Meta::print_ascii_logo(std::ostream  &out)
+{
+out << "                                     _      _ _            _   " << endl;
+out << "                                    | |    | | |          | |  " << endl;
+out << "                 _ __ ___   ___   __| | ___| | |_ ___  ___| |_ " << endl;
+out << "                | '_ ` _ \\ / _ \\ / _` |/ _ \\ | __/ _ \\/ __| __|" << endl;
+out << "                | | | | | | (_) | (_| |  __/ | ||  __/\\__ \\ |_ " << endl;
+out << "                |_| |_| |_|\\___/ \\__,_|\\___|_|\\__\\___||___/\\__|" << endl;
+}
 void Meta::print_header(std::ostream  &out)
 {
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;

@@ -245,6 +245,27 @@ void Model::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
+const double * Model::get_mixture_weights( void ) const
+{
+    return 0;
+}
+
+void Model::set_mixture_weights(const double value[])
+{
+    assert(0);
+}
+
+const double * Model::get_mixture_rates( void ) const
+{
+    return 0;
+}
+
+void Model::set_mixture_rates(const double value[])
+{
+    assert(0);
+}
+
+
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
                                 double sample_size )
 {
@@ -798,6 +819,27 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
     Utils::exit_with_error("INTERNAL ERROR: Protein substitution rates must be fixed");
 }
 
+const double * ProtModel::get_mixture_weights( void ) const
+{
+    return mixture_weights;
+}
+
+void ProtModel::set_mixture_weights(const double value[])
+{
+    memcpy(mixture_weights, value, N_MIXTURE_CATS * sizeof(double));
+}
+
+const double * ProtModel::get_mixture_rates( void ) const
+{
+    return mixture_rates;
+}
+
+void ProtModel::set_mixture_rates(const double value[])
+{
+    memcpy(mixture_rates, value, N_MIXTURE_CATS * sizeof(double));
+}
+
+
 pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
@@ -854,6 +896,18 @@ void ProtModel::print(std::ostream  &out)
             }
             out << endl << endl << setw(PRINTMODEL_TABSIZE) << " ";
         }
+        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
+        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        {
+           out << setprecision(MT_PRECISION_DIGITS) << mixture_weights[j] << " ";
+        }
+        out << endl;
+        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
+        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        {
+           out << setprecision(MT_PRECISION_DIGITS) << mixture_rates[j] << " ";
+        }
+        out << endl;
     }
     else
     {

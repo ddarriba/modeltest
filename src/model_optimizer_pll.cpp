@@ -309,15 +309,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   {
     mt_index_t cur_index = 0;
 
-    for (mt_index_t i = 1; i < (n_weights-1); i++)
-    {
-        bt[i] = PLL_LBFGSB_BOUND_BOTH;
-        x[i] = 1.0;
-        lb[i] = PLL_OPT_MIN_FREQ;
-        ub[i] = PLL_OPT_MAX_FREQ;
-    }
-    return;
-
     *highest_weight_index = 0;
     for (mt_index_t i = 1; i < n_weights; i++)
       if (weights[i] > weights[*highest_weight_index])
@@ -328,6 +319,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       if (i != *highest_weight_index)
       {
         bt[cur_index] = PLL_LBFGSB_BOUND_BOTH;
+
         double r = weights[i] / weights[*highest_weight_index];
         lb[cur_index] = PLL_OPT_MIN_FREQ;
         ub[cur_index] = PLL_OPT_MAX_FREQ;
@@ -468,6 +460,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                                  double tolerance,
                                                  bool first_guess)
   {
+//      std::cout << "Optimize " << which_parameter << std::endl;
       double cur_logl = 0.0;
 
       assert(params);
@@ -539,7 +532,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 //          for (mt_index_t i=0; i<pll_partition->mixture; i++)
 //            pll_partition->rates[i] /= sumWR;
 
-//          update_clvs (pll_partition, my_params.params_index, my_params.matrix_indices,
+//          update_clvs (pll_partition, my_params.matrix_indices,
 //                       my_params.branch_lengths, my_params.operations);
       }
           break;
@@ -952,7 +945,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
 
                   /* ensure we never get a worse likelihood score */
-                  assert(iter_logl - cur_logl < 1e-5);
+                  if (iter_logl - cur_logl > 1e-5)
+                  {
+                      std::cout << "Error: " << iter_logl << " vs " << cur_logl << std::endl;
+                      assert(iter_logl - cur_logl < 1e-5);
+                  }
                   cur_logl = iter_logl;
 
                   // notify parameter optimization

@@ -133,6 +133,14 @@ public:
     virtual void set_subst_rates(const double value[],
                          bool full_vector=true);
 
+    virtual const double * get_mixture_weights( void ) const;
+
+    virtual void set_mixture_weights(const double value[]);
+
+    virtual const double * get_mixture_rates( void ) const;
+
+    virtual void set_mixture_rates(const double value[]);
+
     /**
      * @brief Gets the number of model substitution rate parameters
      * @return the number of model substitution rate parameters
@@ -303,6 +311,11 @@ public:
         return dt_protein;
     }
 
+    virtual const double * get_mixture_weights( void ) const;
+    virtual void set_mixture_weights(const double value[]);
+    virtual const double * get_mixture_rates( void ) const;
+    virtual void set_mixture_rates(const double value[]);
+
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
                                                mt_size_t n_sites,
@@ -322,6 +335,8 @@ private:
     const double *fixed_subst_rates;
     const double (*mixture_frequencies)[N_PROT_STATES];
     const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
+    double mixture_weights[N_MIXTURE_CATS];
+    double mixture_rates[N_MIXTURE_CATS];
 };
 
 }

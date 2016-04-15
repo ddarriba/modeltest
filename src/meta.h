@@ -11,6 +11,8 @@ class Meta
 public:
     static bool parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_size_t *n_procs);
 
+    static void print_ascii_logo(std::ostream  &out);
+
     /**
      * @brief Prints the header
      * @param[in,out] out  The output stream

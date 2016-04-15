@@ -27,6 +27,9 @@ int main(int argc, char *argv[])
 {
     int return_val = EXIT_SUCCESS;
 
+    Meta::print_ascii_logo(cout);
+    Meta::print_header(cout);
+
     if (argc > 1)
     {
         /* command line */
