@@ -573,8 +573,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double max_pinv = std::min(partition.get_empirical_pinv(), 0.99);
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_PINV;
-      // std::cout << pll_partition->frequencies[0][1] << std::endl;
-      // exit(1);
       cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
       return cur_logl;
   }

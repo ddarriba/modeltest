@@ -41,24 +41,24 @@ static bool build_models(data_type_t datatype,
     c_models.reserve(n_models);
 
     /* check for mixture models */
-    if (datatype == dt_protein)
-    {
-        for (mt_index_t model_matrix : candidate_models)
-            if (model_matrix == LG4M_INDEX)
-            {
-                if (model_params & MOD_PARAM_GAMMA)
-                    c_models.push_back(
-                        new ProtModel(LG4M_INDEX, MOD_PARAM_GAMMA | MOD_PARAM_FIXED_FREQ)
-                        );
-            }
-        else if (model_matrix == LG4X_INDEX)
-            {
-                if (model_params & MOD_PARAM_GAMMA)
-                    c_models.push_back(
-                            new ProtModel(LG4X_INDEX, MOD_PARAM_FIXED_FREQ)
-                            );
-            }
-    }
+    // if (datatype == dt_protein)
+    // {
+    //     for (mt_index_t model_matrix : candidate_models)
+    //         if (model_matrix == LG4M_INDEX)
+    //         {
+    //             if (model_params & MOD_PARAM_GAMMA)
+    //                 c_models.push_back(
+    //                     new ProtModel(LG4M_INDEX, MOD_PARAM_GAMMA | MOD_PARAM_FIXED_FREQ)
+    //                     );
+    //         }
+    //         else if (model_matrix == LG4X_INDEX)
+    //         {
+    //             if (model_params & MOD_PARAM_GAMMA)
+    //                 c_models.push_back(
+    //                         new ProtModel(LG4X_INDEX, MOD_PARAM_FIXED_FREQ)
+    //                         );
+    //         }
+    // }
 
     for (mt_index_t i=1; i<64; i*=2)
     {
@@ -80,7 +80,21 @@ static bool build_models(data_type_t datatype,
                 }
                 else if (datatype == dt_protein)
                 {
-                    if (model_matrix < N_PROT_MODEL_MATRICES)
+                    if (model_matrix == LG4M_INDEX)
+                    {
+                      if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+                          c_models.push_back(
+                              new ProtModel(LG4M_INDEX, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                              );
+                    }
+                    else if (model_matrix == LG4X_INDEX)
+                    {
+                      if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+                          c_models.push_back(
+                                  new ProtModel(LG4X_INDEX, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                  );
+                    }
+                    else
                     {
                         if (freq_params & MOD_PARAM_FIXED_FREQ)
                             c_models.push_back(
