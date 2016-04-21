@@ -124,6 +124,8 @@ public:
      */
     virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
 
+    const unsigned int * get_params_indices( void ) const;
+    
     /**
      * @brief Sets the substitution rates
      * @param[in] value the new substitution rates
@@ -193,6 +195,8 @@ public:
 
     bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
+
+    unsigned int * params_indices;
 
     double get_bic( void ) const;
     double get_aic( void ) const;

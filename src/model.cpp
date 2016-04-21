@@ -82,6 +82,7 @@ Model::Model(mt_mask_t model_params)
     dt   = 0.0;
 
     n_categories = 0;
+    params_indices = 0;
 
     frequencies = 0;
     subst_rates = 0;
@@ -95,6 +96,8 @@ Model::~Model()
         free(frequencies);
     if (subst_rates)
         free(subst_rates);
+    if (params_indices)
+        free(params_indices);
     if (tree)
     {
         pll_utree_destroy(tree->back);
@@ -150,6 +153,11 @@ mt_size_t Model::get_n_categories() const
 void Model::set_n_categories( mt_size_t ncat )
 {
     n_categories = ncat;
+    if (params_indices)
+      free (params_indices);
+    if (ncat > 0)
+      params_indices = (unsigned int *) Utils::c_allocate(
+                                        n_categories, sizeof(unsigned int));
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -210,6 +218,12 @@ const double * Model::get_mixture_frequencies( mt_index_t matrix_idx ) const
 {
     UNUSED(matrix_idx);
     return 0;
+}
+
+const unsigned int * Model::get_params_indices( void ) const
+{
+  assert(params_indices);
+  return params_indices;
 }
 
 void Model::set_frequencies(const double value[])
@@ -472,7 +486,7 @@ void DnaModel::clone(const Model * other_model)
     memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
     memcpy(subst_rates, other->subst_rates, N_DNA_SUBST_RATES * sizeof(double));
 
-    n_categories     = other->n_categories;
+    set_n_categories(other->n_categories);
     n_free_variables = other->n_free_variables;
 
     lnL  = other->lnL;
@@ -541,14 +555,14 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                 n_tips-2,                         /* clv buffers */
                 N_DNA_STATES,                     /* states */
                 n_sites,                          /* sites */
-                0,                                /* mixture model */
                 1,                                /* rate matrices */
                 2*n_tips-3,                       /* prob matrices */
                 optimize_gamma ? n_cat_g : 1,     /* rate cats */
                 n_tips-2,                         /* scale buffers */
-                pll_map_nt,
-                attributes
+                pll_map_nt,                       /* nucleotide map */
+                attributes                        /* attributes */
                 );
+
     return part;
 }
 
@@ -776,7 +790,7 @@ void ProtModel::clone(const Model * other_model)
     memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
     fixed_subst_rates = other->fixed_subst_rates;
 
-    n_categories     = other->n_categories;
+    set_n_categories(other->n_categories);
     n_free_variables = other->n_free_variables;
 
     lnL  = other->lnL;
@@ -859,21 +873,20 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
     if (mixture)
     {
         n_cats = N_MIXTURE_CATS;
-        attributes |= PLL_ATTRIB_MIXT_LINKED;
     }
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
                 n_tips-2,                         /* clv buffers */
                 N_PROT_STATES,                    /* states */
                 n_sites,                          /* sites */
-                mixture?N_MIXTURE_CATS:1,         /* mixture model */
-                1,                                /* rate matrices */
+                mixture?N_MIXTURE_CATS:1,         /* rate matrices */
                 2*n_tips-3,                       /* prob matrices */
                 n_cats,                           /* rate cats */
                 n_tips-2,                         /* scale buffers */
-                pll_map_aa,
+                pll_map_aa,                       /* amino acid map */
                 attributes                        /* attributes */
                 );
+
     return part;
 }
 

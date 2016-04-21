@@ -102,7 +102,6 @@ static pll_partition_t * pll_partition_clone_partial(
   new_partition->alignment     = partition->alignment;
   new_partition->states_padded = partition->states_padded;
 
-  new_partition->mixture  = partition->mixture;
   new_partition->clv      = (double **) modeltest::Utils::c_allocate (
                                       partition->tips + partition->clv_buffers,
                                       sizeof(double *));
@@ -189,8 +188,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
 
     if (!pll_partition)
-        std::cout << "  MIXTURE CATS " << pll_errno << " " << pll_errmsg << std::endl;
+        std::cout << "PLL ERROR " << pll_errno << " " << pll_errmsg << std::endl;
     assert(pll_partition);
+
+    model.set_n_categories(pll_partition->rate_cats);
 
     pll_utree_t* pll_tree = tree.get_pll_start_tree (_thread_number);
 
@@ -254,7 +255,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                              travbuffer,
                              &traversal_size))
     {
-      std::cerr << 
+      std::cerr <<
         "ERROR: PLL returned an error computing tree traversal" <<
         std::endl;
       assert(0);
@@ -337,9 +338,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     unsigned int child_clv_index;
     unsigned int child_scaler_index;
     unsigned int edge_pmatrix_index;
-    unsigned int freqs_index;
-    unsigned int params_index;
-    unsigned int mixture_index;
+    const unsigned int * params_indices;
+
+    int optimize_rate_weights;
 
     /* traverse */
     unsigned int * matrix_indices;
@@ -378,7 +379,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 //    /* set x to partition */
 //    int n_rates = pll_partition->rate_cats;
 
-    for (mt_index_t i=0; i<(pll_partition->mixture); i++)
+    for (mt_index_t i=0; i<(pll_partition->rate_cats); i++)
        pll_partition->rates[i] = x[i];
 
 //    /* rescale rates */
@@ -397,7 +398,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           params->child_clv_index,
                                           params->child_scaler_index,
                                           params->edge_pmatrix_index,
-                                          params->freqs_index);
+                                          params->params_indices,
+                                          NULL);
 
     return score;
   }
@@ -409,9 +411,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double score;
     unsigned int i;
 
-    unsigned int n_weights = partition->mixture;
+    assert(params->optimize_rate_weights);
+
+    unsigned int n_weights = partition->rate_cats;
     double sum_ratios = 1.0;
-    double *weights = (double *) malloc ((size_t) partition->mixture * sizeof(double));
+    double *weights = (double *) malloc ((size_t) n_weights * sizeof(double));
 
     for (i = 0; i < (n_weights - 1); ++i)
     {
@@ -451,7 +455,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           params->child_clv_index,
                                           params->child_scaler_index,
                                           params->edge_pmatrix_index,
-                                          params->freqs_index);
+                                          params->params_indices,
+                                          NULL);
 
     return score;
   }
@@ -497,9 +502,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           my_params.child_clv_index = params->lk_params.where.unrooted_t.child_clv_index;
           my_params.child_scaler_index = params->lk_params.where.unrooted_t.child_scaler_index;
           my_params.edge_pmatrix_index = params->lk_params.where.unrooted_t.edge_pmatrix_index;
-          my_params.freqs_index = 0;
-          my_params.params_index = 0;
-          my_params.mixture_index = 0;
+          my_params.params_indices = model.get_params_indices();
+
+          my_params.optimize_rate_weights = model.is_mixture();
 
           my_params.matrix_indices = params->lk_params.matrix_indices;
           my_params.branch_lengths = params->lk_params.branch_lengths;
@@ -511,17 +516,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
           double * weights = pll_partition->rate_weights;
           fill_weights(weights, &(my_params.highest_weight_state), x,
-                            bt, lb, ub, pll_partition->mixture);
+                            bt, lb, ub, pll_partition->rate_cats);
 
           cur_logl = -1
-              * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->mixture-1, params->factr,
+              * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->rate_cats-1, params->factr,
                                      params->pgtol, &my_params, target_weights_opt);
 
           /* optimize mixture rates */
 
           fill_rates (pll_partition->rates, x, bt, lb, ub, pll_partition->rate_cats);
 
-          cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->mixture,
+          cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->rate_cats,
                                          params->factr, params->pgtol,
                                          &my_params, target_rates_opt);
 
@@ -568,6 +573,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double max_pinv = std::min(partition.get_empirical_pinv(), 0.99);
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_PINV;
+      // std::cout << pll_partition->frequencies[0][1] << std::endl;
+      // exit(1);
       cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
       return cur_logl;
   }
@@ -607,7 +614,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
 
       cur_logl = pll_optimize_branch_lengths_iterative (
-                  pll_partition, pll_tree, params->params_index, params->lk_params.freqs_index,
+                  pll_partition,
+                  pll_tree,
+                  params->lk_params.params_indices,
                   params->pgtol, smoothings, true);
 
       pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
@@ -625,7 +634,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
               pll_tree->pmatrix_index;
 
       free(travbuffer);
-
       return cur_logl;
   }
 
@@ -649,7 +657,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           else
             params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
       }
-      params->lk_params.freqs_index = 0;
       params->lk_params.rooted = 0;
       params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
       params->lk_params.where.unrooted_t.parent_scaler_index = pll_tree->scaler_index;
@@ -658,8 +665,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
 
       /* optimization parameters */
-      params->mixture_index = 0;
       params->params_index = 0;
+      params->lk_params.params_indices = model.get_params_indices();
+
       if (partition.get_datatype() == dt_dna)
       {
         int *symmetries = new int[N_DNA_SUBST_RATES];
@@ -690,7 +698,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             }
             for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
                 empirical_rates[j] /= empirical_rates[N_DNA_SUBST_RATES-1];
-            pll_set_subst_params(pll_partition, 0, 0, empirical_rates);
+            pll_set_subst_params(pll_partition, 0, empirical_rates);
             delete[] empirical_rates;
         }
       }
@@ -718,17 +726,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       if (model.is_mixture())
       {
-          assert (pll_partition->mixture = N_MIXTURE_CATS);
+          assert (pll_partition->rate_cats == N_MIXTURE_CATS);
           for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
           {
-              pll_set_frequencies (pll_partition, 0, i, model.get_mixture_frequencies(i));
-              pll_set_subst_params (pll_partition, 0, i, model.get_mixture_subst_rates(i));
+              pll_set_frequencies (pll_partition, i, model.get_mixture_frequencies(i));
+              pll_set_subst_params (pll_partition, i, model.get_mixture_subst_rates(i));
           }
       }
       else
       {
-        pll_set_frequencies (pll_partition, 0, 0, model.get_frequencies());
-        pll_set_subst_params (pll_partition, 0, 0, model.get_subst_rates());
+        pll_set_frequencies (pll_partition, 0, model.get_frequencies());
+        pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
       }
 
       if (model.is_G() || model.is_mixture())
@@ -869,7 +877,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                                     pll_tree->back->clv_index,
                                                     pll_tree->back->scaler_index,
                                                     pll_tree->pmatrix_index,
-                                                    0);
+                                                    model.get_params_indices(),
+                                                    NULL);
 
       /* current logl changes the sign of the lk, such that the optimization
        * function can minimize the score */
@@ -1127,7 +1136,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   local_thread_data->vroot->scaler_index,
                   local_thread_data->vroot->back->clv_index,
                   local_thread_data->vroot->back->scaler_index,
-                  local_thread_data->vroot->pmatrix_index, 0);
+                  local_thread_data->vroot->pmatrix_index,
+                  model.get_params_indices(),
+                  NULL);
 
             /* reduce */
             barrier (local_thread_data);
@@ -1158,7 +1169,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   local_thread_data->vroot->scaler_index,
                   local_thread_data->vroot->back->clv_index,
                   local_thread_data->vroot->back->scaler_index,
-                  local_thread_data->vroot->pmatrix_index, 0);
+                  local_thread_data->vroot->pmatrix_index,
+                  model.get_params_indices(),
+                  NULL);
 
             /* reduce */
             barrier (local_thread_data);
