@@ -154,6 +154,8 @@ static pll_partition_t * pll_partition_clone_partial(
   return new_partition;
 }
 
+using namespace std;
+
 namespace modeltest
 {
 
@@ -188,7 +190,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
 
     if (!pll_partition)
-        std::cout << "PLL ERROR " << pll_errno << " " << pll_errmsg << std::endl;
+        cout << "PLL ERROR " << pll_errno << " " << pll_errmsg << endl;
     assert(pll_partition);
 
     model.set_n_categories(pll_partition->rate_cats);
@@ -218,7 +220,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         }
 
         if (tip_clv_index == MT_SIZE_UNDEF)
-            std::cerr << "ERROR: Cannot find tip \"" << header << "\"" << std::endl;
+            cerr << "ERROR: Cannot find tip \"" << header << "\"" << endl;
         assert(tip_clv_index != MT_SIZE_UNDEF);
 
         //TODO: keep tip states between models
@@ -229,7 +231,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                              c_seq))
         {
             /* data type and tip states should be validated beforehand */
-            std::cerr << "ERROR: Sequence does not match the datatype" << std::endl;
+            cerr << "ERROR: Sequence does not match the datatype" << endl;
             assert(0);
         }
 
@@ -255,9 +257,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                              travbuffer,
                              &traversal_size))
     {
-      std::cerr <<
+      cerr <<
         "ERROR: PLL returned an error computing tree traversal" <<
-        std::endl;
+        endl;
       assert(0);
     }
 
@@ -305,7 +307,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   static void fill_weights (double *weights,
                             unsigned int * highest_weight_index,
                             double *x,
-                            int *bt, double *lb, double *ub,
+                            int *bt,
+                            double *lb,
+                            double *ub,
                             mt_size_t n_weights)
   {
     mt_index_t cur_index = 0;
@@ -352,7 +356,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   } my_params_t;
 
   static void update_clvs(pll_partition_t * partition,
-                          unsigned int * matrix_indices,
+                          const unsigned int * matrix_indices,
+                          const unsigned int * params_indices,
                           double * branch_lengths,
                           pll_operation_t * operations)
   {
@@ -360,7 +365,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     unsigned int n_inner    = partition->tips - 2;
 
     if (matrix_indices)
-      pll_update_prob_matrices (partition, 0,
+      pll_update_prob_matrices (partition,
+                                params_indices,
                                 matrix_indices,
                                 branch_lengths,
                                 n_branches);
@@ -389,8 +395,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 //    for (mt_index_t i=0; i<pll_partition->mixture; i++)
 //      pll_partition->rates[i] = x[i] / sumWR;
 
-    update_clvs (pll_partition, params->matrix_indices,
-                 params->branch_lengths, params->operations);
+    update_clvs (pll_partition,
+                 params->matrix_indices,
+                 params->params_indices,
+                 params->branch_lengths,
+                 params->operations);
 
     score = -1
         * pll_compute_edge_loglikelihood (pll_partition, params->parent_clv_index,
@@ -465,7 +474,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                                  double tolerance,
                                                  bool first_guess)
   {
-//      std::cout << "Optimize " << which_parameter << std::endl;
+//      cout << "Optimize " << which_parameter << endl;
       double cur_logl = 0.0;
 
       assert(params);
@@ -474,20 +483,47 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       {
       case mt_param_branch_lengths:
         cur_logl = opt_branch_lengths(tolerance);
+        if (verbosity >= VERBOSITY_MID)
+          cout << "<TRACE> "
+               << setprecision(4) << cur_logl << " Branch lengths" << endl;
         break;
       case mt_param_alpha:
           cur_logl = opt_alpha(tolerance, first_guess);
+          if (verbosity >= VERBOSITY_MID)
+            cout << "<TRACE> "
+                 << setprecision(4) << cur_logl
+                 << " Alpha: " << params->lk_params.alpha_value << endl;
           break;
       case mt_param_pinv:
           cur_logl = opt_pinv(tolerance, first_guess);
+          if (verbosity >= VERBOSITY_MID)
+            cout << "<TRACE> "
+                 << setprecision(4) << cur_logl
+                 << " P-inv: " << pll_partition->prop_invar[0] << endl;
+                 cout << " P-inv: " << pll_partition->prop_invar[1] << endl;
+                 cout << " P-inv: " << pll_partition->prop_invar[2] << endl;
           break;
       case mt_param_subst_rates:
           params->which_parameters = PLL_PARAMETER_SUBST_RATES;
           cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Subst rates: ";
+            for (mt_index_t i=0; i<N_DNA_SUBST_RATES; ++i)
+              cout << "s" << i << "=" << setprecision(3) << pll_partition->subst_params[i] << " ";
+            cout << endl;
+          }
           break;
       case mt_param_frequencies:
           params->which_parameters = PLL_PARAMETER_FREQUENCIES;
           cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Frequencies: ";
+            for (mt_index_t i=0; i<pll_partition->states; ++i)
+              cout << "f" << i << "=" << setprecision(3) << pll_partition->frequencies[0][i] << " ";
+            cout << endl;
+          }
           break;
       case mt_param_mixture_rates_weights:
       {
@@ -518,9 +554,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           fill_weights(weights, &(my_params.highest_weight_state), x,
                             bt, lb, ub, pll_partition->rate_cats);
 
-          cur_logl = -1
+          cur_logl = 1
               * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->rate_cats-1, params->factr,
                                      params->pgtol, &my_params, target_weights_opt);
+
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Rate weights: ";
+            for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+              cout << "w" << i << "=" << setprecision(3) << weights[i] << " ";
+            cout << endl;
+          }
 
           /* optimize mixture rates */
 
@@ -530,6 +574,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                          params->factr, params->pgtol,
                                          &my_params, target_rates_opt);
 
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Free rates: ";
+            for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+              cout << "R" << i << "=" << setprecision(3) << pll_partition->rates[i] << " ";
+            cout << endl;
+          }
 //          /* rescale rates */
 //          double sumWR = 0.0;
 //          for (mt_index_t i=0; i<pll_partition->mixture; i++)
@@ -570,7 +621,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                      bool first_guess)
   {
       double cur_logl;
-      double max_pinv = std::min(partition.get_empirical_pinv(), 0.99);
+      double max_pinv = min(partition.get_empirical_pinv(), 0.99);
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_PINV;
       cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
@@ -600,7 +651,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
                                    matrix_indices, operations, &tmp_matrix_count,
                                    &tmp_ops_count);
-      pll_update_prob_matrices (pll_partition, 0, matrix_indices, branch_lengths,
+      pll_update_prob_matrices (pll_partition,
+                                model.get_params_indices(),
+                                matrix_indices,
+                                branch_lengths,
                                 tree.get_n_branches());
 
 //          for (mt_index_t i=0; i<num_threads; i++)
@@ -763,7 +817,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       //num_threads = 2;
 
 #ifdef VERBOSE //TODO: Verbosity medium
-      std::cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << std::endl;
+      cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
 #endif
       time_t start_time = time(NULL);
       mt_size_t n_branches = tree.get_n_branches();
@@ -773,7 +827,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double * result_buf = NULL;
       pthread_barrier_t barrier_buf;
 
-      std::vector<mt_parameter_t> params_to_optimize;
+      vector<mt_parameter_t> params_to_optimize;
 
       if ((model.get_datatype() == dt_dna || !tree.is_bl_optimized()))
           params_to_optimize.push_back(mt_param_branch_lengths);
@@ -809,10 +863,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       }
 
 #ifdef VERBOSE //TODO: Verbosity high
-      std::cout << "Initial Frequencies:   ";
+      cout << "Initial Frequencies:   ";
       for (mt_index_t i=0; i<pll_partition->states; i++)
-        std::cout << pll_partition->frequencies[0][i] << " ";
-      std::cout << std::endl;
+        cout << pll_partition->frequencies[0][i] << " ";
+      cout << endl;
 #endif
 
       /* /PTHREADS */
@@ -848,7 +902,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           {
               thread_wrap * w = new thread_wrap(&(thread_data[i]), this);
               if(pthread_create(&(threads[i]), NULL, thread_worker, w)) {
-                std::cerr << "ERROR: Cannot create thread " << i << std::endl;
+                cerr << "ERROR: Cannot create thread " << i << endl;
                 return false;
               }
           }
@@ -861,7 +915,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       build_parameters(pll_tree);
 
       pll_update_prob_matrices (pll_partition,
-                                0,
+                                model.get_params_indices(),
                                 matrix_indices,
                                 branch_lengths,
                                 n_branches);
@@ -954,7 +1008,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   /* ensure we never get a worse likelihood score */
                   if (iter_logl - cur_logl > 1e-5)
                   {
-                      std::cout << "Error: " << iter_logl << " vs " << cur_logl << std::endl;
+                      cout << "Error: " << iter_logl << " vs " << cur_logl << endl;
                       assert(iter_logl - cur_logl < 1e-5);
                   }
                   cur_logl = iter_logl;
@@ -1039,6 +1093,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             model.set_subst_rates(pll_partition->subst_params[0]);
           }
 
+          if (model.is_mixture() && !model.is_G())
+          {
+              model.set_mixture_weights(pll_partition->rates);
+              model.set_mixture_rates(pll_partition->rate_weights);
+          }
+
           model.evaluate_criteria(n_branches, msa.get_n_sites());
           model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
           return true;
@@ -1099,7 +1159,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
             barrier (local_thread_data);
 
-            pll_update_prob_matrices (local_thread_data->partition, 0,
+            //TODO: TAKE INDICES FROM model.get_params_indices()
+            pll_update_prob_matrices (local_thread_data->partition,
+                                      0,
                                       local_matrix_indices,
                                       local_branch_lengths,
                                       mat_count);

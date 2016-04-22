@@ -12,7 +12,7 @@
 #define N_DNA_ALLMATRIX_COUNT      203
 #define N_PROT_STATES               20
 #define N_PROT_SUBST_RATES         190
-#define N_PROT_MODEL_MATRICES       19
+#define N_PROT_MODEL_MATRICES       21
 #define N_PROT_MODEL_ALL_MATRICES   21 //! all protein matrices
 
 #define N_MIXTURE_CATS  4

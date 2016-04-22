@@ -18,6 +18,7 @@ double alpha_guess = 0;
 double pinv_guess = 0;
 double alpha_inv_guess = 0;
 double pinv_alpha_guess = 0;
+int verbosity = VERBOSITY_DEFAULT;
 
 using namespace std;
 
@@ -339,6 +340,8 @@ bool ModelTest::build_instance(mt_options_t & options)
         }
         current_instance->partitions_eff = options.partitions_eff;
     }
+
+    verbosity = options.verbose;
 
 //    /* evaluate partitions */
 //    for (partition_descriptor_t & partition : *options.partitions_eff)

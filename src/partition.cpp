@@ -40,26 +40,6 @@ static bool build_models(data_type_t datatype,
         n_models *= 2;
     c_models.reserve(n_models);
 
-    /* check for mixture models */
-    // if (datatype == dt_protein)
-    // {
-    //     for (mt_index_t model_matrix : candidate_models)
-    //         if (model_matrix == LG4M_INDEX)
-    //         {
-    //             if (model_params & MOD_PARAM_GAMMA)
-    //                 c_models.push_back(
-    //                     new ProtModel(LG4M_INDEX, MOD_PARAM_GAMMA | MOD_PARAM_FIXED_FREQ)
-    //                     );
-    //         }
-    //         else if (model_matrix == LG4X_INDEX)
-    //         {
-    //             if (model_params & MOD_PARAM_GAMMA)
-    //                 c_models.push_back(
-    //                         new ProtModel(LG4X_INDEX, MOD_PARAM_FIXED_FREQ)
-    //                         );
-    //         }
-    // }
-
     for (mt_index_t i=1; i<64; i*=2)
     {
         mt_mask_t cur_rate_param = rate_params & i;

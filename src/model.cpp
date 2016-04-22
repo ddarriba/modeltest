@@ -155,9 +155,19 @@ void Model::set_n_categories( mt_size_t ncat )
     n_categories = ncat;
     if (params_indices)
       free (params_indices);
+
     if (ncat > 0)
+    {
       params_indices = (unsigned int *) Utils::c_allocate(
                                         n_categories, sizeof(unsigned int));
+    }
+
+    if (mixture)
+    {
+      assert(ncat == N_MIXTURE_CATS);
+      for (mt_index_t i = 0; i<N_MIXTURE_CATS; ++i)
+        params_indices[i] = i;
+    }
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -711,15 +721,15 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 
     matrix_index = _matrix_index;
     assert(matrix_index < N_PROT_MODEL_ALL_MATRICES);
-    mixture = (matrix_index >= N_PROT_MODEL_MATRICES);
+    mixture = (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX);
 
     n_frequencies = N_PROT_STATES;
     n_subst_rates = N_PROT_SUBST_RATES;
 
     if (mixture)
     {
-        assert(!is_F());
-        if (optimize_gamma)
+        assert (optimize_gamma && !optimize_freqs);
+        if (matrix_index == LG4M_INDEX)
         {
             /* LG4M model */
             mixture_frequencies = pll_aa_freqs_lg4m;
@@ -728,15 +738,13 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         else
         {
             /* LG4X model / free rates */
+            optimize_gamma = false;
             mixture_frequencies = pll_aa_freqs_lg4x;
             mixture_subst_rates = pll_aa_rates_lg4x;
         }
-
-        assert (!optimize_freqs);
     }
     else
     {
-        assert(matrix_index < N_PROT_MODEL_MATRICES);
         frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
         memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
         fixed_subst_rates = prot_model_rates[matrix_index];
@@ -787,6 +795,7 @@ void ProtModel::clone(const Model * other_model)
 
     prop_inv = other->prop_inv;
     alpha    = other->alpha;
+    //TODO: Check for LG4!
     memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
     fixed_subst_rates = other->fixed_subst_rates;
 
@@ -835,21 +844,25 @@ void ProtModel::set_subst_rates(const double value[], bool full_vector)
 
 const double * ProtModel::get_mixture_weights( void ) const
 {
+    assert(mixture);
     return mixture_weights;
 }
 
 void ProtModel::set_mixture_weights(const double value[])
 {
+    assert(mixture);
     memcpy(mixture_weights, value, N_MIXTURE_CATS * sizeof(double));
 }
 
 const double * ProtModel::get_mixture_rates( void ) const
 {
+    assert(mixture);
     return mixture_rates;
 }
 
 void ProtModel::set_mixture_rates(const double value[])
 {
+    assert(mixture);
     memcpy(mixture_rates, value, N_MIXTURE_CATS * sizeof(double));
 }
 
@@ -907,7 +920,8 @@ void ProtModel::print(std::ostream  &out)
                     out << endl << setw(PRINTMODEL_TABSIZE) << " ";
                 }
             }
-            out << endl << endl << setw(PRINTMODEL_TABSIZE) << " ";
+            out << endl << endl;
+            if (j <N_MIXTURE_CATS-1) out << setw(PRINTMODEL_TABSIZE) << " ";
         }
         out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
         for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)

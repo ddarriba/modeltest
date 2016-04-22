@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <climits>
+#include <iomanip>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -63,6 +64,8 @@ namespace modeltest
   extern double pinv_guess;
   extern double alpha_inv_guess;
   extern double pinv_alpha_guess;
+
+  extern int verbosity;
 }
 
 typedef unsigned int mt_size_t;
