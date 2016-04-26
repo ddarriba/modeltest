@@ -11,7 +11,10 @@
 #include <cassert>
 #include <iostream>
 
-#define CHECK_LOCAL_CONVERGENCE 1
+#define CHECK_LOCAL_CONVERGENCE 0
+
+/* epsilon for Weights/Rates optimization */
+#define WR_EPSILON 0.9
 
 #define JOB_WAIT             0
 #define JOB_UPDATE_MATRICES  1
@@ -382,18 +385,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     pll_partition_t * pll_partition = params->partition;
     double score;
 
-//    /* set x to partition */
-//    int n_rates = pll_partition->rate_cats;
-
     for (mt_index_t i=0; i<(pll_partition->rate_cats); i++)
        pll_partition->rates[i] = x[i];
-
-//    /* rescale rates */
-//    double sumWR = 0.0;
-//    for (mt_index_t i=0; i<pll_partition->mixture; i++)
-//      sumWR += x[i] * pll_partition->rate_weights[i];
-//    for (mt_index_t i=0; i<pll_partition->mixture; i++)
-//      pll_partition->rates[i] = x[i] / sumWR;
 
     update_clvs (pll_partition,
                  params->matrix_indices,
@@ -418,7 +411,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     my_params_t * params = (my_params_t *) p;
     pll_partition_t * partition = params->partition;
     double score;
-    unsigned int i;
+    unsigned int i, cur_rate;
+    unsigned int highest_weight_state = params->highest_weight_state;
 
     assert(params->optimize_rate_weights);
 
@@ -427,36 +421,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double *weights = (double *) malloc ((size_t) n_weights * sizeof(double));
 
     for (i = 0; i < (n_weights - 1); ++i)
-    {
       sum_ratios += x[i];
-    }
-    for (i = 0; i < (n_weights - 1); ++i)
-    {
-      weights[i] = x[i] / sum_ratios;
-    }
-    weights[n_weights - 1] = 1.0 / sum_ratios;
 
-//    for (i = 0; i < (n_weights); ++i)
-//    {
-//      if (i != highest_weight_state)
-//      {
-//        weights[i] = x[cur_index] / sum_ratios;
-//        cur_index++;
-//      }
-//    }
-//    weights[highest_weight_state] = 1.0 / sum_ratios;
+    cur_rate = 0;
+    for (i = 0; i < (n_weights); ++i)
+      if (i != highest_weight_state)
+        weights[i] = x[cur_rate++] / sum_ratios;
+    weights[highest_weight_state] = 1.0 / sum_ratios;
+
     pll_set_category_weights(partition, weights);
     free (weights);
-
-//    /* rescale rates */
-//    double sumWR = 0.0;
-//    for (mt_index_t i=0; i<partition->mixture; i++)
-//      sumWR += partition->rates[i] * partition->rate_weights[i];
-//    for (mt_index_t i=0; i<partition->mixture; i++)
-//      partition->rates[i] /= sumWR;
-
-//    update_clvs (partition, params->params_index, params->matrix_indices,
-//                 params->branch_lengths, params->operations);
 
     score = -1
         * pll_compute_edge_loglikelihood (partition, params->parent_clv_index,
@@ -472,9 +446,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   double ModelOptimizerPll::opt_single_parameter(mt_parameter_t which_parameter,
                                                  double tolerance,
-                                                 bool first_guess)
+                                                 bool first_guess,
+                                                 double prev_logl)
   {
-//      cout << "Optimize " << which_parameter << endl;
       double cur_logl = 0.0;
 
       assert(params);
@@ -482,51 +456,65 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       switch(which_parameter)
       {
       case mt_param_branch_lengths:
+        if (verbosity >= VERBOSITY_HIGH)
+           cout << "<TRACE> Start branch lengths" << endl;
         cur_logl = opt_branch_lengths(tolerance);
         if (verbosity >= VERBOSITY_MID)
+        {
           cout << "<TRACE> "
-               << setprecision(4) << cur_logl << " Branch lengths" << endl;
+               << fixed << setprecision(4) << cur_logl << " Branch lengths" << endl;
+        }
         break;
       case mt_param_alpha:
+          if (verbosity >= VERBOSITY_HIGH)
+             cout << "<TRACE> Start alpha" << endl;
           cur_logl = opt_alpha(tolerance, first_guess);
           if (verbosity >= VERBOSITY_MID)
             cout << "<TRACE> "
-                 << setprecision(4) << cur_logl
+                 << fixed << setprecision(4) << cur_logl
                  << " Alpha: " << params->lk_params.alpha_value << endl;
           break;
       case mt_param_pinv:
-          cur_logl = opt_pinv(tolerance, first_guess);
-          if (verbosity >= VERBOSITY_MID)
-            cout << "<TRACE> "
-                 << setprecision(4) << cur_logl
-                 << " P-inv: " << pll_partition->prop_invar[0] << endl;
-                 cout << " P-inv: " << pll_partition->prop_invar[1] << endl;
-                 cout << " P-inv: " << pll_partition->prop_invar[2] << endl;
+          {
+            cur_logl = opt_pinv(tolerance, first_guess);
+            if (verbosity >= VERBOSITY_MID)
+            {
+              cout << "<TRACE> "
+                   << fixed << setprecision(4) << cur_logl
+                   << " P-inv: " << pll_partition->prop_invar[0] << endl;
+            }
+          }
           break;
       case mt_param_subst_rates:
+          if (verbosity >= VERBOSITY_HIGH)
+             cout << "<TRACE> Start substitution rates" << endl;
           params->which_parameters = PLL_PARAMETER_SUBST_RATES;
           cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
           if (verbosity >= VERBOSITY_MID)
           {
-            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Subst rates: ";
+            cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Subst rates: ";
             for (mt_index_t i=0; i<N_DNA_SUBST_RATES; ++i)
-              cout << "s" << i << "=" << setprecision(3) << pll_partition->subst_params[i] << " ";
+              cout << "s" << i << "=" << fixed << setprecision(3) << pll_partition->subst_params[i] << " ";
             cout << endl;
           }
           break;
       case mt_param_frequencies:
+          if (verbosity >= VERBOSITY_HIGH)
+             cout << "<TRACE> Start frequencies" << endl;
           params->which_parameters = PLL_PARAMETER_FREQUENCIES;
           cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
           if (verbosity >= VERBOSITY_MID)
           {
-            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Frequencies: ";
+            cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Frequencies: ";
             for (mt_index_t i=0; i<pll_partition->states; ++i)
-              cout << "f" << i << "=" << setprecision(3) << pll_partition->frequencies[0][i] << " ";
+              cout << "f" << i << "=" << fixed << setprecision(3) << pll_partition->frequencies[0][i] << " ";
             cout << endl;
           }
           break;
       case mt_param_mixture_rates_weights:
       {
+          if (verbosity >= VERBOSITY_HIGH)
+             cout << "<TRACE> Start mixture rates + weights" << endl;
           double x[4], lb[4],
                 ub[4];
             int bt[4];
@@ -548,48 +536,104 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
           /* 2 step BFGS */
 
-          /* optimize mixture weights */
+          cur_logl = prev_logl;
+          do
+          {
 
-          double * weights = pll_partition->rate_weights;
-          fill_weights(weights, &(my_params.highest_weight_state), x,
-                            bt, lb, ub, pll_partition->rate_cats);
+            prev_logl = cur_logl;
 
-          cur_logl = 1
-              * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->rate_cats-1, params->factr,
-                                     params->pgtol, &my_params, target_weights_opt);
+            /* optimize mixture weights */
+
+            double * weights = pll_partition->rate_weights;
+            fill_weights(weights, &(my_params.highest_weight_state), x,
+                              bt, lb, ub, pll_partition->rate_cats);
+
+            cur_logl = 1
+                * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->rate_cats-1, params->factr,
+                                       params->pgtol, &my_params, target_weights_opt);
+
+            if (verbosity >= VERBOSITY_MID)
+            {
+              cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Rate weights: ";
+              for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+                cout << "w" << i << "=" << fixed << setprecision(3) << weights[i] << " ";
+              cout << endl;
+            }
+
+            /* optimize mixture rates */
+
+            fill_rates (pll_partition->rates, x, bt, lb, ub, pll_partition->rate_cats);
+
+            cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->rate_cats,
+                                           params->factr, params->pgtol,
+                                           &my_params, target_rates_opt);
+
+            if (verbosity >= VERBOSITY_MID)
+            {
+              cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Free rates: ";
+              for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+                cout << "R" << i << "=" << fixed << setprecision(3) << pll_partition->rates[i] << " ";
+              cout << endl;
+            }
+
+            if (verbosity >= VERBOSITY_HIGH)
+            {
+              cout << "<TRACE> Loop difference = " << fixed << cur_logl << " " << prev_logl << " " << prev_logl - cur_logl << endl;
+            }
+            assert (cur_logl <= prev_logl);
+          } while (prev_logl - cur_logl > WR_EPSILON);
+
+          /* calculate scaler */
+          double sumWR = 0.0, lg4x_scaler;
+          for (mt_index_t i=0; i<pll_partition->rate_cats; i++)
+            sumWR += pll_partition->rates[i] * pll_partition->rate_weights[i];
+          lg4x_scaler = 1.0 / sumWR;
+
+          /* rescale rates */
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> Scale category rates: factor = " << lg4x_scaler << endl;
+          }
+          for (mt_index_t i=0; i<pll_partition->rate_cats; i++)
+          {
+              pll_partition->rates[i] *= lg4x_scaler;
+          }
+
+          /* rescale branch lengths */
+          if (verbosity >= VERBOSITY_MID)
+          {
+            cout << "<TRACE> Scale branch lengths: factor = " << sumWR << endl;
+          }
+          for (mt_index_t i=0; i<(2*pll_partition->tips - 3); i++)
+          {
+            my_params.branch_lengths[i] *= sumWR;
+          }
+          tree.scale_branches(sumWR, thread_number);
+
+          update_clvs (pll_partition,
+                       my_params.matrix_indices,
+                       my_params.params_indices,
+                       my_params.branch_lengths,
+                       my_params.operations);
+
+           cur_logl = -1 *
+           pll_compute_edge_loglikelihood (
+             my_params.partition,
+             my_params.parent_clv_index,
+             my_params.parent_scaler_index,
+             my_params.child_clv_index,
+             my_params.child_scaler_index,
+             my_params.edge_pmatrix_index,
+             my_params.params_indices,
+             NULL);
 
           if (verbosity >= VERBOSITY_MID)
           {
-            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Rate weights: ";
-            for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-              cout << "w" << i << "=" << setprecision(3) << weights[i] << " ";
-            cout << endl;
+           cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Free rates: ";
+           for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+             cout << "R" << i << "=" << fixed << setprecision(3) << pll_partition->rates[i] << " ";
+           cout << endl;
           }
-
-          /* optimize mixture rates */
-
-          fill_rates (pll_partition->rates, x, bt, lb, ub, pll_partition->rate_cats);
-
-          cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->rate_cats,
-                                         params->factr, params->pgtol,
-                                         &my_params, target_rates_opt);
-
-          if (verbosity >= VERBOSITY_MID)
-          {
-            cout << "<TRACE> "  << setprecision(4) << cur_logl << " Free rates: ";
-            for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-              cout << "R" << i << "=" << setprecision(3) << pll_partition->rates[i] << " ";
-            cout << endl;
-          }
-//          /* rescale rates */
-//          double sumWR = 0.0;
-//          for (mt_index_t i=0; i<pll_partition->mixture; i++)
-//            sumWR += pll_partition->rates[i] * pll_partition->rate_weights[i];
-//          for (mt_index_t i=0; i<pll_partition->mixture; i++)
-//            pll_partition->rates[i] /= sumWR;
-
-//          update_clvs (pll_partition, my_params.matrix_indices,
-//                       my_params.branch_lengths, my_params.operations);
       }
           break;
 
@@ -608,6 +652,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double cur_logl;
       params->pgtol = tolerance;
       params->which_parameters = PLL_PARAMETER_ALPHA;
+
       cur_logl = pll_optimize_parameters_onedim(params, MIN_ALPHA, MAX_ALPHA);
       return cur_logl;
   }
@@ -764,13 +809,32 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
 
       if (!model.is_I())
-          pll_update_invariant_sites_proportion(pll_partition, 0, 0.0);
+      {
+        for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+        {
+          pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], 0.0);
+        }
+      }
       else
       {
+        if (model.is_mixture())
+        {
+          for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
+          {
+            pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
+          }
+        }
+        else
+        {
           if (model.is_G())
+          {
               pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
+          }
           else
+          {
               pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.get_empirical_pinv()/2));
+          }
+        }
       }
 
       if (model.is_F())
@@ -1001,14 +1065,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                       }
                   }
 
-                  iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
+                  iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search, cur_logl);
 
                   //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
 
                   /* ensure we never get a worse likelihood score */
                   if (iter_logl - cur_logl > 1e-5)
                   {
-                      cout << "Error: " << iter_logl << " vs " << cur_logl << endl;
+                      cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << endl;
                       assert(iter_logl - cur_logl < 1e-5);
                   }
                   cur_logl = iter_logl;
@@ -1095,8 +1159,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
           if (model.is_mixture() && !model.is_G())
           {
-              model.set_mixture_weights(pll_partition->rates);
-              model.set_mixture_rates(pll_partition->rate_weights);
+              model.set_mixture_rates(pll_partition->rates);
+              model.set_mixture_weights(pll_partition->rate_weights);
           }
 
           model.evaluate_criteria(n_branches, msa.get_n_sites());

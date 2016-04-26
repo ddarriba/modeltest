@@ -996,16 +996,19 @@ void jModelTest::on_btnRun_clicked()
 
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
-    opts.msa_filename = msa_filename;
+    opts.msa_filename  = msa_filename;
     opts.tree_filename = utree_filename;
     opts.partitions_filename = "";
     if (ui->radDatatypeDna->isChecked())
         opts.nt_candidate_models = matrices;
     else
         opts.aa_candidate_models = matrices;
-    opts.starting_tree = start_tree;
+
+    opts.starting_tree       = start_tree;
+    opts.output_tree_to_file = false;
+
     opts.partitions_desc = NULL;
-    opts.partitions_eff = NULL;
+    opts.partitions_eff  = NULL;
     data_type_t datatype = ui->radDatatypeDna->isChecked()?dt_dna:dt_protein;
     if (!scheme)
     {

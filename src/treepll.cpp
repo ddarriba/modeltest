@@ -46,6 +46,38 @@ static void set_branch_length (pll_utree_t * tree,
   set_branch_length_recursive (tree->back, length, reset);
 }
 
+static void scale_branch_length_recursive (pll_utree_t * tree,
+                                           double factor)
+{
+  if (tree)
+  {
+    /* set branch length to default if not set */
+    // if (tree->length < DOUBLE_EPSILON || reset)
+    tree->length *= factor;
+    tree->back->length *= factor;
+
+    if (tree->next)
+    {
+    //   if (tree->next->length < DOUBLE_EPSILON || reset)
+    //     tree->next->length = length;
+    //
+    //   if (tree->next->next->length < DOUBLE_EPSILON || reset)
+    //     tree->next->next->length = length;
+
+      scale_branch_length_recursive (tree->next->back, factor);
+      scale_branch_length_recursive (tree->next->next->back, factor);
+    }
+  }
+}
+
+/* scale all branch lengths */
+static void scale_branch_length (pll_utree_t * tree,
+                                 double factor)
+{
+  scale_branch_length_recursive (tree, factor);
+  scale_branch_length_recursive (tree->back, factor);
+}
+
 namespace modeltest
 {
 
@@ -246,7 +278,17 @@ namespace modeltest
 
   bool TreePll::set_branches(double length, mt_index_t thread_number)
   {
+      assert(thread_number < number_of_threads);
+      assert(length > 0);
       set_branch_length(pll_tree[thread_number], length, true);
+      return true;
+  }
+
+  bool TreePll::scale_branches(double factor, mt_index_t thread_number)
+  {
+      assert(factor > 0);
+      assert(thread_number < number_of_threads);
+      scale_branch_length(pll_tree[thread_number], factor);
       return true;
   }
 

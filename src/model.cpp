@@ -723,8 +723,9 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     assert(matrix_index < N_PROT_MODEL_ALL_MATRICES);
     mixture = (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX);
 
-    n_frequencies = N_PROT_STATES;
-    n_subst_rates = N_PROT_SUBST_RATES;
+    n_frequencies   = N_PROT_STATES;
+    n_subst_rates   = N_PROT_SUBST_RATES;
+   n_free_variables = 0;
 
     if (mixture)
     {
@@ -739,6 +740,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         {
             /* LG4X model / free rates */
             optimize_gamma = false;
+            n_free_variables += 6;
             mixture_frequencies = pll_aa_freqs_lg4x;
             mixture_subst_rates = pll_aa_rates_lg4x;
         }
@@ -759,15 +761,12 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         ss_name << "+F";
     name = ss_name.str();
 
-    n_free_variables = 0;
     if (optimize_freqs)
         n_free_variables += N_PROT_STATES-1;
     if (optimize_pinv)
         n_free_variables ++;
     if (optimize_gamma)
         n_free_variables ++;
-    if (mixture && !optimize_gamma)
-        n_free_variables += 3;
 }
 
 ProtModel::ProtModel(const Model & other)

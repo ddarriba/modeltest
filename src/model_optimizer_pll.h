@@ -48,7 +48,8 @@ namespace modeltest
 
     virtual double opt_single_parameter(mt_parameter_t which_parameter,
                                         double tolerance = DEFAULT_PARAM_EPSILON,
-                                        bool first_guess = false);
+                                        bool first_guess = false,
+                                        double prev_logl = 0);
 
     virtual double opt_branch_lengths(double tolerance = DEFAULT_PARAM_EPSILON);
 

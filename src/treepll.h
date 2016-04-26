@@ -30,6 +30,7 @@ namespace modeltest
     virtual const std::string get_label(mt_index_t index, mt_index_t thread_number = 0) const;
     virtual void reroot_random(mt_index_t thread_number = 0);
     virtual bool set_branches(double length, mt_index_t thread_number = 0);
+    virtual bool scale_branches(double factor, mt_index_t thread_number = 0);
     virtual bool reset_branches(mt_index_t thread_number = 0);
     virtual std::string newick(mt_index_t thread_number = 0) const;
     virtual void * extract_tree ( mt_index_t thread_number = 0 ) const;

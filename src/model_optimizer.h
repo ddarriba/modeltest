@@ -17,12 +17,12 @@ namespace modeltest
 {
 
   typedef enum {
-      mt_param_branch_lengths,
-      mt_param_subst_rates,
-      mt_param_frequencies,
-      mt_param_alpha,
-      mt_param_pinv,
-      mt_param_mixture_rates_weights
+      mt_param_branch_lengths        = 1<<0,
+      mt_param_subst_rates           = 1<<1,
+      mt_param_frequencies           = 1<<2,
+      mt_param_alpha                 = 1<<3,
+      mt_param_pinv                  = 1<<4,
+      mt_param_mixture_rates_weights = 1<<5
   } mt_parameter_t;
 
   extern bool on_run;
@@ -52,7 +52,8 @@ namespace modeltest
      */
     virtual double opt_single_parameter(mt_parameter_t which_parameter,
                                         double tolerance = DEFAULT_PARAM_EPSILON,
-                                        bool first_guess = false) = 0;
+                                        bool first_guess = false,
+                                        double prev_logl = 0) = 0;
 
     /**
      * @brief Optimizes branch lengths

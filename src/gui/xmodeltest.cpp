@@ -406,6 +406,7 @@ void xmodeltest::run_modelselection()
     else
         opts.aa_candidate_models = matrices;
     opts.starting_tree = start_tree;
+    opts.output_tree_to_file = false;
     opts.partitions_desc = NULL;
     opts.partitions_eff = NULL;
     opts.n_threads = number_of_threads;

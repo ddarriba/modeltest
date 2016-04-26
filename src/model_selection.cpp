@@ -161,8 +161,9 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
 {
     mt_size_t n_models = limit;
     out << endl
-        << setw(8) << left << ic_name << "  "
+        << setw(8)  << left << ic_name << "  "
         << setw(15) << left << "model"
+        << setw(5)  << right << "K"
         << setw(15) << right << "lnL"
         << setw(15) << "score"
         << setw(15) << "delta"
@@ -174,8 +175,9 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
     for (size_t i=0; i<n_models; i++)
     {
         out << setprecision(4)
-            << setw(8) << right << i+1 << "  "
+            << setw(8)  << right << i+1 << "  "
             << setw(15) << left << models[i].model->get_name()
+            << setw(5)  << right << models[i].model->get_n_free_variables()
             << setw(15) << right << models[i].model->get_lnl()
             << setw(15) << models[i].score
             << setw(15) << models[i].delta
