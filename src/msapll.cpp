@@ -273,7 +273,8 @@ namespace modeltest
             partition_sequences[i] = sequences[i] + new_region.start - 1;
 
           int compressed_length = cur;
-          unsigned int * pw = pll_compress_site_patterns(partition_sequences, n_taxa, &compressed_length);
+          const unsigned int * char_map = partition.datatype == dt_dna ? pll_map_nt : pll_map_aa;
+          unsigned int * pw = pll_compress_site_patterns(partition_sequences, char_map, n_taxa, &compressed_length);
           cur = new_region.start + compressed_length - 1;
           partition_weights.push_back(pw);
           n_patterns = compressed_length;
