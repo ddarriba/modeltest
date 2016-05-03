@@ -276,6 +276,7 @@ const double * Model::get_mixture_weights( void ) const
 
 void Model::set_mixture_weights(const double value[])
 {
+    UNUSED(value);
     assert(0);
 }
 
@@ -286,6 +287,7 @@ const double * Model::get_mixture_rates( void ) const
 
 void Model::set_mixture_rates(const double value[])
 {
+    UNUSED(value);
     assert(0);
 }
 
@@ -1005,7 +1007,7 @@ void ProtModel::output_log(std::ostream  &out)
 
 void ProtModel::input_log(std::istream  &in)
 {
-
+    //TODO:
 }
 
 }

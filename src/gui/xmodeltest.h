@@ -12,10 +12,14 @@
 #include "gui/resultsdialog.h"
 
 #include <QMainWindow>
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <QtGui/QListWidgetItem>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QTableView>
 #include <QtGui/QLabel>
+#endif
 
 #define st_active       (1<<0)
 #define st_msa_loaded   (1<<1)

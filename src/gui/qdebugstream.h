@@ -5,7 +5,11 @@
 #include <streambuf>
 #include <string>
 
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <Qt/qtextbrowser.h>
+#endif
 
 class Q_DebugStream : public std::basic_streambuf<char>
 {

@@ -1,4 +1,13 @@
-To install ModelTest type the following commands:
+1. Graphical User Interface
+
+To install ModelTest-Light GUI type the following commands:
+$ qmake -o Makefile.qmake src/modeltest.pro
+$ make -f Makefile.qmake
+$ make install -f Makefile.qmake
+
+2. Command Console Interface
+
+To install ModelTest-Light type the following commands:
 $ ./configure [--prefix=INSTALL_DIR]
 $ make
 $ make install
@@ -17,5 +26,5 @@ $ make
 In case the configure script does not exist, it must be generated using autotools:
 $ autoreconf -i
 
-Phylogenetic Likelihood Library is available at http://www.libpll.org
+Phylogenetic Likelihood Library is available at http://github.com/xflouris/libpll
 ModelTest requires at least version x.y.z

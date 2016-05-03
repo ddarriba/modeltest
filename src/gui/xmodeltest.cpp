@@ -6,9 +6,14 @@
 #include "gui/progressdialog.h"
 #include "gui/datainfodialog.h"
 
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
+#endif
+
 #include <iomanip>
 
 using namespace std;
@@ -103,6 +108,21 @@ xmodeltest::xmodeltest(QWidget *parent) :
     datainfo_dialog = 0;
     results_dialog = 0;
     models_dialog = 0;
+
+#ifdef QT_WIDGETS_LIB
+    addAction(ui->mnu_open_msa);
+    addAction(ui->mnu_open_tree);
+    addAction(ui->mnu_open_parts);
+    addAction(ui->mnu_run);
+    addAction(ui->mnu_toggle_settings);
+    addAction(ui->mnu_copy);
+    addAction(ui->mnu_reset);
+    addAction(ui->mnu_index);
+    addAction(ui->mnu_about);
+    addAction(ui->mnu_view_datainfo);
+    addAction(ui->mnu_models);
+    addAction(ui->mnu_results);
+#endif
 
     reset_xmt();
 }

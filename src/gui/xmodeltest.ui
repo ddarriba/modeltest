@@ -219,6 +219,9 @@ padding-left: 5px;</string>
                 <iconset resource="../mtgraphics.qrc">
                  <normaloff>:/IMG/IMG/icon-openMSA.png</normaloff>:/IMG/IMG/icon-openMSA.png</iconset>
                </property>
+               <property name="shortcut">
+                <string/>
+               </property>
               </widget>
              </item>
              <item>

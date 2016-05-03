@@ -5,8 +5,12 @@
 #include <streambuf>
 #include <string>
 
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <Qt/qtextbrowser.h>
 #include <Qt/qstring.h>
+#endif
 
 class MyDebugStream : public QObject, public std::basic_streambuf<char>
 {

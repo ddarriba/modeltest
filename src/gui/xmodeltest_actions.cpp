@@ -4,7 +4,11 @@
 #include "../utils.h"
 #include "../modeltest.h"
 
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <QtGui/QFileDialog>
+#endif
 
 void xmodeltest::toggle_settings( bool value )
 {

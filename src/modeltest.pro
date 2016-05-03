@@ -70,8 +70,6 @@ HEADERS  += \
     meta.h
 
 FORMS    += \
-    compute_options.ui \
-    modeltest_gui.ui \
     gui/xmodeltest.ui \
     gui/progressdialog.ui \
     gui/datainfodialog.ui \
@@ -81,19 +79,26 @@ FORMS    += \
 
 RESOURCES = mtgraphics.qrc
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll
-else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
+MOC_DIR = build
+UI_DIR = build
+OBJECTS_DIR = build
+RCC_DIR = build
+
+#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll
+#else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
 
 CONFIG += c++11
 QMAKE_CXXFLAGS += -std=c++11
 
-INCLUDEPATH += $$PWD/../../../../../usr/local/lib
-DEPENDPATH += $$PWD/../../../../../usr/local/lib
+#INCLUDEPATH += $$PWD/../../../../../usr/local/lib
+#DEPENDPATH += $$PWD/../../../../../usr/local/lib
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll_optimize
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll_optimize
-else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll_optimize
+#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll_optimize
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll_optimize
+#else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll_optimize
 
-INCLUDEPATH += $$PWD/../../../../../usr/local/include
-DEPENDPATH += $$PWD/../../../../../usr/local/include
+#INCLUDEPATH += $$PWD/../../../../../usr/local/include
+#DEPENDPATH += $$PWD/../../../../../usr/local/include
+
+unix|win32: LIBS += -lpll -lpll_optimize -lpll_msa -lpll_tree

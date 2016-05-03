@@ -100,11 +100,23 @@ void ModelsDialog::fill_header( data_type_t type )
     models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("alpha")));
     models_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("p-inv")));
 
+#ifdef QT_WIDGETS_LIB
+    ui->table_models->horizontalHeader()->setSectionResizeMode(
+        0, QHeaderView::ResizeToContents);
+#else
     ui->table_models->horizontalHeader()->setResizeMode(
         0, QHeaderView::ResizeToContents);
+#endif
     for (int c = 1; c < ui->table_models->horizontalHeader()->count(); ++c)
+    {
+#ifdef QT_WIDGETS_LIB
+        ui->table_models->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+#else
         ui->table_models->horizontalHeader()->setResizeMode(
             c, QHeaderView::Stretch);
+#endif
+    }
 }
 
 void ModelsDialog::on_cmb_partition_currentIndexChanged(int index)

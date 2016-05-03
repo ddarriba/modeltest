@@ -5,10 +5,15 @@
 #include "model.h"
 #include "service/modeltestservice.h"
 
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
 #include <QtGui/QFileDialog>
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QLabel>
+#endif
+
 #include <sstream>
 
 
@@ -96,6 +101,16 @@ ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
 
     for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
     {
+#ifdef QT_WIDGETS_LIB
+        ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+#else
         ui->table_results_bic->horizontalHeader()->setResizeMode(
             c, QHeaderView::Stretch);
         ui->table_results_aic->horizontalHeader()->setResizeMode(
@@ -104,6 +119,7 @@ ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
             c, QHeaderView::Stretch);
         ui->table_results_dt->horizontalHeader()->setResizeMode(
             c, QHeaderView::Stretch);
+#endif
     }
 }
 
