@@ -17,7 +17,7 @@ namespace modeltest
   class MsaPll : public Msa
   {
   public:
-    MsaPll (std::string msa_filename);
+    MsaPll (std::string msa_filename, msa_format_t msa_format);
     virtual ~MsaPll ();
 
     virtual const char * get_header (mt_index_t index) const;
@@ -31,6 +31,7 @@ namespace modeltest
     static bool test(std::string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites,
+               msa_format_t *msa_format = 0,
                data_type_t *datatype = 0);
   private:
     std::vector <pll_partition_t *> pll_partitions;

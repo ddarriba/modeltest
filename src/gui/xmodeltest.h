@@ -141,6 +141,7 @@ private:
     std::string msa_filename;
     std::string utree_filename;
     std::string parts_filename;
+    msa_format_t msa_format;
 
     mt_size_t n_taxa;
     mt_size_t n_sites;

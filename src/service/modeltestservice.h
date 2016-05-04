@@ -35,6 +35,7 @@ public:
     static bool test_msa(std::string const& msa_filename,
                          mt_size_t * n_seqs,
                          mt_size_t * n_sites,
+                         msa_format_t *msa_format = 0,
                          data_type_t * datatype = 0);
 
     static bool test_tree( std::string const& tree_filename,

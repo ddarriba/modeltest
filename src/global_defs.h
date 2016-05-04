@@ -115,6 +115,12 @@ typedef enum {
     dt_protein
 } data_type_t;
 
+typedef enum {
+    mf_undefined,
+    mf_fasta,
+    mf_phylip
+} msa_format_t;
+
 typedef enum
 {
     tree_mp,
@@ -165,6 +171,7 @@ typedef struct {
 
     /* input data */
     std::string msa_filename;                   //! Input MSA filename
+    msa_format_t msa_format;                    //! Input MSA format
     std::string tree_filename;                  //! User tree filename
     std::string partitions_filename;            //! Partitions filename
 

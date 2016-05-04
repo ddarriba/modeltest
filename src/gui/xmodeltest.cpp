@@ -625,6 +625,7 @@ void xmodeltest::action_open_msa()
             if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_taxa,
                                      &n_sites,
+                                     &msa_format,
                                      &test_dt))
             {
                 cout << endl << "Loaded alignment" << endl;
@@ -640,6 +641,19 @@ void xmodeltest::action_open_msa()
                     on_radDatatypeProt_clicked();
                 }
                 ui->consoleRun->append(xutils::to_qstring("%1", msg_lvl_notify).arg(msa_filename.c_str()));
+                cout << "Format:          ";
+                switch(msa_format)
+                {
+                case mf_fasta:
+                    cout << "FASTA" << endl;
+                    break;
+                case mf_phylip:
+                    cout << "PHYLIP" << endl;
+                    break;
+                case mf_undefined:
+                    cout << "Undefined" << endl;
+                    break;
+                }
                 cout << "Datatype:        " << (test_dt == dt_protein?"Protein":"DNA") << endl;
                 cout << "Num.Sequences:   " << n_taxa << endl;
                 cout << "Sequence Length: " << n_sites << endl;

@@ -199,9 +199,10 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 bool ModelTest::test_msa(std::string const& msa_filename,
                          mt_size_t *n_tips,
                          mt_size_t *n_sites,
+                         msa_format_t *msa_format,
                          data_type_t *datatype)
 {
-   return MsaPll::test(msa_filename, n_tips, n_sites, datatype);
+   return MsaPll::test(msa_filename, n_tips, n_sites, msa_format, datatype);
 }
 
 bool ModelTest::test_tree(std::string const& tree_filename,
@@ -326,7 +327,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     free_stuff ();
     create_instance ();
 
-    current_instance->msa = new MsaPll (options.msa_filename);
+    current_instance->msa = new MsaPll (options.msa_filename, options.msa_format);
     current_instance->start_tree = options.starting_tree;
 
     if (options.partitions_desc)

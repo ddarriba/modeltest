@@ -334,7 +334,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     if (input_file_ok) {
         if (!modeltest::MsaPll::test(exec_opt.msa_filename,
                                     &exec_opt.n_taxa,
-                                    &exec_opt.n_sites))
+                                    &exec_opt.n_sites,
+                                    &exec_opt.msa_format))
         {
             cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
             cerr << PACKAGE << ": [" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;

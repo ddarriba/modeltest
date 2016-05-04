@@ -17,11 +17,13 @@ namespace modeltest
   class Msa
   {
   public:
-    Msa (std::string _msa_filename) :
-    msa_filename (_msa_filename), n_taxa (0), n_sites (0)
+    Msa (std::string _msa_filename, msa_format_t _msa_format) :
+    msa_filename (_msa_filename), msa_format(_msa_format), n_taxa (0), n_sites (0)
     {
     }
     virtual ~Msa ();
+
+    static msa_format_t guess_msa_format(std::string const& msa_filename);
 
     /**
      * @brief Gets the header of a certain sequence
@@ -78,6 +80,7 @@ namespace modeltest
 
   protected:
     const std::string msa_filename;
+    msa_format_t msa_format;
     mt_size_t n_taxa;
     mt_size_t n_sites;
     mt_size_t n_patterns;

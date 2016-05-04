@@ -21,8 +21,8 @@ namespace modeltest
 
   Msa::~Msa (){}
 
-  MsaPll::MsaPll (string msa_filename)
-      : Msa(msa_filename)
+  MsaPll::MsaPll (string msa_filename, msa_format_t msa_format)
+      : Msa(msa_filename, msa_format)
   {
     char *hdr = NULL;
     char *seq = NULL;
@@ -34,6 +34,12 @@ namespace modeltest
     /* Therefore it should never fail here */
     assert(MsaPll::test(msa_filename, &n_taxa, &n_sites));
     n_patterns = n_sites;
+
+    //TODO: Implement for PHYLIP
+    if (msa_format != mf_fasta)
+    {
+        assert(0);
+    }
 
     pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
 
@@ -74,6 +80,26 @@ namespace modeltest
             pll_partition_destroy(pll_part);
   }
 
+  msa_format_t Msa::guess_msa_format(string const& msa_filename)
+  {
+      FILE * msa_file;
+      char first_char = ' ';
+      msa_file = fopen(msa_filename.c_str(), "r");
+      while(first_char == ' ')
+          if (fread(&first_char, 1, 1, msa_file) != 1) first_char='\0';
+      fclose(msa_file);
+
+      if (first_char == '>')
+      {
+          return mf_fasta;
+      }
+      if (first_char >= '0' && first_char <= '9')
+      {
+          return mf_phylip;
+      }
+      return mf_undefined;
+  }
+
   const char * MsaPll::get_header (mt_index_t index) const
   {
     assert(index < n_taxa);
@@ -104,9 +130,13 @@ namespace modeltest
   bool MsaPll::test(string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites,
+               msa_format_t *msa_format,
                data_type_t *datatype)
   {
-      mt_index_t cur_seq;
+      msa_format_t format;
+      mt_size_t sites = MT_SIZE_UNDEF;
+      mt_index_t cur_seq = 0;
+
       char *hdr = NULL;
       char *seq = NULL;
       long n_sites_read;
@@ -124,91 +154,104 @@ namespace modeltest
           return false;
       }
 
-      pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+      format = modeltest::Msa::guess_msa_format(msa_filename);
 
-      if (!fp)
+      if (format == mf_phylip)
       {
-          mt_errno = pll_errno;
-          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
-          return false;
+          mt_errno = MT_ERROR_UNIMPLEMENTED;
+          strncpy(mt_errmsg, "Phylip parser under development", ERR_MSG_SIZE);
       }
-
-      if (datatype)
-          *datatype = dt_dna;
-
-      /* read FASTA sequences for finding the number of tips and seq len */
-      /* make sure they are all of the same length */
-      mt_size_t sites = MT_SIZE_UNDEF;
-      for (cur_seq = 0;
-           pll_fasta_getnext (fp, &hdr, &hdr_len, &seq, &n_sites_read, &seq_idx); ++cur_seq)
+      else if (format == mf_fasta)
       {
-          if (datatype && dt_unknown)
+          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+
+          if (!fp)
           {
-              for (char c : aa_unique_chars)
+              mt_errno = pll_errno;
+              strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
+              return false;
+          }
+
+          if (datatype)
+              *datatype = dt_dna;
+
+          /* read FASTA sequences for finding the number of tips and seq len */
+          /* make sure they are all of the same length */
+          for (cur_seq = 0;
+               pll_fasta_getnext (fp, &hdr, &hdr_len, &seq, &n_sites_read, &seq_idx); ++cur_seq)
+          {
+              if (datatype && dt_unknown)
               {
-                  if (strchr(seq, c))
+                  for (char c : aa_unique_chars)
                   {
-                      dt_unknown = false;
-                      *datatype = dt_protein;
+                      if (strchr(seq, c))
+                      {
+                          dt_unknown = false;
+                          *datatype = dt_protein;
+                      }
                   }
               }
+
+              assert(n_sites_read < MT_SIZE_UNDEF);
+
+              if (n_sites_read < 0)
+              {
+                  mt_errno = MT_ERROR_ALIGNMENT;
+                  snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read");
+                  break;
+              }
+
+              /* if parsing fail, we continue for avoiding memory leaks */
+              if (sites != MT_SIZE_UNDEF && (long)sites != n_sites_read)
+              {
+                  mt_errno = MT_ERROR_ALIGNMENT;
+                  snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read [Seq %d] %d vs %ld", cur_seq, sites, n_sites_read);
+                  break;
+              }
+              else if (sites == MT_SIZE_UNDEF)
+                  sites = (mt_size_t) n_sites_read;
+              free (seq);
+              free (hdr);
           }
 
-          assert(n_sites_read < MT_SIZE_UNDEF);
-
-          if (n_sites_read < 0)
+          if (sites == MT_SIZE_UNDEF)
           {
-              mt_errno = MT_ERROR_ALIGNMENT;
-              snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read");
-              break;
+              switch (pll_errno)
+              {
+              case PLL_ERROR_FASTA_ILLEGALCHAR:
+                  mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
+                  break;
+              case PLL_ERROR_FASTA_INVALIDHEADER:
+                  mt_errno = MT_ERROR_ALIGNMENT_HEADER;
+                  break;
+              case PLL_ERROR_FASTA_UNPRINTABLECHAR:
+                  mt_errno = MT_ERROR_ALIGNMENT_UNPRINTABLECHAR;
+                  break;
+              default:
+                  assert(0);
+              }
+
+              mt_errno = pll_errno;
+              strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
           }
 
-          /* if parsing fail, we continue for avoiding memory leaks */
-          if (sites != MT_SIZE_UNDEF && (long)sites != n_sites_read)
-          {
-              mt_errno = MT_ERROR_ALIGNMENT;
-              snprintf(mt_errmsg, ERR_MSG_SIZE, "Wrong sites read [Seq %d] %d vs %ld", cur_seq, sites, n_sites_read);
-              break;
-          }
-          else if (sites == MT_SIZE_UNDEF)
-              sites = (mt_size_t) n_sites_read;
-          free (seq);
-          free (hdr);
+          pll_fasta_close (fp);
       }
-
-      if (sites == MT_SIZE_UNDEF)
-      {
-          switch (pll_errno)
-          {
-          case PLL_ERROR_FASTA_ILLEGALCHAR:
-              mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
-              break;
-          case PLL_ERROR_FASTA_INVALIDHEADER:
-              mt_errno = MT_ERROR_ALIGNMENT_HEADER;
-              break;
-          case PLL_ERROR_FASTA_UNPRINTABLECHAR:
-              mt_errno = MT_ERROR_ALIGNMENT_UNPRINTABLECHAR;
-              break;
-          default:
-              assert(0);
-          }
-
-          mt_errno = pll_errno;
-          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
-      }
-
-      pll_fasta_close (fp);
 
       if (mt_errno)
       {
-          *n_tips = 0;
-          *n_sites = 0;
+          *n_tips     = 0;
+          *n_sites    = 0;
+          if (msa_format)
+            *msa_format = mf_undefined;
           return false;
       }
       else
       {
-          *n_tips = cur_seq;
-          *n_sites = sites;
+          *n_tips     = cur_seq;
+          *n_sites    = sites;
+          if (msa_format)
+            *msa_format = format;
       }
 
       return true;
