@@ -108,9 +108,9 @@ static pll_partition_t * pll_partition_clone_partial(
   new_partition->clv      = (double **) modeltest::Utils::c_allocate (
                                       partition->tips + partition->clv_buffers,
                                       sizeof(double *));
-  new_partition->tipchars = (char **) modeltest::Utils::c_allocate (
+  new_partition->tipchars = (unsigned char **) modeltest::Utils::c_allocate (
                                              partition->tips,
-                                             sizeof(double *));
+                                             sizeof(unsigned char *));
   if (!new_partition->clv)
   {
     dealloc_partition_local (new_partition);

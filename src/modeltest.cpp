@@ -327,7 +327,13 @@ bool ModelTest::build_instance(mt_options_t & options)
     free_stuff ();
     create_instance ();
 
-    current_instance->msa = new MsaPll (options.msa_filename, options.msa_format);
+    if (options.msa_format == mf_fasta)
+      current_instance->msa = new MsaPll (options.msa_filename, options.n_taxa);
+    else if (options.msa_format == mf_phylip)
+      current_instance->msa = new MsaPll (options.msa_filename, options.msa_format);
+    else
+      return false;
+      
     current_instance->start_tree = options.starting_tree;
 
     if (options.partitions_desc)

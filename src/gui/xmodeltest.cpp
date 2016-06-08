@@ -413,6 +413,7 @@ void xmodeltest::run_modelselection()
         }
     }
 
+    opts.msa_format = msa_format;
     opts.n_taxa = n_taxa;
     opts.n_sites = n_sites;
     opts.rnd_seed = 12345;

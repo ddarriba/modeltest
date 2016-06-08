@@ -13,6 +13,8 @@
 #include <cassert>
 #include <vector>
 #include <iomanip>
+//#include <iostream>
+//#include <fstream>
 
 using namespace std;
 
@@ -20,6 +22,66 @@ namespace modeltest
 {
 
   Msa::~Msa (){}
+
+  MsaPll::MsaPll (string msa_filename, pll_msa_t * msa_data)
+      : Msa(msa_filename, mf_phylip)
+  {
+    assert(msa_data);
+
+    /* MSA should be always checked beforehand */
+    n_sites = msa_data->length;
+    n_patterns = n_sites;
+
+    tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+
+    for (size_t cur_seq = 0; cur_seq < n_taxa; ++cur_seq)
+    {
+      tipnames[cur_seq] = msa_data->label[cur_seq];
+      sequences[cur_seq] = msa_data->sequence[cur_seq];
+    }
+    weights = 0;
+
+    /* reset pll errno */
+    pll_errno = 0;
+  }
+
+  MsaPll::MsaPll (string msa_filename, mt_size_t _n_taxa)
+      : Msa(msa_filename, mf_phylip)
+  {
+    char *hdr = NULL;
+    char *seq = NULL;
+    long n_sites_read = -1;
+    long hdr_len;
+    long seq_idx;
+
+    n_taxa = _n_taxa;
+
+    /* MSA should be always checked beforehand */
+    tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+
+    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), pll_map_fasta);
+
+    for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
+    {
+      if (!cur_seq)
+        n_sites = n_sites_read;
+
+      assert (n_sites_read == n_sites);
+      for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
+         hdr[i] = '\0';
+      tipnames[cur_seq]  = hdr;
+      sequences[cur_seq] = seq;
+    }
+    pll_fasta_close(fp);
+
+    n_patterns = n_sites;
+    weights = 0;
+
+    /* reset pll errno */
+    pll_errno = 0;
+  }
 
   MsaPll::MsaPll (string msa_filename, msa_format_t msa_format)
       : Msa(msa_filename, msa_format)
@@ -31,31 +93,52 @@ namespace modeltest
     long seq_idx;
 
     /* MSA should be always checked beforehand */
-    /* Therefore it should never fail here */
-    assert(MsaPll::test(msa_filename, &n_taxa, &n_sites));
-    n_patterns = n_sites;
-
-    //TODO: Implement for PHYLIP
-    if (msa_format != mf_fasta)
+    switch (msa_format)
     {
+      case mf_phylip:
+        {
+          pll_msa_t * msa_data = pll_phylip_parse_msa(msa_filename.c_str(),
+                                                      &n_taxa);
+          assert(msa_data);
+          n_sites = msa_data->length;
+          tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+          sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+
+          for (size_t cur_seq = 0; cur_seq < n_taxa; ++cur_seq)
+          {
+            tipnames[cur_seq] = msa_data->label[cur_seq];
+            sequences[cur_seq] = msa_data->sequence[cur_seq];
+          }
+          free(msa_data);
+        }
+        break;
+      case mf_fasta:
+        {
+          bool test_msa = MsaPll::test(msa_filename, &n_taxa, &n_sites);
+          assert(test_msa);
+
+          tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+          sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+
+          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), pll_map_fasta);
+
+        for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
+        {
+            assert (n_sites_read == n_sites);
+            for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
+               hdr[i] = '\0';
+            tipnames[cur_seq]  = hdr;
+            sequences[cur_seq] = seq;
+        }
+
+        pll_fasta_close(fp);
+        }
+        break;
+      default:
+        printf("Error: Cannot recognise MSA file format\n");
         assert(0);
     }
-
-    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
-
-    tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
-    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
-
-    for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
-    {
-        assert (n_sites_read == n_sites);
-        for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
-           hdr[i] = '\0';
-        tipnames[cur_seq]  = hdr;
-        sequences[cur_seq] = seq;
-    }
-
-    pll_fasta_close(fp);
+    n_patterns = n_sites;
     weights = 0;
 
     /* reset pll errno */
@@ -158,8 +241,19 @@ namespace modeltest
 
       if (format == mf_phylip)
       {
-          mt_errno = MT_ERROR_UNIMPLEMENTED;
-          strncpy(mt_errmsg, "Phylip parser under development", ERR_MSG_SIZE);
+        pll_msa_t * msa_data = pll_phylip_parse_msa(
+                                         msa_filename.c_str(),
+                                         &cur_seq);
+        if (!msa_data || !cur_seq)
+        {
+          mt_errno = MT_ERROR_IO_FORMAT;
+          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
+        }
+        else
+        {
+          sites = msa_data->length;
+        }
+        pll_msa_destroy(msa_data);
       }
       else if (format == mf_fasta)
       {
@@ -236,6 +330,12 @@ namespace modeltest
           }
 
           pll_fasta_close (fp);
+      }
+      else
+      {
+        mt_errno = MT_ERROR_IO_FORMAT;
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot detect MSA format");
+        return false;
       }
 
       if (mt_errno)

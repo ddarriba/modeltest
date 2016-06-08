@@ -17,7 +17,9 @@ namespace modeltest
   class MsaPll : public Msa
   {
   public:
-    MsaPll (std::string msa_filename, msa_format_t msa_format);
+    MsaPll (std::string msa_filename, mt_size_t n_taxa);        /* fasta   */
+    MsaPll (std::string msa_filename, pll_msa_t * msa_data);    /* phylip  */
+    MsaPll (std::string msa_filename, msa_format_t msa_format); /* generic */
     virtual ~MsaPll ();
 
     virtual const char * get_header (mt_index_t index) const;

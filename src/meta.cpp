@@ -363,6 +363,11 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                  exec_opt.starting_tree == tree_ml_gtr_fixed ||
                                  exec_opt.starting_tree == tree_ml_jc_fixed);
 
+    //TODO: Temporary checkpoint enabled by default
+    exec_opt.checkpoint_file = output_basename;
+    exec_opt.checkpoint_file.append(CHECKPOINT_SUFFIX);
+    exec_opt.write_checkpoint = true;
+
     /* validate output files */
     output_files_ok = true;
     if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))

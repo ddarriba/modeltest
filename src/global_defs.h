@@ -54,6 +54,7 @@
 #define OUTPUT_LOG_SUFFIX         ".log"
 #define OUTPUT_TREE_SUFFIX        ".tree"
 #define OUTPUT_RESULTS_SUFFIX     ".out"
+#define CHECKPOINT_SUFFIX         ".ckp"
 
 namespace modeltest
 {
@@ -170,18 +171,21 @@ typedef std::vector<partition_descriptor_t> partitioning_scheme_t;
 typedef struct {
 
     /* input data */
-    std::string msa_filename;                   //! Input MSA filename
-    msa_format_t msa_format;                    //! Input MSA format
-    std::string tree_filename;                  //! User tree filename
-    std::string partitions_filename;            //! Partitions filename
+    std::string msa_filename;         //! Input MSA filename
+    msa_format_t msa_format;          //! Input MSA format
+    std::string tree_filename;        //! User tree filename
+    std::string partitions_filename;  //! Partitions filename
 
     /* output data */
-    std::string output_log_file;                //! Output log filename
-    std::string output_tree_file;               //! Output tree filename
-    std::string output_results_file;            //! Output results filename
+    std::string output_log_file;      //! Output log filename
+    std::string output_tree_file;     //! Output tree filename
+    std::string output_results_file;  //! Output results filename
     bool redirect_output;             //! Redirect standard output to a file
     bool force_override;              //! Force overriding existing files
     bool output_tree_to_file;         //! Whether the starting tree is printed
+
+    std::string checkpoint_file;      //! Checkpoint filename
+    bool write_checkpoint;
 
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
