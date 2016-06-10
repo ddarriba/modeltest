@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>842</width>
-    <height>739</height>
+    <height>766</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -102,6 +102,9 @@ QToolTip { color: #000s; border: none; }</string>
               <width>80</width>
               <height>80</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;New ModelTest logo. Isn't it cool?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="styleSheet">
              <string notr="true"/>
@@ -198,7 +201,7 @@ QToolTip { color: #000s; border: none; }</string>
                 </font>
                </property>
                <property name="toolTip">
-                <string>Load MSA file (FASTA)</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load MSA file (FASTA or PHYLIP)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="statusTip">
                 <string>Load MSA file (FASTA)</string>
@@ -513,6 +516,9 @@ margin-left: 5px;</string>
                  <italic>true</italic>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Data type&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>DNA data</string>
                </property>
@@ -541,6 +547,9 @@ margin-left: 5px;</string>
                  <pointsize>10</pointsize>
                  <italic>true</italic>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total number of candidate models&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>88 models</string>
@@ -762,7 +771,7 @@ margin-left: 5px;</string>
                 </font>
                </property>
                <property name="toolTip">
-                <string>View results</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;View model selection results&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="statusTip">
                 <string>View results</string>
@@ -805,6 +814,9 @@ margin-left: 5px;</string>
                  <weight>75</weight>
                  <bold>true</bold>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;View candidate models description&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">border: 0px;
@@ -996,7 +1008,7 @@ margin-left: 5px;</string>
                  <x>0</x>
                  <y>0</y>
                  <width>786</width>
-                 <height>583</height>
+                 <height>609</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -1196,6 +1208,9 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable only features available in a particular software&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>Templates:</string>
                         </property>
@@ -1212,8 +1227,11 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable all the available features for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="styleSheet">
-                         <string notr="true">border: none;</string>
+                         <string notr="true"/>
                         </property>
                         <property name="text">
                          <string>ModelTest</string>
@@ -1235,10 +1253,10 @@ margin-left: 5px;</string>
                          </font>
                         </property>
                         <property name="toolTip">
-                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select default options for MrBAYES&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable all the available features in MrBayes for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="styleSheet">
-                         <string notr="true">border: none;</string>
+                         <string notr="true"/>
                         </property>
                         <property name="text">
                          <string>MrBAYES</string>
@@ -1256,8 +1274,11 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable all the available features in RAxML for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="styleSheet">
-                         <string notr="true">border: none;</string>
+                         <string notr="true"/>
                         </property>
                         <property name="text">
                          <string>RAxML</string>
@@ -1275,8 +1296,11 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable all the available features in PhyML for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="styleSheet">
-                         <string notr="true">border: none;</string>
+                         <string notr="true"/>
                         </property>
                         <property name="text">
                          <string>PhyML</string>
@@ -1294,8 +1318,11 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable all the available features in PAUP* for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="styleSheet">
-                         <string notr="true">border: none;</string>
+                         <string notr="true"/>
                         </property>
                         <property name="text">
                          <string>PAUP*</string>
@@ -1342,6 +1369,9 @@ margin-left: 5px;</string>
                        <underline>true</underline>
                        <kerning>true</kerning>
                       </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the starting topology for model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string>Starting topology</string>
@@ -1392,6 +1422,9 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute an initial Maximum Parsimony tree and fix the topology during model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>Fixed MP</string>
                         </property>
@@ -1411,6 +1444,9 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute a Maximum Likelihood tree for JC or JTT model and fix the topology during model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>Fixed ML (JC)</string>
                         </property>
@@ -1429,6 +1465,9 @@ margin-left: 5px;</string>
                           <italic>false</italic>
                           <bold>false</bold>
                          </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compute a Maximum Likelihood tree for GTR model and fix the topology during model optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>Fixed ML (GTR)</string>
@@ -1452,6 +1491,9 @@ margin-left: 5px;</string>
                           <bold>false</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Estimate the Maximum Likelihood topology for each model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>ML</string>
                         </property>
@@ -1470,6 +1512,9 @@ margin-left: 5px;</string>
                           <italic>false</italic>
                           <bold>false</bold>
                          </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define a fixed custom topology&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>Custom</string>
@@ -1572,7 +1617,7 @@ margin-left: 5px;</string>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>270</height>
+                       <height>290</height>
                       </size>
                      </property>
                      <property name="frameShape">
@@ -1677,6 +1722,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 3 substitution schemes for DNA data (JC/F81, K80/HKY, SYM/GTR)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>3</string>
                               </property>
@@ -1692,6 +1740,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 5 substitution schemes for DNA data (JC/F81, K80/HKY, TrN, TPM1, SYM/GTR)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>5</string>
@@ -1709,6 +1760,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 7 substitution schemes for DNA data (JC/F81, K80/HKY, TrN, TPM1, TIM1, TVM, SYM/GTR)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>7</string>
                               </property>
@@ -1724,6 +1778,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 11 substitution schemes for DNA data (JC/F81, K80/HKY, TrN, TPM1, TPM2, TPM3, TIM1, TIM2, TIM3, TVM, SYM/GTR)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>11</string>
@@ -1744,6 +1801,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 203 substitution schemes for DNA data (all possible GTR submatrices)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>203</string>
                               </property>
@@ -1762,6 +1822,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Manually define the candidate substitution schemes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>User defined</string>
@@ -1783,6 +1846,159 @@ margin-left: 5px;</string>
                                </size>
                               </property>
                              </spacer>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="label">
+                           <property name="font">
+                            <font>
+                             <family>Courier 10 Pitch</family>
+                             <pointsize>10</pointsize>
+                             <weight>50</weight>
+                             <italic>true</italic>
+                             <bold>false</bold>
+                             <underline>true</underline>
+                            </font>
+                           </property>
+                           <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Account for ascertainment bias correction. Check the &lt;span style=&quot; font-weight:600;&quot;&gt;manual&lt;/span&gt; for more information.&lt;/p&gt;&lt;p&gt;Enabled only if +I and +I+G are &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; candidate models.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           </property>
+                           <property name="text">
+                            <string>Ascertainment bias correction</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QFrame" name="frame_ascbias">
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="frameShape">
+                            <enum>QFrame::NoFrame</enum>
+                           </property>
+                           <property name="frameShadow">
+                            <enum>QFrame::Plain</enum>
+                           </property>
+                           <layout class="QVBoxLayout" name="verticalLayout_13">
+                            <property name="spacing">
+                             <number>2</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>2</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>2</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>2</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>2</number>
+                            </property>
+                            <item>
+                             <widget class="QFrame" name="frame_ascbias_type">
+                              <property name="minimumSize">
+                               <size>
+                                <width>0</width>
+                                <height>0</height>
+                               </size>
+                              </property>
+                              <property name="frameShape">
+                               <enum>QFrame::NoFrame</enum>
+                              </property>
+                              <property name="frameShadow">
+                               <enum>QFrame::Plain</enum>
+                              </property>
+                              <property name="lineWidth">
+                               <number>1</number>
+                              </property>
+                              <layout class="QHBoxLayout" name="horizontalLayout">
+                               <property name="topMargin">
+                                <number>2</number>
+                               </property>
+                               <property name="bottomMargin">
+                                <number>2</number>
+                               </property>
+                               <item>
+                                <widget class="QRadioButton" name="radAscbiasNone">
+                                 <property name="sizePolicy">
+                                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                   <horstretch>0</horstretch>
+                                   <verstretch>0</verstretch>
+                                  </sizepolicy>
+                                 </property>
+                                 <property name="font">
+                                  <font>
+                                   <family>Courier 10 Pitch</family>
+                                   <pointsize>10</pointsize>
+                                  </font>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not account for ascertainment bias.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>None</string>
+                                 </property>
+                                 <property name="checked">
+                                  <bool>true</bool>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <widget class="QRadioButton" name="radAscbiasLewis">
+                                 <property name="font">
+                                  <font>
+                                   <family>Courier 10 Pitch</family>
+                                   <pointsize>10</pointsize>
+                                  </font>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lewis' ascertainment bias correction.&lt;/p&gt;&lt;p&gt;Enabled only if +I and +I+G are &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; candidate models.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Lewis</string>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <widget class="QRadioButton" name="radAscbiasFelsenstein">
+                                 <property name="font">
+                                  <font>
+                                   <family>Courier 10 Pitch</family>
+                                   <pointsize>10</pointsize>
+                                  </font>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Felsenstein's ascertainment bias correction. Requires a partitions file containing the number of invariant sites (check the &lt;span style=&quot; font-weight:600;&quot;&gt;manual&lt;/span&gt; for information).&lt;/p&gt;&lt;p&gt;Enabled only if +I and +I+G are &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; candidate models.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Felsenstein</string>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <widget class="QRadioButton" name="radAscbiasStamatakis">
+                                 <property name="font">
+                                  <font>
+                                   <family>Courier 10 Pitch</family>
+                                   <pointsize>10</pointsize>
+                                  </font>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stamatakis' ascertainment bias correction. Requires a partitions file containing the &lt;span style=&quot; font-weight:600;&quot;&gt;composition&lt;/span&gt; of invariant sites (check the &lt;span style=&quot; font-weight:600;&quot;&gt;manual&lt;/span&gt; for information).&lt;/p&gt;&lt;p&gt;Enabled only if +I and +I+G are &lt;span style=&quot; font-weight:600;&quot;&gt;not&lt;/span&gt; candidate models.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Stamatakis</string>
+                                 </property>
+                                </widget>
+                               </item>
+                              </layout>
+                             </widget>
                             </item>
                            </layout>
                           </widget>
@@ -1869,6 +2085,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with no rate variation among sites&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>uniform</string>
                               </property>
@@ -1893,6 +2112,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with discrete gamma rates variation among sites and a proportion of invariant sites&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>+I+G</string>
@@ -1924,6 +2146,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with a proportion of invariant sites&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>pinv (+I)</string>
@@ -1997,6 +2222,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with discrete gamma rates variation among sites&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>gamma (+G)</string>
                               </property>
@@ -2028,6 +2256,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of discrete gamma rate categories (enabled only if candidate models include +G or +I+G)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="autoFillBackground">
                                <bool>false</bool>
                               </property>
@@ -2046,35 +2277,6 @@ margin-left: 5px;</string>
                              </widget>
                             </item>
                            </layout>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="label_settings_freqs">
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>16777215</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>Courier 10 Pitch</family>
-                             <pointsize>10</pointsize>
-                             <weight>50</weight>
-                             <italic>true</italic>
-                             <bold>false</bold>
-                             <underline>true</underline>
-                            </font>
-                           </property>
-                           <property name="text">
-                            <string>Frequencies</string>
-                           </property>
                           </widget>
                          </item>
                          <item>
@@ -2108,6 +2310,35 @@ margin-left: 5px;</string>
                              <number>2</number>
                             </property>
                             <item>
+                             <widget class="QLabel" name="label_settings_freqs">
+                              <property name="minimumSize">
+                               <size>
+                                <width>0</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                              <property name="maximumSize">
+                               <size>
+                                <width>16777215</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                              <property name="font">
+                               <font>
+                                <family>Courier 10 Pitch</family>
+                                <pointsize>10</pointsize>
+                                <weight>50</weight>
+                                <italic>true</italic>
+                                <bold>false</bold>
+                                <underline>true</underline>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Frequencies</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
                              <widget class="QCheckBox" name="cbEqualFreq">
                               <property name="minimumSize">
                                <size>
@@ -2129,6 +2360,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with equal (DNA) or model defined (amino acid) frequencies&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>Equal frequencies</string>
@@ -2160,6 +2394,9 @@ margin-left: 5px;</string>
                                 <italic>false</italic>
                                 <bold>false</bold>
                                </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with Maximum Likelihood estimated (DNA) of empirical (amino acid) frequencies&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
                                <string>ML frequencies</string>
@@ -2260,6 +2497,9 @@ margin-left: 5px;</string>
                                 <bold>false</bold>
                                </font>
                               </property>
+                              <property name="toolTip">
+                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total number of candidate models&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                              </property>
                               <property name="text">
                                <string>0</string>
                               </property>
@@ -2304,19 +2544,37 @@ margin-left: 5px;</string>
                              <bold>false</bold>
                             </font>
                            </property>
+                           <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show the candidate matrices&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           </property>
                            <property name="text">
                             <string>Show model matrices</string>
                            </property>
                           </widget>
+                         </item>
+                         <item>
+                          <spacer name="spacer_models">
+                           <property name="orientation">
+                            <enum>Qt::Vertical</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>20</width>
+                             <height>40</height>
+                            </size>
+                           </property>
+                          </spacer>
                          </item>
                         </layout>
                         <zorder>grpSubstSchemes</zorder>
                         <zorder>frame_nmodels</zorder>
                         <zorder>frame_settings_ratevar</zorder>
                         <zorder>frame_settings_freqs</zorder>
-                        <zorder>label_settings_freqs</zorder>
                         <zorder>label_settings_ratevar</zorder>
                         <zorder>cbShowMatrices</zorder>
+                        <zorder>label</zorder>
+                        <zorder>frame_ascbias</zorder>
+                        <zorder>spacer_models</zorder>
                        </widget>
                       </item>
                       <item>
@@ -2407,6 +2665,9 @@ margin-left: 5px;</string>
                     <bold>true</bold>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show advanced options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
                    <string>Show advanced options</string>
                   </property>
@@ -2468,6 +2729,9 @@ margin-left: 5px;</string>
                        <bold>true</bold>
                       </font>
                      </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;model&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="text">
                       <string notr="true">0.01</string>
                      </property>
@@ -2501,6 +2765,9 @@ margin-left: 5px;</string>
                        <italic>false</italic>
                        <bold>true</bold>
                       </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;single parameter&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
                       <string notr="true">0.001</string>
@@ -2616,6 +2883,9 @@ margin-left: 5px;</string>
                        <pointsize>10</pointsize>
                       </font>
                      </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of threads to use for model optimization. The default value is the number of physical cores, and the maximum the number of logical cores.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
                      <property name="autoFillBackground">
                       <bool>false</bool>
                      </property>
@@ -2676,6 +2946,19 @@ margin-left: 5px;</string>
                    </item>
                   </layout>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>

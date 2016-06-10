@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
             return (int)modeltest::mt_errno;
         }
 
-        cout << endl;
         Meta::print_system_info(cout);
         cout << endl;
         Meta::print_options(opts, cout);

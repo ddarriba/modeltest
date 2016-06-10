@@ -21,12 +21,12 @@
 #include <QtGui/QLabel>
 #endif
 
-#define st_active       (1<<0)
-#define st_msa_loaded   (1<<1)
-#define st_tree_loaded  (1<<2)
-#define st_parts_loaded (1<<3)
-#define st_optimizing   (1<<4)
-#define st_optimized    (1<<5)
+#define st_active         (1<<0)
+#define st_msa_loaded     (1<<1)
+#define st_tree_loaded    (1<<2)
+#define st_parts_loaded   (1<<3)
+#define st_optimizing     (1<<5)
+#define st_optimized      (1<<6)
 
 Q_DECLARE_METATYPE( partition_id_t )
 Q_DECLARE_METATYPE( mt_size_t )
@@ -141,6 +141,7 @@ private:
     std::string msa_filename;
     std::string utree_filename;
     std::string parts_filename;
+    std::string asc_filename;
     msa_format_t msa_format;
 
     mt_size_t n_taxa;
@@ -154,6 +155,7 @@ private:
     //std::vector<modeltest::Model *> c_models;
     partitioning_scheme_t * scheme;
     tree_type_t start_tree;
+    asc_bias_t asc_bias;
     mt_options_t opts;
 
     time_t ini_t;

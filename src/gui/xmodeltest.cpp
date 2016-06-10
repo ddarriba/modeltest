@@ -136,13 +136,15 @@ xmodeltest::~xmodeltest()
 
 void xmodeltest::reset_xmt( void )
 {
-    n_taxa = 0;
-    n_sites = 0;
     status = st_active;
 
-    msa_filename = "";
+    n_taxa  = 0;
+    n_sites = 0;
+
+    msa_filename   = "";
     utree_filename = "";
     parts_filename = "";
+    asc_filename   = "";
 
     ui->lbl_msa->setText("none");
     ui->lbl_tree->setText("none");
@@ -204,9 +206,9 @@ void xmodeltest::update_gui( void )
            status & st_parts_loaded);
 
     if (enable_open_msa)
-        ui->frame_tool_load->setStyleSheet("background: #c1d8ff;");
+        ui->frame_tool_load->setStyleSheet("background-color: #c1d8ff;");
     else
-        ui->frame_tool_load->setStyleSheet("background: #fff2db;");
+        ui->frame_tool_load->setStyleSheet("background-color: #fff2db;");
 
     bool enable_run = (status & st_msa_loaded) && !(status & st_optimized);
     ui->mnu_run->setEnabled(enable_run);
@@ -216,8 +218,8 @@ void xmodeltest::update_gui( void )
 
     if (enable_run)
     {
-        ui->frame_tool_setup->setStyleSheet("background: #c1d8ff;");
-        ui->frame_tool_run->setStyleSheet("background: #c1d8ff;");
+        ui->frame_tool_setup->setStyleSheet("background-color: #c1d8ff;");
+        ui->frame_tool_run->setStyleSheet("background-color: #c1d8ff;");
     }
     else
     {
@@ -244,9 +246,9 @@ void xmodeltest::update_gui( void )
            enable_models);
 
     if (enable_results)
-        ui->frame_tool_results->setStyleSheet("background: #c1d8ff;");
+        ui->frame_tool_results->setStyleSheet("background-color: #c1d8ff;");
     else
-        ui->frame_tool_results->setStyleSheet("background: #fff2db;");
+        ui->frame_tool_results->setStyleSheet("background-color: #fff2db;");
 
     enable(ui->tool_reset,
            status & st_active);
@@ -342,6 +344,11 @@ void xmodeltest::update_gui( void )
     if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
         n_cats = 1;
     compute_size(n_cats, ui->sliderNThreads->value());
+
+    /* ascertainment bias correction */
+    ui->frame_ascbias->setEnabled(!(ui->cbIModels->isChecked() || ui->cbIGModels->isChecked()));
+
+    setStyleSheet("QToolTip { color: #000000; background-color: #aaa2da; border: none; } QToolTip:disabled { color: #000000; background-color: #aaa2da; border: none; }");
 }
 
 void xmodeltest::run_modelselection()
@@ -370,6 +377,37 @@ void xmodeltest::run_modelselection()
         start_tree = tree_ml;
     else if (ui->radTopoU->isChecked())
         start_tree = tree_user_fixed;
+
+    if (ui->radAscbiasNone->isChecked())
+        asc_bias = asc_none;
+    else if (ui->radAscbiasLewis->isChecked())
+        asc_bias = asc_lewis;
+    else if (ui->radAscbiasFelsenstein->isChecked())
+        asc_bias = asc_felsenstein;
+    else if (ui->radAscbiasStamatakis->isChecked())
+        asc_bias = asc_stamatakis;
+    else
+        assert(0);
+
+    /* validate */
+    if (ui->radAscbiasFelsenstein->isChecked() || ui->radAscbiasStamatakis->isChecked())
+    {
+        bool ascbias_file_ok = false;
+
+        /* TODO: validate asc bias file */
+
+        if (!ascbias_file_ok)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Invalid composition file for ascertainment bias correction");
+            msgBox.setInformativeText("Set a good one or select None or Lewis");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+            toggle_settings(true);
+            return;
+        }
+    }
 
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
@@ -414,6 +452,7 @@ void xmodeltest::run_modelselection()
     }
 
     opts.msa_format = msa_format;
+    opts.asc_bias_corr = asc_bias;
     opts.n_taxa = n_taxa;
     opts.n_sites = n_sites;
     opts.rnd_seed = 12345;

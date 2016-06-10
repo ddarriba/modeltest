@@ -60,7 +60,7 @@ private:
     std::vector<double> emp_freqs;       //! empirical frequencies
     std::vector<double> emp_subst_rates; //! empirical substitution rates
     double emp_pinv;                     //! empirical prop. invar.
-
+    
     std::vector<Model *> c_models;       //! candidate models
 
     /**

@@ -40,7 +40,6 @@ pkginclude_HEADERS= \
 	meta.h \
 	utils.h \
 	tree.h \
-	modeltest_gui.h \
 	plldefs.h \
 	model_selection.h \
 	model.h \

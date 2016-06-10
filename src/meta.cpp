@@ -41,9 +41,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.n_threads       = 1;
     exec_opt.starting_tree   = tree_mp;
     exec_opt.force_override  = false;
+    exec_opt.asc_bias_corr   = asc_none;
+    memset(exec_opt.asc_weights, 0, sizeof(mt_size_t) * MT_MAX_STATES);
 
     static struct option long_options[] =
     {
+        { "asc-bias", required_argument, 0, 'a' },
         { "categories", required_argument, 0, 'c' },
         { "datatype", required_argument, 0, 'd' },
         { "model-freqs", required_argument, 0, 'f' },
@@ -71,7 +74,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     };
 
     int opt = 0, long_index = 0;
-    while ((opt = getopt_long(argc, argv, "c:d:f:h:i:m:o:p:q:r:s:t:T:u:v", long_options,
+    bool params_ok = true;
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:h:i:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -107,7 +111,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 cerr <<  PACKAGE << ": Invalid scheme search algorithm: " << optarg << endl;
-                return false;
+                params_ok = false;
             }
             assert(0);
             break;
@@ -120,7 +124,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             if (exec_opt.epsilon_opt <= 0.0)
             {
                 cerr << PACKAGE << ": Invalid optimization epsilon: " << exec_opt.epsilon_opt << endl;
-                return false;
+                params_ok = false;
             }
             break;
         case 11:
@@ -128,18 +132,75 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             if (exec_opt.epsilon_param <= 0.0)
             {
                 cerr << PACKAGE << ": Invalid parameter tolerance: " << exec_opt.epsilon_param << endl;
-                return false;
+                params_ok = false;
             }
             break;
         case 20:
             exec_opt.force_override = true;
+            break;
+        case 'a':
+            /* ascertainment bias correction */
+            {
+              char * asc_bias_type = strtok(optarg, ":");
+              char * asc_bias_values = strtok(NULL, "\0");
+              if (!strcasecmp(asc_bias_type, "lewis"))
+              {
+                  exec_opt.asc_bias_corr = asc_lewis;
+              }
+              else if (!strcasecmp(asc_bias_type, "felsenstein"))
+              {
+                  exec_opt.asc_bias_corr = asc_felsenstein;
+                  /* parse dummy weight */
+                  if (strlen(asc_bias_values))
+                  {
+                    mt_size_t w = modeltest::Utils::parse_size(asc_bias_values);
+                    if (modeltest::mt_errno)
+                    {
+                      cerr << PACKAGE <<
+                        ": Invalid weight for Felsenstein asc bias correction: "
+                        << asc_bias_values << endl;
+                      params_ok = false;
+                    }
+                    else
+                      exec_opt.asc_weights[0] = w;
+                  }
+              }
+              else if (!strcasecmp(asc_bias_type, "stamatakis"))
+              {
+                  exec_opt.asc_bias_corr = asc_stamatakis;
+                  int current_state = 0;
+                  char * asc_state_w = strtok(asc_bias_values, ",");
+                  while (asc_state_w != NULL)
+                  {
+                    mt_size_t w = modeltest::Utils::parse_size(asc_state_w);
+                    if (modeltest::mt_errno)
+                    {
+                      cerr << PACKAGE <<
+                        ": Invalid weight for Stamatakis asc bias correction: state "
+                        << current_state+1 << endl;
+                      params_ok = false;
+                    }
+                    else
+                      exec_opt.asc_weights[current_state] = w;
+                    ++current_state;
+                    asc_state_w = strtok(NULL, ",");
+                  }
+              }
+              else
+              {
+                  cerr <<  PACKAGE << ": Invalid ascertainment bias correction algorithm: " << asc_bias_type << endl;
+                  cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {lewis, felsenstein, stamatakis}" << endl;
+                  params_ok = false;
+              }
+            }
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
             if (exec_opt.n_catg <= 0)
             {
                 cerr << PACKAGE << ": Invalid number of categories: " << exec_opt.n_catg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a positive integer number" << endl;
+                params_ok = false;
             }
             break;
         case 'd':
@@ -154,7 +215,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 cerr <<  PACKAGE << ": Invalid datatype " << optarg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {nt, aa} " << endl;
+                params_ok = false;
             }
             break;
         case 'f':
@@ -174,7 +236,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     break;
                 default:
                     cerr <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
-                    return false;
+                    cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a non-empty combination of {f,e}" << endl;
+                    params_ok = false;
                 }
             }
             break;
@@ -201,7 +264,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     break;
                 default:
                     cerr <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
-                    return false;
+                    cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a non-empty combination {u,i,g,f}" << endl;
+                    params_ok = false;
                 }
             }
             break;
@@ -223,7 +287,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             if (*n_procs <= 0)
             {
                 cerr << PACKAGE << ": Invalid number of parallel processes: " << optarg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should a positive integer number" << endl;
+                params_ok = false;
             }
             break;
         case 'q':
@@ -256,7 +321,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 cerr << PACKAGE << ": Invalid number of substitution schemes " << optarg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {3,5,7,11,203}" << endl;
+                params_ok = false;
             }
             break;
         case 't':
@@ -287,7 +353,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 cerr << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {mp,mp,fixed-ml-gtr,fixed-ml-jc,random,user}" << endl;
+                params_ok = false;
             }
             break;
         case 'T':
@@ -311,7 +378,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 cerr <<  PACKAGE << ": Invalid template: " << optarg << endl;
-                return false;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {raxml,phyml,mrbayes,paup}" << endl;
+                params_ok = false;
             }
             break;
         case 'u':
@@ -330,6 +398,23 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     srand(exec_opt.rnd_seed);
 
+    /* validate ascertainment bias correction */
+    if (exec_opt.asc_bias_corr != asc_none)
+    {
+      if (exec_opt.model_params & MOD_MASK_RATE_PARAMS)
+      {
+        if (exec_opt.model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
+        {
+          cerr << PACKAGE << ": Ascertainment bias correction is not compatible with +I/+I+G models" << endl;
+          params_ok = false;
+        }
+      }
+      else
+      {
+        exec_opt.model_params |= MOD_PARAM_NO_RATE_VAR | MOD_PARAM_GAMMA;
+      }
+    }
+
     /* validate input file */
     if (input_file_ok) {
         if (!modeltest::MsaPll::test(exec_opt.msa_filename,
@@ -338,83 +423,14 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                     &exec_opt.msa_format))
         {
             cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
-            cerr << PACKAGE << ": [" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
-            return false;
+            cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
+            params_ok = false;
         }
     }
     else
     {
         cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
-        return false;
-    }
-
-    /* set output files */
-    if (!output_basename.compare(""))
-        output_basename = exec_opt.msa_filename;
-
-    exec_opt.output_log_file =
-            exec_opt.output_tree_file =
-            exec_opt.output_results_file =
-            output_basename;
-    exec_opt.output_log_file.append(OUTPUT_LOG_SUFFIX);
-    exec_opt.output_tree_file.append(OUTPUT_TREE_SUFFIX);
-    exec_opt.output_results_file.append(OUTPUT_RESULTS_SUFFIX);
-    exec_opt.output_tree_to_file = (exec_opt.starting_tree == tree_mp ||
-                                 exec_opt.starting_tree == tree_ml_gtr_fixed ||
-                                 exec_opt.starting_tree == tree_ml_jc_fixed);
-
-    //TODO: Temporary checkpoint enabled by default
-    exec_opt.checkpoint_file = output_basename;
-    exec_opt.checkpoint_file.append(CHECKPOINT_SUFFIX);
-    exec_opt.write_checkpoint = true;
-
-    /* validate output files */
-    output_files_ok = true;
-    if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))
-    {
-        cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " already exists" << endl;
-        output_files_ok = false;
-    }
-    else
-    {
-        if (!modeltest::Utils::file_writable(exec_opt.output_log_file))
-        {
-            cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " cannot be open for writing" << endl;
-            output_files_ok = false;
-        }
-    }
-    if (!exec_opt.force_override && exec_opt.output_tree_to_file && modeltest::Utils::file_exists(exec_opt.output_tree_file))
-    {
-        cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " already exists" << endl;
-        output_files_ok = false;
-    }
-    else
-    {
-        if (exec_opt.output_tree_to_file && !modeltest::Utils::file_writable(exec_opt.output_tree_file))
-        {
-            cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " cannot be open for writing" << endl;
-            output_files_ok = false;
-        }
-    }
-    if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_results_file))
-    {
-        cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " already exists" << endl;
-        output_files_ok = false;
-    }
-    else
-    {
-        if (!modeltest::Utils::file_writable(exec_opt.output_results_file))
-        {
-            cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " cannot be open for writing" << endl;
-            output_files_ok = false;
-        }
-    }
-    if (!output_files_ok)
-    {
-        cerr << PACKAGE << ": - Remove the existing files, or" << endl;
-        cerr << PACKAGE << ": - Select a different output basename (-o argument), or" << endl;
-        cerr << PACKAGE << ": - Fore overriding (--force argument)" << endl;
-        return false;
+        params_ok = false;
     }
 
     /* validate partitions file */
@@ -438,7 +454,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             default:
                 assert(0);
             }
-            return false;
+            params_ok = false;
         }
 
         if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
@@ -446,8 +462,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         {
             cerr << PACKAGE << ": Error in partitions file: "
                  << exec_opt.partitions_filename << endl;
-            cerr << modeltest::mt_errmsg << endl;
-            return false;
+            cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << modeltest::mt_errmsg << endl;
+            params_ok = false;
         }
         else
         {
@@ -543,7 +559,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 if (i == N_PROT_MODEL_ALL_MATRICES)
                 {
                     cerr << PACKAGE << ": Invalid protein matrix: " << s << endl;
-                    return false;
+                    params_ok = false;
                 }
                 prot_matrices_bitv |= 1<<c_matrix;
             }
@@ -588,7 +604,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 if (i == N_DNA_MODEL_MATRICES)
                 {
                     cerr << PACKAGE << ": Invalid dna matrix: " << s << endl;
-                    return false;
+                    params_ok = false;
                 }
                 dna_matrices_bitv |= 1<<c_matrix;
             }
@@ -650,25 +666,97 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         }
     }
 
-    assert(exec_opt.nt_candidate_models.size() > 0 ||
-           exec_opt.aa_candidate_models.size() > 0);
+    if (params_ok)
+    {
+      assert(exec_opt.nt_candidate_models.size() > 0 ||
+             exec_opt.aa_candidate_models.size() > 0);
 
-    /* if there are no model specifications, include all */
-    mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
-                           MOD_PARAM_INV |
-                           MOD_PARAM_GAMMA |
-                           MOD_PARAM_INV_GAMMA;
-    if (!(exec_opt.model_params &
-          all_params))
-        exec_opt.model_params |=
-                all_params;
+      /* set output files */
+      if (!output_basename.compare(""))
+          output_basename = exec_opt.msa_filename;
 
-    /* if there are no frequencies specifications, include all */
-    if (!(exec_opt.model_params &
-         (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
-        exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
+      exec_opt.output_log_file =
+              exec_opt.output_tree_file =
+              exec_opt.output_results_file =
+              output_basename;
+      exec_opt.output_log_file.append(OUTPUT_LOG_SUFFIX);
+      exec_opt.output_tree_file.append(OUTPUT_TREE_SUFFIX);
+      exec_opt.output_results_file.append(OUTPUT_RESULTS_SUFFIX);
+      exec_opt.output_tree_to_file = (exec_opt.starting_tree == tree_mp ||
+                                   exec_opt.starting_tree == tree_ml_gtr_fixed ||
+                                   exec_opt.starting_tree == tree_ml_jc_fixed);
 
-    return true;
+      //TODO: Temporary checkpoint enabled by default
+      exec_opt.checkpoint_file = output_basename;
+      exec_opt.checkpoint_file.append(CHECKPOINT_SUFFIX);
+      exec_opt.write_checkpoint = true;
+
+      /* validate output files */
+      output_files_ok = true;
+      if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))
+      {
+          cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " already exists" << endl;
+          output_files_ok = false;
+      }
+      else
+      {
+          if (!modeltest::Utils::file_writable(exec_opt.output_log_file))
+          {
+              cerr << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " cannot be open for writing" << endl;
+              output_files_ok = false;
+          }
+      }
+      if (!exec_opt.force_override && exec_opt.output_tree_to_file && modeltest::Utils::file_exists(exec_opt.output_tree_file))
+      {
+          cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " already exists" << endl;
+          output_files_ok = false;
+      }
+      else
+      {
+          if (exec_opt.output_tree_to_file && !modeltest::Utils::file_writable(exec_opt.output_tree_file))
+          {
+              cerr << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " cannot be open for writing" << endl;
+              output_files_ok = false;
+          }
+      }
+      if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_results_file))
+      {
+          cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " already exists" << endl;
+          output_files_ok = false;
+      }
+      else
+      {
+          if (!modeltest::Utils::file_writable(exec_opt.output_results_file))
+          {
+              cerr << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " cannot be open for writing" << endl;
+              output_files_ok = false;
+          }
+      }
+      if (!output_files_ok)
+      {
+          cerr << PACKAGE << ": - Remove the existing files, or" << endl;
+          cerr << PACKAGE << ": - Select a different output basename (-o argument), or" << endl;
+          cerr << PACKAGE << ": - Fore overriding (--force argument)" << endl;
+          params_ok = false;
+      }
+
+      /* if there are no model specifications, include all */
+      mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
+                             MOD_PARAM_INV |
+                             MOD_PARAM_GAMMA |
+                             MOD_PARAM_INV_GAMMA;
+      if (!(exec_opt.model_params &
+            all_params))
+          exec_opt.model_params |=
+                  all_params;
+
+      /* if there are no frequencies specifications, include all */
+      if (!(exec_opt.model_params &
+           (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
+          exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
+    }
+
+    return params_ok;
 }
 
 
@@ -685,7 +773,7 @@ void Meta::print_header(std::ostream  &out)
 {
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
     print_version(out);
-    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
+    out << setw(80) << setfill('-') << ""  << setfill(' ') << endl << endl;
 }
 
 void Meta::print_version(std::ostream& out)
@@ -795,6 +883,37 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
     }
     if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
         out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
+    out << "  " << left << setw(20) << "asc bias:";
+    switch(opts.asc_bias_corr)
+    {
+      case asc_none:
+        out << "none" << endl;
+        break;
+      case asc_lewis:
+        out << "lewis" << endl;
+        break;
+      case asc_felsenstein:
+        out << "felsenstein" << endl;
+        if (opts.asc_weights[0])
+          out << "    " << left << setw(18) << "weight: " << opts.asc_weights[0] << endl;
+        break;
+      case asc_stamatakis:
+        {
+          out << "stamatakis" << endl;
+          out << "    " << left << setw(18) << "weights: ";
+          bool weights_undef = true;
+          for (int i=0; i<MT_MAX_STATES; ++i)
+            if (opts.asc_weights[i])
+            {
+              out << "[" << i << "]" << opts.asc_weights[i] << " ";
+              weights_undef = false;
+            }
+          if (weights_undef)
+            out << "-";
+          out << endl;
+        }
+        break;
+    }
     out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
     out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
 
@@ -961,6 +1080,7 @@ void Meta::print_help(std::ostream& out)
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           user"
         << "fixed user defined (requires -u argument)" << endl;
+
     out << setw(MAX_OPT_LENGTH) << left << "  -u, --utree tree_file"
         << "sets a user tree" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --force"
@@ -970,8 +1090,22 @@ void Meta::print_help(std::ostream& out)
 
     out << endl << " Candidate models:" << endl;
 
-    out << setw(MAX_OPT_LENGTH) << left << "  -c, --categories num_cat"
-        << "sets the number of gamma rate categories" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -a, --asc-bias algorithm[:values]"
+        << "includes ascertainment bias correction" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "  check modeltest manual for more information" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           lewis"
+        << "Lewis (2001)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           felsenstein"
+        << "Felsenstein" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "  requires number of invariant sites" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "           stamatakis" << "Leaché et al. (2015)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "  requires invariant sites composition" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -f, --frequencies [ef]"
         << "sets the candidate models frequencies" << endl;

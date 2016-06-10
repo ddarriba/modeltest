@@ -16,8 +16,9 @@ public:
     /**
      * @brief Creates a new Model
      * @param model_params model parameters mask
+     * @param asc_bias_corr ascertainment bias correction
      */
-    Model(mt_mask_t model_params);
+    Model(mt_mask_t model_params, asc_bias_t asc_bias_corr = asc_none);
     virtual ~Model();
 
     /**
@@ -125,7 +126,7 @@ public:
     virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
 
     const unsigned int * get_params_indices( void ) const;
-    
+
     /**
      * @brief Sets the substitution rates
      * @param[in] value the new substitution rates
@@ -234,6 +235,9 @@ protected:
     double *frequencies;
     double *subst_rates;
 
+    mt_size_t *asc_weights;
+    asc_bias_t asc_bias_corr;
+
     mt_size_t n_free_variables;
 
     double lnL;
@@ -255,7 +259,9 @@ class DnaModel : public Model
 {
 public:
     DnaModel(mt_index_t matrix_index,
-          mt_mask_t model_params);
+             mt_mask_t model_params,
+             asc_bias_t asc_bias_corr = asc_none,
+             mt_size_t *asc_w = 0);
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
@@ -305,7 +311,9 @@ class ProtModel : public Model
 {
 public:
     ProtModel(mt_index_t matrix_index,
-          mt_mask_t model_params);
+              mt_mask_t model_params,
+              asc_bias_t asc_bias_corr = asc_none,
+              mt_size_t *asc_w = 0);
     ProtModel(const Model &other);
     virtual ~ProtModel( void );
     virtual void clone(const Model *other);

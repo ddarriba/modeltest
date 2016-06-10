@@ -64,12 +64,12 @@ static void set_subst_params(int * m_ind, string const& matrix)
       m_ind[i] = (int)(matrix.at(i) - '0');
  }
 
-Model::Model(mt_mask_t model_params)
+Model::Model(mt_mask_t model_params, asc_bias_t asc_bias_corr)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
       optimize_gamma((model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                      && !(model_params & MOD_PARAM_FREE_RATES)),
       optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ),
-      mixture(model_params & MOD_PARAM_MIXTURE)
+      mixture(model_params & MOD_PARAM_MIXTURE), asc_bias_corr(asc_bias_corr)
 {
     matrix_index = 0;
     prop_inv = 0.0;
@@ -88,20 +88,24 @@ Model::Model(mt_mask_t model_params)
     subst_rates = 0;
 
     tree = 0;
+
+    asc_weights = 0;
 }
 
 Model::~Model()
 {
-    if (frequencies)
-        free(frequencies);
-    if (subst_rates)
-        free(subst_rates);
-    if (params_indices)
-        free(params_indices);
-    if (tree)
-    {
-        pll_utree_destroy(tree->back);
-    }
+  if (asc_weights)
+    delete[] asc_weights;
+  if (frequencies)
+    delete[] frequencies;
+  if (subst_rates)
+    delete[] subst_rates;
+  if (params_indices)
+    free(params_indices);
+  if (tree)
+  {
+      pll_utree_destroy(tree->back);
+  }
 }
 
 mt_index_t Model::get_matrix_index() const
@@ -425,8 +429,10 @@ bool Model::optimize( void )
 }
 
 DnaModel::DnaModel(mt_index_t _matrix_index,
-             mt_mask_t model_params)
-    : Model(model_params)
+                   mt_mask_t model_params,
+                   asc_bias_t asc_bias_corr,
+                   mt_size_t *asc_w)
+    : Model(model_params, asc_bias_corr)
 {
     stringstream ss_name;
 
@@ -436,8 +442,8 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     n_frequencies = N_DNA_STATES;
     n_subst_rates = N_DNA_SUBST_RATES;
 
-    frequencies = (double *) Utils::allocate(N_DNA_STATES, sizeof(double));
-    subst_rates = (double *) Utils::allocate(N_DNA_SUBST_RATES, sizeof(double));
+    frequencies = new double[N_DNA_STATES];
+    subst_rates = new double[N_DNA_SUBST_RATES];
 
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
 
@@ -473,13 +479,26 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
         n_free_variables ++;
     if (optimize_gamma)
         n_free_variables ++;
+
+    if (asc_bias_corr == asc_felsenstein)
+    {
+      assert(asc_w);
+      asc_weights = new mt_size_t[N_DNA_STATES];
+      asc_weights[0] = asc_w[0];
+    }
+    else if (asc_bias_corr == asc_stamatakis)
+    {
+      assert(asc_w);
+      asc_weights = new mt_size_t[N_DNA_STATES];
+      memcpy(asc_weights, asc_w, N_DNA_STATES * sizeof(mt_size_t));
+    }
 }
 
 DnaModel::DnaModel(const Model & other)
     : Model(0)
 {
-    frequencies = (double *) Utils::allocate(N_DNA_STATES, sizeof(double));
-    subst_rates = (double *) Utils::allocate(N_DNA_SUBST_RATES, sizeof(double));
+    frequencies = new double[N_DNA_STATES];
+    subst_rates = new double[N_DNA_SUBST_RATES];
     clone(&other);
 }
 
@@ -547,6 +566,22 @@ void DnaModel::set_subst_rates(const double value[], bool full_vector)
     }
 }
 
+static mt_mask_t asc_bias_attribute(asc_bias_t v)
+{
+  mt_mask_t attr = 0;
+  if (v != asc_none)
+  {
+    attr = PLL_ATTRIB_ASC_BIAS_FLAG;
+    if (v == asc_lewis)
+      attr |= PLL_ATTRIB_ASC_BIAS_LEWIS;
+    else if (v == asc_felsenstein)
+      attr |= PLL_ATTRIB_ASC_BIAS_FELSENSTEIN;
+    else if (v == asc_stamatakis)
+      attr |= PLL_ATTRIB_ASC_BIAS_STAMATAKIS;
+  }
+  return attr;
+}
+
 pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g) const
@@ -561,6 +596,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
     attributes |= PLL_ATTRIB_ARCH_CPU;
 #endif
 #endif
+    attributes |= asc_bias_attribute(asc_bias_corr);
 
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
@@ -573,6 +609,9 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                 n_tips-2,                         /* scale buffers */
                 attributes                        /* attributes */
                 );
+
+    if (asc_weights)
+      pll_set_asc_state_weights(part, asc_weights);
 
     return part;
 }
@@ -715,8 +754,10 @@ void DnaModel::input_log(std::istream  &in)
 /* PROTEIN MODELS */
 
 ProtModel::ProtModel(mt_index_t _matrix_index,
-             mt_mask_t model_params)
-    : Model(model_params)
+             mt_mask_t model_params,
+             asc_bias_t asc_bias_corr,
+             mt_size_t *asc_w)
+    : Model(model_params, asc_bias_corr)
 {
     stringstream ss_name;
 
@@ -748,9 +789,22 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     }
     else
     {
-        frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
+        frequencies = new double[N_PROT_STATES];
         memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
         fixed_subst_rates = prot_model_rates[matrix_index];
+    }
+
+    if (asc_bias_corr == asc_felsenstein)
+    {
+      assert(asc_w);
+      asc_weights = new mt_size_t[N_PROT_STATES];
+      asc_weights[0] = asc_w[0];
+    }
+    else if (asc_bias_corr == asc_stamatakis)
+    {
+      assert(asc_w);
+      asc_weights = new mt_size_t[N_PROT_STATES];
+      memcpy(asc_weights, asc_w, N_PROT_STATES * sizeof(mt_size_t));
     }
 
     ss_name << prot_model_names[matrix_index];
@@ -773,13 +827,13 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 ProtModel::ProtModel(const Model & other)
     : Model(0)
 {
-    frequencies = (double *) Utils::allocate(N_PROT_STATES, sizeof(double));
+    frequencies = new double[N_PROT_STATES];
     clone(&other);
 }
 
 ProtModel::~ProtModel()
 {
-    free(frequencies);
+    delete[] frequencies;
     frequencies = 0;
     subst_rates = 0;
 }
@@ -881,12 +935,12 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
     attributes |= PLL_ATTRIB_ARCH_CPU;
 #endif
 #endif
+    attributes |= asc_bias_attribute(asc_bias_corr);
 
     mt_size_t n_cats = optimize_gamma?n_cat_g:1;
     if (mixture)
-    {
         n_cats = N_MIXTURE_CATS;
-    }
+
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
                 n_tips-2,                         /* clv buffers */
@@ -898,6 +952,9 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                 n_tips-2,                         /* scale buffers */
                 attributes                        /* attributes */
                 );
+
+    if (asc_weights)
+      pll_set_asc_state_weights(part, asc_weights);
 
     return part;
 }

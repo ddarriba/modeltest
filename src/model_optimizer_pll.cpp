@@ -736,141 +736,141 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
   {
-      double default_alpha = 1.0;
+    double default_alpha = 1.0;
 
-      if (!params)
-        params = new pll_optimize_options_t;
+    if (!params)
+      params = new pll_optimize_options_t;
 
-      /* pll stuff */
-      params->lk_params.partition = pll_partition;
-      params->lk_params.operations = operations;
-      params->lk_params.branch_lengths = branch_lengths;
-      params->lk_params.matrix_indices = matrix_indices;
-      params->lk_params.alpha_value = 1.0;
-      if (model.is_G())
+    /* pll stuff */
+    params->lk_params.partition = pll_partition;
+    params->lk_params.operations = operations;
+    params->lk_params.branch_lengths = branch_lengths;
+    params->lk_params.matrix_indices = matrix_indices;
+    params->lk_params.alpha_value = 1.0;
+    if (model.is_G())
+    {
+        if (model.is_I())
+          params->lk_params.alpha_value = (alpha_inv_guess > 0.0)?alpha_inv_guess:default_alpha;
+        else
+          params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
+    }
+    params->lk_params.rooted = 0;
+    params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
+    params->lk_params.where.unrooted_t.parent_scaler_index = pll_tree->scaler_index;
+    params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
+    params->lk_params.where.unrooted_t.child_scaler_index = pll_tree->back->scaler_index;
+    params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
+
+    /* optimization parameters */
+    params->params_index = 0;
+    params->lk_params.params_indices = model.get_params_indices();
+
+    if (partition.get_datatype() == dt_dna)
+    {
+      int *symmetries = new int[N_DNA_SUBST_RATES];
+      memcpy(symmetries, model.get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
+      params->subst_params_symmetries = symmetries;
+
+      if (model.get_n_subst_params() > 0)
       {
-          if (model.is_I())
-            params->lk_params.alpha_value = (alpha_inv_guess > 0.0)?alpha_inv_guess:default_alpha;
-          else
-            params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
-      }
-      params->lk_params.rooted = 0;
-      params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
-      params->lk_params.where.unrooted_t.parent_scaler_index = pll_tree->scaler_index;
-      params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
-      params->lk_params.where.unrooted_t.child_scaler_index = pll_tree->back->scaler_index;
-      params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
-
-      /* optimization parameters */
-      params->params_index = 0;
-      params->lk_params.params_indices = model.get_params_indices();
-
-      if (partition.get_datatype() == dt_dna)
-      {
-        int *symmetries = new int[N_DNA_SUBST_RATES];
         double *empirical_rates = new double[N_DNA_SUBST_RATES];
-        memcpy(symmetries, model.get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
-        params->subst_params_symmetries = symmetries;
-
-        if (model.get_n_subst_params() > 0)
+        for (mt_index_t i=0; i<model.get_n_subst_params(); ++i)
         {
-            for (mt_index_t i=0; i<model.get_n_subst_params(); ++i)
-            {
-                double sum_rate = 0;
-                int count = 0;
-                for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-                {
-                    if ((mt_index_t)symmetries[j] == i)
-                    {
-                        ++count;
-                        sum_rate += partition.get_empirical_subst_rates()[j];
-                    }
-                }
-                assert(count);
-                sum_rate /= count;
-
-                for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-                    if ((mt_index_t)symmetries[j] == i)
-                        empirical_rates[j] = sum_rate;
-            }
+            double sum_rate = 0;
+            int count = 0;
             for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-                empirical_rates[j] /= empirical_rates[N_DNA_SUBST_RATES-1];
-            pll_set_subst_params(pll_partition, 0, empirical_rates);
-            delete[] empirical_rates;
+            {
+                if ((mt_index_t)symmetries[j] == i)
+                {
+                    ++count;
+                    sum_rate += partition.get_empirical_subst_rates()[j];
+                }
+            }
+            assert(count);
+            sum_rate /= count;
+
+            for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
+                if ((mt_index_t)symmetries[j] == i)
+                    empirical_rates[j] = sum_rate;
         }
+        for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
+            empirical_rates[j] /= empirical_rates[N_DNA_SUBST_RATES-1];
+        pll_set_subst_params(pll_partition, 0, empirical_rates);
+        delete[] empirical_rates;
       }
-      else
+    }
+    else
+    {
+      params->subst_params_symmetries = 0;
+    }
+    params->factr = 1e9;
+
+    /* set initial model parameters */
+    double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
+
+    if (!model.is_I())
+    {
+      for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
       {
-        params->subst_params_symmetries = 0;
+        pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], 0.0);
       }
-      params->factr = 1e9;
-
-      /* set initial model parameters */
-      double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
-
-      if (!model.is_I())
+    }
+    else
+    {
+      if (model.is_mixture())
       {
         for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
         {
-          pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], 0.0);
+          pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
         }
       }
       else
       {
-        if (model.is_mixture())
+        if (model.is_G())
         {
-          for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-          {
-            pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
-          }
+            pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
         }
         else
         {
-          if (model.is_G())
-          {
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
-          }
-          else
-          {
-              pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.get_empirical_pinv()/2));
-          }
+            pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.get_empirical_pinv()/2));
         }
       }
+    }
 
-      if (model.is_F())
-          model.set_frequencies(partition.get_empirical_frequencies());
+    if (model.is_F())
+        model.set_frequencies(partition.get_empirical_frequencies());
 
-      if (model.is_mixture())
-      {
-          assert (pll_partition->rate_cats == N_MIXTURE_CATS);
-          for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
-          {
-              pll_set_frequencies (pll_partition, i, model.get_mixture_frequencies(i));
-              pll_set_subst_params (pll_partition, i, model.get_mixture_subst_rates(i));
-          }
-      }
-      else
-      {
-        pll_set_frequencies (pll_partition, 0, model.get_frequencies());
-        pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
-      }
+    if (model.is_mixture())
+    {
+        assert (pll_partition->rate_cats == N_MIXTURE_CATS);
+        for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
+        {
+            pll_set_frequencies (pll_partition, i, model.get_mixture_frequencies(i));
+            pll_set_subst_params (pll_partition, i, model.get_mixture_subst_rates(i));
+        }
+    }
+    else
+    {
+      pll_set_frequencies (pll_partition, 0, model.get_frequencies());
+      pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
+    }
 
-      if (model.is_G() || model.is_mixture())
-      {
-          pll_compute_gamma_cats (params->lk_params.alpha_value,
-                                  pll_partition->rate_cats,
-                                  rate_cats);
-      }
-      else
-      {
-          rate_cats[0] = 1.0;
-      }
+    if (model.is_G() || model.is_mixture())
+    {
+        pll_compute_gamma_cats (params->lk_params.alpha_value,
+                                pll_partition->rate_cats,
+                                rate_cats);
+    }
+    else
+    {
+        rate_cats[0] = 1.0;
+    }
 
-      pll_set_category_rates (pll_partition, rate_cats);
+    pll_set_category_rates (pll_partition, rate_cats);
 
-      free(rate_cats);
+    free(rate_cats);
 
-      return true;
+    return true;
   }
 
   bool ModelOptimizerPll::run(double epsilon,

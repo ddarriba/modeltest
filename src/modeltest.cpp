@@ -333,7 +333,7 @@ bool ModelTest::build_instance(mt_options_t & options)
       current_instance->msa = new MsaPll (options.msa_filename, options.msa_format);
     else
       return false;
-      
+
     current_instance->start_tree = options.starting_tree;
 
     if (options.partitions_desc)

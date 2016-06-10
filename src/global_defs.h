@@ -49,7 +49,9 @@
 
 #define MT_MIN_SMOOTH_FREQ        0.02
 
-#define MT_ERROR_LENGTH 400
+#define MT_MAX_STATES             20
+
+#define MT_ERROR_LENGTH           400
 
 #define OUTPUT_LOG_SUFFIX         ".log"
 #define OUTPUT_TREE_SUFFIX        ".tree"
@@ -98,6 +100,7 @@ extern int mpi_numprocs;
 #define MT_ERROR_MODELS        10500
 #define MT_ERROR_INSTANCE      10600
 #define MT_ERROR_OPTIMIZE      10700
+#define MT_ERROR_NUMBER        10800
 
 /* fine grain errors */
 #define MT_ERROR_ALIGNMENT_DUPLICATED      10201
@@ -108,6 +111,9 @@ extern int mpi_numprocs;
 #define MT_ERROR_TREE_MISSING              10301
 #define MT_ERROR_PARTITIONS_OUTBOUNDS      10401
 #define MT_ERROR_PARTITIONS_OVERLAP        10402
+
+#define MT_ERROR_NUMBER_INT                10801
+#define MT_ERROR_NUMBER_FLOAT              10802
 
 #define MT_WARN_PARTITIONS_UNASIGNED   10410
 
@@ -121,6 +127,13 @@ typedef enum {
     mf_fasta,
     mf_phylip
 } msa_format_t;
+
+typedef enum {
+    asc_none,
+    asc_lewis,
+    asc_felsenstein,
+    asc_stamatakis
+} asc_bias_t;
 
 typedef enum
 {
@@ -159,11 +172,13 @@ typedef enum
 
 typedef struct
 {
-    std::vector<partition_region_t> regions;
-    data_type_t datatype;
-    mt_size_t states;
-    std::string partition_name;
-    mt_mask_t model_params;
+    std::vector<partition_region_t> regions; //! description of regions
+    data_type_t datatype;                    //! data type
+    mt_size_t states;                        //! number of states
+    std::string partition_name;              //! name of the partition
+    mt_mask_t model_params;                  //! model parameters
+    asc_bias_t asc_bias_corr;                //! ascertainment bias correction
+    mt_size_t *asc_weights;                  //! state weights
 } partition_descriptor_t;
 
 typedef std::vector<partition_descriptor_t> partitioning_scheme_t;
@@ -192,11 +207,13 @@ typedef struct {
 
     /* configuration */
     tree_type_t starting_tree;                    //! Starting tree type
-    dna_subst_schemes_t subst_schemes;  //! DNA substitution schemes
-    std::vector<mt_index_t> nt_candidate_models;   //! Candidate models for DNA
-    std::vector<mt_index_t> aa_candidate_models;   //! Candidate models for AA
-    mt_mask_t model_params;                     //! Model parameters to opt
-    mt_size_t n_catg;                           //! Number of gamma rate cats
+    dna_subst_schemes_t subst_schemes;            //! DNA substitution schemes
+    std::vector<mt_index_t> nt_candidate_models;  //! Candidate models for DNA
+    std::vector<mt_index_t> aa_candidate_models;  //! Candidate models for AA
+    mt_mask_t model_params;                       //! Model parameters to opt
+    mt_size_t n_catg;                             //! Number of gamma rate cats
+    asc_bias_t asc_bias_corr;                     //! ascertainment bias correction
+    mt_size_t asc_weights[MT_MAX_STATES];         //! dummy weights
     std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning
     std::vector<partition_descriptor_t> * partitions_eff;  //! Effective partitioning
     template_models_t template_models; //! template for different tools

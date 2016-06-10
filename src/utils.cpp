@@ -696,14 +696,35 @@ mt_size_t Utils::count_bits( uint32_t i)
      return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
+static bool is_integer(const char *str)
+{
+  int len = strlen(str);
+  for (int i=0; i<len; ++i)
+    if (str[i]<'0' || str[i]>'9')
+      return false;
+  return true;
+}
+
 mt_size_t Utils::parse_size(const char *str)
 {
-    return (mt_size_t) atol(str);
+  mt_errno = 0;
+  if (!is_integer(str))
+  {
+    mt_errno = MT_ERROR_NUMBER_INT;
+    return UINT_MAX;
+  }
+  return (mt_size_t) atol(str);
 }
 
 mt_index_t Utils::parse_index(const char *str)
 {
-    return (mt_index_t) atol(str);
+  mt_errno = 0;
+  if (!is_integer(str))
+  {
+    mt_errno = MT_ERROR_NUMBER_INT;
+    return UINT_MAX;
+  }
+  return (mt_index_t) atol(str);
 }
 
 string Utils::format_time(time_t seconds)
