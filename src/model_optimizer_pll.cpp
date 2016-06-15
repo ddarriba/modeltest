@@ -84,6 +84,11 @@ static pll_partition_t * pll_partition_clone_partial(
   unsigned int start, sites, offset;
   pll_partition_t * new_partition;
 
+  /* for ascertainment bias correction, we have to set the new partition
+     carefully. For example, applying the correction in the last section
+     only */
+  assert(!(partition->attributes & PLL_ATTRIB_ASC_BIAS_FLAG));
+
   sites = (partition->sites / count);
   offset = (partition->sites % count);
   start = sites * id + ((id<offset)?id:offset);
@@ -1072,7 +1077,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   /* ensure we never get a worse likelihood score */
                   if (iter_logl - cur_logl > 1e-5)
                   {
-                      cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << endl;
+                      cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
                       assert(iter_logl - cur_logl < 1e-5);
                   }
                   cur_logl = iter_logl;

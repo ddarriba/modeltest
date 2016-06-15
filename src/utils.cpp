@@ -615,8 +615,8 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         NEXT_TOKEN
                 CONSUME(TOKEN_WHITESPACE)
 
-                /* read rhs */
-                while (1)
+        /* read rhs */
+        while (1)
         {
             if (token.tokenType != TOKEN_NUMBER)
             {

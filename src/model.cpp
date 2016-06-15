@@ -484,6 +484,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     {
       assert(asc_w);
       asc_weights = new mt_size_t[N_DNA_STATES];
+      fill_n(asc_weights, N_DNA_STATES, 0);
       asc_weights[0] = asc_w[0];
     }
     else if (asc_bias_corr == asc_stamatakis)
@@ -798,6 +799,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     {
       assert(asc_w);
       asc_weights = new mt_size_t[N_PROT_STATES];
+      fill_n(asc_weights, N_PROT_STATES, 0);
       asc_weights[0] = asc_w[0];
     }
     else if (asc_bias_corr == asc_stamatakis)

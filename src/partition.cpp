@@ -15,7 +15,9 @@ namespace modeltest
 static bool build_models(data_type_t datatype,
                          std::vector<mt_index_t> candidate_models,
                          mt_mask_t model_params,
-                         vector<Model *> &c_models)
+                         vector<Model *> &c_models,
+                         asc_bias_t asc_bias_corr,
+                         mt_size_t *asc_weights)
 {
     mt_size_t n_matrices = (mt_size_t) candidate_models.size();
     mt_size_t n_models = 0;
@@ -51,11 +53,17 @@ static bool build_models(data_type_t datatype,
                 {
                     if (freq_params & MOD_PARAM_FIXED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(model_matrix, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                    new DnaModel(model_matrix,
+                                      cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                      asc_bias_corr,
+                                      asc_weights)
                                     );
                     if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
                         c_models.push_back(
-                                    new DnaModel(model_matrix, cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
+                                    new DnaModel(model_matrix,
+                                      cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
+                                      asc_bias_corr,
+                                      asc_weights)
                                     );
                 }
                 else if (datatype == dt_protein)
@@ -64,14 +72,20 @@ static bool build_models(data_type_t datatype,
                     {
                       if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                           c_models.push_back(
-                              new ProtModel(LG4M_INDEX, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                              new ProtModel(LG4M_INDEX,
+                                          cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                          asc_bias_corr,
+                                          asc_weights)
                               );
                     }
                     else if (model_matrix == LG4X_INDEX)
                     {
                       if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                           c_models.push_back(
-                                  new ProtModel(LG4X_INDEX, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                  new ProtModel(LG4X_INDEX,
+                                          cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                          asc_bias_corr,
+                                          asc_weights)
                                   );
                     }
                     else
@@ -144,7 +158,8 @@ Partition::Partition(partition_id_t _id,
         if (!compute_empirical_pinv())
             throw EXCEPTION_PARTITION_EMP_PINV;
 
-    build_models(descriptor.datatype, candidate_models, model_params, c_models);
+    build_models(descriptor.datatype, candidate_models, model_params, c_models,
+                 descriptor.asc_bias_corr, descriptor.asc_weights);
 }
 
 Partition::~Partition()

@@ -151,7 +151,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
               {
                   exec_opt.asc_bias_corr = asc_felsenstein;
                   /* parse dummy weight */
-                  if (strlen(asc_bias_values))
+                  if (asc_bias_values && strlen(asc_bias_values))
                   {
                     mt_size_t w = modeltest::Utils::parse_size(asc_bias_values);
                     if (modeltest::mt_errno)
@@ -163,6 +163,16 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     }
                     else
                       exec_opt.asc_weights[0] = w;
+
+                      //CHECK
+                      for (int i=1; i<MT_MAX_STATES; ++i)
+                        exec_opt.asc_weights[i] = 0;
+                  }
+                  else
+                  {
+                    cerr << PACKAGE <<
+                      ": Felsenstein asc bias correction require the weight of dummy sites." << endl;
+                    params_ok = false;
                   }
               }
               else if (!strcasecmp(asc_bias_type, "stamatakis"))
@@ -476,6 +486,16 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         }
 
         assert(exec_opt.partitions_desc);
+        if (exec_opt.partitions_desc->size() > 1 &&
+            !(exec_opt.asc_bias_corr == asc_none ||
+              exec_opt.asc_bias_corr == asc_lewis))
+        {
+          cerr << PACKAGE <<
+               ": Only None or Lewis ascertainment bias correction is allowed for partitioned data sets so far."
+               << endl;
+          params_ok = false;
+        }
+
         for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
         {
             partition.model_params = exec_opt.model_params;
@@ -483,6 +503,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                                              N_PROT_STATES);
             exist_dna_models     |= (partition.datatype == dt_dna);
             exist_protein_models |= (partition.datatype == dt_protein);
+            partition.asc_bias_corr = exec_opt.asc_bias_corr;
+            partition.asc_weights = exec_opt.asc_weights;
         }
     }
     else
@@ -502,6 +524,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         partition.model_params = exec_opt.model_params;
+        partition.asc_bias_corr = exec_opt.asc_bias_corr;
+        partition.asc_weights = exec_opt.asc_weights;
         exec_opt.partitions_desc->push_back(partition);
     }
 
