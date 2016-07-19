@@ -175,7 +175,7 @@ public:
      */
     void set_lnl( double l );
 
-    bool optimize( void );
+    bool optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance );
 
     /**
      * @brief Prints out the model in a human readable way
@@ -262,6 +262,8 @@ protected:
     mt_size_t n_subst_rates;
 
     pll_utree_t *tree;
+
+    std::vector<AbstractParameter *> parameters;
 };
 
 class DnaModel : public Model
@@ -360,8 +362,6 @@ private:
     const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
     double mixture_weights[N_MIXTURE_CATS];
     double mixture_rates[N_MIXTURE_CATS];
-
-    std::vector<AbstractParameter> parameters;
 };
 
 }

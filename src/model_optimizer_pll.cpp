@@ -478,7 +478,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       case mt_param_alpha:
           if (verbosity >= VERBOSITY_HIGH)
              cout << "<TRACE> Start alpha" << endl;
-          cur_logl = opt_alpha(tolerance, first_guess);
+
+          model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
+          cur_logl = model.get_lnl();
+          params->lk_params.alpha_value = model.get_alpha();
+          // cur_logl = opt_alpha(tolerance, first_guess);
           if (verbosity >= VERBOSITY_MID)
             cout << "<TRACE> "
                  << fixed << setprecision(4) << cur_logl

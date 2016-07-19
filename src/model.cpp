@@ -1,5 +1,9 @@
 #include "model.h"
 #include "utils.h"
+#include "model/parameter_gamma.h"
+#include "model/parameter_pinv.h"
+#include "model/parameter_rates.h"
+#include "model/parameter_frequencies.h"
 
 #include <iomanip>
 #include <sstream>
@@ -94,6 +98,11 @@ Model::Model(mt_mask_t model_params,
     tree = 0;
 
     asc_weights = 0;
+
+    parameters.push_back(new ParameterGamma(optimize_gamma?4:1));
+    if (optimize_pinv)
+      parameters.push_back(new ParameterPinv());
+    parameters.push_back(new ParameterFrequencies());
 }
 
 Model::Model( void )
@@ -139,6 +148,8 @@ Model::~Model()
   {
       pll_utree_destroy(tree->back);
   }
+  for (AbstractParameter * parameter : parameters)
+    delete parameter;
 }
 
 mt_index_t Model::get_matrix_index() const
@@ -392,8 +403,14 @@ void Model::set_tree( pll_utree_t * _tree )
     tree = _tree;
 }
 
-bool Model::optimize( void )
+bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance )
 {
+    mt_opt_params_t params;
+    params.partition = partition;
+    params.tree = tree;
+    params.params_indices = params_indices;
+
+    lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
 //        mt_size_t iters_hard_limit = 200;
 //        while (fabs (cur_logl - logl) > epsilon && cur_logl < logl)
 //        {
@@ -485,6 +502,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     subst_rates = new double[n_subst_rates];
 
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
+    parameters.push_back(new ParameterRates(matrix_symmetries));
 
     mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
                                      dna_model_matrices_indices + N_DNA_MODEL_MATRICES,

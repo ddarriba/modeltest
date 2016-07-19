@@ -202,18 +202,6 @@ const partition_id_t Partition::get_id( void ) const
 }
 static bool sort_forwards(Model * m1, Model * m2)
 {
-    /* sort by complexity */
-//    mt_size_t p1 = m1->get_n_free_variables();
-//    mt_size_t p2 = m2->get_n_free_variables();
-//    if (m1->is_G())
-//        p1 += 20;
-//    if (m2->is_G())
-//        p2 += 20;
-//    if (m1->is_I())
-//        p1 += 10;
-//    if (m2->is_I())
-//        p2 += 10;
-
     /* sort by matrices */
     mt_size_t p1 = m1->get_matrix_index() * 10;
     mt_size_t p2 = m2->get_matrix_index() * 10;

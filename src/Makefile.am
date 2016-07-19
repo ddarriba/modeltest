@@ -4,7 +4,11 @@ modeltestx_SOURCES = \
 	static_analyzer.cpp \
 	service/modeltestservice.cpp \
 	thread/observer.cpp \
+	model/abstract_parameter.cpp \
 	model/parameter_gamma.cpp \
+	model/parameter_pinv.cpp \
+	model/parameter_rates.cpp \
+	model/parameter_frequencies.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
