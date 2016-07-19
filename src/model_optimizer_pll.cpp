@@ -12,6 +12,7 @@
 #include <iostream>
 
 #define CHECK_LOCAL_CONVERGENCE 0
+#define USE_ML_FREQUENCIES      0
 
 /* epsilon for Weights/Rates optimization */
 #define WR_EPSILON 0.9
@@ -233,9 +234,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
         //TODO: keep tip states between models
         const char *c_seq = partition.get_sequence(i);
+        const unsigned int *states_map =
+          (model.get_datatype() == dt_dna)?
+            (model.is_gap_aware()?extended_dna_map:pll_map_nt)
+              :pll_map_aa;
         if (!pll_set_tip_states (pll_partition,
                             (unsigned int)tip_clv_index,
-                            (model.get_datatype() == dt_dna)?pll_map_nt:pll_map_aa,
+                            states_map,
                              c_seq))
         {
             /* data type and tip states should be validated beforehand */
@@ -719,6 +724,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                   pll_partition,
                   pll_tree,
                   params->lk_params.params_indices,
+                  1e-4, 5.0,
                   params->pgtol, smoothings, true);
 
       pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
@@ -923,8 +929,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
               params_to_optimize.push_back(mt_param_pinv);
           }
       }
+
+      #if(USE_ML_FREQUENCIES)
       if (model.get_datatype() == dt_dna && model.is_F())
           params_to_optimize.push_back(mt_param_frequencies);
+      #endif
 
       if (model.is_mixture() && !model.is_G())
       {

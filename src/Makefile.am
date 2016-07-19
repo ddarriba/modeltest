@@ -1,8 +1,10 @@
 bin_PROGRAMS = modeltestx 
 
 modeltestx_SOURCES = \
+	static_analyzer.cpp \
 	service/modeltestservice.cpp \
 	thread/observer.cpp \
+	model/parameter_gamma.cpp \
 	model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
@@ -32,9 +34,12 @@ modeltestx_LDADD = -lpll -lpll_optimize -lpll_msa -lpll_tree
 
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
+	static_analyzer.h \
 	service/modeltestservice.h \
 	thread/observer.h \
 	thread/threadpool.h \
+	model/abstract_parameter.h \
+	model/parameter_gamma.h \
 	model_optimizer_pll.h \
 	loggable.h \
 	meta.h \
@@ -51,4 +56,4 @@ pkginclude_HEADERS= \
 	msa.h \
 	msapll.h \
 	global_defs.h \
-	modeltest.h 
+	modeltest.h

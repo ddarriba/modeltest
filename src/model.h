@@ -3,6 +3,7 @@
 
 #include "model_defs.h"
 #include "loggable.h"
+#include "model/abstract_parameter.h"
 
 #include <time.h>
 
@@ -16,9 +17,13 @@ public:
     /**
      * @brief Creates a new Model
      * @param model_params model parameters mask
+     * @param partition the partition descriptor
      * @param asc_bias_corr ascertainment bias correction
      */
-    Model(mt_mask_t model_params, asc_bias_t asc_bias_corr = asc_none);
+    Model(mt_mask_t model_params,
+          const partition_descriptor_t &partition,
+          asc_bias_t asc_bias_corr = asc_none);
+    Model( void );
     virtual ~Model();
 
     /**
@@ -66,6 +71,8 @@ public:
      * @return true, if it is a mixture model
      */
     bool is_mixture( void ) const;
+
+    bool is_gap_aware( void ) const;
 
     /**
      * @brief Gets the matrix symmetries
@@ -235,6 +242,8 @@ protected:
     double *frequencies;
     double *subst_rates;
 
+    bool gap_aware;
+
     mt_size_t *asc_weights;
     asc_bias_t asc_bias_corr;
 
@@ -260,8 +269,9 @@ class DnaModel : public Model
 public:
     DnaModel(mt_index_t matrix_index,
              mt_mask_t model_params,
+             const partition_descriptor_t &partition,
              asc_bias_t asc_bias_corr = asc_none,
-             mt_size_t *asc_w = 0);
+             const mt_size_t *asc_w = 0);
     DnaModel(const Model &other);
     virtual void clone(const Model *other);
 
@@ -312,8 +322,9 @@ class ProtModel : public Model
 public:
     ProtModel(mt_index_t matrix_index,
               mt_mask_t model_params,
+              const partition_descriptor_t &partition,
               asc_bias_t asc_bias_corr = asc_none,
-              mt_size_t *asc_w = 0);
+              const mt_size_t *asc_w = 0);
     ProtModel(const Model &other);
     virtual ~ProtModel( void );
     virtual void clone(const Model *other);
@@ -349,6 +360,8 @@ private:
     const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
     double mixture_weights[N_MIXTURE_CATS];
     double mixture_rates[N_MIXTURE_CATS];
+
+    std::vector<AbstractParameter> parameters;
 };
 
 }

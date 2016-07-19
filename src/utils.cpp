@@ -51,8 +51,8 @@ static int lex_table[ASCII_SIZE] = {
 /* LMNO */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
 /* PQRS */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
 /* TUVW */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
-/* XYZ[ */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,   SYM_UNKNOWN,
-/* \]^_ */ SYM_SLASH,   SYM_UNKNOWN, SYM_UNKNOWN,      SYM_CHAR,
+/* XYZ[ */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,  SYM_OBRACKET,
+/* \]^_ */   SYM_SLASH, SYM_CBRACKET, SYM_UNKNOWN,     SYM_CHAR,
 /* `abc */ SYM_UNKNOWN,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
 /* defg */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
 /* hijk */    SYM_CHAR,    SYM_CHAR,    SYM_CHAR,      SYM_CHAR,
@@ -407,6 +407,16 @@ static lexToken get_token (int * input)
        *input = get_next_symbol();
        break;
 
+     case SYM_OBRACKET:
+       token.tokenType = TOKEN_OBRACKET;
+       *input = get_next_symbol();
+       break;
+
+     case SYM_CBRACKET:
+       token.tokenType = TOKEN_CBRACKET;
+       *input = get_next_symbol();
+       break;
+
      case SYM_SPACE:
      case SYM_TAB:
        do
@@ -537,7 +547,6 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
 
         CONSUME (TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
-
         /* read partition type */
         if (token.tokenType != TOKEN_STRING)
         {
@@ -574,9 +583,33 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         free (tmpchar);
 
         NEXT_TOKEN
-                CONSUME(TOKEN_WHITESPACE)
+        CONSUME(TOKEN_WHITESPACE)
 
-                if (token.tokenType != TOKEN_COMMA)
+        if (token.tokenType == TOKEN_OBRACKET)
+        {
+          printf("Bracket Found\n");
+          NEXT_TOKEN
+          /* parse composition */
+          while (token.tokenType != TOKEN_CBRACKET)
+          {
+            /* consume weight */
+
+            tmpchar = (char *) Utils::c_allocate((mt_size_t)token.len+10, sizeof(char));
+            strncpy (tmpchar, token.lexeme, (size_t)token.len);
+            tmpchar[token.len] = '\0';
+
+            mt_size_t w = Utils::parse_size(tmpchar);
+            printf("WEIGHT = %d %s\n", w, tmpchar);
+
+            free(tmpchar);
+            CONSUME(TOKEN_WHITESPACE)
+            CONSUME(TOKEN_COMMA)
+            NEXT_TOKEN
+          }
+          NEXT_TOKEN
+        }
+
+        if (token.tokenType != TOKEN_COMMA)
         {
             mt_errno = MT_ERROR_IO_FORMAT;
             snprintf(mt_errmsg, ERR_MSG_SIZE, "Expecting ',' after datatype in partition %d", lines);

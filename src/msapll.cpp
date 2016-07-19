@@ -109,6 +109,8 @@ namespace modeltest
             tipnames[cur_seq] = msa_data->label[cur_seq];
             sequences[cur_seq] = msa_data->sequence[cur_seq];
           }
+          free(msa_data->label);
+          free(msa_data->sequence);
           free(msa_data);
         }
         break;

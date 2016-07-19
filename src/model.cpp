@@ -64,12 +64,45 @@ static void set_subst_params(int * m_ind, string const& matrix)
       m_ind[i] = (int)(matrix.at(i) - '0');
  }
 
-Model::Model(mt_mask_t model_params, asc_bias_t asc_bias_corr)
+Model::Model(mt_mask_t model_params,
+             const partition_descriptor_t &partition,
+             asc_bias_t asc_bias_corr)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
       optimize_gamma((model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                      && !(model_params & MOD_PARAM_FREE_RATES)),
       optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ),
-      mixture(model_params & MOD_PARAM_MIXTURE), asc_bias_corr(asc_bias_corr)
+      mixture(model_params & MOD_PARAM_MIXTURE),
+      gap_aware(partition.gap_aware),
+      asc_bias_corr(asc_bias_corr)
+{
+    matrix_index = 0;
+    prop_inv = 0.0;
+    alpha = 0.0;
+
+    lnL  = 0.0;
+    bic  = 0.0;
+    aic  = 0.0;
+    aicc = 0.0;
+    dt   = 0.0;
+
+    n_categories = 0;
+    params_indices = 0;
+
+    frequencies = 0;
+    subst_rates = 0;
+
+    tree = 0;
+
+    asc_weights = 0;
+}
+
+Model::Model( void )
+    : optimize_pinv(false),
+      optimize_gamma(false),
+      optimize_freqs(false),
+      mixture(false),
+      gap_aware(false),
+      asc_bias_corr(asc_none)
 {
     matrix_index = 0;
     prop_inv = 0.0;
@@ -141,6 +174,11 @@ bool Model::is_F() const
 bool Model::is_mixture( void ) const
 {
     return mixture;
+}
+
+bool Model::is_gap_aware( void ) const
+{
+  return gap_aware;
 }
 
 const int * Model::get_symmetries( void ) const
@@ -430,20 +468,21 @@ bool Model::optimize( void )
 
 DnaModel::DnaModel(mt_index_t _matrix_index,
                    mt_mask_t model_params,
+                   const partition_descriptor_t &partition,
                    asc_bias_t asc_bias_corr,
-                   mt_size_t *asc_w)
-    : Model(model_params, asc_bias_corr)
+                   const mt_size_t *asc_w)
+    : Model(model_params, partition, asc_bias_corr)
 {
     stringstream ss_name;
 
     matrix_index = _matrix_index;
     assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
 
-    n_frequencies = N_DNA_STATES;
-    n_subst_rates = N_DNA_SUBST_RATES;
+    n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
+    n_subst_rates = gap_aware?10:N_DNA_SUBST_RATES;
 
-    frequencies = new double[N_DNA_STATES];
-    subst_rates = new double[N_DNA_SUBST_RATES];
+    frequencies = new double[n_frequencies];
+    subst_rates = new double[n_subst_rates];
 
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
 
@@ -461,9 +500,9 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
             ss_name << "[F]";
     }
 
-    for (mt_index_t i=0; i<N_DNA_STATES; i++)
-      frequencies[i] = 1.0/N_DNA_STATES;
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_frequencies; i++)
+      frequencies[i] = 1.0/n_frequencies;
+    for (mt_index_t i=0; i<n_subst_rates; i++)
       subst_rates[i] = 1.0;
 
     if (optimize_pinv)
@@ -474,7 +513,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
 
     n_free_variables = get_n_subst_params();
     if (optimize_freqs)
-        n_free_variables += N_DNA_STATES-1;
+        n_free_variables += n_frequencies-1;
     if (optimize_pinv)
         n_free_variables ++;
     if (optimize_gamma)
@@ -483,8 +522,8 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     if (asc_bias_corr == asc_felsenstein)
     {
       assert(asc_w);
-      asc_weights = new mt_size_t[N_DNA_STATES];
-      fill_n(asc_weights, N_DNA_STATES, 0);
+      asc_weights = new mt_size_t[n_frequencies];
+      fill_n(asc_weights, n_frequencies, 0);
       asc_weights[0] = asc_w[0];
     }
     else if (asc_bias_corr == asc_stamatakis)
@@ -496,7 +535,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
 }
 
 DnaModel::DnaModel(const Model & other)
-    : Model(0)
+    : Model()
 {
     frequencies = new double[N_DNA_STATES];
     subst_rates = new double[N_DNA_SUBST_RATES];
@@ -588,6 +627,8 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_cat_g) const
 {
     mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+    mt_size_t states = n_frequencies;
+
 #ifdef HAVE_AVX
     attributes |= PLL_ATTRIB_ARCH_AVX;
 #else
@@ -602,7 +643,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
                 n_tips-2,                         /* clv buffers */
-                N_DNA_STATES,                     /* states */
+                states,                           /* states */
                 n_sites,                          /* sites */
                 1,                                /* rate matrices */
                 2*n_tips-3,                       /* prob matrices */
@@ -622,11 +663,11 @@ void DnaModel::print(std::ostream  &out)
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
         << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+    for (mt_index_t i=0; i<n_frequencies; i++)
         out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Subst. Rates:";
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_subst_rates; i++)
         out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
@@ -652,11 +693,11 @@ void DnaModel::print_xml(std::ostream  &out)
     else
         out << "fixed";
     out << "\">" << endl << "  ";
-    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+    for (mt_index_t i=0; i<n_frequencies; i++)
         out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
     out << endl << "  </frequencies>" << endl;
     out << "  <subst_rates>" << endl << "  ";
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_subst_rates; i++)
         out << "  " << setprecision(MT_PRECISION_DIGITS) << subst_rates[i];
     out << endl << "  </subst_rates>" << endl;
     out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << prop_inv <<
@@ -668,14 +709,14 @@ void DnaModel::output_log(std::ostream  &out)
 {
     out << name << " ";
     out << matrix_index << " ";
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_subst_rates; i++)
         out << matrix_symmetries[i] << " ";
     out << n_free_variables << " ";
     out << optimize_freqs << " " << optimize_pinv << " " << optimize_gamma << " ";
     out << lnL << " ";
-    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+    for (mt_index_t i=0; i<n_frequencies; i++)
         out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_subst_rates; i++)
         out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
     out << setprecision(MT_PRECISION_DIGITS) << prop_inv << " ";
     out << setprecision(MT_PRECISION_DIGITS) << alpha << " ";
@@ -716,11 +757,11 @@ void DnaModel::input_log(std::istream  &in)
     read_word(in, str, LOG_LEN); optimize_pinv = atoi(str);
     read_word(in, str, LOG_LEN); optimize_gamma = atoi(str);
     read_word(in, str, LOG_LEN); lnL = atof(str);
-    for (mt_index_t i=0; i<N_DNA_STATES; i++)
+    for (mt_index_t i=0; i<n_frequencies; i++)
     {
         read_word(in, str, LOG_LEN); frequencies[i] = atof(str);
     }
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; i++)
+    for (mt_index_t i=0; i<n_subst_rates; i++)
     {
         read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
     }
@@ -756,9 +797,10 @@ void DnaModel::input_log(std::istream  &in)
 
 ProtModel::ProtModel(mt_index_t _matrix_index,
              mt_mask_t model_params,
+             const partition_descriptor_t &partition,
              asc_bias_t asc_bias_corr,
-             mt_size_t *asc_w)
-    : Model(model_params, asc_bias_corr)
+             const mt_size_t *asc_w)
+    : Model(model_params, partition, asc_bias_corr)
 {
     stringstream ss_name;
 
@@ -827,7 +869,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 }
 
 ProtModel::ProtModel(const Model & other)
-    : Model(0)
+    : Model()
 {
     frequencies = new double[N_PROT_STATES];
     clone(&other);

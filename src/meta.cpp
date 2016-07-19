@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "model_defs.h"
 #include "modeltest.h"
+#include "static_analyzer.h"
 
 #include <getopt.h>
 #include <sstream>
@@ -27,7 +28,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     dna_subst_schemes_t default_ss = ss_11;
 
     /* set default options */
-    data_type_t arg_datatype   = dt_dna;
+    data_type_t arg_datatype = dt_dna;
+    bool gap_aware = false;
     exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
@@ -49,9 +51,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "asc-bias", required_argument, 0, 'a' },
         { "categories", required_argument, 0, 'c' },
         { "datatype", required_argument, 0, 'd' },
+        { "gap-aware", no_argument, 0, 13 },
+        { "input", required_argument, 0, 'i' },
         { "model-freqs", required_argument, 0, 'f' },
         { "model-het", required_argument, 0, 'h' },
-        { "input", required_argument, 0, 'i' },
         { "models", required_argument, 0, 'm' },
         { "output", required_argument, 0, 'o' },
         { "processes", required_argument, 0, 'p' },
@@ -70,6 +73,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "eps", required_argument, 0, 10 },
         { "tol", required_argument, 0, 11 },
         { "force", no_argument, 0, 20 },
+        { "msa-info", no_argument, 0, 12 },
         { 0, 0, 0, 0 }
     };
 
@@ -134,6 +138,21 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 cerr << PACKAGE << ": Invalid parameter tolerance: " << exec_opt.epsilon_param << endl;
                 params_ok = false;
             }
+            break;
+        case 12:
+            /* --msa-info */
+            if (!input_file_ok)
+            {
+                cerr << PACKAGE << ": MSA (-i) must be set before this argument." << endl;
+            }
+            else
+            {
+              modeltest::StaticAnalyzer::print_info(exec_opt.msa_filename,  mf_fasta);
+            }
+            return false;
+        case 13:
+            /* --gap-aware */
+            gap_aware = true;
             break;
         case 20:
             exec_opt.force_override = true;
@@ -460,6 +479,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             case MT_ERROR_IO_FORMAT:
                 cerr << PACKAGE << ": Cannot parse partitions: "
                      << exec_opt.partitions_filename << endl;
+                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
+                     << " [" << modeltest::mt_errno << "] "
+                     << modeltest::mt_errmsg << endl;
                 break;
             default:
                 assert(0);
@@ -467,44 +489,50 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             params_ok = false;
         }
 
-        if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
-                                                   exec_opt.n_sites))
+        if (params_ok)
         {
-            cerr << PACKAGE << ": Error in partitions file: "
-                 << exec_opt.partitions_filename << endl;
-            cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << modeltest::mt_errmsg << endl;
+          if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
+                                                     exec_opt.n_sites))
+          {
+              cerr << PACKAGE << ": Error in partitions file: "
+                   << exec_opt.partitions_filename << endl;
+              cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
+                   << " [" << modeltest::mt_errno << "] "
+                   << modeltest::mt_errmsg << endl;
+              params_ok = false;
+          }
+          else
+          {
+              if (modeltest::mt_errno)
+              {
+                  cerr << PACKAGE << ": Warning: "
+                       << modeltest::mt_errmsg << endl;
+                  modeltest::mt_errno = 0;
+              }
+          }
+
+          assert(exec_opt.partitions_desc);
+          if (exec_opt.partitions_desc->size() > 1 &&
+              !(exec_opt.asc_bias_corr == asc_none ||
+                exec_opt.asc_bias_corr == asc_lewis))
+          {
+            cerr << PACKAGE <<
+                 ": Only None or Lewis ascertainment bias correction is allowed for partitioned data sets so far."
+                 << endl;
             params_ok = false;
-        }
-        else
-        {
-            if (modeltest::mt_errno)
-            {
-                cerr << PACKAGE << ": Warning: "
-                     << modeltest::mt_errmsg << endl;
-                modeltest::mt_errno = 0;
-            }
-        }
+          }
 
-        assert(exec_opt.partitions_desc);
-        if (exec_opt.partitions_desc->size() > 1 &&
-            !(exec_opt.asc_bias_corr == asc_none ||
-              exec_opt.asc_bias_corr == asc_lewis))
-        {
-          cerr << PACKAGE <<
-               ": Only None or Lewis ascertainment bias correction is allowed for partitioned data sets so far."
-               << endl;
-          params_ok = false;
-        }
-
-        for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
-        {
-            partition.model_params = exec_opt.model_params;
-            partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
-                                                             N_PROT_STATES);
-            exist_dna_models     |= (partition.datatype == dt_dna);
-            exist_protein_models |= (partition.datatype == dt_protein);
-            partition.asc_bias_corr = exec_opt.asc_bias_corr;
-            partition.asc_weights = exec_opt.asc_weights;
+          for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
+          {
+              partition.model_params = exec_opt.model_params;
+              partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
+                                                               N_PROT_STATES);
+              exist_dna_models     |= (partition.datatype == dt_dna);
+              exist_protein_models |= (partition.datatype == dt_protein);
+              partition.gap_aware = gap_aware;
+              partition.asc_bias_corr = exec_opt.asc_bias_corr;
+              partition.asc_weights = exec_opt.asc_weights;
+          }
         }
     }
     else
@@ -521,6 +549,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                                          N_PROT_STATES);
         exist_dna_models     = (arg_datatype == dt_dna);
         exist_protein_models = (arg_datatype == dt_protein);
+        partition.gap_aware = gap_aware;
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         partition.model_params = exec_opt.model_params;

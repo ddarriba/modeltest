@@ -56,6 +56,8 @@ struct MatchPathSeparator
 #define  SYM_DASH                  1 << 16
 #define  SYM_SLASH                 1 << 17
 #define  SYM_PLUS                  1 << 18
+#define  SYM_OBRACKET              1 << 19
+#define  SYM_CBRACKET              1 << 20
 
 #define  TOKEN_NUMBER              1 << 0
 #define  TOKEN_STRING              1 << 1
@@ -72,6 +74,8 @@ struct MatchPathSeparator
 #define  TOKEN_EQUAL               1 << 12
 #define  TOKEN_DASH                1 << 13
 #define  TOKEN_SLASH               1 << 14
+#define  TOKEN_OBRACKET            1 << 15
+#define  TOKEN_CBRACKET            1 << 16
 
 #define CONSUME(x)         while (token.tokenType & (x)) token = get_token (&input);
 #define NEXT_TOKEN         token = get_token (&input);

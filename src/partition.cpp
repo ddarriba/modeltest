@@ -12,13 +12,15 @@ namespace modeltest
 
 
 
-static bool build_models(data_type_t datatype,
+static bool build_models(const partition_descriptor_t &descriptor,
                          std::vector<mt_index_t> candidate_models,
                          mt_mask_t model_params,
-                         vector<Model *> &c_models,
-                         asc_bias_t asc_bias_corr,
-                         mt_size_t *asc_weights)
+                         vector<Model *> &c_models)
 {
+    data_type_t datatype = descriptor.datatype;
+    asc_bias_t asc_bias_corr = descriptor.asc_bias_corr;
+    const mt_size_t *asc_weights = descriptor.asc_weights;
+
     mt_size_t n_matrices = (mt_size_t) candidate_models.size();
     mt_size_t n_models = 0;
 
@@ -55,6 +57,7 @@ static bool build_models(data_type_t datatype,
                         c_models.push_back(
                                     new DnaModel(model_matrix,
                                       cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                      descriptor,
                                       asc_bias_corr,
                                       asc_weights)
                                     );
@@ -62,6 +65,7 @@ static bool build_models(data_type_t datatype,
                         c_models.push_back(
                                     new DnaModel(model_matrix,
                                       cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
+                                      descriptor,
                                       asc_bias_corr,
                                       asc_weights)
                                     );
@@ -74,6 +78,7 @@ static bool build_models(data_type_t datatype,
                           c_models.push_back(
                               new ProtModel(LG4M_INDEX,
                                           cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                          descriptor,
                                           asc_bias_corr,
                                           asc_weights)
                               );
@@ -84,6 +89,7 @@ static bool build_models(data_type_t datatype,
                           c_models.push_back(
                                   new ProtModel(LG4X_INDEX,
                                           cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                          descriptor,
                                           asc_bias_corr,
                                           asc_weights)
                                   );
@@ -92,11 +98,19 @@ static bool build_models(data_type_t datatype,
                     {
                         if (freq_params & MOD_PARAM_FIXED_FREQ)
                             c_models.push_back(
-                                        new ProtModel(model_matrix, cur_rate_param | MOD_PARAM_FIXED_FREQ)
+                                        new ProtModel(model_matrix,
+                                                      cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                                      descriptor,
+                                                      asc_bias_corr,
+                                                      asc_weights)
                                         );
                         if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
                             c_models.push_back(
-                                        new ProtModel(model_matrix, cur_rate_param | MOD_PARAM_ESTIMATED_FREQ)
+                                        new ProtModel(model_matrix,
+                                                      cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
+                                                      descriptor,
+                                                      asc_bias_corr,
+                                                      asc_weights)
                                         );
                     }
                 }
@@ -158,8 +172,7 @@ Partition::Partition(partition_id_t _id,
         if (!compute_empirical_pinv())
             throw EXCEPTION_PARTITION_EMP_PINV;
 
-    build_models(descriptor.datatype, candidate_models, model_params, c_models,
-                 descriptor.asc_bias_corr, descriptor.asc_weights);
+    build_models(descriptor, candidate_models, model_params, c_models);
 }
 
 Partition::~Partition()
@@ -423,7 +436,7 @@ bool Partition::compute_empirical_frequencies(bool smooth)
                 if (!ind)
                 {
                     mt_errno = MT_ERROR_FREQUENCIES;
-                    snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA does not match the data type [%s]", descriptor.partition_name.c_str());
+                    snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA does not match the data type [%s]. State %d", descriptor.partition_name.c_str(), (int) msa.get_sequence(i)[j]);
                     return false;
                 }
                 for (unsigned int k=0; k<states; ++k)
