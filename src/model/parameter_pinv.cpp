@@ -14,12 +14,9 @@ static double target_func(void *p, double x)
   pll_partition_t * partition = params->partition;
 
   /* update proportion of invariant sites */
-  for (mt_index_t i=0; i<partition->rate_cats; ++i)
-  {
-    pll_update_invariant_sites_proportion(partition,
-                                          params->params_indices[i],
-                                          x);
-  }
+  pll_update_invariant_sites_proportion(partition,
+                                        0,
+                                        x);
 
   /* compute negative score */
   double score = -1 *
@@ -33,6 +30,12 @@ static double target_func(void *p, double x)
 
 ParameterPinv::ParameterPinv( void )
 {
+  pinv = 0.5;
+}
+
+ParameterPinv::ParameterPinv( const ParameterPinv & other )
+{
+  pinv = other.pinv;
 }
 
 ParameterPinv::~ParameterPinv( void )
@@ -40,7 +43,7 @@ ParameterPinv::~ParameterPinv( void )
 
 }
 
-bool ParameterPinv::initialize(const partition_descriptor_t & partition_desc)
+bool ParameterPinv::initialize(Partition const& partition)
 {
 
   return true;
@@ -56,6 +59,7 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   double f2x;
   double xres;
 
+  pinv = params->partition->prop_invar[0];
   xres = pll_minimize_brent(MIN_PINV, pinv, MAX_PINV,
                             tolerance,
                             &cur_logl,
@@ -69,9 +73,23 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   return cur_logl;
 }
 
-void ParameterPinv::print(std::ostream  &out)
+void ParameterPinv::print(std::ostream  &out) const
 {
 
 }
 
+double ParameterPinv::get_pinv() const
+{
+  return pinv;
+}
+
+void ParameterPinv::set_pinv( double value )
+{
+  pinv = value;
+}
+
+mt_size_t ParameterPinv::get_n_free_parameters( void ) const
+{
+  return 1;
+}
 } /* namespace modeltest */

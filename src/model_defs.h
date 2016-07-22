@@ -35,17 +35,21 @@
 #define MATRIX_INDEX_UNDEF     999
 
 #define MOD_PARAM_FIXED_FREQ      (1<<0)
-#define MOD_PARAM_ESTIMATED_FREQ  (1<<1)
-#define MOD_PARAM_NO_RATE_VAR     (1<<2)
-#define MOD_PARAM_INV             (1<<3)
-#define MOD_PARAM_GAMMA           (1<<4)
-#define MOD_PARAM_INV_GAMMA       (1<<5)
-#define MOD_PARAM_MIXTURE         (1<<6)
-#define MOD_PARAM_FREE_RATES      (1<<7)
+#define MOD_PARAM_EMPIRICAL_FREQ  (1<<1)
+#define MOD_PARAM_ESTIMATED_FREQ  (1<<2)
+#define MOD_PARAM_NO_RATE_VAR     (1<<3)
+#define MOD_PARAM_INV             (1<<4)
+#define MOD_PARAM_GAMMA           (1<<5)
+#define MOD_PARAM_INV_GAMMA       (1<<6)
+#define MOD_PARAM_MIXTURE         (1<<7)
+#define MOD_PARAM_FREE_RATES      (1<<8)
 
-#define MOD_MASK_FREQ_PARAMS   3
-#define MOD_MASK_RATE_PARAMS   60
-#define MOD_MASK_MIXT_PARAMS  192
+#define MOD_PARAM_MIN_RPARAM MOD_PARAM_NO_RATE_VAR
+#define MOD_PARAM_MAX_RPARAM MOD_PARAM_INV_GAMMA
+
+#define MOD_MASK_FREQ_PARAMS    7
+#define MOD_MASK_RATE_PARAMS  120
+#define MOD_MASK_MIXT_PARAMS  384
 
 const mt_index_t raxml_matrices_indices[3] = {
     DNA_JC_INDEX,

@@ -10,20 +10,30 @@ namespace modeltest
 class ParameterRates : public AbstractParameter
 {
 public:
-  ParameterRates(std::vector<int> symmetries);
-  ParameterRates(const int * symmetries);
-  ~ParameterRates( void );
-  virtual bool initialize(const partition_descriptor_t & partition_desc);
+  virtual bool initialize(Partition const& partition);
+protected:
+  mt_size_t n_subst_free_params;
+  mt_size_t n_subst_params;
+};
+
+class ParameterRatesOpt : public ParameterRates
+{
+public:
+  ParameterRatesOpt(std::vector<int> symmetries);
+  ParameterRatesOpt(const ParameterRatesOpt & other);
+  ParameterRatesOpt(const int * symmetries);
+  ~ParameterRatesOpt(void);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
-  virtual void print(std::ostream  &out = std::cout);
-private:
-  mt_size_t n_subst_free_params;
+  virtual void print(std::ostream  &out = std::cout) const;
+  virtual mt_size_t get_n_free_parameters( void ) const;
+protected:
   std::vector<int> symmetries;
   double *x;
   double *lower, *upper;
+  int *bound_type;
 };
 
 } /* namespace modeltest */

@@ -29,6 +29,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     /* set default options */
     data_type_t arg_datatype = dt_dna;
+    mt_size_t freqs_mask = 0;
     bool gap_aware = false;
     exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
@@ -256,12 +257,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 case 'f':
                 case 'F':
                     /* equal freqs (DNA) / empirical freqs (AA) */
-                    exec_opt.model_params  |= MOD_PARAM_FIXED_FREQ;
+                    freqs_mask |= MOD_PARAM_FIXED_FREQ;
                     break;
                 case 'e':
                 case 'E':
                     /* ML freqs (DNA) / model defined freqs (AA) */
-                    exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
+                    freqs_mask |= MOD_PARAM_ESTIMATED_FREQ;
                     break;
                 default:
                     cerr <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
@@ -460,6 +461,18 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     {
         cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
         params_ok = false;
+    }
+
+    if (freqs_mask & MOD_PARAM_ESTIMATED_FREQ)
+    {
+      if (arg_datatype == dt_dna)
+        exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
+      else if (arg_datatype == dt_protein)
+        exec_opt.model_params  |= MOD_PARAM_EMPIRICAL_FREQ;
+    }
+    if (freqs_mask & MOD_PARAM_FIXED_FREQ)
+    {
+      exec_opt.model_params  |= MOD_PARAM_FIXED_FREQ;
     }
 
     /* validate partitions file */
@@ -804,9 +817,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                   all_params;
 
       /* if there are no frequencies specifications, include all */
-      if (!(exec_opt.model_params &
-           (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ)))
+      if (!(exec_opt.model_params & MOD_MASK_FREQ_PARAMS))
+      {
+        if (arg_datatype == dt_dna)
           exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
+        else if (arg_datatype == dt_protein)
+          exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_EMPIRICAL_FREQ);
+      }
     }
 
     return params_ok;

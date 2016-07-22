@@ -3,13 +3,19 @@
 
 #include "model_defs.h"
 #include "loggable.h"
-#include "model/abstract_parameter.h"
+#include "model/parameter_pinv.h"
+#include "model/parameter_rates.h"
+#include "model/parameter_branches.h"
+#include "model/parameter_frequencies.h"
+#include "model/parameter_gamma.h"
 
 #include <time.h>
 
 #define PRINTMODEL_TABSIZE 20
 
 namespace modeltest {
+
+class Partition;
 
 class Model : public Loggable
 {
@@ -22,6 +28,7 @@ public:
      */
     Model(mt_mask_t model_params,
           const partition_descriptor_t &partition,
+          mt_size_t states,
           asc_bias_t asc_bias_corr = asc_none);
     Model( void );
     virtual ~Model();
@@ -175,6 +182,7 @@ public:
      */
     void set_lnl( double l );
 
+    bool optimize_init ( Partition const& partition );
     bool optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance );
 
     /**
@@ -235,11 +243,9 @@ protected:
     bool optimize_pinv;
     bool optimize_gamma;
     bool optimize_freqs;
+    bool empirical_freqs;
     bool mixture;
 
-    double prop_inv;
-    double alpha;
-    double *frequencies;
     double *subst_rates;
 
     bool gap_aware;
@@ -264,6 +270,11 @@ protected:
     pll_utree_t *tree;
 
     std::vector<AbstractParameter *> parameters;
+    ParameterGamma * param_gamma;
+    ParameterPinv * param_pinv;
+    ParameterRates * param_rates;
+    ParameterFrequencies * param_freqs;
+    ParameterBranches * param_branches;
 };
 
 class DnaModel : public Model

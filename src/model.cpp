@@ -1,9 +1,5 @@
 #include "model.h"
 #include "utils.h"
-#include "model/parameter_gamma.h"
-#include "model/parameter_pinv.h"
-#include "model/parameter_rates.h"
-#include "model/parameter_frequencies.h"
 
 #include <iomanip>
 #include <sstream>
@@ -70,18 +66,18 @@ static void set_subst_params(int * m_ind, string const& matrix)
 
 Model::Model(mt_mask_t model_params,
              const partition_descriptor_t &partition,
+             mt_size_t states,
              asc_bias_t asc_bias_corr)
     : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
       optimize_gamma((model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                      && !(model_params & MOD_PARAM_FREE_RATES)),
       optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ),
+      empirical_freqs(model_params & MOD_PARAM_EMPIRICAL_FREQ),
       mixture(model_params & MOD_PARAM_MIXTURE),
       gap_aware(partition.gap_aware),
       asc_bias_corr(asc_bias_corr)
 {
     matrix_index = 0;
-    prop_inv = 0.0;
-    alpha = 0.0;
 
     lnL  = 0.0;
     bic  = 0.0;
@@ -92,30 +88,54 @@ Model::Model(mt_mask_t model_params,
     n_categories = 0;
     params_indices = 0;
 
-    frequencies = 0;
+    // frequencies = 0;
     subst_rates = 0;
 
     tree = 0;
 
     asc_weights = 0;
 
-    parameters.push_back(new ParameterGamma(optimize_gamma?4:1));
+    param_gamma    = 0;
+    param_pinv     = 0;
+    param_branches = 0;
+    param_freqs    = 0;
+    param_rates    = 0;
+
+    param_branches = new ParameterBranches();
+    parameters.push_back(param_branches);
+
+    param_gamma = new ParameterGamma(optimize_gamma?4:1);
+    parameters.push_back(param_gamma);
+
     if (optimize_pinv)
-      parameters.push_back(new ParameterPinv());
-    parameters.push_back(new ParameterFrequencies());
+    {
+      param_pinv = new ParameterPinv();
+      parameters.push_back(param_pinv);
+    }
+
+    if (optimize_freqs)
+    {
+      param_freqs = new ParameterFrequenciesOpt(states);
+    }
+    else
+    {
+      param_freqs = new ParameterFrequenciesFixed(
+                          states,
+                          model_params & MOD_PARAM_FIXED_FREQ);
+    }
+    parameters.push_back(param_freqs);
 }
 
 Model::Model( void )
     : optimize_pinv(false),
       optimize_gamma(false),
       optimize_freqs(false),
+      empirical_freqs(false),
       mixture(false),
       gap_aware(false),
       asc_bias_corr(asc_none)
 {
     matrix_index = 0;
-    prop_inv = 0.0;
-    alpha = 0.0;
 
     lnL  = 0.0;
     bic  = 0.0;
@@ -126,7 +146,7 @@ Model::Model( void )
     n_categories = 0;
     params_indices = 0;
 
-    frequencies = 0;
+    // frequencies = 0;
     subst_rates = 0;
 
     tree = 0;
@@ -138,8 +158,8 @@ Model::~Model()
 {
   if (asc_weights)
     delete[] asc_weights;
-  if (frequencies)
-    delete[] frequencies;
+  // if (frequencies)
+  //   delete[] frequencies;
   if (subst_rates)
     delete[] subst_rates;
   if (params_indices)
@@ -179,7 +199,7 @@ bool Model::is_G() const
 
 bool Model::is_F() const
 {
-    return optimize_freqs;
+    return optimize_freqs || empirical_freqs;
 }
 
 bool Model::is_mixture( void ) const
@@ -225,41 +245,43 @@ void Model::set_n_categories( mt_size_t ncat )
 
 mt_size_t Model::get_n_free_variables() const
 {
-    return n_free_variables;
+  return n_free_variables;
 }
 
 double Model::get_lnl() const
 {
-    return lnL;
+  return lnL;
 }
 
 void Model::set_lnl( double l )
 {
-    lnL = l;
+  lnL = l;
 }
 
 mt_size_t Model::get_n_subst_params() const
 {
-    return 0;
+  return 0;
 }
 
 double Model::get_prop_inv() const
 {
-    return prop_inv;
+  if (!param_pinv)
+    return 0.0;
+  return param_pinv->get_pinv();
 }
 
 void Model::set_prop_inv(double value)
 {
-    prop_inv = value;
+  param_pinv->set_pinv(value);
 }
 double Model::get_alpha() const
 {
-    return alpha;
+  return param_gamma->get_alpha();
 }
 
 void Model::set_alpha(double value)
 {
-    alpha = value;
+  param_gamma->set_alpha(value);
 }
 
 mt_size_t Model::get_n_states( void ) const
@@ -274,7 +296,7 @@ mt_size_t Model::get_n_subst_rates( void ) const
 
 const double * Model::get_frequencies( void ) const
 {
-    return frequencies;
+    return param_freqs->get_frequencies();
 }
 
 const double * Model::get_mixture_frequencies( mt_index_t matrix_idx ) const
@@ -291,12 +313,12 @@ const unsigned int * Model::get_params_indices( void ) const
 
 void Model::set_frequencies(const double value[])
 {
-    memcpy(frequencies, value, n_frequencies * sizeof(double));
+  param_freqs->set_frequencies(value);
 }
 
 void Model::set_frequencies(const vector<double> & value)
 {
-    memcpy(frequencies, &(value[0]), n_frequencies * sizeof(double));
+  param_freqs->set_frequencies(value);
 }
 
 const double * Model::get_subst_rates( void ) const
@@ -403,6 +425,14 @@ void Model::set_tree( pll_utree_t * _tree )
     tree = _tree;
 }
 
+bool Model::optimize_init ( Partition const& partition )
+{
+  bool result = true;
+  for (AbstractParameter * parameter : parameters)
+    result &= parameter->initialize(partition);
+  return result;
+}
+
 bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance )
 {
     mt_opt_params_t params;
@@ -410,76 +440,26 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
     params.tree = tree;
     params.params_indices = params_indices;
 
-    lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
-//        mt_size_t iters_hard_limit = 200;
-//        while (fabs (cur_logl - logl) > epsilon && cur_logl < logl)
-//        {
-//            double iter_logl;
-//            if (!(n_iters % params_to_optimize.size()))
-//              logl = cur_logl;
+    if (optimize_gamma)
+    {
+      if (optimize_pinv && alpha_inv_guess > 0)
+        param_gamma->set_alpha(alpha_inv_guess);
+      else if (alpha_guess > 0)
+        param_gamma->set_alpha(alpha_guess);
+    }
 
-//            mt_parameter_t cur_parameter = params_to_optimize[cur_parameter_index];
-//#if(CHECK_LOCAL_CONVERGENCE)
-//            if (!(converged & cur_parameter))
-//            {
-//                test_logl = cur_logl;
-//#endif
-//                bool full_range_search = n_iters<params_to_optimize.size();
+    for (AbstractParameter * parameter : parameters)
+      lnL = parameter->optimize(&params, lnL, tolerance, true);
+    //lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
 
-//                iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search);
-
-//                //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
-
-//                /* ensure we never get a worse likelihood score */
-//                assert(iter_logl - cur_logl < 1e-5);
-//                cur_logl = iter_logl;
-
-//                // notify parameter optimization
-//                opt_delta = cur_logl;
-//                notify();
-
-//#if(CHECK_LOCAL_CONVERGENCE)
-//                if (fabs(test_logl - cur_logl) < tolerance)
-//                    converged |= cur_parameter;
-//            }
-//#endif
-
-//            cur_parameter_index++;
-//            cur_parameter_index %= params_to_optimize.size();
-
-//            n_iters++;
-//            iters_hard_limit--;
-//            if (!iters_hard_limit)
-//                break;
-//        }
-
-//        /* TODO: if bl are reoptimized */
-//        if (keep_branch_lengths)
-//          tree->set_bl_optimized();
-
-
-//    cur_logl *= -1;
-
-//    time_t end_time = time(NULL);
-
-//    if (_num_threads > 1)
-//    {
-//        /* finalize */
-//        thread_job = JOB_FINALIZE;
-
-//        /* join threads */
-//        for (mt_index_t i=1; i<_num_threads; i++)
-//          pthread_join (threads[i], NULL);
-
-//        /* clean */
-//        for (mt_index_t i=0; i<_num_threads; i++)
-//          dealloc_partition_local(thread_data[i].partition);
-
-//        free(result_buf);
-//        free(threads);
-//        free(thread_data);
-//        free(partition_local);
-//    }
+    if (optimize_gamma)
+    {
+      // alpha = param_gamma->get_alpha();
+      if (optimize_pinv)
+        alpha_inv_guess = param_gamma->get_alpha();
+      else
+        alpha_guess = param_gamma->get_alpha();
+    }
     return true;
 }
 
@@ -488,7 +468,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
                    const partition_descriptor_t &partition,
                    asc_bias_t asc_bias_corr,
                    const mt_size_t *asc_w)
-    : Model(model_params, partition, asc_bias_corr)
+    : Model(model_params, partition, N_DNA_STATES, asc_bias_corr)
 {
     stringstream ss_name;
 
@@ -498,28 +478,28 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
     n_subst_rates = gap_aware?10:N_DNA_SUBST_RATES;
 
-    frequencies = new double[n_frequencies];
+    // frequencies = new double[n_frequencies];
     subst_rates = new double[n_subst_rates];
 
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
-    parameters.push_back(new ParameterRates(matrix_symmetries));
+
+    param_rates = new ParameterRatesOpt(matrix_symmetries);
+    parameters.push_back(param_rates);
 
     mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
                                      dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
                                      matrix_index) - dna_model_matrices_indices);
     if (standard_matrix_index < N_DNA_MODEL_MATRICES)
     {
-        ss_name << dna_model_names[2 * standard_matrix_index + (optimize_freqs?1:0)];
+        ss_name << dna_model_names[2 * standard_matrix_index + (is_F()?1:0)];
     }
     else
     {
         ss_name << dna_model_matrices[matrix_index];
-        if (optimize_freqs)
+        if (is_F())
             ss_name << "[F]";
     }
 
-    for (mt_index_t i=0; i<n_frequencies; i++)
-      frequencies[i] = 1.0/n_frequencies;
     for (mt_index_t i=0; i<n_subst_rates; i++)
       subst_rates[i] = 1.0;
 
@@ -529,13 +509,10 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
         ss_name << "+G";
     name = ss_name.str();
 
-    n_free_variables = get_n_subst_params();
-    if (optimize_freqs)
-        n_free_variables += n_frequencies-1;
-    if (optimize_pinv)
-        n_free_variables ++;
-    if (optimize_gamma)
-        n_free_variables ++;
+    n_free_variables = param_rates->get_n_free_parameters();
+    n_free_variables += param_freqs->get_n_free_parameters();
+    n_free_variables += param_gamma->get_n_free_parameters();
+    n_free_variables += param_pinv?param_pinv->get_n_free_parameters():0;
 
     if (asc_bias_corr == asc_felsenstein)
     {
@@ -555,7 +532,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
 DnaModel::DnaModel(const Model & other)
     : Model()
 {
-    frequencies = new double[N_DNA_STATES];
+    // frequencies = new double[N_DNA_STATES];
     subst_rates = new double[N_DNA_SUBST_RATES];
     clone(&other);
 }
@@ -566,13 +543,12 @@ void DnaModel::clone(const Model * other_model)
     matrix_index = other->matrix_index;
     name = other->name;
     memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
-    optimize_pinv  = other->optimize_pinv;
-    optimize_gamma = other->optimize_gamma;
-    optimize_freqs = other->optimize_freqs;
+    optimize_pinv   = other->optimize_pinv;
+    optimize_gamma  = other->optimize_gamma;
+    optimize_freqs  = other->optimize_freqs;
+    empirical_freqs = other->empirical_freqs;
 
-    prop_inv = other->prop_inv;
-    alpha    = other->alpha;
-    memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
+    // memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
     memcpy(subst_rates, other->subst_rates, N_DNA_SUBST_RATES * sizeof(double));
 
     set_n_categories(other->n_categories);
@@ -587,6 +563,42 @@ void DnaModel::clone(const Model * other_model)
     exec_time = other->exec_time;
     if (other->tree)
         tree = pll_utree_clone(other->tree);
+
+    /* clone parameters */
+    if (other->param_gamma)
+    {
+      param_gamma = new ParameterGamma(*(other->param_gamma));
+      parameters.push_back(param_gamma);
+    }
+    if (other->param_pinv)
+    {
+      param_pinv = new ParameterPinv(*(other->param_pinv));
+      parameters.push_back(param_pinv);
+    }
+    if (other->param_rates)
+    {
+      const ParameterRatesOpt * other_rates =
+        dynamic_cast<const ParameterRatesOpt *>(other->param_rates);
+      param_rates = new ParameterRatesOpt(*other_rates);
+      parameters.push_back(param_rates);
+    }
+    if (other->param_freqs)
+    {
+      if (optimize_freqs)
+        param_freqs = new ParameterFrequenciesOpt(
+          *(dynamic_cast<const ParameterFrequenciesOpt *>(
+            other->param_freqs)));
+      else
+        param_freqs = new ParameterFrequenciesFixed(
+          *(dynamic_cast<const ParameterFrequenciesFixed *>(
+            other->param_freqs)));
+      parameters.push_back(param_freqs);
+    }
+    if (other->param_branches)
+    {
+      param_branches = new ParameterBranches(*(other->param_branches));
+      parameters.push_back(param_branches);
+    }
 }
 
 const int * DnaModel::get_symmetries( void ) const
@@ -681,8 +693,7 @@ void DnaModel::print(std::ostream  &out)
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
         << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-    for (mt_index_t i=0; i<n_frequencies; i++)
-        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    param_freqs->print(out);
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Subst. Rates:";
     for (mt_index_t i=0; i<n_subst_rates; i++)
@@ -690,12 +701,12 @@ void DnaModel::print(std::ostream  &out)
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
     if (is_I())
-        out << prop_inv << endl;
+        out << get_prop_inv() << endl;
     else
         out << "-" << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
     if (is_G())
-        out << alpha << endl;
+        out << get_alpha() << endl;
     else
         out << "-" << endl;
 }
@@ -711,15 +722,14 @@ void DnaModel::print_xml(std::ostream  &out)
     else
         out << "fixed";
     out << "\">" << endl << "  ";
-    for (mt_index_t i=0; i<n_frequencies; i++)
-        out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
+    param_freqs->print(out);
     out << endl << "  </frequencies>" << endl;
     out << "  <subst_rates>" << endl << "  ";
     for (mt_index_t i=0; i<n_subst_rates; i++)
         out << "  " << setprecision(MT_PRECISION_DIGITS) << subst_rates[i];
     out << endl << "  </subst_rates>" << endl;
-    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << prop_inv <<
-           "\" alpha=\"" << alpha << "\"/>" << endl;
+    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() <<
+           "\" alpha=\"" << get_alpha() << "\"/>" << endl;
     out << "</model>" << endl;
 }
 
@@ -730,14 +740,13 @@ void DnaModel::output_log(std::ostream  &out)
     for (mt_index_t i=0; i<n_subst_rates; i++)
         out << matrix_symmetries[i] << " ";
     out << n_free_variables << " ";
-    out << optimize_freqs << " " << optimize_pinv << " " << optimize_gamma << " ";
+    out << optimize_freqs << " " << empirical_freqs << " " << optimize_pinv << " " << optimize_gamma << " ";
     out << lnL << " ";
-    for (mt_index_t i=0; i<n_frequencies; i++)
-        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    param_freqs->print(out);
     for (mt_index_t i=0; i<n_subst_rates; i++)
         out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
-    out << setprecision(MT_PRECISION_DIGITS) << prop_inv << " ";
-    out << setprecision(MT_PRECISION_DIGITS) << alpha << " ";
+    out << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() << " ";
+    out << setprecision(MT_PRECISION_DIGITS) << get_alpha() << " ";
     char *newick = pll_utree_export_newick(tree);
     out << strlen(newick) << " ";
     out << newick << " ";
@@ -772,19 +781,24 @@ void DnaModel::input_log(std::istream  &in)
     }
     read_word(in, str, LOG_LEN); n_free_variables = Utils::parse_size(str);
     read_word(in, str, LOG_LEN); optimize_freqs = atoi(str);
+    read_word(in, str, LOG_LEN); empirical_freqs = atoi(str);
     read_word(in, str, LOG_LEN); optimize_pinv = atoi(str);
     read_word(in, str, LOG_LEN); optimize_gamma = atoi(str);
     read_word(in, str, LOG_LEN); lnL = atof(str);
+
+    double frequencies[n_frequencies];
     for (mt_index_t i=0; i<n_frequencies; i++)
     {
         read_word(in, str, LOG_LEN); frequencies[i] = atof(str);
     }
+    param_freqs->set_frequencies(frequencies);
+
     for (mt_index_t i=0; i<n_subst_rates; i++)
     {
         read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
     }
-    read_word(in, str, LOG_LEN); prop_inv = atof(str);
-    read_word(in, str, LOG_LEN); alpha    = atof(str);
+    read_word(in, str, LOG_LEN); set_prop_inv(atof(str));
+    read_word(in, str, LOG_LEN); set_alpha(atof(str));
     read_word(in, str, LOG_LEN); mt_size_t treelen = Utils::parse_size(str);
 
     treestr = (char *) Utils::allocate(treelen + 1, 1);
@@ -818,7 +832,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
              const partition_descriptor_t &partition,
              asc_bias_t asc_bias_corr,
              const mt_size_t *asc_w)
-    : Model(model_params, partition, asc_bias_corr)
+    : Model(model_params, partition, N_PROT_STATES, asc_bias_corr)
 {
     stringstream ss_name;
 
@@ -828,11 +842,11 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 
     n_frequencies   = N_PROT_STATES;
     n_subst_rates   = N_PROT_SUBST_RATES;
-   n_free_variables = 0;
+    n_free_variables = 0;
 
     if (mixture)
     {
-        assert (optimize_gamma && !optimize_freqs);
+        assert (optimize_gamma && !empirical_freqs);
         if (matrix_index == LG4M_INDEX)
         {
             /* LG4M model */
@@ -850,9 +864,9 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     }
     else
     {
-        frequencies = new double[N_PROT_STATES];
-        memcpy(frequencies, prot_model_freqs[matrix_index], N_PROT_STATES * sizeof(double));
         fixed_subst_rates = prot_model_rates[matrix_index];
+        if (!empirical_freqs)
+          param_freqs->set_frequencies(prot_model_freqs[matrix_index]);
     }
 
     if (asc_bias_corr == asc_felsenstein)
@@ -874,12 +888,16 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         ss_name << "+I";
     if (optimize_gamma && !mixture)
         ss_name << "+G";
-    if (optimize_freqs)
-        ss_name << "+F";
+
+    if (empirical_freqs)
+    {
+      ss_name << "+F";
+    }
     name = ss_name.str();
 
-    if (optimize_freqs)
+    if (optimize_freqs || empirical_freqs)
         n_free_variables += N_PROT_STATES-1;
+
     if (optimize_pinv)
         n_free_variables ++;
     if (optimize_gamma)
@@ -889,14 +907,14 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 ProtModel::ProtModel(const Model & other)
     : Model()
 {
-    frequencies = new double[N_PROT_STATES];
+    // frequencies = new double[N_PROT_STATES];
     clone(&other);
 }
 
 ProtModel::~ProtModel()
 {
-    delete[] frequencies;
-    frequencies = 0;
+    // delete[] frequencies;
+    // frequencies = 0;
     subst_rates = 0;
 }
 
@@ -908,11 +926,10 @@ void ProtModel::clone(const Model * other_model)
     optimize_pinv  = other->optimize_pinv;
     optimize_gamma = other->optimize_gamma;
     optimize_freqs = other->optimize_freqs;
+    empirical_freqs = other->empirical_freqs;
 
-    prop_inv = other->prop_inv;
-    alpha    = other->alpha;
     //TODO: Check for LG4!
-    memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
+    // memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
     fixed_subst_rates = other->fixed_subst_rates;
 
     set_n_categories(other->n_categories);
@@ -1056,24 +1073,25 @@ void ProtModel::print(std::ostream  &out)
     }
     else
     {
-        for (mt_index_t i=0; i<N_PROT_STATES; i++)
-        {
-            out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
-            if ((i+1)<N_PROT_STATES && !((i+1)%5))
-            {
-                out << endl << setw(PRINTMODEL_TABSIZE) << " ";
-            }
-        }
+      param_freqs->print(out);
+        // for (mt_index_t i=0; i<N_PROT_STATES; i++)
+        // {
+        //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+        //     if ((i+1)<N_PROT_STATES && !((i+1)%5))
+        //     {
+        //         out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+        //     }
+        // }
         out << endl;
     }
     out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
     if (is_I())
-        out << prop_inv << endl;
+        out << get_prop_inv() << endl;
     else
         out << "-" << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
     if (is_G())
-        out << alpha << endl;
+        out << get_alpha() << endl;
     else
         out << "-" << endl;
 }
@@ -1089,14 +1107,15 @@ void ProtModel::print_xml(std::ostream  &out)
     else
         out << "model";
     out << "\">" << endl << "  ";
-    for (mt_index_t i=0; i<N_PROT_STATES; i++)
-    {
-        out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
-        if ((i%5)==4) out << endl << "  ";
-    }
+    param_freqs->print(out);
+    // for (mt_index_t i=0; i<N_PROT_STATES; i++)
+    // {
+    //     out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
+    //     if ((i%5)==4) out << endl << "  ";
+    // }
     out << "</frequencies>" << endl;
-    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << prop_inv <<
-           "\" alpha=\"" << alpha << "\"/>" << endl;
+    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() <<
+           "\" alpha=\"" << get_alpha() << "\"/>" << endl;
     out << "</model>" << endl;
 }
 
@@ -1106,14 +1125,15 @@ void ProtModel::output_log(std::ostream  &out)
     out << get_matrix_index() << " ";
     out << is_F() << " " << is_I() << " " << is_G() << " ";
     out << get_lnl() << " ";
-    for (mt_index_t i=0; i<N_PROT_STATES; i++)
-        out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+    param_freqs->print(out);
+    // for (mt_index_t i=0; i<N_PROT_STATES; i++)
+    //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
     if (is_I())
-        out << setprecision(MT_PRECISION_DIGITS) << prop_inv << " ";
+        out << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() << " ";
     else
         out << "- ";
     if (is_G())
-        out << setprecision(MT_PRECISION_DIGITS) << alpha << " ";
+        out << setprecision(MT_PRECISION_DIGITS) << get_alpha() << " ";
     else
         out << "- ";
     char *newick = pll_utree_export_newick(tree);

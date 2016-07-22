@@ -26,25 +26,19 @@ static bool build_models(const partition_descriptor_t &descriptor,
 
     mt_mask_t freq_params = model_params & MOD_MASK_FREQ_PARAMS;
     mt_mask_t rate_params = model_params & MOD_MASK_RATE_PARAMS;
-    if (!freq_params)
+
+    n_models = Utils::number_of_models(n_matrices, model_params);
+
+    if (!n_models)
     {
         mt_errno = MT_ERROR_MODELS;
-         snprintf(mt_errmsg, ERR_MSG_SIZE, "Model frequencies is empty");
+         snprintf(mt_errmsg, ERR_MSG_SIZE, "Candidate models set is empty");
         return false;
     }
 
-    mt_mask_t it_model_params = rate_params;
-    while (it_model_params)
-    {
-        if (it_model_params & 1) n_models += n_matrices;
-        it_model_params >>= 1;
-    }
-
-    if (freq_params == 3)
-        n_models *= 2;
     c_models.reserve(n_models);
 
-    for (mt_index_t i=1; i<64; i*=2)
+    for (mt_index_t i=MOD_PARAM_MIN_RPARAM; i<=MOD_PARAM_MAX_RPARAM; i<<=1)
     {
         mt_mask_t cur_rate_param = rate_params & i;
         if (cur_rate_param)
@@ -104,10 +98,10 @@ static bool build_models(const partition_descriptor_t &descriptor,
                                                       asc_bias_corr,
                                                       asc_weights)
                                         );
-                        if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
+                        if (freq_params & MOD_PARAM_EMPIRICAL_FREQ)
                             c_models.push_back(
                                         new ProtModel(model_matrix,
-                                                      cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
+                                                      cur_rate_param | MOD_PARAM_EMPIRICAL_FREQ,
                                                       descriptor,
                                                       asc_bias_corr,
                                                       asc_weights)
@@ -120,7 +114,6 @@ static bool build_models(const partition_descriptor_t &descriptor,
         }
     }
     assert(datatype == dt_protein || (c_models.size() == n_models));
-
     return true;
 }
 
@@ -256,6 +249,11 @@ mt_size_t Partition::get_number_of_models( void ) const
 mt_size_t Partition::get_n_sites( void ) const
 {
     return n_sites;
+}
+
+mt_size_t Partition::get_n_sequences( void ) const
+{
+  return msa.get_n_sequences();
 }
 
 mt_size_t Partition::get_n_patterns( void ) const

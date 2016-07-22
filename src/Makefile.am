@@ -5,6 +5,7 @@ modeltestx_SOURCES = \
 	service/modeltestservice.cpp \
 	thread/observer.cpp \
 	model/abstract_parameter.cpp \
+	model/parameter_branches.cpp \
 	model/parameter_gamma.cpp \
 	model/parameter_pinv.cpp \
 	model/parameter_rates.cpp \

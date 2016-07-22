@@ -479,8 +479,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           if (verbosity >= VERBOSITY_HIGH)
              cout << "<TRACE> Start alpha" << endl;
 
-          model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
-          cur_logl = model.get_lnl();
           params->lk_params.alpha_value = model.get_alpha();
           // cur_logl = opt_alpha(tolerance, first_guess);
           if (verbosity >= VERBOSITY_MID)
@@ -852,8 +850,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       }
     }
 
-    if (model.is_F())
-        model.set_frequencies(partition.get_empirical_frequencies());
+    // if (model.is_F())
+    // {
+        // model.set_frequencies(partition.get_empirical_frequencies());
+    // }
 
     if (model.is_mixture())
     {
@@ -908,6 +908,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       vector<mt_parameter_t> params_to_optimize;
 
+      if (!model.optimize_init(partition))
+      {
+        return false;
+      }
+      
       if ((model.get_datatype() == dt_dna || !tree.is_bl_optimized()))
           params_to_optimize.push_back(mt_param_branch_lengths);
       if (model.get_datatype() == dt_dna && model.get_n_subst_params() > 0)
@@ -1033,7 +1038,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       mt_index_t cur_parameter_index = 0;
 
-      if (params_to_optimize.size())
+      while ((!interrupt_optimization) &&
+        (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+        {
+            logl = cur_logl;
+            model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
+            cur_logl = model.get_lnl();
+        }
+
+      if (params_to_optimize.size() && false)
       {
           mt_size_t iters_hard_limit = 200;
           while ((!interrupt_optimization) &&
@@ -1152,8 +1165,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           model.set_exec_time(end_time - start_time);
           model.set_n_categories(pll_partition->rate_cats);
 
-          if (model.is_G())
-              model.set_alpha(params->lk_params.alpha_value);
+          // if (model.is_G())
+          //     model.set_alpha(params->lk_params.alpha_value);
           if (model.is_I())
               model.set_prop_inv(pll_partition->prop_invar[0]);
 

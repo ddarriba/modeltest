@@ -29,10 +29,15 @@ static double target_func(void *p, double x)
   return score;
 }
 
-ParameterGamma::ParameterGamma(mt_size_t n_cats)
-  : n_cats(n_cats)
+ParameterGamma::ParameterGamma(mt_size_t n_cats, double alpha)
+  : n_cats(n_cats), alpha(alpha)
 {
-  alpha = 0.5;
+}
+
+ParameterGamma::ParameterGamma( const ParameterGamma & other )
+{
+  n_cats = other.n_cats;
+  alpha = other.alpha;
 }
 
 ParameterGamma::~ParameterGamma( void )
@@ -40,7 +45,7 @@ ParameterGamma::~ParameterGamma( void )
 
 }
 
-bool ParameterGamma::initialize(const partition_descriptor_t & partition_desc)
+bool ParameterGamma::initialize(Partition const& partition)
 {
 
   return true;
@@ -58,7 +63,8 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
 
   if (n_cats == 1)
     return loglikelihood;
-    
+
+// printf("%f\n", loglikelihood);
   xres = pll_minimize_brent(MIN_ALPHA, alpha, MAX_ALPHA,
                                 tolerance,
                                 &cur_logl,
@@ -68,13 +74,29 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
 
   /* update alpha */
   target_func(params, xres);
+  alpha = xres;
 
   return cur_logl;
 }
 
-void ParameterGamma::print(std::ostream  &out)
+void ParameterGamma::print(std::ostream  &out) const
 {
 
+}
+
+double ParameterGamma::get_alpha( void ) const
+{
+  return alpha;
+}
+
+void ParameterGamma::set_alpha( double _alpha )
+{
+  alpha = _alpha;
+}
+
+mt_size_t ParameterGamma::get_n_free_parameters( void ) const
+{
+  return (n_cats > 1)?1:0;
 }
 
 } /* namespace modeltest */

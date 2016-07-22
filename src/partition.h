@@ -33,6 +33,7 @@ public:
     mt_size_t get_number_of_models( void ) const;
     mt_size_t get_n_sites( void ) const;
     mt_size_t get_n_patterns( void ) const;
+    mt_size_t get_n_sequences( void ) const;
     std::vector<Model *> const& get_models( void ) const;
     Model * get_model(mt_index_t index) const;
     data_type_t get_datatype( void ) const;
@@ -60,7 +61,7 @@ private:
     std::vector<double> emp_freqs;       //! empirical frequencies
     std::vector<double> emp_subst_rates; //! empirical substitution rates
     double emp_pinv;                     //! empirical prop. invar.
-    
+
     std::vector<Model *> c_models;       //! candidate models
 
     /**
