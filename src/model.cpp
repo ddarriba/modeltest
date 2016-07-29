@@ -1058,18 +1058,21 @@ void ProtModel::print(std::ostream  &out)
             out << endl << endl;
             if (j <N_MIXTURE_CATS-1) out << setw(PRINTMODEL_TABSIZE) << " ";
         }
-        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
-        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        if (matrix_index == LG4X_INDEX)
         {
-           out << setprecision(MT_PRECISION_DIGITS) << mixture_weights[j] << " ";
+          out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
+          for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+          {
+             out << setprecision(MT_PRECISION_DIGITS) << mixture_weights[j] << " ";
+          }
+          out << endl;
+          out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
+          for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+          {
+             out << setprecision(MT_PRECISION_DIGITS) << mixture_rates[j] << " ";
+          }
+          out << endl;
         }
-        out << endl;
-        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
-        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
-        {
-           out << setprecision(MT_PRECISION_DIGITS) << mixture_rates[j] << " ";
-        }
-        out << endl;
     }
     else
     {

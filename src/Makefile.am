@@ -6,6 +6,7 @@ modeltestx_SOURCES = \
 	thread/observer.cpp \
 	model/abstract_parameter.cpp \
 	model/parameter_branches.cpp \
+	model/parameter_ratecats.cpp \
 	model/parameter_gamma.cpp \
 	model/parameter_pinv.cpp \
 	model/parameter_rates.cpp \
@@ -44,7 +45,11 @@ pkginclude_HEADERS= \
 	thread/observer.h \
 	thread/threadpool.h \
 	model/abstract_parameter.h \
+	model/parameter_ratecats.h \
 	model/parameter_gamma.h \
+	model/parameter_pinv.h \
+	model/parameter_rates.h \
+	model/parameter_frequencies.h \
 	model_optimizer_pll.h \
 	loggable.h \
 	meta.h \
