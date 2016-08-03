@@ -12,13 +12,6 @@ using namespace std;
 namespace modeltest
 {
 
-static double target_func(void *p, double *x);
-
-struct custom_params {
-  mt_opt_params_t * common_params;
-  mt_index_t highest_freq_state;
-};
-
 ParameterFrequencies::ParameterFrequencies( mt_size_t states ) :
   states(states)
 {
@@ -55,18 +48,7 @@ void ParameterFrequencies::print(std::ostream  &out) const
 ParameterFrequenciesOpt::ParameterFrequenciesOpt( mt_size_t states )
   : ParameterFrequencies(states)
 {
-  x = new double[states - 1];
-  lower = new double[states - 1];
-  upper = new double[states - 1];
-  bound_type = new int[states - 1];
   frequencies = new double[states];
-
-  for (mt_index_t i=0; i<states-1; ++i)
-  {
-    lower[i] = MIN_FREQ_RATE;
-    upper[i] = MAX_FREQ_RATE;
-    bound_type[i] = PLL_LBFGSB_BOUND_BOTH;
-  }
 
   for (mt_index_t i=0; i<states; ++i)
   {
@@ -78,15 +60,7 @@ ParameterFrequenciesOpt::ParameterFrequenciesOpt( ParameterFrequenciesOpt const&
   : ParameterFrequencies(states)
 {
   states = other.states;
-  x = new double[states - 1];
-  lower = new double[states - 1];
-  upper = new double[states - 1];
-  bound_type = new int[states - 1];
   frequencies = new double[states];
-  memcpy(x, other.x, sizeof(double) * (states - 1));
-  memcpy(lower, other.lower, sizeof(double) * (states - 1));
-  memcpy(upper, other.upper, sizeof(double) * (states - 1));
-  memcpy(bound_type, other.bound_type, sizeof(int) * (states - 1));
   memcpy(frequencies,
          other.frequencies,
          sizeof(double) * states);
@@ -94,10 +68,6 @@ ParameterFrequenciesOpt::ParameterFrequenciesOpt( ParameterFrequenciesOpt const&
 
 ParameterFrequenciesOpt::~ParameterFrequenciesOpt( void )
 {
-  delete[] x;
-  delete[] lower;
-  delete[] upper;
-  delete[] bound_type;
   delete[] frequencies;
 }
 
@@ -117,42 +87,11 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_logl;
 
-  struct custom_params opt_params;
-  opt_params.common_params = params;
-
-  unsigned int states = params->partition->states;
-  unsigned int n_freqs_free_params = states - 1;
-  unsigned int cur_index;
-  mt_index_t params_index = 0;
-
-  double * frequencies =
-      params->partition->frequencies[params_index];
-
-  /* find highest frequency */
-  opt_params.highest_freq_state = 0;
-  for (mt_index_t i = 1; i < states; i++)
-          if (frequencies[i] > frequencies[opt_params.highest_freq_state])
-            opt_params.highest_freq_state = i;
-
-  cur_index = 0;
-  for (mt_index_t i = 0; i < states; i++)
-  {
-    if (i != opt_params.highest_freq_state)
-    {
-      x[cur_index] = frequencies[i]
-          / frequencies[opt_params.highest_freq_state];
-      cur_index++;
-    }
-  }
-
-  cur_logl = pll_minimize_lbfgsb(x, lower, upper, bound_type,
-                                 n_freqs_free_params,
-                                 1e9, tolerance,
-                                 (void *) &opt_params,
-                                 &target_func);
-
-  /* update frequencies */
-  target_func((void *)&opt_params, x);
+  cur_logl = pllmod_algo_opt_frequencies(params->partition,
+                                         params->tree,
+                                         0,
+                                         params->params_indices,
+                                         tolerance);
 
   return cur_logl;
 }
@@ -209,55 +148,6 @@ double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
 {
   /* do not optimize */
   return loglikelihood;
-}
-
-/* static functions */
-
-static double target_func(void *p, double *x)
-{
-  struct custom_params * params = (struct custom_params *) p;
-  mt_opt_params_t * mt_params = (mt_opt_params_t *) params->common_params;
-  pll_partition_t * partition = mt_params->partition;
-
-  mt_index_t highest_freq_state = params->highest_freq_state;
-  mt_size_t states = partition->states;
-
-  mt_index_t i;
-  mt_index_t cur_index;
-
-  double sum_ratios = 1.0;
-
-  /* update frequencies */
-  double *freqs = new double[states];
-
-  for (i = 0; i < (states - 1); ++i)
-  {
-    assert(x[i] == x[i]);
-    sum_ratios += x[i];
-  }
-  cur_index = 0;
-  for (i = 0; i < states; ++i)
-  {
-    if (i != highest_freq_state)
-    {
-      freqs[i] = x[cur_index] / sum_ratios;
-      cur_index++;
-    }
-  }
-  freqs[highest_freq_state] = 1.0 / sum_ratios;
-  pll_set_frequencies (partition,
-                       0,
-                       freqs);
-  delete[] freqs;
-
-  /* compute negative score */
-  double score = -1 *
-                 pll_utree_compute_lk(mt_params->partition,
-                                      mt_params->tree,
-                                      mt_params->params_indices,
-                                      1,   /* update pmatrices */
-                                      1);  /* update partials */
-  return score;
 }
 
 mt_size_t ParameterFrequenciesFixed::get_n_free_parameters( void ) const

@@ -4,7 +4,7 @@
 #include "global_defs.h"
 #include "modeltest.h"
 #include "model_selection.h"
-#include "model.h"
+#include "model/model.h"
 #include "thread/observer.h"
 
 #include <string>

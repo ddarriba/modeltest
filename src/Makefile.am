@@ -9,9 +9,9 @@ modeltestx_SOURCES = \
 	model/parameter_ratecats.cpp \
 	model/parameter_gamma.cpp \
 	model/parameter_pinv.cpp \
-	model/parameter_rates.cpp \
+	model/parameter_substrates.cpp \
 	model/parameter_frequencies.cpp \
-	model.cpp \
+	model/model.cpp \
 	model_optimizer_pll.cpp \
 	model_selection.cpp \
 	modeltest.cpp \
@@ -26,7 +26,7 @@ modeltestx_SOURCES = \
 modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
-modeltestx_LDADD = -lpll -lpll_optimize -lpll_msa -lpll_tree
+modeltestx_LDADD = -lpll_algorithm -lpll -lpll_optimize -lpll_msa -lpll_tree
 
 #if HAVE_AVX
 #  modeltestx_CPPFLAGS += -DHAVE_AVX
@@ -48,16 +48,16 @@ pkginclude_HEADERS= \
 	model/parameter_ratecats.h \
 	model/parameter_gamma.h \
 	model/parameter_pinv.h \
-	model/parameter_rates.h \
+	model/parameter_substrates.h \
 	model/parameter_frequencies.h \
 	model_optimizer_pll.h \
+	model/model.h \
 	loggable.h \
 	meta.h \
 	utils.h \
 	tree.h \
 	plldefs.h \
 	model_selection.h \
-	model.h \
 	model_defs.h \
 	partition.h \
 	model_optimizer.h \

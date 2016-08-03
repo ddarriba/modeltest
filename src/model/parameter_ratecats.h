@@ -19,9 +19,11 @@ public:
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
   virtual void print(std::ostream  &out = std::cout) const;
+  virtual double get_alpha( void ) const { return -1; }
+  virtual void set_alpha( double alpha ) {}
 
   virtual mt_size_t get_n_free_parameters( void ) const;
-private:
+protected:
   mt_size_t n_cats;
 };
 

@@ -8,7 +8,7 @@
 #ifndef MODEL_OPTIMIZER_H_
 #define MODEL_OPTIMIZER_H_
 
-#include "model.h"
+#include "model/model.h"
 #include "msa.h"
 #include "partition.h"
 #include "thread/observer.h"

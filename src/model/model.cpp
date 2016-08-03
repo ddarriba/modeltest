@@ -88,9 +88,6 @@ Model::Model(mt_mask_t model_params,
     n_categories = 0;
     params_indices = 0;
 
-    // frequencies = 0;
-    subst_rates = 0;
-
     tree = 0;
 
     asc_weights = 0;
@@ -99,13 +96,12 @@ Model::Model(mt_mask_t model_params,
     param_pinv     = 0;
     param_branches = 0;
     param_freqs    = 0;
-    param_rates    = 0;
+    param_substrates    = 0;
 
     param_branches = new ParameterBranches();
     parameters.push_back(param_branches);
 
-    param_gamma = new ParameterGamma(optimize_gamma?4:1);
-    parameters.push_back(param_gamma);
+    param_gamma = 0;
 
     if (optimize_pinv)
     {
@@ -146,9 +142,6 @@ Model::Model( void )
     n_categories = 0;
     params_indices = 0;
 
-    // frequencies = 0;
-    subst_rates = 0;
-
     tree = 0;
 
     asc_weights = 0;
@@ -158,10 +151,6 @@ Model::~Model()
 {
   if (asc_weights)
     delete[] asc_weights;
-  // if (frequencies)
-  //   delete[] frequencies;
-  if (subst_rates)
-    delete[] subst_rates;
   if (params_indices)
     free(params_indices);
   if (tree)
@@ -323,25 +312,13 @@ void Model::set_frequencies(const vector<double> & value)
 
 const double * Model::get_subst_rates( void ) const
 {
-    return subst_rates;
+    return param_substrates->get_subst_rates();
 }
 
 const double * Model::get_mixture_subst_rates( mt_index_t matrix_idx ) const
 {
     UNUSED(matrix_idx);
     return 0;
-}
-
-void Model::set_subst_rates(const double value[], bool full_vector)
-{
-    if (full_vector)
-    {
-        memcpy(subst_rates, value, n_subst_rates * sizeof(double));
-    }
-    else
-    {
-        assert(0);
-    }
 }
 
 const double * Model::get_mixture_weights( void ) const
@@ -478,13 +455,14 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
     n_subst_rates = gap_aware?10:N_DNA_SUBST_RATES;
 
-    // frequencies = new double[n_frequencies];
-    subst_rates = new double[n_subst_rates];
-
+    matrix_symmetries = new int[n_subst_rates];
     set_subst_params(matrix_symmetries, dna_model_matrices[matrix_index]);
 
-    param_rates = new ParameterRatesOpt(matrix_symmetries);
-    parameters.push_back(param_rates);
+    param_gamma = new ParameterGamma(optimize_gamma?n_categories:1);
+    parameters.push_back(param_gamma);
+
+    param_substrates = new ParameterSubstRatesOpt(matrix_symmetries, n_subst_rates);
+    parameters.push_back(param_substrates);
 
     mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
                                      dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
@@ -500,16 +478,13 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
             ss_name << "[F]";
     }
 
-    for (mt_index_t i=0; i<n_subst_rates; i++)
-      subst_rates[i] = 1.0;
-
     if (optimize_pinv)
         ss_name << "+I";
     if (optimize_gamma)
         ss_name << "+G";
     name = ss_name.str();
 
-    n_free_variables = param_rates->get_n_free_parameters();
+    n_free_variables = param_substrates->get_n_free_parameters();
     n_free_variables += param_freqs->get_n_free_parameters();
     n_free_variables += param_gamma->get_n_free_parameters();
     n_free_variables += param_pinv?param_pinv->get_n_free_parameters():0;
@@ -532,9 +507,13 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
 DnaModel::DnaModel(const Model & other)
     : Model()
 {
-    // frequencies = new double[N_DNA_STATES];
-    subst_rates = new double[N_DNA_SUBST_RATES];
+    matrix_symmetries = new int[other.get_n_subst_rates()];
     clone(&other);
+}
+
+DnaModel::~DnaModel( void )
+{
+  delete[] matrix_symmetries;
 }
 
 void DnaModel::clone(const Model * other_model)
@@ -547,9 +526,6 @@ void DnaModel::clone(const Model * other_model)
     optimize_gamma  = other->optimize_gamma;
     optimize_freqs  = other->optimize_freqs;
     empirical_freqs = other->empirical_freqs;
-
-    // memcpy(frequencies, other->frequencies, N_DNA_STATES * sizeof(double));
-    memcpy(subst_rates, other->subst_rates, N_DNA_SUBST_RATES * sizeof(double));
 
     set_n_categories(other->n_categories);
     n_free_variables = other->n_free_variables;
@@ -567,7 +543,7 @@ void DnaModel::clone(const Model * other_model)
     /* clone parameters */
     if (other->param_gamma)
     {
-      param_gamma = new ParameterGamma(*(other->param_gamma));
+      param_gamma = new ParameterGamma(*dynamic_cast<ParameterGamma *>(other->param_gamma));
       parameters.push_back(param_gamma);
     }
     if (other->param_pinv)
@@ -575,12 +551,12 @@ void DnaModel::clone(const Model * other_model)
       param_pinv = new ParameterPinv(*(other->param_pinv));
       parameters.push_back(param_pinv);
     }
-    if (other->param_rates)
+    if (other->param_substrates)
     {
-      const ParameterRatesOpt * other_rates =
-        dynamic_cast<const ParameterRatesOpt *>(other->param_rates);
-      param_rates = new ParameterRatesOpt(*other_rates);
-      parameters.push_back(param_rates);
+      const ParameterSubstRatesOpt * other_rates =
+        dynamic_cast<const ParameterSubstRatesOpt *>(other->param_substrates);
+      param_substrates = new ParameterSubstRatesOpt(*other_rates);
+      parameters.push_back(param_substrates);
     }
     if (other->param_freqs)
     {
@@ -610,30 +586,6 @@ mt_size_t DnaModel::get_n_subst_params() const
 {
     return (mt_size_t) *max_element(matrix_symmetries,
                                     matrix_symmetries+N_DNA_SUBST_RATES);
-}
-
-void DnaModel::set_subst_rates(const double value[], bool full_vector)
-{
-    mt_size_t n_subst_params = get_n_subst_params();
-    if (full_vector)
-    {
-        /*TODO: validate symmetries */
-        memcpy(subst_rates, value, n_subst_rates * sizeof(double));
-    }
-    else
-    {
-        for (mt_index_t i=0; i<n_subst_rates; i++)
-        {
-            if (((mt_size_t)matrix_symmetries[i]) == n_subst_params)
-            {
-                subst_rates[i] = 1.0;
-            }
-            else
-            {
-                subst_rates[i] = value[matrix_symmetries[i]];
-            }
-        }
-    }
 }
 
 static mt_mask_t asc_bias_attribute(asc_bias_t v)
@@ -690,6 +642,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
 
 void DnaModel::print(std::ostream  &out)
 {
+    const double * subst_rates = get_subst_rates();
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
         << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
@@ -713,6 +666,7 @@ void DnaModel::print(std::ostream  &out)
 
 void DnaModel::print_xml(std::ostream  &out)
 {
+    const double * subst_rates = get_subst_rates();
     out << "<model datatype=\"dna\" name=\"" << name
         << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << lnL
         << "\">" << endl;
@@ -735,6 +689,7 @@ void DnaModel::print_xml(std::ostream  &out)
 
 void DnaModel::output_log(std::ostream  &out)
 {
+    const double * subst_rates = get_subst_rates();
     out << name << " ";
     out << matrix_index << " ";
     for (mt_index_t i=0; i<n_subst_rates; i++)
@@ -793,10 +748,10 @@ void DnaModel::input_log(std::istream  &in)
     }
     param_freqs->set_frequencies(frequencies);
 
-    for (mt_index_t i=0; i<n_subst_rates; i++)
-    {
-        read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
-    }
+    // for (mt_index_t i=0; i<n_subst_rates; i++)
+    // {
+    //     read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
+    // }
     read_word(in, str, LOG_LEN); set_prop_inv(atof(str));
     read_word(in, str, LOG_LEN); set_alpha(atof(str));
     read_word(in, str, LOG_LEN); mt_size_t treelen = Utils::parse_size(str);
@@ -847,6 +802,8 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     if (mixture)
     {
         assert (optimize_gamma && !empirical_freqs);
+        param_gamma = new ParameterGamma(n_categories);
+        parameters.push_back(param_gamma);
         if (matrix_index == LG4M_INDEX)
         {
             /* LG4M model */
@@ -855,6 +812,9 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
         }
         else
         {
+            param_gamma = new ParameterRateCats(optimize_gamma?n_categories:1);
+            parameters.push_back(param_gamma);
+
             /* LG4X model / free rates */
             optimize_gamma = false;
             n_free_variables += 6;
@@ -864,6 +824,9 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     }
     else
     {
+        param_gamma = new ParameterGamma(optimize_gamma?n_categories:1);
+        parameters.push_back(param_gamma);
+
         fixed_subst_rates = prot_model_rates[matrix_index];
         if (!empirical_freqs)
           param_freqs->set_frequencies(prot_model_freqs[matrix_index]);
@@ -907,15 +870,11 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 ProtModel::ProtModel(const Model & other)
     : Model()
 {
-    // frequencies = new double[N_PROT_STATES];
     clone(&other);
 }
 
 ProtModel::~ProtModel()
 {
-    // delete[] frequencies;
-    // frequencies = 0;
-    subst_rates = 0;
 }
 
 void ProtModel::clone(const Model * other_model)
@@ -965,14 +924,6 @@ const double * ProtModel::get_subst_rates( void ) const
 const double * ProtModel::get_mixture_subst_rates( mt_index_t matrix_idx ) const
 {
     return mixture_subst_rates[matrix_idx];
-}
-
-void ProtModel::set_subst_rates(const double value[], bool full_vector)
-{
-    UNUSED(value);
-    UNUSED(full_vector);
-
-    Utils::exit_with_error("INTERNAL ERROR: Protein substitution rates must be fixed");
 }
 
 const double * ProtModel::get_mixture_weights( void ) const

@@ -9,6 +9,7 @@
 #define PLLDEFS_H_
 
 extern "C" {
+#include <pllmod_algorithm.h>
 #include <pll_optimize.h>
 #include <pll_tree.h>
 }

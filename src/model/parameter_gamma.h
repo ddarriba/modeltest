@@ -1,12 +1,12 @@
-#ifndef PARAMETER_RATES_H
-#define PARAMETER_RATES_H
+#ifndef PARAMETER_GAMMA_H
+#define PARAMETER_GAMMA_H
 
-#include "abstract_parameter.h"
+#include "parameter_ratecats.h"
 
 namespace modeltest
 {
 
-class ParameterGamma : public AbstractParameter
+class ParameterGamma : public ParameterRateCats
 {
 public:
   ParameterGamma(mt_size_t n_cats, double alpha = 0.);
@@ -18,12 +18,11 @@ public:
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
   virtual void print(std::ostream  &out = std::cout) const;
-  double get_alpha( void ) const;
-  void set_alpha( double alpha );
+  virtual double get_alpha( void ) const;
+  virtual void set_alpha( double alpha );
 
   virtual mt_size_t get_n_free_parameters( void ) const;
 private:
-  mt_size_t n_cats;
   double alpha;
 };
 

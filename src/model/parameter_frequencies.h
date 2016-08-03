@@ -45,10 +45,6 @@ public:
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
   virtual mt_size_t get_n_free_parameters( void ) const;
-private:
-  double *x;
-  double *lower, *upper;
-  int *bound_type;
 };
 
 class ParameterFrequenciesFixed : public ParameterFrequencies

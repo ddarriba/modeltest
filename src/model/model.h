@@ -4,7 +4,7 @@
 #include "model_defs.h"
 #include "loggable.h"
 #include "model/parameter_pinv.h"
-#include "model/parameter_rates.h"
+#include "model/parameter_substrates.h"
 #include "model/parameter_branches.h"
 #include "model/parameter_frequencies.h"
 #include "model/parameter_gamma.h"
@@ -141,15 +141,6 @@ public:
 
     const unsigned int * get_params_indices( void ) const;
 
-    /**
-     * @brief Sets the substitution rates
-     * @param[in] value the new substitution rates
-     * @param full_vector if false, contains only the rates
-     *                    corresponding to non-equal rates in order
-     */
-    virtual void set_subst_rates(const double value[],
-                         bool full_vector=true);
-
     virtual const double * get_mixture_weights( void ) const;
 
     virtual void set_mixture_weights(const double value[]);
@@ -246,8 +237,6 @@ protected:
     bool empirical_freqs;
     bool mixture;
 
-    double *subst_rates;
-
     bool gap_aware;
 
     mt_size_t *asc_weights;
@@ -270,9 +259,9 @@ protected:
     pll_utree_t *tree;
 
     std::vector<AbstractParameter *> parameters;
-    ParameterGamma * param_gamma;
+    ParameterRateCats * param_gamma;
     ParameterPinv * param_pinv;
-    ParameterRates * param_rates;
+    ParameterSubstRates * param_substrates;
     ParameterFrequencies * param_freqs;
     ParameterBranches * param_branches;
 };
@@ -286,6 +275,8 @@ public:
              asc_bias_t asc_bias_corr = asc_none,
              const mt_size_t *asc_w = 0);
     DnaModel(const Model &other);
+    virtual ~DnaModel( void );
+
     virtual void clone(const Model *other);
 
     virtual data_type_t get_datatype( void ) const
@@ -309,15 +300,6 @@ public:
      */
     virtual mt_size_t get_n_subst_params() const;
 
-    /**
-     * @brief Set the substitution rates
-     * @param[in] value an array containing the substitution rates
-     * @param full_vector false, if value contains only the non-symmetrical substituion rates
-     *
-     */
-    virtual void set_subst_rates(const double value[],
-                                 bool full_vector=true);
-
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
                                                mt_size_t n_sites,
@@ -327,7 +309,7 @@ public:
     virtual void output_log(std::ostream  &out);
     virtual void input_log(std::istream  &in);
 private:
-    int matrix_symmetries[N_DNA_SUBST_RATES]; //! The DNA matrix symmetries
+    int *matrix_symmetries; //! The DNA matrix symmetries
 };
 
 class ProtModel : public Model
@@ -360,8 +342,6 @@ public:
     virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
     virtual const double * get_subst_rates( void ) const;
     virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
-    virtual void set_subst_rates(const double value[],
-                                 bool full_vector=true);
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out);

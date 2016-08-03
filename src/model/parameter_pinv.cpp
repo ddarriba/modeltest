@@ -8,26 +8,6 @@ using namespace std;
 namespace modeltest
 {
 
-static double target_func(void *p, double x)
-{
-  mt_opt_params_t * params = (mt_opt_params_t *) p;
-  pll_partition_t * partition = params->partition;
-
-  /* update proportion of invariant sites */
-  pll_update_invariant_sites_proportion(partition,
-                                        0,
-                                        x);
-
-  /* compute negative score */
-  double score = -1 *
-                 pll_utree_compute_lk(params->partition,
-                                      params->tree,
-                                      params->params_indices,
-                                      1,   /* update pmatrices */
-                                      1);  /* update partials */
-  return score;
-}
-
 ParameterPinv::ParameterPinv( void )
 {
   pinv = 0.5;
@@ -45,7 +25,6 @@ ParameterPinv::~ParameterPinv( void )
 
 bool ParameterPinv::initialize(Partition const& partition)
 {
-
   return true;
 }
 
@@ -56,19 +35,13 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
 {
   UNUSED(first_guess);
   double cur_logl;
-  double f2x;
-  double xres;
 
-  pinv = params->partition->prop_invar[0];
-  xres = pll_minimize_brent(MIN_PINV, pinv, MAX_PINV,
-                            tolerance,
-                            &cur_logl,
-                            &f2x,
-                            (void *) params,
-                            &target_func);
-
-  /* update pinv */
-  target_func(params, xres);
+  cur_logl = pllmod_algo_opt_pinv (params->partition,
+                                   params->tree,
+                                   params->params_indices,
+                                   MIN_PINV,
+                                   MAX_PINV,
+                                   tolerance);
 
   return cur_logl;
 }
@@ -92,4 +65,5 @@ mt_size_t ParameterPinv::get_n_free_parameters( void ) const
 {
   return 1;
 }
+
 } /* namespace modeltest */

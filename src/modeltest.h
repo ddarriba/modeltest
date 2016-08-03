@@ -5,7 +5,7 @@
 #include "msa.h"
 #include "tree.h"
 #include "tree.h"
-#include "model.h"
+#include "model/model.h"
 #include "model_selection.h"
 #include "model_optimizer_pll.h"
 #include "partitioning_scheme.h"

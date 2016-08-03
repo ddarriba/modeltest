@@ -2,7 +2,7 @@
 #include "ui_resultsdialog.h"
 #include "gui/resultsexportdialog.h"
 
-#include "model.h"
+#include "model/model.h"
 #include "service/modeltestservice.h"
 
 #ifdef QT_WIDGETS_LIB

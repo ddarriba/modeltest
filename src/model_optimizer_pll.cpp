@@ -912,7 +912,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       {
         return false;
       }
-      
+
       if ((model.get_datatype() == dt_dna || !tree.is_bl_optimized()))
           params_to_optimize.push_back(mt_param_branch_lengths);
       if (model.get_datatype() == dt_dna && model.get_n_subst_params() > 0)
@@ -1182,11 +1182,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 //              if (model.is_I())
 //                  pinv_guess = pll_partition->prop_invar[0];
 //          }
-          if (model.get_datatype() == dt_dna)
-          {
-            model.set_frequencies(pll_partition->frequencies[0]);
-            model.set_subst_rates(pll_partition->subst_params[0]);
-          }
+          // if (model.get_datatype() == dt_dna)
+          // {
+          //   model.set_frequencies(pll_partition->frequencies[0]);
+          //   model.set_subst_rates(pll_partition->subst_params[0]);
+          // }
 
           if (model.is_mixture() && !model.is_G())
           {

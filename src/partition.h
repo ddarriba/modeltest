@@ -3,7 +3,7 @@
 
 #include "global_defs.h"
 #include "loggable.h"
-#include "model.h"
+#include "model/model.h"
 #include "msa.h"
 #include "tree.h"
 

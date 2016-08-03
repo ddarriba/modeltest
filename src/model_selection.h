@@ -1,7 +1,7 @@
 #ifndef MODEL_SELECTION_H
 #define MODEL_SELECTION_H
 
-#include "model.h"
+#include "model/model.h"
 #include <vector>
 #include <iostream>
 
