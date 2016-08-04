@@ -26,7 +26,7 @@ modeltestx_SOURCES = \
 modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
-modeltestx_LDADD = -lpll_algorithm -lpll -lpll_optimize -lpll_msa -lpll_tree
+modeltestx_LDADD = -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree
 
 #if HAVE_AVX
 #  modeltestx_CPPFLAGS += -DHAVE_AVX

@@ -485,6 +485,7 @@ void xmodeltest::run_modelselection()
         region.start = 1;
         region.end = n_sites;
         region.stride = 1;
+        partition.gap_aware = false;
         partition.datatype = datatype;
         partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
         partition.partition_name = "DATA";

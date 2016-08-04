@@ -41,7 +41,7 @@ public:
     static bool test_tree( std::string const& tree_filename,
                            mt_size_t *n_tips );
 
-    static bool initialized( void ) { return instance != NULL; }
+    static bool initialized( void ) { return s_instance != NULL; }
 
 //    static bool test_partitions( std::string const&parts_filename,
 //                                 mt_size_t * n_partitions ) {}

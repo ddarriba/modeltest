@@ -13,7 +13,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     utils.cpp \
-    model.cpp \
+    model/abstract_parameter.cpp \
+    model/parameter_branches.cpp \
+    model/parameter_gamma.cpp \
+    model/parameter_ratecats.cpp \
+    model/parameter_frequencies.cpp \
+    model/parameter_pinv.cpp \
+    model/parameter_substrates.cpp \
+    model/model.cpp \
     modeltest.cpp \
     model_optimizer_pll.cpp \
     msapll.cpp \
@@ -21,6 +28,7 @@ SOURCES += main.cpp\
     model_selection.cpp \
     partition.cpp \
     partitioning_scheme.cpp \
+    static_analyzer.cpp \
     gui/xmodeltest.cpp \
     gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
@@ -39,7 +47,14 @@ SOURCES += main.cpp\
 HEADERS  += \
     model_defs.h \
     utils.h \
-    model.h \
+    model/abstract_parameter.h \
+    model/parameter_branches.h \
+    model/parameter_gamma.h \
+    model/parameter_ratecats.h \
+    model/parameter_frequencies.h \
+    model/parameter_pinv.h \
+    model/parameter_substrates.h \
+    model/model.h \
     modeltest.h \
     model_optimizer.h \
     model_optimizer_pll.h \
@@ -52,6 +67,7 @@ HEADERS  += \
     global_defs.h \
     partition.h \
     partitioning_scheme.h \
+    static_analyzer.h \
     thread/threadpool.h \
     gui/qdebugstream.h \
     gui/xmodeltest.h \
@@ -88,8 +104,8 @@ RCC_DIR = build
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll
 #else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
 
-CONFIG += c++11
-QMAKE_CXXFLAGS += -std=c++11
+CONFIG += c++11 -g
+QMAKE_CXXFLAGS += -std=c++11 -g
 
 #INCLUDEPATH += $$PWD/../../../../../usr/local/lib
 #DEPENDPATH += $$PWD/../../../../../usr/local/lib
@@ -101,4 +117,4 @@ QMAKE_CXXFLAGS += -std=c++11
 #INCLUDEPATH += $$PWD/../../../../../usr/local/include
 #DEPENDPATH += $$PWD/../../../../../usr/local/include
 
-unix|win32: LIBS += -lpll -lpll_optimize -lpll_msa -lpll_tree
+unix|win32: LIBS += -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree

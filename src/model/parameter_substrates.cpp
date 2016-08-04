@@ -66,6 +66,7 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt( const ParameterSubstRatesOpt & o
 
 ParameterSubstRatesOpt::~ParameterSubstRatesOpt( void )
 {
+  delete[] subst_rates;
 }
 
 double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
