@@ -34,6 +34,7 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
                                 double tolerance,
                                 bool first_guess)
 {
+  UNUSED(first_guess);
   if (n_cats == 1)
     return loglikelihood;
 
@@ -46,12 +47,13 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
                                    &alpha,
                                    tolerance);
 
+  assert(!loglikelihood || cur_logl <= loglikelihood);
   return cur_logl;
 }
 
 void ParameterGamma::print(std::ostream  &out) const
 {
-
+  UNUSED(out);
 }
 
 double ParameterGamma::get_alpha( void ) const

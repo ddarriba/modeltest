@@ -78,6 +78,7 @@ Model::Model(mt_mask_t model_params,
       asc_bias_corr(asc_bias_corr)
 {
     matrix_index = 0;
+    current_opt_parameter = 0;
 
     lnL  = 0.0;
     bic  = 0.0;
@@ -132,6 +133,7 @@ Model::Model( void )
       asc_bias_corr(asc_none)
 {
     matrix_index = 0;
+    current_opt_parameter = 0;
 
     lnL  = 0.0;
     bic  = 0.0;
@@ -407,6 +409,7 @@ bool Model::optimize_init ( Partition const& partition )
   bool result = true;
   for (AbstractParameter * parameter : parameters)
     result &= parameter->initialize(partition);
+  current_opt_parameter = 0;
   return result;
 }
 
@@ -438,6 +441,31 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
         alpha_guess = param_gamma->get_alpha();
     }
     return true;
+}
+
+bool Model::optimize_oneparameter( pll_partition_t * partition,
+                                   pll_utree_t * tree,
+                                   double tolerance )
+{
+  assert(current_opt_parameter < parameters.size());
+  mt_opt_params_t params;
+  params.partition = partition;
+  params.tree = tree;
+  params.params_indices = params_indices;
+
+  AbstractParameter * parameter = parameters[current_opt_parameter];
+  lnL = parameter->optimize(&params, lnL, tolerance, true);
+
+  ++current_opt_parameter;
+  if (current_opt_parameter >= parameters.size())
+  {
+    current_opt_parameter = 0;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 DnaModel::DnaModel(mt_index_t _matrix_index,

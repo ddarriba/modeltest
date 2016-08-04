@@ -45,11 +45,14 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
              MIN_BL, MAX_BL,
              tolerance, SMOOTHINGS, true);
 
+  assert(!loglikelihood || cur_logl <= loglikelihood);
+
   return cur_logl;
 }
 
 void ParameterBranches::print(std::ostream  &out) const
 {
+  UNUSED(out);
 }
 
 mt_size_t ParameterBranches::get_n_free_parameters( void ) const

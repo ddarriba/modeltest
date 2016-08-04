@@ -43,9 +43,6 @@ public:
 
     static bool initialized( void ) { return s_instance != NULL; }
 
-//    static bool test_partitions( std::string const&parts_filename,
-//                                 mt_size_t * n_partitions ) {}
-
     bool create_instance( mt_options_t & options );
     bool destroy_instance( void );
     bool reset_instance( mt_options_t & options );
@@ -62,18 +59,18 @@ public:
                          double epsilon_param,
                          double epsilon_opt);
 
-    modeltest::ModelSelection * select_models(partition_id_t const& part_id, modeltest::ic_type type)
-    {
-        return new modeltest::ModelSelection(modeltest_instance->get_models(part_id), type);
-    }
+    modeltest::ModelSelection * select_models(partition_id_t const& part_id,
+                                              modeltest::ic_type type);
 
-    bool print_selection(modeltest::ModelSelection * selection, std::ostream  &out = std::cout) const;
+    bool print_selection(modeltest::ModelSelection * selection,
+                         std::ostream  &out = std::cout) const;
 
     mt_size_t get_number_of_models(partition_id_t const& part_id) const;
 
     modeltest::PartitioningScheme & get_partitioning_scheme( void ) const;
 
-    modeltest::Model * get_model(partition_id_t const& part_id, mt_index_t model_idx) const;
+    modeltest::Model * get_model(partition_id_t const& part_id,
+                                 mt_index_t model_idx) const;
 
     modeltest::ModelTest * get_modeltest()
     {
@@ -81,16 +78,16 @@ public:
     }
 
     std::string get_iqtree_command_line(modeltest::Model const& model,
-                                       std::string const& msa_filename = "MSA_FILENAME") const;
+                        std::string const& msa_filename = "MSA_FILENAME") const;
 
     std::string get_paup_command_line(modeltest::Model const& model,
-                                       std::string const& msa_filename = "MSA_FILENAME") const;
+                        std::string const& msa_filename = "MSA_FILENAME") const;
 
     std::string get_raxml_command_line(modeltest::Model const& model,
-                                       std::string const& msa_filename = "MSA_FILENAME") const;
+                        std::string const& msa_filename = "MSA_FILENAME") const;
 
     std::string get_phyml_command_line(modeltest::Model const& model,
-                                       const std::string &msa_filename = "MSA_FILENAME") const;
+                        const std::string &msa_filename = "MSA_FILENAME") const;
 
 //public:
 //    ModelTestService(ModelTestService const&) = delete;

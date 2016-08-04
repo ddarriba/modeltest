@@ -51,7 +51,7 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
 
 void ParameterRateCats::print(std::ostream  &out) const
 {
-
+  UNUSED(out);
 }
 
 mt_size_t ParameterRateCats::get_n_free_parameters( void ) const

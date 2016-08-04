@@ -80,6 +80,7 @@ ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
     for (mt_index_t i=0; i<scheme.get_size(); ++i)
     {
         ui->cmb_results_partition->addItem(scheme.get_partition(i).get_name().c_str());
+
         model_selection[i][modeltest::ic_aic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aic);
         model_selection[i][modeltest::ic_aicc] =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aicc);
         model_selection[i][modeltest::ic_bic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_bic);

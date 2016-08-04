@@ -18,7 +18,7 @@ bool ModelTestService::test_msa( std::string const& msa_filename,
                msa_format_t * msa_format,
                data_type_t * datatype)
 {
-    return ModelTest::test_msa(msa_filename,
+    return test_msa(msa_filename,
                                n_seqs, n_sites,
                                msa_format, datatype);
 }
@@ -26,7 +26,7 @@ bool ModelTestService::test_msa( std::string const& msa_filename,
 bool ModelTestService::test_tree( std::string const& tree_filename,
                                   mt_size_t * n_tips )
 {
-    return ModelTest::test_tree(tree_filename, n_tips);
+    return test_tree(tree_filename, n_tips);
 }
 
 bool ModelTestService::create_instance( mt_options_t & options )
@@ -60,7 +60,7 @@ bool ModelTestService::reset_instance( mt_options_t & options )
 }
 
 bool ModelTestService::optimize_single(const partition_id_t &part_id,
-                     modeltest::Model *model,
+                     Model *model,
                      mt_index_t thread_id,
                      double epsilon_param,
                      double epsilon_opt,
@@ -91,7 +91,14 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                                epsilon_opt);
 }
 
-bool ModelTestService::print_selection(modeltest::ModelSelection * selection, std::ostream  &out) const
+ModelSelection * ModelTestService::select_models(partition_id_t const& part_id,
+                                                 ic_type type)
+{
+    return new ModelSelection(modeltest_instance->get_models(part_id), type);
+}
+
+bool ModelTestService::print_selection(ModelSelection * selection,
+                                       std::ostream  &out) const
 {
     selection->print(out, 10);
     selection->get_name();
@@ -117,7 +124,8 @@ mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) 
     return (mt_size_t) modeltest_instance->get_models(part_id).size();
 }
 
-Model * ModelTestService::get_model(partition_id_t const& part_id, mt_index_t model_idx) const
+Model * ModelTestService::get_model(partition_id_t const& part_id,
+                                    mt_index_t model_idx) const
 {
     return modeltest_instance->get_models(part_id).at(model_idx);
 }
@@ -204,7 +212,7 @@ string ModelTestService::get_raxml_command_line(Model const& model,
     return raxml_args.str();
 }
 
-string ModelTestService::get_phyml_command_line(modeltest::Model const& model,
+string ModelTestService::get_phyml_command_line(Model const& model,
                                                 string const& msa_filename) const
 {
     stringstream phyml_args;

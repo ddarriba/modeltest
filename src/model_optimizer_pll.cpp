@@ -1029,108 +1029,56 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       /* logl intialized to an arbitrary value above the current lk */
       logl = cur_logl + 10;
-      mt_index_t n_iters = 0;   /* iterations counter */
 
 #if(CHECK_LOCAL_CONVERGENCE)
       double test_logl;         /* temporary variable */
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-      mt_index_t cur_parameter_index = 0;
-
-      while ((!interrupt_optimization) &&
-        (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
-        {
+      bool opt_per_param = true;
+      if (opt_per_param)
+      {
+        bool all_params_done = false;
+        while ((fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+          {
             logl = cur_logl;
-            model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
-            cur_logl = model.get_lnl();
+            all_params_done = false;
+            while ((!all_params_done) && (!interrupt_optimization))
+            {
+              all_params_done = model.optimize_oneparameter(pll_partition,
+                                              tree.get_pll_tree(thread_number),
+                                              tolerance);
+              double iter_logl = model.get_lnl();
+              cur_logl = model.get_lnl();
+
+              /* ensure we never get a worse likelihood score */
+              if (iter_logl - cur_logl > 1e-5)
+              {
+                  cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
+                  assert(iter_logl - cur_logl < 1e-5);
+              }
+              opt_delta = cur_logl;
+              notify();
+            }
+          }
+      }
+      else
+      {
+        while ((!interrupt_optimization) &&
+          (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+          {
+              logl = cur_logl;
+              model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
+              opt_delta = cur_logl;
+              notify();
+              cur_logl = model.get_lnl();
+          }
         }
 
-      if (params_to_optimize.size() && false)
-      {
-          mt_size_t iters_hard_limit = 200;
-          while ((!interrupt_optimization) &&
-                  ((n_iters % params_to_optimize.size()) ||
-                (fabs (cur_logl - logl) > epsilon && cur_logl < logl)))
-          {
-              double iter_logl;
-              if (!(n_iters % params_to_optimize.size()))
-                logl = cur_logl;
+        /* TODO: if bl are reoptimized */
+        if (keep_branch_lengths)
+          tree.set_bl_optimized();
 
-              if (!on_run)
-              {
-                  optimized = false;
-
-                  model.set_lnl(0.0);
-                  model.set_exec_time(0);
-
-                   if (model.is_G())
-                      model.set_alpha(0.0);
-                  if (model.is_I())
-                      model.set_prop_inv(0.0);
-                  return false;
-              }
-
-              mt_parameter_t cur_parameter = params_to_optimize[cur_parameter_index];
-#if(CHECK_LOCAL_CONVERGENCE)
-              if (!(converged & cur_parameter))
-              {
-                  test_logl = cur_logl;
-#endif
-                  bool full_range_search = n_iters<params_to_optimize.size();
-                  if (false)
-                  {
-                      if (cur_parameter == mt_param_alpha)
-                      {
-                          if (model.is_I())
-                              full_range_search &= !(alpha_inv_guess > 0.0);
-                          else
-                              full_range_search &= !(alpha_guess > 0.0);
-                      }
-                      else if (cur_parameter == mt_param_pinv)
-                      {
-                          if (model.is_G())
-                              full_range_search &= !(pinv_alpha_guess > 0.0);
-                          else
-                              full_range_search &= !(pinv_guess > 0.0);
-                      }
-                  }
-
-                  iter_logl = opt_single_parameter(cur_parameter, tolerance, full_range_search, cur_logl);
-
-                  //printf(" iteration %3d %3d %.10f %.10f\n", cur_parameter, params_to_optimize.size(), iter_logl, cur_logl);
-
-                  /* ensure we never get a worse likelihood score */
-                  if (iter_logl - cur_logl > 1e-5)
-                  {
-                      cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
-                      assert(iter_logl - cur_logl < 1e-5);
-                  }
-                  cur_logl = iter_logl;
-
-                  // notify parameter optimization
-                  opt_delta = cur_logl;
-                  notify();
-
-#if(CHECK_LOCAL_CONVERGENCE)
-                  if (fabs(test_logl - cur_logl) < tolerance)
-                      converged |= cur_parameter;
-              }
-#endif
-
-              cur_parameter_index++;
-              cur_parameter_index %= params_to_optimize.size();
-
-              n_iters++;
-              iters_hard_limit--;
-              if (!iters_hard_limit)
-                  break;
-          }
-
-          /* TODO: if bl are reoptimized */
-          if (keep_branch_lengths)
-            tree.set_bl_optimized();
-      }
       cur_logl *= -1;
 
       time_t end_time = time(NULL);

@@ -174,8 +174,12 @@ public:
     void set_lnl( double l );
 
     bool optimize_init ( Partition const& partition );
-    bool optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance );
-
+    bool optimize( pll_partition_t * partition,
+                   pll_utree_t * tree,
+                   double tolerance );
+    bool optimize_oneparameter( pll_partition_t * partition,
+                                pll_utree_t * tree,
+                                double tolerance );
     /**
      * @brief Prints out the model in a human readable way
      * @param[in] out the output stream to print to
@@ -227,6 +231,7 @@ public:
 
 protected:
     mt_index_t matrix_index;
+    mt_index_t current_opt_parameter;
     std::string name;
 
     /* model parameters */
