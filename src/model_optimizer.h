@@ -45,40 +45,6 @@ namespace modeltest
     virtual ~ModelOptimizer ();
 
     /**
-     * @brief Optimizes one single parameter
-     * @param[in] which_parameter   parameter to optimize
-     * @param[in] tolerance         tolerance for parameter optimization
-     * @return the resulting log-Likelihood of the model
-     */
-    virtual double opt_single_parameter(mt_parameter_t which_parameter,
-                                        double tolerance = DEFAULT_PARAM_EPSILON,
-                                        bool first_guess = false,
-                                        double prev_logl = 0) = 0;
-
-    /**
-     * @brief Optimizes branch lengths
-     * @param[in] tolerance         tolerance for parameter optimization
-     * @return the resulting log-Likelihood of the model
-     */
-    virtual double opt_branch_lengths(double tolerance = DEFAULT_PARAM_EPSILON) = 0;
-
-    /**
-     * @brief Optimizes Gamma shape
-     * @param[in] tolerance         tolerance for parameter optimization
-     * @return the resulting log-Likelihood of the model
-     */
-    virtual double opt_alpha(double tolerance = DEFAULT_PARAM_EPSILON,
-                             bool first_guess = false) = 0;
-
-    /**
-     * @brief Optimizes proportion of invariant sites
-     * @param[in] tolerance         tolerance for parameter optimization
-     * @return the resulting log-Likelihood of the model
-     */
-    virtual double opt_pinv(double tolerance = DEFAULT_PARAM_EPSILON,
-                             bool first_guess = false) = 0;
-
-    /**
      * @brief Optimizes all parameters for the model
      * @param[in] epsilon     the tolerance of the global optimization
      * @param[in] tolerance   tolerance for parameter optimization

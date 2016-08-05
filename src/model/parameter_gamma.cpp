@@ -11,6 +11,7 @@ namespace modeltest
 ParameterGamma::ParameterGamma(mt_size_t n_cats, double alpha)
   : ParameterRateCats(n_cats), alpha(alpha)
 {
+  alpha = 1.0;
 }
 
 ParameterGamma::ParameterGamma( const ParameterGamma & other )
@@ -24,8 +25,15 @@ ParameterGamma::~ParameterGamma( void )
 
 }
 
-bool ParameterGamma::initialize(Partition const& partition)
+bool ParameterGamma::initialize(mt_opt_params_t * params,
+                                Partition const& partition)
 {
+  assert(n_cats == params->partition->rate_cats);
+  pll_compute_gamma_cats (alpha,
+                          n_cats,
+                          rates);
+  pll_set_category_rates(params->partition,
+                         rates);
   return true;
 }
 
@@ -34,11 +42,13 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
                                 double tolerance,
                                 bool first_guess)
 {
+  double cur_logl, alpha_prev;
   UNUSED(first_guess);
+
   if (n_cats == 1)
     return loglikelihood;
 
-  double cur_logl;
+  alpha_prev = alpha;
   cur_logl = pllmod_algo_opt_alpha(params->partition,
                                    params->tree,
                                    params->params_indices,
@@ -47,7 +57,9 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
                                    &alpha,
                                    tolerance);
 
-  assert(!loglikelihood || cur_logl <= loglikelihood);
+  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood <= 1e-10);
+  extract_rates_and_weights(params);
+
   return cur_logl;
 }
 

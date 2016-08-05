@@ -21,11 +21,6 @@ typedef struct
     long thread_id;
     long num_threads;
     pll_partition_t * partition;
-    unsigned int * matrix_indices;
-    unsigned int matrix_count;
-    pll_operation_t * operations;
-    unsigned int ops_count;
-    double * branch_lengths;
     pll_utree_t * vroot;
     pthread_barrier_t * barrier_buf;
     double * result_buf;
@@ -46,19 +41,6 @@ namespace modeltest
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
 
-    virtual double opt_single_parameter(mt_parameter_t which_parameter,
-                                        double tolerance = DEFAULT_PARAM_EPSILON,
-                                        bool first_guess = false,
-                                        double prev_logl = 0);
-
-    virtual double opt_branch_lengths(double tolerance = DEFAULT_PARAM_EPSILON);
-
-    virtual double opt_alpha(double tolerance = DEFAULT_PARAM_EPSILON,
-                             bool first_guess = false);
-
-    virtual double opt_pinv(double tolerance = DEFAULT_PARAM_EPSILON,
-                             bool first_guess = false);
-
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001,
                      mt_size_t num_threads = 1);
@@ -68,17 +50,15 @@ namespace modeltest
 
   private:
 
-    bool build_parameters(pll_utree_t * pll_tree);
+    bool build_parameters( pll_utree_t * pll_tree );
+    double optimize_model( pll_utree_t * pll_tree,
+                           double epsilon,
+                           double tolerance,
+                           bool opt_per_param );
+
     TreePll & tree;   //! the tree instance
 
-    pll_optimize_options_t * params; //! optimization parameters
     pll_partition_t * pll_partition; //! partition
-    pll_operation_t * operations;    //! array of operation for CLVs
-    mt_size_t ops_count;
-
-    double * branch_lengths;    //! array of branch lengths
-    mt_index_t * matrix_indices;       //! array of matrix indices
-    mt_size_t matrix_count;
 
     /* pthreads */
     void start_job_sync(int JOB, thread_data_t * td);

@@ -41,27 +41,6 @@ extern "C" void* thread_worker( void * d )
     return return_val;
 }
 
-/* a callback function for performing a full traversal */
-static int cb_full_traversal(pll_utree_t * node)
-{
-    UNUSED(node);
-    return 1;
-}
-
-/* a callback function for resetting missing branches */
-static int cb_set_missing_branches(pll_utree_t * node)
-{
-
-    /* reset branches */
-    if (!(node->length > 0.0))
-    {
-        node->length = 0.1;
-        node->back->length = 0.1;
-    }
-
-    return 1;
-}
-
 static int barrier(thread_data_t * data)
 {
   return pthread_barrier_wait (data->barrier_buf);
@@ -185,15 +164,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     thread_job = 0;
     global_lnl = 0;
 
-    params = NULL;
-    operations = NULL;
-    branch_lengths = NULL;
-    matrix_indices = NULL;
-
     mt_size_t n_tips = tree.get_n_tips ();
-    mt_size_t n_inner = tree.get_n_inner ();
-    mt_size_t n_branches = tree.get_n_branches ();
-    mt_size_t n_nodes = tree.get_n_nodes ();
     mt_size_t n_patterns = partition.get_n_patterns();
 
     pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
@@ -257,604 +228,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     delete[] weights;
 
     free (tipnodes);
-
-    /* allocate a buffer for storing pointers to nodes of the tree in postorder
-     traversal */
-    pll_utree_t ** travbuffer = (pll_utree_t **) Utils::allocate(
-                n_nodes, sizeof(pll_utree_t *));
-
-    /* additional stuff */
-    mt_size_t traversal_size;
-    if (!pll_utree_traverse (pll_tree,
-                             cb_set_missing_branches,
-                             travbuffer,
-                             &traversal_size))
-    {
-      cerr <<
-        "ERROR: PLL returned an error computing tree traversal" <<
-        endl;
-      assert(0);
-    }
-
-    assert(traversal_size > 0);
-
-    branch_lengths = new double[n_branches];
-    matrix_indices = new mt_index_t[n_branches];
-    operations = new pll_operation_t[n_inner];
-
-    pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                 matrix_indices, operations, &matrix_count,
-                                 &ops_count);
-
-    free (travbuffer);
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
   {
-      delete[] params->subst_params_symmetries;
-      delete[] branch_lengths;
-      delete[] matrix_indices;
-      delete[] operations;
-      delete params;
-
       pll_partition_destroy(pll_partition);
-  }
-
-  static void fill_rates   (double *rates,
-                            double *x,
-                            int *bt, double *lb, double *ub,
-                            mt_size_t n_rates)
-  {
-    for (mt_index_t i = 0; i < n_rates; i++)
-    {
-      bt[i] = PLL_LBFGSB_BOUND_BOTH;
-      lb[i] = 1e-3;
-      ub[i] = 100;
-      assert(rates[i] > lb[i] && rates[i] < ub[i]);
-      x[i] = rates[i];
-//      double r = rates[i];
-//      x[i] = (r > lb[i] && r < ub[i]) ? r : 1.0;
-    }
-  }
-
-  static void fill_weights (double *weights,
-                            unsigned int * highest_weight_index,
-                            double *x,
-                            int *bt,
-                            double *lb,
-                            double *ub,
-                            mt_size_t n_weights)
-  {
-    mt_index_t cur_index = 0;
-
-    *highest_weight_index = 0;
-    for (mt_index_t i = 1; i < n_weights; i++)
-      if (weights[i] > weights[*highest_weight_index])
-        *highest_weight_index = i;
-
-    for (mt_index_t i = 0; i < n_weights; i++)
-    {
-      if (i != *highest_weight_index)
-      {
-        bt[cur_index] = PLL_LBFGSB_BOUND_BOTH;
-
-        double r = weights[i] / weights[*highest_weight_index];
-        lb[cur_index] = PLL_OPT_MIN_FREQ;
-        ub[cur_index] = PLL_OPT_MAX_FREQ;
-        x[cur_index] = (r > lb[i] && r < ub[i]) ? r : 1.0;
-        cur_index++;
-      }
-    }
-  }
-
-  typedef struct
-  {
-    pll_partition_t * partition;
-    unsigned int parent_clv_index;
-    unsigned int parent_scaler_index;
-    unsigned int child_clv_index;
-    unsigned int child_scaler_index;
-    unsigned int edge_pmatrix_index;
-    const unsigned int * params_indices;
-
-    int optimize_rate_weights;
-
-    /* traverse */
-    unsigned int * matrix_indices;
-    double * branch_lengths;
-    pll_operation_t * operations;
-
-    /* rate specific */
-    unsigned int highest_weight_state;
-  } my_params_t;
-
-  static void update_clvs(pll_partition_t * partition,
-                          const unsigned int * matrix_indices,
-                          const unsigned int * params_indices,
-                          double * branch_lengths,
-                          pll_operation_t * operations)
-  {
-    unsigned int n_branches = 2*partition->tips - 3;
-    unsigned int n_inner    = partition->tips - 2;
-
-    if (matrix_indices)
-      pll_update_prob_matrices (partition,
-                                params_indices,
-                                matrix_indices,
-                                branch_lengths,
-                                n_branches);
-    if (operations)
-      pll_update_partials (partition,
-                           operations,
-                           n_inner);
-  }
-
-  static double target_rates_opt (void * p, double * x)
-  {
-    my_params_t * params = (my_params_t *) p;
-    pll_partition_t * pll_partition = params->partition;
-    double score;
-
-    for (mt_index_t i=0; i<(pll_partition->rate_cats); i++)
-       pll_partition->rates[i] = x[i];
-
-    update_clvs (pll_partition,
-                 params->matrix_indices,
-                 params->params_indices,
-                 params->branch_lengths,
-                 params->operations);
-
-    score = -1
-        * pll_compute_edge_loglikelihood (pll_partition, params->parent_clv_index,
-                                          params->parent_scaler_index,
-                                          params->child_clv_index,
-                                          params->child_scaler_index,
-                                          params->edge_pmatrix_index,
-                                          params->params_indices,
-                                          NULL);
-
-    return score;
-  }
-
-  static double target_weights_opt (void * p, double * x)
-  {
-    my_params_t * params = (my_params_t *) p;
-    pll_partition_t * partition = params->partition;
-    double score;
-    unsigned int i, cur_rate;
-    unsigned int highest_weight_state = params->highest_weight_state;
-
-    assert(params->optimize_rate_weights);
-
-    unsigned int n_weights = partition->rate_cats;
-    double sum_ratios = 1.0;
-    double *weights = (double *) malloc ((size_t) n_weights * sizeof(double));
-
-    for (i = 0; i < (n_weights - 1); ++i)
-      sum_ratios += x[i];
-
-    cur_rate = 0;
-    for (i = 0; i < (n_weights); ++i)
-      if (i != highest_weight_state)
-        weights[i] = x[cur_rate++] / sum_ratios;
-    weights[highest_weight_state] = 1.0 / sum_ratios;
-
-    pll_set_category_weights(partition, weights);
-    free (weights);
-
-    score = -1
-        * pll_compute_edge_loglikelihood (partition, params->parent_clv_index,
-                                          params->parent_scaler_index,
-                                          params->child_clv_index,
-                                          params->child_scaler_index,
-                                          params->edge_pmatrix_index,
-                                          params->params_indices,
-                                          NULL);
-
-    return score;
-  }
-
-  double ModelOptimizerPll::opt_single_parameter(mt_parameter_t which_parameter,
-                                                 double tolerance,
-                                                 bool first_guess,
-                                                 double prev_logl)
-  {
-      double cur_logl = 0.0;
-
-      assert(params);
-
-      switch(which_parameter)
-      {
-      case mt_param_branch_lengths:
-        if (verbosity >= VERBOSITY_HIGH)
-           cout << "<TRACE> Start branch lengths" << endl;
-        cur_logl = opt_branch_lengths(tolerance);
-        if (verbosity >= VERBOSITY_MID)
-        {
-          cout << "<TRACE> "
-               << fixed << setprecision(4) << cur_logl << " Branch lengths" << endl;
-        }
-        break;
-      case mt_param_alpha:
-          if (verbosity >= VERBOSITY_HIGH)
-             cout << "<TRACE> Start alpha" << endl;
-
-          params->lk_params.alpha_value = model.get_alpha();
-          // cur_logl = opt_alpha(tolerance, first_guess);
-          if (verbosity >= VERBOSITY_MID)
-            cout << "<TRACE> "
-                 << fixed << setprecision(4) << cur_logl
-                 << " Alpha: " << params->lk_params.alpha_value << endl;
-          break;
-      case mt_param_pinv:
-          {
-            cur_logl = opt_pinv(tolerance, first_guess);
-            if (verbosity >= VERBOSITY_MID)
-            {
-              cout << "<TRACE> "
-                   << fixed << setprecision(4) << cur_logl
-                   << " P-inv: " << pll_partition->prop_invar[0] << endl;
-            }
-          }
-          break;
-      case mt_param_subst_rates:
-          if (verbosity >= VERBOSITY_HIGH)
-             cout << "<TRACE> Start substitution rates" << endl;
-          params->which_parameters = PLL_PARAMETER_SUBST_RATES;
-          cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
-          if (verbosity >= VERBOSITY_MID)
-          {
-            cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Subst rates: ";
-            for (mt_index_t i=0; i<N_DNA_SUBST_RATES; ++i)
-              cout << "s" << i << "=" << fixed << setprecision(3) << pll_partition->subst_params[i] << " ";
-            cout << endl;
-          }
-          break;
-      case mt_param_frequencies:
-          if (verbosity >= VERBOSITY_HIGH)
-             cout << "<TRACE> Start frequencies" << endl;
-          params->which_parameters = PLL_PARAMETER_FREQUENCIES;
-          cur_logl = pll_optimize_parameters_multidim(params, 0, 0);
-          if (verbosity >= VERBOSITY_MID)
-          {
-            cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Frequencies: ";
-            for (mt_index_t i=0; i<pll_partition->states; ++i)
-              cout << "f" << i << "=" << fixed << setprecision(3) << pll_partition->frequencies[0][i] << " ";
-            cout << endl;
-          }
-          break;
-      case mt_param_mixture_rates_weights:
-      {
-          if (verbosity >= VERBOSITY_HIGH)
-             cout << "<TRACE> Start mixture rates + weights" << endl;
-          double x[4], lb[4],
-                ub[4];
-            int bt[4];
-
-          my_params_t my_params;
-          my_params.partition = pll_partition;
-          my_params.parent_clv_index = params->lk_params.where.unrooted_t.parent_clv_index;
-          my_params.parent_scaler_index = params->lk_params.where.unrooted_t.parent_scaler_index;
-          my_params.child_clv_index = params->lk_params.where.unrooted_t.child_clv_index;
-          my_params.child_scaler_index = params->lk_params.where.unrooted_t.child_scaler_index;
-          my_params.edge_pmatrix_index = params->lk_params.where.unrooted_t.edge_pmatrix_index;
-          my_params.params_indices = model.get_params_indices();
-
-          my_params.optimize_rate_weights = model.is_mixture();
-
-          my_params.matrix_indices = params->lk_params.matrix_indices;
-          my_params.branch_lengths = params->lk_params.branch_lengths;
-          my_params.operations = params->lk_params.operations;
-
-          /* 2 step BFGS */
-
-          cur_logl = prev_logl;
-          do
-          {
-
-            prev_logl = cur_logl;
-
-            /* optimize mixture weights */
-
-            double * weights = pll_partition->rate_weights;
-            fill_weights(weights, &(my_params.highest_weight_state), x,
-                              bt, lb, ub, pll_partition->rate_cats);
-
-            cur_logl = 1
-                * pll_minimize_lbfgsb (x, lb, ub, bt, pll_partition->rate_cats-1, params->factr,
-                                       params->pgtol, &my_params, target_weights_opt);
-
-            if (verbosity >= VERBOSITY_MID)
-            {
-              cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Rate weights: ";
-              for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-                cout << "w" << i << "=" << fixed << setprecision(3) << weights[i] << " ";
-              cout << endl;
-            }
-
-            /* optimize mixture rates */
-
-            fill_rates (pll_partition->rates, x, bt, lb, ub, pll_partition->rate_cats);
-
-            cur_logl = pll_minimize_lbfgsb(x, lb, ub, bt, pll_partition->rate_cats,
-                                           params->factr, params->pgtol,
-                                           &my_params, target_rates_opt);
-
-            if (verbosity >= VERBOSITY_MID)
-            {
-              cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Free rates: ";
-              for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-                cout << "R" << i << "=" << fixed << setprecision(3) << pll_partition->rates[i] << " ";
-              cout << endl;
-            }
-
-            if (verbosity >= VERBOSITY_HIGH)
-            {
-              cout << "<TRACE> Loop difference = " << fixed << cur_logl << " " << prev_logl << " " << prev_logl - cur_logl << endl;
-            }
-            assert (cur_logl <= prev_logl);
-          } while (prev_logl - cur_logl > WR_EPSILON);
-
-          /* calculate scaler */
-          double sumWR = 0.0, lg4x_scaler;
-          for (mt_index_t i=0; i<pll_partition->rate_cats; i++)
-            sumWR += pll_partition->rates[i] * pll_partition->rate_weights[i];
-          lg4x_scaler = 1.0 / sumWR;
-
-          /* rescale rates */
-          if (verbosity >= VERBOSITY_MID)
-          {
-            cout << "<TRACE> Scale category rates: factor = " << lg4x_scaler << endl;
-          }
-          for (mt_index_t i=0; i<pll_partition->rate_cats; i++)
-          {
-              pll_partition->rates[i] *= lg4x_scaler;
-          }
-
-          /* rescale branch lengths */
-          if (verbosity >= VERBOSITY_MID)
-          {
-            cout << "<TRACE> Scale branch lengths: factor = " << sumWR << endl;
-          }
-          for (mt_index_t i=0; i<(2*pll_partition->tips - 3); i++)
-          {
-            my_params.branch_lengths[i] *= sumWR;
-          }
-          tree.scale_branches(sumWR, thread_number);
-
-          update_clvs (pll_partition,
-                       my_params.matrix_indices,
-                       my_params.params_indices,
-                       my_params.branch_lengths,
-                       my_params.operations);
-
-           cur_logl = -1 *
-           pll_compute_edge_loglikelihood (
-             my_params.partition,
-             my_params.parent_clv_index,
-             my_params.parent_scaler_index,
-             my_params.child_clv_index,
-             my_params.child_scaler_index,
-             my_params.edge_pmatrix_index,
-             my_params.params_indices,
-             NULL);
-
-          if (verbosity >= VERBOSITY_MID)
-          {
-           cout << "<TRACE> "  << fixed << setprecision(4) << cur_logl << " Free rates: ";
-           for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-             cout << "R" << i << "=" << fixed << setprecision(3) << pll_partition->rates[i] << " ";
-           cout << endl;
-          }
-      }
-          break;
-
-      }
-
-      return cur_logl;
-  }
-
-#define MIN_ALPHA 0.02
-#define MAX_ALPHA 100.0
-
-  double ModelOptimizerPll::opt_alpha(double tolerance,
-                           bool first_guess)
-  {
-      UNUSED(first_guess);
-      double cur_logl;
-      params->pgtol = tolerance;
-      params->which_parameters = PLL_PARAMETER_ALPHA;
-
-      cur_logl = pll_optimize_parameters_onedim(params, MIN_ALPHA, MAX_ALPHA);
-      return cur_logl;
-  }
-
-#undef MIN_ALPHA
-#undef MAX_ALPHA
-
-#define MIN_PINV 0.0
-
-  double ModelOptimizerPll::opt_pinv(double tolerance,
-                                     bool first_guess)
-  {
-      double cur_logl;
-      double max_pinv = min(partition.get_empirical_pinv(), 0.99);
-      params->pgtol = tolerance;
-      params->which_parameters = PLL_PARAMETER_PINV;
-      cur_logl = pll_optimize_parameters_onedim(params, MIN_PINV, max_pinv);
-      return cur_logl;
-  }
-
-#undef MIN_PINV
-
-  double ModelOptimizerPll::opt_branch_lengths(double tolerance)
-  {
-      int smoothings = 2;
-      mt_index_t tmp_matrix_count, tmp_ops_count;
-      pll_utree_t* pll_tree;
-      pll_utree_t ** travbuffer;
-      mt_size_t traversal_size;
-      double cur_logl;
-
-      params->pgtol = tolerance;
-
-      /* move to random node */
-      tree.reroot_random(thread_number);
-      pll_tree = tree.get_pll_tree(thread_number);
-
-
-      travbuffer = (pll_utree_t **) Utils::allocate (tree.get_n_nodes(), sizeof(pll_utree_t *));
-      pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
-      pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                   matrix_indices, operations, &tmp_matrix_count,
-                                   &tmp_ops_count);
-      pll_update_prob_matrices (pll_partition,
-                                model.get_params_indices(),
-                                matrix_indices,
-                                branch_lengths,
-                                tree.get_n_branches());
-
-//          for (mt_index_t i=0; i<num_threads; i++)
-//            thread_data[i].vroot = tree.get_pll_tree();
-//          start_job_sync (JOB_UPDATE_PARTIALS, thread_data);
-
-      pll_update_partials (pll_partition, operations, tree.get_n_tips() - 2);
-
-      params->which_parameters = PLL_PARAMETER_BRANCHES_ITERATIVE;
-
-      cur_logl = pll_optimize_branch_lengths_iterative (
-                  pll_partition,
-                  pll_tree,
-                  params->lk_params.params_indices,
-                  1e-4, 5.0,
-                  params->pgtol, smoothings, true);
-
-      pll_utree_traverse (pll_tree, cb_full_traversal, travbuffer, &traversal_size);
-      pll_utree_create_operations (travbuffer, traversal_size, branch_lengths,
-                                   matrix_indices, operations, &tmp_matrix_count,
-                                   &tmp_ops_count);
-
-      params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
-      params->lk_params.where.unrooted_t.parent_scaler_index =
-              pll_tree->scaler_index;
-      params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
-      params->lk_params.where.unrooted_t.child_scaler_index =
-              pll_tree->back->scaler_index;
-      params->lk_params.where.unrooted_t.edge_pmatrix_index =
-              pll_tree->pmatrix_index;
-
-      free(travbuffer);
-      return cur_logl;
   }
 
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
   {
-    double default_alpha = 1.0;
-
-    if (!params)
-      params = new pll_optimize_options_t;
-
-    /* pll stuff */
-    params->lk_params.partition = pll_partition;
-    params->lk_params.operations = operations;
-    params->lk_params.branch_lengths = branch_lengths;
-    params->lk_params.matrix_indices = matrix_indices;
-    params->lk_params.alpha_value = 1.0;
-    if (model.is_G())
-    {
-        if (model.is_I())
-          params->lk_params.alpha_value = (alpha_inv_guess > 0.0)?alpha_inv_guess:default_alpha;
-        else
-          params->lk_params.alpha_value = (alpha_guess > 0.0)?alpha_guess:default_alpha;
-    }
-    params->lk_params.rooted = 0;
-    params->lk_params.where.unrooted_t.parent_clv_index = pll_tree->clv_index;
-    params->lk_params.where.unrooted_t.parent_scaler_index = pll_tree->scaler_index;
-    params->lk_params.where.unrooted_t.child_clv_index = pll_tree->back->clv_index;
-    params->lk_params.where.unrooted_t.child_scaler_index = pll_tree->back->scaler_index;
-    params->lk_params.where.unrooted_t.edge_pmatrix_index = pll_tree->pmatrix_index;
-
-    /* optimization parameters */
-    params->params_index = 0;
-    params->lk_params.params_indices = model.get_params_indices();
-
-    if (partition.get_datatype() == dt_dna)
-    {
-      int *symmetries = new int[N_DNA_SUBST_RATES];
-      memcpy(symmetries, model.get_symmetries(), N_DNA_SUBST_RATES * sizeof(int));
-      params->subst_params_symmetries = symmetries;
-
-      if (model.get_n_subst_params() > 0)
-      {
-        double *empirical_rates = new double[N_DNA_SUBST_RATES];
-        for (mt_index_t i=0; i<model.get_n_subst_params(); ++i)
-        {
-            double sum_rate = 0;
-            int count = 0;
-            for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-            {
-                if ((mt_index_t)symmetries[j] == i)
-                {
-                    ++count;
-                    sum_rate += partition.get_empirical_subst_rates()[j];
-                }
-            }
-            assert(count);
-            sum_rate /= count;
-
-            for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-                if ((mt_index_t)symmetries[j] == i)
-                    empirical_rates[j] = sum_rate;
-        }
-        for (mt_index_t j=0; j<N_DNA_SUBST_RATES; ++j)
-            empirical_rates[j] /= empirical_rates[N_DNA_SUBST_RATES-1];
-        pll_set_subst_params(pll_partition, 0, empirical_rates);
-        delete[] empirical_rates;
-      }
-    }
-    else
-    {
-      params->subst_params_symmetries = 0;
-    }
-    params->factr = 1e9;
-
+    // TODO: Refactor in paramter_substrates and parameter_frequencies
     /* set initial model parameters */
-    double * rate_cats = (double *) Utils::c_allocate( pll_partition->rate_cats, sizeof(double));
-
-    if (!model.is_I())
-    {
-      for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-      {
-        pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], 0.0);
-      }
-    }
-    else
-    {
-      if (model.is_mixture())
-      {
-        for (mt_index_t i=0; i<pll_partition->rate_cats; ++i)
-        {
-          pll_update_invariant_sites_proportion(pll_partition, params->lk_params.params_indices[i], (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
-        }
-      }
-      else
-      {
-        if (model.is_G())
-        {
-            pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_alpha_guess > 0.0)?pinv_alpha_guess:(partition.get_empirical_pinv()/2));
-        }
-        else
-        {
-            pll_update_invariant_sites_proportion(pll_partition, 0, (pinv_guess > 0.0)?pinv_guess:(partition.get_empirical_pinv()/2));
-        }
-      }
-    }
-
-    // if (model.is_F())
-    // {
-        // model.set_frequencies(partition.get_empirical_frequencies());
-    // }
-
     if (model.is_mixture())
     {
         assert (pll_partition->rate_cats == N_MIXTURE_CATS);
@@ -866,24 +250,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
     else
     {
-      pll_set_frequencies (pll_partition, 0, model.get_frequencies());
-      pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
+       pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
     }
-
-    if (model.is_G() || model.is_mixture())
-    {
-        pll_compute_gamma_cats (params->lk_params.alpha_value,
-                                pll_partition->rate_cats,
-                                rate_cats);
-    }
-    else
-    {
-        rate_cats[0] = 1.0;
-    }
-
-    pll_set_category_rates (pll_partition, rate_cats);
-
-    free(rate_cats);
 
     return true;
   }
@@ -906,47 +274,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       double * result_buf = NULL;
       pthread_barrier_t barrier_buf;
 
-      vector<mt_parameter_t> params_to_optimize;
-
-      if (!model.optimize_init(partition))
+      if (!model.optimize_init(pll_partition,
+                               NULL,
+                               partition))
       {
         return false;
-      }
-
-      if ((model.get_datatype() == dt_dna || !tree.is_bl_optimized()))
-          params_to_optimize.push_back(mt_param_branch_lengths);
-      if (model.get_datatype() == dt_dna && model.get_n_subst_params() > 0)
-          params_to_optimize.push_back(mt_param_subst_rates);
-      if (model.is_G() && model.is_I())
-      {
-          model.set_alpha(alpha_inv_guess);
-          model.set_prop_inv(pinv_alpha_guess);
-          params_to_optimize.push_back(mt_param_alpha);
-          params_to_optimize.push_back(mt_param_pinv);
-      }
-      else
-      {
-          if (model.is_G())
-          {
-              model.set_alpha(alpha_guess);
-              params_to_optimize.push_back(mt_param_alpha);
-          }
-          if (model.is_I())
-          {
-              pinv_guess = partition.get_empirical_pinv()/2;
-              model.set_prop_inv(pinv_guess);
-              params_to_optimize.push_back(mt_param_pinv);
-          }
-      }
-
-      #if(USE_ML_FREQUENCIES)
-      if (model.get_datatype() == dt_dna && model.is_F())
-          params_to_optimize.push_back(mt_param_frequencies);
-      #endif
-
-      if (model.is_mixture() && !model.is_G())
-      {
-          params_to_optimize.push_back(mt_param_mixture_rates_weights);
       }
 
 #ifdef VERBOSE //TODO: Verbosity high
@@ -959,6 +291,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       /* /PTHREADS */
       if (_num_threads > 1)
       {
+        cerr << "Multithread optimization is temporary unavailable" << endl;
+        return false;
+
         threads = (pthread_t *) Utils::allocate(_num_threads, sizeof(pthread_t));
         thread_data = (thread_data_t *) Utils::allocate(_num_threads, sizeof(thread_data_t));
         partition_local = (pll_partition_t **) Utils::allocate(_num_threads, sizeof(pll_partition_t *));
@@ -974,11 +309,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           thread_data[i].thread_id = i;
           thread_data[i].num_threads = (long) _num_threads;
           thread_data[i].partition = partition_local[i];
-          thread_data[i].matrix_indices = matrix_indices;
-          thread_data[i].matrix_count = matrix_count;
-          thread_data[i].operations = operations;
-          thread_data[i].ops_count = ops_count;
-          thread_data[i].branch_lengths = branch_lengths;
           thread_data[i].vroot = tree.get_pll_tree();
           thread_data[i].barrier_buf = &barrier_buf;
           thread_data[i].trap = 1;
@@ -1001,85 +331,19 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
       build_parameters(pll_tree);
 
-      pll_update_prob_matrices (pll_partition,
-                                model.get_params_indices(),
-                                matrix_indices,
-                                branch_lengths,
-                                n_branches);
-      pll_update_partials (pll_partition,
-                           operations,
-                           tree.get_n_inner());
-
-      double logl = pll_compute_edge_loglikelihood (pll_partition,
-                                                    pll_tree->clv_index,
-                                                    pll_tree->scaler_index,
-                                                    pll_tree->back->clv_index,
-                                                    pll_tree->back->scaler_index,
-                                                    pll_tree->pmatrix_index,
-                                                    model.get_params_indices(),
-                                                    NULL);
-
-      /* current logl changes the sign of the lk, such that the optimization
-       * function can minimize the score */
-      double cur_logl = logl * -1;
-
-      /* notify initial likelihood */
-      opt_delta = cur_logl;
-      notify();
-
-      /* logl intialized to an arbitrary value above the current lk */
-      logl = cur_logl + 10;
+      pll_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
       double test_logl;         /* temporary variable */
       mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-      bool opt_per_param = true;
-      if (opt_per_param)
-      {
-        bool all_params_done = false;
-        while ((fabs (cur_logl - logl) > epsilon && cur_logl < logl))
-          {
-            logl = cur_logl;
-            all_params_done = false;
-            while ((!all_params_done) && (!interrupt_optimization))
-            {
-              all_params_done = model.optimize_oneparameter(pll_partition,
-                                              tree.get_pll_tree(thread_number),
-                                              tolerance);
-              double iter_logl = model.get_lnl();
-              cur_logl = model.get_lnl();
+      double cur_logl = optimize_model(pll_tree, epsilon, tolerance, true);
 
-              /* ensure we never get a worse likelihood score */
-              if (iter_logl - cur_logl > 1e-5)
-              {
-                  cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
-                  assert(iter_logl - cur_logl < 1e-5);
-              }
-              opt_delta = cur_logl;
-              notify();
-            }
-          }
-      }
-      else
-      {
-        while ((!interrupt_optimization) &&
-          (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
-          {
-              logl = cur_logl;
-              model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
-              opt_delta = cur_logl;
-              notify();
-              cur_logl = model.get_lnl();
-          }
-        }
 
         /* TODO: if bl are reoptimized */
         if (keep_branch_lengths)
           tree.set_bl_optimized();
-
-      cur_logl *= -1;
 
       time_t end_time = time(NULL);
 
@@ -1111,41 +375,78 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           optimized = true;
           model.set_lnl(cur_logl);
           model.set_exec_time(end_time - start_time);
-          model.set_n_categories(pll_partition->rate_cats);
-
-          // if (model.is_G())
-          //     model.set_alpha(params->lk_params.alpha_value);
-          if (model.is_I())
-              model.set_prop_inv(pll_partition->prop_invar[0]);
-
-//          if (model.is_G() && model.is_I())
-//          {
-//              alpha_inv_guess = params->lk_params.alpha_value;
-//              pinv_alpha_guess = pll_partition->prop_invar[0];
-//          }
-//          else
-//          {
-//              if (model.is_G())
-//                  alpha_guess = params->lk_params.alpha_value;
-//              if (model.is_I())
-//                  pinv_guess = pll_partition->prop_invar[0];
-//          }
-          // if (model.get_datatype() == dt_dna)
-          // {
-          //   model.set_frequencies(pll_partition->frequencies[0]);
-          //   model.set_subst_rates(pll_partition->subst_params[0]);
-          // }
-
-          if (model.is_mixture() && !model.is_G())
-          {
-              model.set_mixture_rates(pll_partition->rates);
-              model.set_mixture_weights(pll_partition->rate_weights);
-          }
 
           model.evaluate_criteria(n_branches, msa.get_n_sites());
           model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
           return true;
       }
+  }
+
+  double ModelOptimizerPll::optimize_model( pll_utree_t * pll_tree,
+                                            double epsilon,
+                                            double tolerance,
+                                            bool opt_per_param )
+  {
+    double logl = pll_compute_edge_loglikelihood (pll_partition,
+                                                  pll_tree->clv_index,
+                                                  pll_tree->scaler_index,
+                                                  pll_tree->back->clv_index,
+                                                  pll_tree->back->scaler_index,
+                                                  pll_tree->pmatrix_index,
+                                                  model.get_params_indices(),
+                                                  NULL);
+
+    /* current logl changes the sign of the lk, such that the optimization
+     * function can minimize the score */
+    double cur_logl = logl * -1;
+
+    /* notify initial likelihood */
+    opt_delta = cur_logl;
+    notify();
+
+    /* logl intialized to an arbitrary value above the current lk */
+    logl = cur_logl + 10;
+
+    if (opt_per_param)
+    {
+      bool all_params_done = false;
+      while ((fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+        {
+          logl = cur_logl;
+          all_params_done = false;
+          while ((!all_params_done) && (!interrupt_optimization))
+          {
+            all_params_done = model.optimize_oneparameter(pll_partition,
+                                            tree.get_pll_tree(thread_number),
+                                            tolerance);
+            double iter_logl = model.get_lnl();
+            cur_logl = model.get_lnl();
+
+            /* ensure we never get a worse likelihood score */
+            if (iter_logl - cur_logl > 1e-5)
+            {
+                cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
+                assert(iter_logl - cur_logl < 1e-5);
+            }
+            opt_delta = cur_logl;
+            notify();
+          }
+        }
+    }
+    else
+    {
+      while ((!interrupt_optimization) &&
+        (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+        {
+            logl = cur_logl;
+            model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
+            opt_delta = cur_logl;
+            notify();
+            cur_logl = model.get_lnl();
+        }
+      }
+
+      return cur_logl * -1;
   }
 
   /* PTHREADS */
@@ -1159,137 +460,137 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   void * ModelOptimizerPll::worker(void * void_data)
   {
-    thread_data_t * local_thread_data;
-    unsigned int i;
-    unsigned int id, mat_count, mat_offset, mat_start;
-    unsigned int * local_matrix_indices;
-    double * local_branch_lengths;
-
-    local_thread_data = (thread_data_t *) void_data;
-    id = (unsigned int) local_thread_data->thread_id;
-    mat_count  = (unsigned int) (local_thread_data->matrix_count / local_thread_data->num_threads);
-    mat_offset = (unsigned int) (local_thread_data->matrix_count % local_thread_data->num_threads);
-    mat_start = id * mat_count + ((id<mat_offset)?id:mat_offset);
-    mat_count += (id < mat_offset)?1:0;
-    local_matrix_indices = local_thread_data->matrix_indices + mat_start;
-    local_branch_lengths = local_thread_data->branch_lengths + mat_start;
-
-    do
-    {
-      /* wait */
-      switch (thread_job)
-        {
-        case JOB_FINALIZE:
-          {
-            /* finalize */
-            local_thread_data->trap = 0;
-            break;
-          }
-        case JOB_UPDATE_MATRICES:
-        {
-          barrier (local_thread_data);
-
-            /* check eigen */
-            if (!local_thread_data->partition->eigen_decomp_valid[0])
-            {
-              barrier (local_thread_data);
-              if (!id)
-                pll_update_eigen (local_thread_data->partition, 0);
-              barrier (local_thread_data);
-              if (!id)
-                local_thread_data->partition->eigen_decomp_valid[0] = 1;
-            }
-
-            barrier (local_thread_data);
-
-            //TODO: TAKE INDICES FROM model.get_params_indices()
-            pll_update_prob_matrices (local_thread_data->partition,
-                                      0,
-                                      local_matrix_indices,
-                                      local_branch_lengths,
-                                      mat_count);
-
-            if (!id)
-              thread_job = JOB_WAIT;
-            barrier (local_thread_data);
-            break;
-          }
-        case JOB_UPDATE_PARTIALS:
-          {
-            barrier (local_thread_data);
-
-            pll_update_partials (local_thread_data->partition,
-                                 local_thread_data->operations,
-                                 local_thread_data->ops_count);
-            if (!id)
-              thread_job = JOB_WAIT;
-            barrier (local_thread_data);
-            break;
-          }
-        case JOB_REDUCE_LK_EDGE:
-          {
-            if (!id)
-              global_lnl = 0;
-            barrier (local_thread_data);
-
-            local_thread_data->result_buf[id] =
-                pll_compute_edge_loglikelihood (
-                  local_thread_data->partition,
-                  local_thread_data->vroot->clv_index,
-                  local_thread_data->vroot->scaler_index,
-                  local_thread_data->vroot->back->clv_index,
-                  local_thread_data->vroot->back->scaler_index,
-                  local_thread_data->vroot->pmatrix_index,
-                  model.get_params_indices(),
-                  NULL);
-
-            /* reduce */
-            barrier (local_thread_data);
-            if (!id)
-              for (i=0; i<local_thread_data->num_threads; i++)
-                global_lnl += local_thread_data->result_buf[i];
-            barrier (local_thread_data);
-
-            if (!id)
-              thread_job = JOB_WAIT;
-            barrier (local_thread_data);
-            break;
-          }
-        case JOB_FULL_LK:
-          {
-            /* execute */
-            if (!id)
-              global_lnl = 0;
-            barrier (local_thread_data);
-
-            pll_update_partials (local_thread_data->partition, local_thread_data->operations,
-                                 local_thread_data->ops_count);
-
-            local_thread_data->result_buf[id] =
-                pll_compute_edge_loglikelihood (
-                  local_thread_data->partition,
-                  local_thread_data->vroot->clv_index,
-                  local_thread_data->vroot->scaler_index,
-                  local_thread_data->vroot->back->clv_index,
-                  local_thread_data->vroot->back->scaler_index,
-                  local_thread_data->vroot->pmatrix_index,
-                  model.get_params_indices(),
-                  NULL);
-
-            /* reduce */
-            barrier (local_thread_data);
-            if (!id)
-              for (i = 0; i < local_thread_data->num_threads; i++)
-                global_lnl += local_thread_data->result_buf[i];
-            barrier (local_thread_data);
-
-            if (!id)
-              thread_job = JOB_WAIT;
-            barrier (local_thread_data);
-            break;
-          }
-        }
-    } while (local_thread_data->trap);
+    // thread_data_t * local_thread_data;
+    // unsigned int i;
+    // unsigned int id, mat_count, mat_offset, mat_start;
+    // unsigned int * local_matrix_indices;
+    // double * local_branch_lengths;
+    //
+    // local_thread_data = (thread_data_t *) void_data;
+    // id = (unsigned int) local_thread_data->thread_id;
+    // mat_count  = (unsigned int) (local_thread_data->matrix_count / local_thread_data->num_threads);
+    // mat_offset = (unsigned int) (local_thread_data->matrix_count % local_thread_data->num_threads);
+    // mat_start = id * mat_count + ((id<mat_offset)?id:mat_offset);
+    // mat_count += (id < mat_offset)?1:0;
+    // local_matrix_indices = local_thread_data->matrix_indices + mat_start;
+    // local_branch_lengths = local_thread_data->branch_lengths + mat_start;
+    //
+    // do
+    // {
+    //   /* wait */
+    //   switch (thread_job)
+    //     {
+    //     case JOB_FINALIZE:
+    //       {
+    //         /* finalize */
+    //         local_thread_data->trap = 0;
+    //         break;
+    //       }
+    //     case JOB_UPDATE_MATRICES:
+    //     {
+    //       barrier (local_thread_data);
+    //
+    //         /* check eigen */
+    //         if (!local_thread_data->partition->eigen_decomp_valid[0])
+    //         {
+    //           barrier (local_thread_data);
+    //           if (!id)
+    //             pll_update_eigen (local_thread_data->partition, 0);
+    //           barrier (local_thread_data);
+    //           if (!id)
+    //             local_thread_data->partition->eigen_decomp_valid[0] = 1;
+    //         }
+    //
+    //         barrier (local_thread_data);
+    //
+    //         //TODO: TAKE INDICES FROM model.get_params_indices()
+    //         pll_update_prob_matrices (local_thread_data->partition,
+    //                                   0,
+    //                                   local_matrix_indices,
+    //                                   local_branch_lengths,
+    //                                   mat_count);
+    //
+    //         if (!id)
+    //           thread_job = JOB_WAIT;
+    //         barrier (local_thread_data);
+    //         break;
+    //       }
+    //     case JOB_UPDATE_PARTIALS:
+    //       {
+    //         barrier (local_thread_data);
+    //
+    //         pll_update_partials (local_thread_data->partition,
+    //                              local_thread_data->operations,
+    //                              local_thread_data->ops_count);
+    //         if (!id)
+    //           thread_job = JOB_WAIT;
+    //         barrier (local_thread_data);
+    //         break;
+    //       }
+    //     case JOB_REDUCE_LK_EDGE:
+    //       {
+    //         if (!id)
+    //           global_lnl = 0;
+    //         barrier (local_thread_data);
+    //
+    //         local_thread_data->result_buf[id] =
+    //             pll_compute_edge_loglikelihood (
+    //               local_thread_data->partition,
+    //               local_thread_data->vroot->clv_index,
+    //               local_thread_data->vroot->scaler_index,
+    //               local_thread_data->vroot->back->clv_index,
+    //               local_thread_data->vroot->back->scaler_index,
+    //               local_thread_data->vroot->pmatrix_index,
+    //               model.get_params_indices(),
+    //               NULL);
+    //
+    //         /* reduce */
+    //         barrier (local_thread_data);
+    //         if (!id)
+    //           for (i=0; i<local_thread_data->num_threads; i++)
+    //             global_lnl += local_thread_data->result_buf[i];
+    //         barrier (local_thread_data);
+    //
+    //         if (!id)
+    //           thread_job = JOB_WAIT;
+    //         barrier (local_thread_data);
+    //         break;
+    //       }
+    //     case JOB_FULL_LK:
+    //       {
+    //         /* execute */
+    //         if (!id)
+    //           global_lnl = 0;
+    //         barrier (local_thread_data);
+    //
+    //         pll_update_partials (local_thread_data->partition, local_thread_data->operations,
+    //                              local_thread_data->ops_count);
+    //
+    //         local_thread_data->result_buf[id] =
+    //             pll_compute_edge_loglikelihood (
+    //               local_thread_data->partition,
+    //               local_thread_data->vroot->clv_index,
+    //               local_thread_data->vroot->scaler_index,
+    //               local_thread_data->vroot->back->clv_index,
+    //               local_thread_data->vroot->back->scaler_index,
+    //               local_thread_data->vroot->pmatrix_index,
+    //               model.get_params_indices(),
+    //               NULL);
+    //
+    //         /* reduce */
+    //         barrier (local_thread_data);
+    //         if (!id)
+    //           for (i = 0; i < local_thread_data->num_threads; i++)
+    //             global_lnl += local_thread_data->result_buf[i];
+    //         barrier (local_thread_data);
+    //
+    //         if (!id)
+    //           thread_job = JOB_WAIT;
+    //         barrier (local_thread_data);
+    //         break;
+    //       }
+    //     }
+    // } while (local_thread_data->trap);
 
     return 0;
   }

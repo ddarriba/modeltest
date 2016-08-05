@@ -14,10 +14,10 @@ namespace modeltest {
 
 int mt_errno;
 char mt_errmsg[MT_ERROR_LENGTH] = {0};
-double alpha_guess = 0;
-double pinv_guess = 0;
-double alpha_inv_guess = 0;
-double pinv_alpha_guess = 0;
+double alpha_guess = 1.0;
+double pinv_guess  = 1.0;
+double alpha_inv_guess  = 1.0;
+double pinv_alpha_guess = 1.0;
 int verbosity = VERBOSITY_DEFAULT;
 
 using namespace std;
@@ -123,16 +123,7 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 //    model->input_log(sinstr);
 
     /* print progress */
-    cout << setw(5) << right << (cur_model+1) << "/"
-         << setw(5) << left << n_models
-         << setw(15) << left << model->get_name()
-         << setw(11) << Utils::format_time(time(NULL) - ini_t);
-    if (global_ini_time)
-        cout << setw(11) << Utils::format_time(time(NULL) - global_ini_time);
-    cout << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-         << model->get_lnl()
-         << setw(8) << model->get_alpha()
-         << setw(8) << model->get_prop_inv() << endl;
+    model->print_inline(cur_model+1, n_models, ini_t, global_ini_time);
 
      return res;
 }

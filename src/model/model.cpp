@@ -232,6 +232,8 @@ void Model::set_n_categories( mt_size_t ncat )
       for (mt_index_t i = 0; i<N_MIXTURE_CATS; ++i)
         params_indices[i] = i;
     }
+
+    param_gamma->set_n_categories(ncat);
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -328,23 +330,10 @@ const double * Model::get_mixture_weights( void ) const
     return 0;
 }
 
-void Model::set_mixture_weights(const double value[])
-{
-    UNUSED(value);
-    assert(0);
-}
-
 const double * Model::get_mixture_rates( void ) const
 {
     return 0;
 }
-
-void Model::set_mixture_rates(const double value[])
-{
-    UNUSED(value);
-    assert(0);
-}
-
 
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
                                 double sample_size )
@@ -404,11 +393,18 @@ void Model::set_tree( pll_utree_t * _tree )
     tree = _tree;
 }
 
-bool Model::optimize_init ( Partition const& partition )
+bool Model::optimize_init ( pll_partition_t * pll_partition,
+                            pll_utree_t * pll_tree,
+                            Partition const& partition )
 {
+  mt_opt_params_t params;
+  params.partition = pll_partition;
+  params.tree = pll_tree;
+  params.params_indices = params_indices;
+
   bool result = true;
   for (AbstractParameter * parameter : parameters)
-    result &= parameter->initialize(partition);
+    result &= parameter->initialize(&params, partition);
   current_opt_parameter = 0;
   return result;
 }
@@ -429,7 +425,7 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
     }
 
     for (AbstractParameter * parameter : parameters)
-      lnL = parameter->optimize(&params, lnL, tolerance, true);
+      parameter->optimize(&params, lnL, tolerance, true);
     //lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
 
     if (optimize_gamma)
@@ -466,6 +462,31 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
   {
     return false;
   }
+}
+
+void Model::print_inline(int index,
+                         int n_models,
+                         time_t ini_time,
+                         time_t global_ini_time,
+                         ostream &out)
+{
+  out << setw(5) << right << index << "/"
+      << setw(5) << left << n_models
+      << setw(15) << left << get_name()
+      << setw(11) << Utils::format_time(time(NULL) - ini_time);
+  if (global_ini_time)
+      out << setw(11) << Utils::format_time(time(NULL) - global_ini_time);
+  out << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+      << get_lnl();
+  if (is_G())
+    out << setw(8) << get_alpha();
+  else
+    out << setw(8) << "-";
+  if (is_I())
+    out << setw(8) << get_prop_inv();
+  else
+    out << setw(8) << "-";
+  out << endl;
 }
 
 DnaModel::DnaModel(mt_index_t _matrix_index,
@@ -830,20 +851,21 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     if (mixture)
     {
         assert (optimize_gamma && !empirical_freqs);
-        param_gamma = new ParameterGamma(n_categories);
-        parameters.push_back(param_gamma);
         if (matrix_index == LG4M_INDEX)
         {
             /* LG4M model */
+            param_gamma = new ParameterGamma(n_categories);
+            parameters.push_back(param_gamma);
+
             mixture_frequencies = pll_aa_freqs_lg4m;
             mixture_subst_rates = pll_aa_rates_lg4m;
         }
         else
         {
-            param_gamma = new ParameterRateCats(optimize_gamma?n_categories:1);
+            /* LG4X model / free rates */
+            param_gamma = new ParameterRateCats(4);
             parameters.push_back(param_gamma);
 
-            /* LG4X model / free rates */
             optimize_gamma = false;
             n_free_variables += 6;
             mixture_frequencies = pll_aa_freqs_lg4x;
@@ -956,28 +978,13 @@ const double * ProtModel::get_mixture_subst_rates( mt_index_t matrix_idx ) const
 
 const double * ProtModel::get_mixture_weights( void ) const
 {
-    assert(mixture);
-    return mixture_weights;
-}
-
-void ProtModel::set_mixture_weights(const double value[])
-{
-    assert(mixture);
-    memcpy(mixture_weights, value, N_MIXTURE_CATS * sizeof(double));
+    return param_gamma->get_weights();
 }
 
 const double * ProtModel::get_mixture_rates( void ) const
 {
-    assert(mixture);
-    return mixture_rates;
+    return param_gamma->get_rates();
 }
-
-void ProtModel::set_mixture_rates(const double value[])
-{
-    assert(mixture);
-    memcpy(mixture_rates, value, N_MIXTURE_CATS * sizeof(double));
-}
-
 
 pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
                                             mt_size_t n_sites,
@@ -1019,63 +1026,57 @@ pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
 
 void ProtModel::print(std::ostream  &out)
 {
-    out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-    if (mixture)
-    {
+  double const *rates = param_gamma->get_rates();
+  double const *rate_weights = param_gamma->get_weights();
+  out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl;
+  if (mixture)
+  {
+      for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+      {
+          for (mt_index_t i=0; i<N_PROT_STATES; i++)
+          {
+              out << setprecision(MT_PRECISION_DIGITS) << mixture_frequencies[j][i] << " ";
+              if ((i+1)<N_PROT_STATES && !((i+1)%5))
+              {
+                  out << endl << setw(PRINTMODEL_TABSIZE) << " ";
+              }
+          }
+          out << endl << endl;
+          if (j <N_MIXTURE_CATS-1) out << setw(PRINTMODEL_TABSIZE) << " ";
+      }
+      if (matrix_index == LG4X_INDEX)
+      {
+        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
         for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
         {
-            for (mt_index_t i=0; i<N_PROT_STATES; i++)
-            {
-                out << setprecision(MT_PRECISION_DIGITS) << mixture_frequencies[j][i] << " ";
-                if ((i+1)<N_PROT_STATES && !((i+1)%5))
-                {
-                    out << endl << setw(PRINTMODEL_TABSIZE) << " ";
-                }
-            }
-            out << endl << endl;
-            if (j <N_MIXTURE_CATS-1) out << setw(PRINTMODEL_TABSIZE) << " ";
+           out << setprecision(MT_PRECISION_DIGITS) << rate_weights[j] << " ";
         }
-        if (matrix_index == LG4X_INDEX)
-        {
-          out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
-          for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
-          {
-             out << setprecision(MT_PRECISION_DIGITS) << mixture_weights[j] << " ";
-          }
-          out << endl;
-          out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
-          for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
-          {
-             out << setprecision(MT_PRECISION_DIGITS) << mixture_rates[j] << " ";
-          }
-          out << endl;
-        }
-    }
-    else
-    {
-      param_freqs->print(out);
-        // for (mt_index_t i=0; i<N_PROT_STATES; i++)
-        // {
-        //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
-        //     if ((i+1)<N_PROT_STATES && !((i+1)%5))
-        //     {
-        //         out << endl << setw(PRINTMODEL_TABSIZE) << " ";
-        //     }
-        // }
         out << endl;
-    }
-    out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
-    if (is_I())
-        out << get_prop_inv() << endl;
-    else
-        out << "-" << endl;
-    out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
-    if (is_G())
-        out << get_alpha() << endl;
-    else
-        out << "-" << endl;
+        out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
+        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        {
+           out << setprecision(MT_PRECISION_DIGITS) << rates[j] << " ";
+        }
+        out << endl;
+      }
+  }
+  else
+  {
+    out << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+    param_freqs->print(out);
+    out << endl;
+  }
+  out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
+  if (is_I())
+      out << get_prop_inv() << endl;
+  else
+      out << "-" << endl;
+  out << setw(PRINTMODEL_TABSIZE) << left << "Gamma shape:";
+  if (is_G())
+      out << get_alpha() << endl;
+  else
+      out << "-" << endl;
 }
 
 void ProtModel::print_xml(std::ostream  &out)

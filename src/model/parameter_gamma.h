@@ -9,10 +9,11 @@ namespace modeltest
 class ParameterGamma : public ParameterRateCats
 {
 public:
-  ParameterGamma(mt_size_t n_cats, double alpha = 0.);
+  ParameterGamma(mt_size_t n_cats, double alpha = 1.0);
   ParameterGamma( const ParameterGamma & other );
   ~ParameterGamma( void );
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,

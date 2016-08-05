@@ -10,9 +10,11 @@ namespace modeltest
 class ParameterSubstRates : public AbstractParameter
 {
 public:
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
 
   const double * get_subst_rates( void ) const;
+
 protected:
   double *subst_rates;
   mt_size_t n_subst_free_params;
@@ -26,6 +28,8 @@ public:
   ParameterSubstRatesOpt(const ParameterSubstRatesOpt & other);
   ParameterSubstRatesOpt(const int * symmetries, mt_size_t n_subst_params);
   ~ParameterSubstRatesOpt(void);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,

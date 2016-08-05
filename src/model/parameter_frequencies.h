@@ -39,7 +39,8 @@ public:
   ParameterFrequenciesOpt( mt_size_t states );
   ParameterFrequenciesOpt( ParameterFrequenciesOpt const& other );
   ~ParameterFrequenciesOpt( void );
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,
@@ -53,7 +54,8 @@ public:
   ParameterFrequenciesFixed( mt_size_t states, bool equal_frequencies );
   ParameterFrequenciesFixed( ParameterFrequenciesFixed const& other );
   ~ParameterFrequenciesFixed( void );
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,

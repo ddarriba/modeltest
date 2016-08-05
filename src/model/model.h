@@ -143,11 +143,7 @@ public:
 
     virtual const double * get_mixture_weights( void ) const;
 
-    virtual void set_mixture_weights(const double value[]);
-
     virtual const double * get_mixture_rates( void ) const;
-
-    virtual void set_mixture_rates(const double value[]);
 
     /**
      * @brief Gets the number of model substitution rate parameters
@@ -173,7 +169,9 @@ public:
      */
     void set_lnl( double l );
 
-    bool optimize_init ( Partition const& partition );
+    bool optimize_init ( pll_partition_t * pll_partition,
+                         pll_utree_t * pll_tree,
+                         Partition const& partition );
     bool optimize( pll_partition_t * partition,
                    pll_utree_t * tree,
                    double tolerance );
@@ -185,6 +183,12 @@ public:
      * @param[in] out the output stream to print to
      */
     virtual void print(std::ostream  &out = std::cout) = 0;
+
+    virtual void print_inline(int index,
+                              int n_models,
+                              time_t ini_time,
+                              time_t global_ini_time,
+                              std::ostream &out = std::cout);
 
     /**
      * @brief Prints out the model in XML format
@@ -335,9 +339,7 @@ public:
     }
 
     virtual const double * get_mixture_weights( void ) const;
-    virtual void set_mixture_weights(const double value[]);
     virtual const double * get_mixture_rates( void ) const;
-    virtual void set_mixture_rates(const double value[]);
 
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
@@ -356,8 +358,6 @@ private:
     const double *fixed_subst_rates;
     const double (*mixture_frequencies)[N_PROT_STATES];
     const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
-    double mixture_weights[N_MIXTURE_CATS];
-    double mixture_rates[N_MIXTURE_CATS];
 };
 
 }

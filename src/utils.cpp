@@ -708,6 +708,8 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         }
         CONSUME(TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
+        pi.gap_aware = false;
+        
         partitions->push_back(pi);
     }
 

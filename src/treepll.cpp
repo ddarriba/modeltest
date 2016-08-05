@@ -13,6 +13,21 @@
 
 using namespace std;
 
+/* a callback function for resetting missing branches */
+static int cb_set_missing_branches(pll_utree_t * node, void *data)
+{
+   UNUSED(data);
+
+    /* reset branches */
+    if (!(node->length > 0.))
+    {
+        node->length = 0.1;
+        node->back->length = 0.1;
+    }
+
+    return 1;
+}
+
 static void set_branch_length_recursive (pll_utree_t * tree,
                                          double length,
                                          bool reset)
@@ -52,18 +67,11 @@ static void scale_branch_length_recursive (pll_utree_t * tree,
   if (tree)
   {
     /* set branch length to default if not set */
-    // if (tree->length < DOUBLE_EPSILON || reset)
     tree->length *= factor;
     tree->back->length *= factor;
 
     if (tree->next)
     {
-    //   if (tree->next->length < DOUBLE_EPSILON || reset)
-    //     tree->next->length = length;
-    //
-    //   if (tree->next->next->length < DOUBLE_EPSILON || reset)
-    //     tree->next->next->length = length;
-
       scale_branch_length_recursive (tree->next->back, factor);
       scale_branch_length_recursive (tree->next->next->back, factor);
     }
@@ -104,6 +112,10 @@ namespace modeltest
       case tree_random:
       {
           pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
+          pll_utree_traverse_apply(random_tree,
+                                   NULL,
+                                   &cb_set_missing_branches,
+                                   NULL);
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_clone(random_tree);
@@ -140,6 +152,10 @@ namespace modeltest
           /*TODO: WARNING: Temporary use a RANDOM tree */
           cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
           pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
+          pll_utree_traverse_apply(random_tree,
+                                   NULL,
+                                   &cb_set_missing_branches,
+                                   NULL);
           for (mt_index_t i=0; i<number_of_threads; i++)
           {
               pll_tree[i] = pll_utree_clone(random_tree);
@@ -196,6 +212,10 @@ namespace modeltest
               {
                   /*TODO: copy this for other tree types or move it outside */
                   pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+                  pll_utree_traverse_apply(pll_tree[i],
+                                           NULL,
+                                           &cb_set_missing_branches,
+                                           NULL);
                   pll_start_tree[i] = pll_tree[i];
                   if (pll_tree[i])
                   {

@@ -21,7 +21,8 @@ class AbstractParameter
 {
 public:
   virtual ~AbstractParameter() {}
-  virtual bool initialize(Partition const& partition) = 0;
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition) = 0;
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,

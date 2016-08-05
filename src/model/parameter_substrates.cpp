@@ -1,4 +1,5 @@
 #include "parameter_substrates.h"
+#include "partition.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 100
@@ -8,7 +9,8 @@ using namespace std;
 namespace modeltest
 {
 
-bool ParameterSubstRates::initialize(Partition const& partition)
+bool ParameterSubstRates::initialize(mt_opt_params_t * params,
+                                     Partition const& partition)
 {
   return true;
 }
@@ -69,6 +71,38 @@ ParameterSubstRatesOpt::~ParameterSubstRatesOpt( void )
   delete[] subst_rates;
 }
 
+bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
+                                     Partition const& partition)
+{
+    const vector<double> empirical_rates = partition.get_empirical_subst_rates();
+    assert(empirical_rates.size() == n_subst_params);
+    
+    for (mt_index_t i=0; i<n_subst_free_params; ++i)
+    {
+        double sum_rate = 0;
+        int count = 0;
+        for (mt_index_t j=0; j<n_subst_params; ++j)
+        {
+            if ((mt_index_t)symmetries[j] == i)
+            {
+                ++count;
+                sum_rate += empirical_rates[j];
+            }
+        }
+        assert(count);
+        sum_rate /= count;
+
+        for (mt_index_t j=0; j<n_subst_params; ++j)
+            if ((mt_index_t)symmetries[j] == i)
+                subst_rates[j] = sum_rate;
+    }
+    for (mt_index_t j=0; j<n_subst_params; ++j)
+        subst_rates[j] /= subst_rates[n_subst_params-1];
+    pll_set_subst_params(params->partition, 0, subst_rates);
+
+  return true;
+}
+
 double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
                                 double loglikelihood,
                                 double tolerance,
@@ -85,6 +119,8 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
                                           MIN_RATE,
                                           MAX_RATE,
                                           tolerance);
+
+  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
 
   memcpy(subst_rates, params->partition->subst_params[0], n_subst_params * sizeof(double));
   return cur_logl;

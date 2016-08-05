@@ -71,11 +71,13 @@ ParameterFrequenciesOpt::~ParameterFrequenciesOpt( void )
   delete[] frequencies;
 }
 
-bool ParameterFrequenciesOpt::initialize(Partition const& partition)
+bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
+                                         Partition const& partition)
 {
   memcpy(frequencies,
          &partition.get_empirical_frequencies()[0],
          sizeof(double) * states);
+  pll_set_frequencies(params->partition, 0, frequencies);
   return true;
 }
 
@@ -92,6 +94,8 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
                                          0,
                                          params->params_indices,
                                          tolerance);
+
+  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
 
   return cur_logl;
 }
@@ -130,7 +134,8 @@ ParameterFrequenciesFixed::~ParameterFrequenciesFixed( void )
   delete[] frequencies;
 }
 
-bool ParameterFrequenciesFixed::initialize(Partition const& partition)
+bool ParameterFrequenciesFixed::initialize(mt_opt_params_t * params,
+                                           Partition const& partition)
 {
   if (!equal_frequencies)
   {
@@ -138,6 +143,8 @@ bool ParameterFrequenciesFixed::initialize(Partition const& partition)
            &partition.get_empirical_frequencies()[0],
            sizeof(double) * states);
   }
+
+  pll_set_frequencies(params->partition, 0, frequencies);
   return true;
 }
 

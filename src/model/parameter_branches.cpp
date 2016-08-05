@@ -24,8 +24,11 @@ ParameterBranches::~ParameterBranches( void )
 {
 }
 
-bool ParameterBranches::initialize(Partition const& partition)
+bool ParameterBranches::initialize(mt_opt_params_t * params,
+                                   Partition const& partition )
 {
+  UNUSED(params);
+  UNUSED(partition);
   n_branches = partition.get_n_sequences()*2 - 3;
   return true;
 }
@@ -45,7 +48,7 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
              MIN_BL, MAX_BL,
              tolerance, SMOOTHINGS, true);
 
-  assert(!loglikelihood || cur_logl <= loglikelihood);
+  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
 
   return cur_logl;
 }

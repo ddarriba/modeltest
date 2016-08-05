@@ -12,7 +12,8 @@ public:
   ParameterPinv( void );
   ParameterPinv( const ParameterPinv & other );
   ~ParameterPinv( void );
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,
@@ -21,9 +22,10 @@ public:
   double get_pinv() const;
   void set_pinv( double value );
   virtual mt_size_t get_n_free_parameters( void ) const;
-  
+
 private:
   double pinv;
+  double min_pinv, max_pinv;
 };
 
 } /* namespace modeltest */

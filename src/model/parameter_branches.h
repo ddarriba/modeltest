@@ -12,7 +12,8 @@ public:
   ParameterBranches( void  );
   ParameterBranches( const ParameterBranches & other );
   ~ParameterBranches( void );
-  virtual bool initialize(Partition const& partition);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
   virtual double optimize(mt_opt_params_t * params,
                           double loglikelihood,
                           double tolerance = DEFAULT_PARAM_EPSILON,
