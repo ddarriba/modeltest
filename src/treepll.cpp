@@ -111,8 +111,8 @@ namespace modeltest
       }
       case tree_random:
       {
-          pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
-          pll_utree_traverse_apply(random_tree,
+          pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+          pllmod_utree_traverse_apply(random_tree,
                                    NULL,
                                    &cb_set_missing_branches,
                                    NULL);
@@ -151,8 +151,8 @@ namespace modeltest
       {
           /*TODO: WARNING: Temporary use a RANDOM tree */
           cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
-          pll_utree_t * random_tree = pll_utree_create_random(n_tips, msa.get_headers());
-          pll_utree_traverse_apply(random_tree,
+          pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+          pllmod_utree_traverse_apply(random_tree,
                                    NULL,
                                    &cb_set_missing_branches,
                                    NULL);
@@ -212,7 +212,7 @@ namespace modeltest
               {
                   /*TODO: copy this for other tree types or move it outside */
                   pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
-                  pll_utree_traverse_apply(pll_tree[i],
+                  pllmod_utree_traverse_apply(pll_tree[i],
                                            NULL,
                                            &cb_set_missing_branches,
                                            NULL);

@@ -156,9 +156,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       TreePll &_tree,
                                       Model &_model,
                                       Partition &_partition,
+                                      bool _optimize_topology,
                                       mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
-    : ModelOptimizer(_msa, _model, _partition, _thread_number),
+    : ModelOptimizer(_msa, _model, _partition,
+                     _optimize_topology, _thread_number),
       tree(_tree)
 {
     thread_job = 0;
@@ -331,7 +333,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
       build_parameters(pll_tree);
 
-      pll_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
+      pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
       double test_logl;         /* temporary variable */

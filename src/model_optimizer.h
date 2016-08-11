@@ -33,10 +33,12 @@ namespace modeltest
     ModelOptimizer (Msa & _msa,
                     Model & _model,
                     Partition & _partition,
+                    bool _optimize_topology,
                     mt_index_t _thread_number = 0)
         : msa(_msa),
           model(_model),
           partition(_partition),
+          optimize_topology(_optimize_topology),
           thread_number(_thread_number)
     {
         interrupt_optimization = false;
@@ -71,6 +73,7 @@ namespace modeltest
     Msa & msa;       //! the multiple sequence alignment
     Model & model;   //! the model to optimize
     Partition & partition;
+    bool optimize_topology;
     mt_size_t n_sites;    //! original number of sites
     mt_size_t n_patterns; //! crunched number of sites
 

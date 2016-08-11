@@ -46,15 +46,20 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
                                      mt_index_t thread_number)
 {
+  bool optimize_topology;
+
     if( thread_number > number_of_threads)
     {
         return 0;
     }
+
+    optimize_topology = current_instance->start_tree == tree_ml;
     MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
     Partition &partition = partitioning_scheme->get_partition(part_id);
     return new ModelOptimizerPll(*msa, *tree, *model,
                                  partition,
+                                 optimize_topology,
                                  current_instance->n_catg,
                                  thread_number);
 }
