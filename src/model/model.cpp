@@ -642,13 +642,13 @@ static mt_mask_t asc_bias_attribute(asc_bias_t v)
   mt_mask_t attr = 0;
   if (v != asc_none)
   {
-    attr = PLL_ATTRIB_ASC_BIAS_FLAG;
+    attr = PLL_ATTRIB_AB_FLAG;
     if (v == asc_lewis)
-      attr |= PLL_ATTRIB_ASC_BIAS_LEWIS;
+      attr |= PLL_ATTRIB_AB_LEWIS;
     else if (v == asc_felsenstein)
-      attr |= PLL_ATTRIB_ASC_BIAS_FELSENSTEIN;
+      attr |= PLL_ATTRIB_AB_FELSENSTEIN;
     else if (v == asc_stamatakis)
-      attr |= PLL_ATTRIB_ASC_BIAS_STAMATAKIS;
+      attr |= PLL_ATTRIB_AB_STAMATAKIS;
   }
   return attr;
 }
