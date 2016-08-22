@@ -428,9 +428,11 @@ bool ModelTest::build_instance(mt_options_t & options)
         }
         break;
     case tree_ml:
-        mt_errno = MT_ERROR_UNIMPLEMENTED;
-        snprintf(mt_errmsg, ERR_MSG_SIZE, "Per-model ML tree is not implemented yet");
-        return false;
+      //TODO: Create MP as starting tree, instead of random
+      current_instance->tree = new TreePll (options.starting_tree, *current_instance->msa, number_of_threads);
+        // mt_errno = MT_ERROR_UNIMPLEMENTED;
+        // snprintf(mt_errmsg, ERR_MSG_SIZE, "Per-model ML tree is not implemented yet");
+        // return false;
     }
 
     /* print tree */

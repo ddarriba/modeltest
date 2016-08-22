@@ -18,6 +18,8 @@ modeltestx_SOURCES = \
 	msapll.cpp \
 	partition.cpp \
 	partitioning_scheme.cpp \
+	search.cpp \
+	treeinfo.cpp \
 	treepll.cpp \
 	utils.cpp \
 	meta.cpp \
@@ -26,7 +28,7 @@ modeltestx_SOURCES = \
 modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
-modeltestx_LDADD = -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree
+modeltestx_LDADD = -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
 
 #if HAVE_AVX
 #  modeltestx_CPPFLAGS += -DHAVE_AVX
@@ -61,6 +63,7 @@ pkginclude_HEADERS= \
 	model_defs.h \
 	partition.h \
 	model_optimizer.h \
+	treeinfo.h \
 	treepll.h \
 	partitioning_scheme.h \
 	msa.h \

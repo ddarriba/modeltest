@@ -7,6 +7,7 @@
 
 #include "model_optimizer_pll.h"
 #include "utils.h"
+#include "treeinfo.h"
 
 #include <cassert>
 #include <iostream>
@@ -67,7 +68,7 @@ static pll_partition_t * pll_partition_clone_partial(
   /* for ascertainment bias correction, we have to set the new partition
      carefully. For example, applying the correction in the last section
      only */
-  assert(!(partition->attributes & PLL_ATTRIB_ASC_BIAS_FLAG));
+  assert(!(partition->attributes & PLL_ATTRIB_AB_FLAG));
 
   sites = (partition->sites / count);
   offset = (partition->sites % count);
@@ -389,14 +390,40 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                             double tolerance,
                                             bool opt_per_param )
   {
-    double logl = pll_compute_edge_loglikelihood (pll_partition,
-                                                  pll_tree->clv_index,
-                                                  pll_tree->scaler_index,
-                                                  pll_tree->back->clv_index,
-                                                  pll_tree->back->scaler_index,
-                                                  pll_tree->pmatrix_index,
-                                                  model.get_params_indices(),
-                                                  NULL);
+    double logl;
+    // pllmod_search_params_t spr_params;
+    // spr_params.thorough = false;
+    // spr_params.radius_min = 1;
+    // spr_params.radius_max = 10;
+    // spr_params.ntopol_keep = 20;
+
+    logl = pll_compute_edge_loglikelihood (pll_partition,
+                                           pll_tree->clv_index,
+                                           pll_tree->scaler_index,
+                                           pll_tree->back->clv_index,
+                                           pll_tree->back->scaler_index,
+                                           pll_tree->pmatrix_index,
+                                           model.get_params_indices(),
+                                           NULL);
+
+          if (optimize_topology)
+        {
+          pllmod_treeinfo_t * tree_info;
+          if (pll_tree->data)
+            tree_info = (pllmod_treeinfo_t *) pll_tree->data;
+          else
+            tree_info = pllmod_treeinfo_create(pll_tree, tree.get_n_tips(), 1,1);
+            pllmod_treeinfo_init_partition(tree_info, 0,
+                                          pll_partition, 1.0,
+                                          {0}, 0);
+            cmd_search(tree_info,
+                       0,
+                       1e-2,
+                       5,
+                       2,
+                       1e-2);
+          exit(1);
+        }
 
     /* current logl changes the sign of the lk, such that the optimization
      * function can minimize the score */
