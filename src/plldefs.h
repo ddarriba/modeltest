@@ -13,8 +13,8 @@ extern "C" {
 #include <pll_optimize.h>
 #include <pll_tree.h>
 #include <pllmod_util.h>
-}
 
 typedef unsigned int pll_index_t;
+}
 
 #endif /* PLLDEFS_H_ */

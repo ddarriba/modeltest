@@ -57,6 +57,12 @@ namespace modeltest
                            double tolerance,
                            bool opt_per_param );
 
+    double optimize_parameters( pll_utree_t * pll_tree,
+                                double epsilon,
+                                double tolerance,
+                                bool opt_per_param,
+                                double start_logl );
+
     TreePll & tree;   //! the tree instance
 
     pll_partition_t * pll_partition; //! partition

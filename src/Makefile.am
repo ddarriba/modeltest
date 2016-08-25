@@ -18,8 +18,6 @@ modeltestx_SOURCES = \
 	msapll.cpp \
 	partition.cpp \
 	partitioning_scheme.cpp \
-	search.cpp \
-	treeinfo.cpp \
 	treepll.cpp \
 	utils.cpp \
 	meta.cpp \
@@ -63,7 +61,6 @@ pkginclude_HEADERS= \
 	model_defs.h \
 	partition.h \
 	model_optimizer.h \
-	treeinfo.h \
 	treepll.h \
 	partitioning_scheme.h \
 	msa.h \

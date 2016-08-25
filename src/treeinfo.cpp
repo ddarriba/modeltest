@@ -305,7 +305,6 @@ void pllmod_treeinfo_destroy(pllmod_treeinfo_t * treeinfo)
 
       if (p == 0 || !treeinfo->linked_branches)
         free(treeinfo->branch_lengths[p]);
-      pll_partition_destroy(treeinfo->partitions[p]);
     }
 
   /* free invalidation arrays */
@@ -319,9 +318,6 @@ void pllmod_treeinfo_destroy(pllmod_treeinfo_t * treeinfo)
 
   /* deallocate partition array */
   free(treeinfo->partitions);
-
-  /* deallocate the tree structure */
-  pll_utree_destroy(treeinfo->root);
 
   /* finally, deallocate treeinfo object itself */
   free(treeinfo);

@@ -352,6 +352,16 @@ namespace modeltest
       return (nw);
   }
 
+  void TreePll::set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number)
+  {
+      pll_tree[thread_number] = new_tree;
+      pll_start_tree[thread_number] = new_tree;
+      
+      /* update node arrays */
+      pll_utree_query_tipnodes(new_tree, pll_tip_nodes[thread_number]);
+      pll_utree_query_innernodes(new_tree, pll_inner_nodes[thread_number]);
+  }
+
   void * TreePll::extract_tree ( mt_index_t thread_number) const
   {
       assert(thread_number < number_of_threads);

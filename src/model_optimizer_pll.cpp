@@ -7,7 +7,6 @@
 
 #include "model_optimizer_pll.h"
 #include "utils.h"
-#include "treeinfo.h"
 
 #include <cassert>
 #include <iostream>
@@ -385,48 +384,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       }
   }
 
-  double ModelOptimizerPll::optimize_model( pll_utree_t * pll_tree,
-                                            double epsilon,
-                                            double tolerance,
-                                            bool opt_per_param )
+  double ModelOptimizerPll::optimize_parameters( pll_utree_t * pll_tree,
+                                                 double epsilon,
+                                                 double tolerance,
+                                                 bool opt_per_param,
+                                                 double start_logl )
   {
-    double logl;
-    // pllmod_search_params_t spr_params;
-    // spr_params.thorough = false;
-    // spr_params.radius_min = 1;
-    // spr_params.radius_max = 10;
-    // spr_params.ntopol_keep = 20;
-
-    logl = pll_compute_edge_loglikelihood (pll_partition,
-                                           pll_tree->clv_index,
-                                           pll_tree->scaler_index,
-                                           pll_tree->back->clv_index,
-                                           pll_tree->back->scaler_index,
-                                           pll_tree->pmatrix_index,
-                                           model.get_params_indices(),
-                                           NULL);
-
-          if (optimize_topology)
-        {
-          pllmod_treeinfo_t * tree_info;
-          if (pll_tree->data)
-            tree_info = (pllmod_treeinfo_t *) pll_tree->data;
-          else
-            tree_info = pllmod_treeinfo_create(pll_tree, tree.get_n_tips(), 1,1);
-            pllmod_treeinfo_init_partition(tree_info, 0,
-                                          pll_partition, 1.0,
-                                          {0}, 0);
-            cmd_search(tree_info,
-                       0,
-                       1e-2,
-                       5,
-                       2,
-                       1e-2);
-          exit(1);
-        }
-
     /* current logl changes the sign of the lk, such that the optimization
      * function can minimize the score */
+    double logl = start_logl;
     double cur_logl = logl * -1;
 
     /* notify initial likelihood */
@@ -446,8 +412,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           while ((!all_params_done) && (!interrupt_optimization))
           {
             all_params_done = model.optimize_oneparameter(pll_partition,
-                                            tree.get_pll_tree(thread_number),
+                                            pll_tree,
                                             tolerance);
+
             double iter_logl = model.get_lnl();
             cur_logl = model.get_lnl();
 
@@ -466,16 +433,115 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     {
       while ((!interrupt_optimization) &&
         (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
-        {
-            logl = cur_logl;
-            model.optimize(pll_partition, tree.get_pll_tree(thread_number), tolerance);
-            opt_delta = cur_logl;
-            notify();
-            cur_logl = model.get_lnl();
-        }
+      {
+          logl = cur_logl;
+          model.optimize(pll_partition, pll_tree, tolerance);
+          opt_delta = cur_logl;
+          notify();
+          cur_logl = model.get_lnl();
       }
+    }
 
-      return cur_logl * -1;
+    return cur_logl * -1;
+  }
+
+  const int radius_step = 5;
+
+  double ModelOptimizerPll::optimize_model( pll_utree_t * pll_tree,
+                                            double epsilon,
+                                            double tolerance,
+                                            bool opt_per_param )
+  {
+    double logl;
+    double old_loglh,
+           new_loglh;
+    double bl_min = 1e-2,
+           bl_max = 1e2;
+    // pllmod_search_params_t spr_params;
+    int thorough_insertion = false;
+    int radius_min = 1;
+    int radius_max = 10;
+    int ntopol_keep = 20;
+    int spr_round_id = 0;
+    int smoothings = 32;
+    int radius_limit = 0;
+    pllmod_treeinfo_t * tree_info;
+
+    logl = pll_compute_edge_loglikelihood (pll_partition,
+                                           pll_tree->clv_index,
+                                           pll_tree->scaler_index,
+                                           pll_tree->back->clv_index,
+                                           pll_tree->back->scaler_index,
+                                           pll_tree->pmatrix_index,
+                                           model.get_params_indices(),
+                                           NULL);
+    new_loglh = logl;
+
+    if (optimize_topology)
+    {
+      if (pll_tree->data)
+        tree_info = (pllmod_treeinfo_t *) pll_tree->data;
+      else
+        tree_info = pllmod_treeinfo_create(pll_tree, tree.get_n_tips(), 1,1);
+
+      radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
+
+        pllmod_treeinfo_init_partition(tree_info, 0,
+                                      pll_partition, 1.0,
+                                      {0}, 0);
+
+
+        do
+        {
+          ++spr_round_id;
+          old_loglh = new_loglh;
+
+          new_loglh = pllmod_algo_spr_round(tree_info,
+                                            radius_min,
+                                            radius_max,
+                                            ntopol_keep,
+                                            thorough_insertion,
+                                            bl_min,
+                                            bl_max,
+                                            smoothings,
+                                            epsilon,
+                                            NULL, /* cutoff */
+                                            0);
+
+          bool impr = (new_loglh - old_loglh > epsilon);
+          if (impr && thorough_insertion)
+          {
+            radius_min = 1;
+            radius_max = radius_step;
+          }
+          else if (!impr)
+          {
+            if (!thorough_insertion)
+            {
+              thorough_insertion = true;
+              spr_round_id = 0;
+              radius_min = 1;
+              radius_max = radius_step;
+
+              new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
+            }
+            else
+            {
+              radius_min += radius_step;
+              radius_max += radius_step;
+            }
+          }
+        } while (radius_min >= 0 && radius_min < radius_limit);
+
+        pll_tree = tree_info->root;
+        tree.set_pll_tree(pll_tree, thread_number);
+    }
+
+    /* final thorough parameter optimization */
+    model.set_lnl(new_loglh);
+    logl = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
+
+    return logl;
   }
 
   /* PTHREADS */

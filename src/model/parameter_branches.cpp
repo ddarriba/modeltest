@@ -41,6 +41,8 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_logl;
 
+  double test_logl = pllmod_utree_compute_lk(params->partition, params->tree, params->params_indices, 1, 1);
+
   cur_logl = pllmod_opt_optimize_branch_lengths_iterative (
              params->partition,
              params->tree,

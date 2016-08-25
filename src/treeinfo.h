@@ -100,21 +100,4 @@ void pllmod_treeinfo_invalidate_clv(pllmod_treeinfo_t * treeinfo, const pll_utre
 
 double pllmod_treeinfo_compute_loglh(pllmod_treeinfo_t * treeinfo, bool incremental);
 
-double spr_round(pllmod_treeinfo_t * treeinfo,
-                 int radius_min,
-                 int radius_max,
-                 int n_topologies,
-                 int thorough,
-                 double bl_min,
-                 double bl_max,
-                 int smoothings,
-                 double epsilon);
-
-void cmd_search(pllmod_treeinfo_t * treeinfo,
-                int params_to_optimize,
-                double bl_min,
-                double bl_max,
-                int smoothings,
-                double lh_epsilon);
-
 #endif /* TREEINFO_H_ */

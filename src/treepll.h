@@ -56,6 +56,12 @@ namespace modeltest
     }
 
     /**
+     * @brief sets a particular pll tree
+     * @param[in] thread_number the thread index
+     */
+    void set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number = 0);
+
+    /**
      * @brief test whether a tree is correct
      * @param[in] tree_filename the filename of the tree in NEWICK format
      * @param[out] n_tips the number of tips
