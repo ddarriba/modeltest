@@ -36,7 +36,9 @@ public:
     mt_size_t get_n_sequences( void ) const;
     std::vector<Model *> const& get_models( void ) const;
     Model * get_model(mt_index_t index) const;
-    data_type_t get_datatype( void ) const;
+    Model * get_model_by_matrix(mt_index_t matrix_id, 
+                                mt_mask_t model_params) const;
+        data_type_t get_datatype( void ) const;
     const partition_id_t get_id( void ) const;
 
     bool set_models(const std::vector<Model *> &models);

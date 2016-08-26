@@ -68,7 +68,8 @@ Model::Model(mt_mask_t model_params,
              const partition_descriptor_t &partition,
              mt_size_t states,
              asc_bias_t asc_bias_corr)
-    : optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
+    : model_params(model_params),
+      optimize_pinv(model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA)),
       optimize_gamma((model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                      && !(model_params & MOD_PARAM_FREE_RATES)),
       optimize_freqs(model_params & MOD_PARAM_ESTIMATED_FREQ),
@@ -132,6 +133,7 @@ Model::Model( void )
       gap_aware(false),
       asc_bias_corr(asc_none)
 {
+    model_params = (mt_mask_t) 0;
     matrix_index = 0;
     current_opt_parameter = 0;
 
@@ -176,6 +178,11 @@ std::string const& Model::get_name() const
 bool Model::is_optimized() const
 {
     return lnL < 0.0;
+}
+
+mt_mask_t Model::get_model_params( void ) const
+{
+  return model_params;
 }
 
 bool Model::is_I() const
@@ -571,6 +578,7 @@ void DnaModel::clone(const Model * other_model)
     matrix_index = other->matrix_index;
     name = other->name;
     memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
+    model_params    = other->model_params;
     optimize_pinv   = other->optimize_pinv;
     optimize_gamma  = other->optimize_gamma;
     optimize_freqs  = other->optimize_freqs;
@@ -932,9 +940,10 @@ void ProtModel::clone(const Model * other_model)
     const ProtModel * other = dynamic_cast<const ProtModel *>(other_model);
     matrix_index = other->matrix_index;
     name = other->name;
-    optimize_pinv  = other->optimize_pinv;
-    optimize_gamma = other->optimize_gamma;
-    optimize_freqs = other->optimize_freqs;
+    model_params    = other->model_params;
+    optimize_pinv   = other->optimize_pinv;
+    optimize_gamma  = other->optimize_gamma;
+    optimize_freqs  = other->optimize_freqs;
     empirical_freqs = other->empirical_freqs;
 
     //TODO: Check for LG4!

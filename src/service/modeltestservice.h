@@ -30,6 +30,13 @@ public:
         return s_instance;
     }
 
+    static void finalize()
+    {
+        if (s_instance)
+            delete s_instance;
+        s_instance = 0;
+    }
+
     ~ModelTestService();
 
     static bool test_msa(std::string const& msa_filename,

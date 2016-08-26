@@ -180,11 +180,8 @@ void xmodeltest::update_gui( void )
     int n_model_sets, n_matrices, n_models;
 
 
-    /* topology search is not available! */
-    ui->radTopoFixedGtr->setEnabled(false);
-    ui->radTopoFixedJc->setEnabled(false);
+    /* MP topology is not available! */
     ui->radTopoFixedMp->setEnabled(false);
-    ui->radTopoML->setEnabled(false);
 
     bool enable_open_msa = (status & st_active) && !(status & st_optimized);
     ui->mnu_open_msa->setEnabled(enable_open_msa);
@@ -572,9 +569,9 @@ void xmodeltest::action_run( void )
     if (!ui->tool_run->isEnabled())
         return;
 
-    if (!ui->radTopoU->isChecked())
+    if (ui->radTopoFixedMp->isChecked())
     {
-        QMessageBox::warning(0, "We are sorry...", "<p>ModelTest Light works only with fixed user-defined trees so far</p>");
+        QMessageBox::warning(0, "We are sorry...", "<p>Maximum Parsimony is not available in ModelTest Light so far</p>");
         return;
     }
 

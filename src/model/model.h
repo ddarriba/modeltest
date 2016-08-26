@@ -56,6 +56,12 @@ public:
     bool is_optimized( void ) const;
 
     /**
+     * @brief Gets model paramaters mask
+     * @return the model paramaters mask
+     */
+    mt_mask_t get_model_params( void ) const;
+
+    /**
      * @brief Checks whether the model includes a proportion of invariant sites
      * @return true, if the model is +I
      */
@@ -240,6 +246,7 @@ protected:
 
     /* model parameters */
     /* NOTE: If model is mixture and not gamma, rates are free */
+    mt_mask_t model_params;
     bool optimize_pinv;
     bool optimize_gamma;
     bool optimize_freqs;

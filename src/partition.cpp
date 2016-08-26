@@ -271,6 +271,18 @@ Model * Partition::get_model(mt_index_t index) const
     return c_models[index];
 }
 
+Model * Partition::get_model_by_matrix(mt_index_t matrix_id,
+                                       mt_mask_t model_params) const
+{
+  for (Model * model : c_models)
+  {
+    if (model->get_matrix_index() == matrix_id &&
+        model->get_model_params() == model_params)
+      return model;
+  }
+  return NULL;
+}
+
 bool Partition::set_models(const std::vector<Model *> &models)
 {
     /* validate */

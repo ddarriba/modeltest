@@ -254,7 +254,7 @@ void xmodeltest::on_radTopoFixedMp_clicked()
 {
     utree_filename = "";
     ui->lbl_tree->setStyleSheet("color: #007;");
-    ui->lbl_tree->setText("Fixed Maximum Parsimony");
+    ui->lbl_tree->setText("Fixed MP");
     update_gui();
 }
 
@@ -262,7 +262,7 @@ void xmodeltest::on_radTopoFixedGtr_clicked()
 {
     utree_filename = "";
     ui->lbl_tree->setStyleSheet("color: #007;");
-    ui->lbl_tree->setText("Fixed Maximum Likelihood (GTR)");
+    ui->lbl_tree->setText("Fixed ML (GTR)");
     update_gui();
 }
 
@@ -270,7 +270,7 @@ void xmodeltest::on_radTopoFixedJc_clicked()
 {
     utree_filename = "";
     ui->lbl_tree->setStyleSheet("color: #007;");
-    ui->lbl_tree->setText("Fixed Maximum Likelihood (JC)");
+    ui->lbl_tree->setText("Fixed ML (JC)");
     update_gui();
 }
 

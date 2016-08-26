@@ -108,7 +108,8 @@ public:
 
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
-                                         mt_index_t thread_number = 0);
+                                         mt_index_t thread_number = 0,
+                                         bool force_opt_topo = false);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
 

@@ -262,126 +262,126 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                               double tolerance,
                               mt_size_t _num_threads)
   {
-      /*test*/
-      //num_threads = 2;
+    /*test*/
+    //num_threads = 2;
 
 #ifdef VERBOSE //TODO: Verbosity medium
-      cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
+    cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
 #endif
-      time_t start_time = time(NULL);
-      mt_size_t n_branches = tree.get_n_branches();
+    time_t start_time = time(NULL);
+    mt_size_t n_branches = tree.get_n_branches();
 
-      pthread_t * threads = NULL;
-      pll_partition_t ** partition_local = NULL;
-      double * result_buf = NULL;
-      pthread_barrier_t barrier_buf;
+    pthread_t * threads = NULL;
+    pll_partition_t ** partition_local = NULL;
+    double * result_buf = NULL;
+    pthread_barrier_t barrier_buf;
 
-      if (!model.optimize_init(pll_partition,
-                               NULL,
-                               partition))
-      {
-        return false;
-      }
+    if (!model.optimize_init(pll_partition,
+                             NULL,
+                             partition))
+    {
+      return false;
+    }
 
 #ifdef VERBOSE //TODO: Verbosity high
-      cout << "Initial Frequencies:   ";
-      for (mt_index_t i=0; i<pll_partition->states; i++)
-        cout << pll_partition->frequencies[0][i] << " ";
-      cout << endl;
+    cout << "Initial Frequencies:   ";
+    for (mt_index_t i=0; i<pll_partition->states; i++)
+      cout << pll_partition->frequencies[0][i] << " ";
+    cout << endl;
 #endif
 
-      /* /PTHREADS */
-      if (_num_threads > 1)
+    /* /PTHREADS */
+    if (_num_threads > 1)
+    {
+      cerr << "Multithread optimization is temporary unavailable" << endl;
+      return false;
+
+      threads = (pthread_t *) Utils::allocate(_num_threads, sizeof(pthread_t));
+      thread_data = (thread_data_t *) Utils::allocate(_num_threads, sizeof(thread_data_t));
+      partition_local = (pll_partition_t **) Utils::allocate(_num_threads, sizeof(pll_partition_t *));
+      result_buf = (double *) Utils::allocate(_num_threads, sizeof(double));
+      thread_job = JOB_WAIT;
+      pthread_barrier_init (&barrier_buf,
+                            NULL,
+                            _num_threads);
+      for (mt_index_t i=0; i<_num_threads; i++)
       {
-        cerr << "Multithread optimization is temporary unavailable" << endl;
-        return false;
+        partition_local[i] = pll_partition_clone_partial(pll_partition, i, _num_threads);
 
-        threads = (pthread_t *) Utils::allocate(_num_threads, sizeof(pthread_t));
-        thread_data = (thread_data_t *) Utils::allocate(_num_threads, sizeof(thread_data_t));
-        partition_local = (pll_partition_t **) Utils::allocate(_num_threads, sizeof(pll_partition_t *));
-        result_buf = (double *) Utils::allocate(_num_threads, sizeof(double));
-        thread_job = JOB_WAIT;
-        pthread_barrier_init (&barrier_buf,
-                              NULL,
-                              _num_threads);
-        for (mt_index_t i=0; i<_num_threads; i++)
+        thread_data[i].thread_id = i;
+        thread_data[i].num_threads = (long) _num_threads;
+        thread_data[i].partition = partition_local[i];
+        thread_data[i].vroot = tree.get_pll_tree();
+        thread_data[i].barrier_buf = &barrier_buf;
+        thread_data[i].trap = 1;
+        thread_data[i].result_buf = result_buf;
+
+        /* thread 0 is reserved for master process */
+        if (i)
         {
-          partition_local[i] = pll_partition_clone_partial(pll_partition, i, _num_threads);
-
-          thread_data[i].thread_id = i;
-          thread_data[i].num_threads = (long) _num_threads;
-          thread_data[i].partition = partition_local[i];
-          thread_data[i].vroot = tree.get_pll_tree();
-          thread_data[i].barrier_buf = &barrier_buf;
-          thread_data[i].trap = 1;
-          thread_data[i].result_buf = result_buf;
-
-          /* thread 0 is reserved for master process */
-          if (i)
-          {
-              thread_wrap * w = new thread_wrap(&(thread_data[i]), this);
-              if(pthread_create(&(threads[i]), NULL, thread_worker, w)) {
-                cerr << "ERROR: Cannot create thread " << i << endl;
-                return false;
-              }
-          }
+            thread_wrap * w = new thread_wrap(&(thread_data[i]), this);
+            if(pthread_create(&(threads[i]), NULL, thread_worker, w)) {
+              cerr << "ERROR: Cannot create thread " << i << endl;
+              return false;
+            }
         }
       }
-      /* /PTHREADS */
+    }
+    /* /PTHREADS */
 
-      //tree->reroot_random(thread_number);
-      pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
-      build_parameters(pll_tree);
+    //tree->reroot_random(thread_number);
+    pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
+    build_parameters(pll_tree);
 
-      pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
+    pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
-      double test_logl;         /* temporary variable */
-      mt_size_t converged = 0;  /* bitvector for parameter convergence */
+    double test_logl;         /* temporary variable */
+    mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-      double cur_logl = optimize_model(pll_tree, epsilon, tolerance, true);
+    double cur_logl = optimize_model(pll_tree, epsilon, tolerance, true);
 
 
-        /* TODO: if bl are reoptimized */
-        if (keep_branch_lengths)
-          tree.set_bl_optimized();
+      /* TODO: if bl are reoptimized */
+      if (keep_branch_lengths)
+        tree.set_bl_optimized();
 
-      time_t end_time = time(NULL);
+    time_t end_time = time(NULL);
 
-      if (_num_threads > 1)
-      {
-          /* finalize */
-          thread_job = JOB_FINALIZE;
+    if (_num_threads > 1)
+    {
+      /* finalize */
+      thread_job = JOB_FINALIZE;
 
-          /* join threads */
-          for (mt_index_t i=1; i<_num_threads; i++)
-            pthread_join (threads[i], NULL);
+      /* join threads */
+      for (mt_index_t i=1; i<_num_threads; i++)
+        pthread_join (threads[i], NULL);
 
-          /* clean */
-          for (mt_index_t i=0; i<_num_threads; i++)
-            dealloc_partition_local(thread_data[i].partition);
+      /* clean */
+      for (mt_index_t i=0; i<_num_threads; i++)
+        dealloc_partition_local(thread_data[i].partition);
 
-          free(result_buf);
-          free(threads);
-          free(thread_data);
-          free(partition_local);
-      }
+      free(result_buf);
+      free(threads);
+      free(thread_data);
+      free(partition_local);
+    }
 
-      if (interrupt_optimization)
-      {
-          return false;
-      }
-      else
-      {
-          optimized = true;
-          model.set_lnl(cur_logl);
-          model.set_exec_time(end_time - start_time);
+    if (interrupt_optimization)
+    {
+        return false;
+    }
+    else
+    {
+      optimized = true;
+      model.set_lnl(cur_logl);
+      model.set_exec_time(end_time - start_time);
 
-          model.evaluate_criteria(n_branches, msa.get_n_sites());
-          model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
-          return true;
-      }
+      model.evaluate_criteria(n_branches, msa.get_n_sites());
+      model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
+      return true;
+    }
   }
 
   double ModelOptimizerPll::optimize_parameters( pll_utree_t * pll_tree,
@@ -406,28 +406,28 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     {
       bool all_params_done = false;
       while ((fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+      {
+        logl = cur_logl;
+        all_params_done = false;
+        while ((!all_params_done) && (!interrupt_optimization))
         {
-          logl = cur_logl;
-          all_params_done = false;
-          while ((!all_params_done) && (!interrupt_optimization))
+          all_params_done = model.optimize_oneparameter(pll_partition,
+                                          pll_tree,
+                                          tolerance);
+
+          double iter_logl = model.get_lnl();
+          cur_logl = model.get_lnl();
+
+          /* ensure we never get a worse likelihood score */
+          if (iter_logl - cur_logl > 1e-5)
           {
-            all_params_done = model.optimize_oneparameter(pll_partition,
-                                            pll_tree,
-                                            tolerance);
-
-            double iter_logl = model.get_lnl();
-            cur_logl = model.get_lnl();
-
-            /* ensure we never get a worse likelihood score */
-            if (iter_logl - cur_logl > 1e-5)
-            {
-                cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
-                assert(iter_logl - cur_logl < 1e-5);
-            }
-            opt_delta = cur_logl;
-            notify();
+              cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
+              assert(iter_logl - cur_logl < 1e-5);
           }
+          opt_delta = cur_logl;
+          notify();
         }
+      }
     }
     else
     {
@@ -486,55 +486,56 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
 
-        pllmod_treeinfo_init_partition(tree_info, 0,
-                                      pll_partition, 1.0,
-                                      {0}, 0);
+      pllmod_treeinfo_destroy_partition(tree_info, 0);
+      pllmod_treeinfo_init_partition(tree_info, 0,
+                                     pll_partition, 1.0,
+                                     {0}, 0);
 
 
-        do
+      do
+      {
+        ++spr_round_id;
+        old_loglh = new_loglh;
+
+        new_loglh = pllmod_algo_spr_round(tree_info,
+                                          radius_min,
+                                          radius_max,
+                                          ntopol_keep,
+                                          thorough_insertion,
+                                          bl_min,
+                                          bl_max,
+                                          smoothings,
+                                          epsilon,
+                                          NULL, /* cutoff */
+                                          0);
+
+        bool impr = (new_loglh - old_loglh > epsilon);
+        if (impr && thorough_insertion)
         {
-          ++spr_round_id;
-          old_loglh = new_loglh;
-
-          new_loglh = pllmod_algo_spr_round(tree_info,
-                                            radius_min,
-                                            radius_max,
-                                            ntopol_keep,
-                                            thorough_insertion,
-                                            bl_min,
-                                            bl_max,
-                                            smoothings,
-                                            epsilon,
-                                            NULL, /* cutoff */
-                                            0);
-
-          bool impr = (new_loglh - old_loglh > epsilon);
-          if (impr && thorough_insertion)
+          radius_min = 1;
+          radius_max = radius_step;
+        }
+        else if (!impr)
+        {
+          if (!thorough_insertion)
           {
+            thorough_insertion = true;
+            spr_round_id = 0;
             radius_min = 1;
             radius_max = radius_step;
+
+            new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
           }
-          else if (!impr)
+          else
           {
-            if (!thorough_insertion)
-            {
-              thorough_insertion = true;
-              spr_round_id = 0;
-              radius_min = 1;
-              radius_max = radius_step;
-
-              new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
-            }
-            else
-            {
-              radius_min += radius_step;
-              radius_max += radius_step;
-            }
+            radius_min += radius_step;
+            radius_max += radius_step;
           }
-        } while (radius_min >= 0 && radius_min < radius_limit);
+        }
+      } while (radius_min >= 0 && radius_min < radius_limit);
 
-        pll_tree = tree_info->root;
-        tree.set_pll_tree(pll_tree, thread_number);
+      pll_tree = tree_info->root;
+      tree.set_pll_tree(pll_tree, thread_number);
     }
 
     /* final thorough parameter optimization */

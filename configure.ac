@@ -30,14 +30,6 @@ AC_CHECK_LIB([pthread], [pthread_create])
 #  AC_MSG_ERROR([PLL_Optimize library not found])
 #])
 
-PKG_CHECK_MODULES(QT4, [QtCore QtGui >= 4.4.0], [
-  AC_PATH_PROGS(MOC, [moc-qt4 moc], moc,`eval $PKG_CONFIG --variable=exec_prefix QtCore`/bin)
-  AC_PATH_PROG(RCC, rcc, rcc,`eval $PKG_CONFIG --variable=exec_prefix QtCore`/bin)
-  AC_PATH_PROGS(UIC, [uic-qt4 uic], uic,`eval $PKG_CONFIG --variable=exec_prefix QtCore`/bin)
-], [
-  AC_MSG_ERROR([Qt 4 library not found])
-])
-
 AC_MSG_CHECKING(for SSE in current arch/CFLAGS)
 AC_LINK_IFELSE([
 AC_LANG_PROGRAM([[

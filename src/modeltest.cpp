@@ -44,39 +44,40 @@ void ModelTest::create_instance()
 
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
-                                     mt_index_t thread_number)
+                                     mt_index_t thread_number,
+                                     bool force_opt_topo)
 {
-  bool optimize_topology;
+  bool opt_topology;
 
-    if( thread_number > number_of_threads)
-    {
-        return 0;
-    }
+  if( thread_number > number_of_threads)
+  {
+      return 0;
+  }
 
-    optimize_topology = current_instance->start_tree == tree_ml;
-    MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
-    TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-    Partition &partition = partitioning_scheme->get_partition(part_id);
-    return new ModelOptimizerPll(*msa, *tree, *model,
-                                 partition,
-                                 optimize_topology,
-                                 current_instance->n_catg,
-                                 thread_number);
+  opt_topology = force_opt_topo || current_instance->start_tree == tree_ml;
+  MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
+  TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+  Partition &partition = partitioning_scheme->get_partition(part_id);
+  return new ModelOptimizerPll(*msa, *tree, *model,
+                               partition,
+                               opt_topology,
+                               current_instance->n_catg,
+                               thread_number);
 }
 
 static void print_execution_header( bool print_elapsed_time )
 {
-    /* print header */
-    cout << setw(11) << right << " ----ID--- "
-         << setw(15) << left << " ----MODEL---- "
-         << setw(11) << "---Time---";
-    if (print_elapsed_time)
-        cout << setw(11) << "-Elapsed---";
-    cout << setw(18) << right
-         << " -------LnL-------"
-         << setw(8) << " -Alpha-"
-         << setw(8) << " -P-inv-"
-         << endl;
+  /* print header */
+  cout << setw(11) << right << " ----ID--- "
+       << setw(15) << left << " ----MODEL---- "
+       << setw(11) << "---Time---";
+  if (print_elapsed_time)
+      cout << setw(11) << "-Elapsed---";
+  cout << setw(18) << right
+       << " -------LnL-------"
+       << setw(8) << " -Alpha-"
+       << setw(8) << " -P-inv-"
+       << endl;
 }
 
 bool ModelTest::evaluate_single_model(Model * model,
@@ -105,19 +106,23 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
                           double epsilon_opt,
                           time_t global_ini_time)
 {
-    time_t ini_t = time(NULL);
+  time_t ini_t = time(NULL);
+  int res = PLL_SUCCESS;
 
-    int res = evaluate_single_model(model,
-                                    part_id,
-                                    thread_id,
-                                    epsilon_param,
-                                    epsilon_opt);
+  if (!model->is_optimized())
+  {
+    res = evaluate_single_model(model,
+                                part_id,
+                                thread_id,
+                                epsilon_param,
+                                epsilon_opt);
 
     if (!res)
     {
         cerr << "ERROR OPTIMIZING MODEL" << endl;
         return(MT_ERROR_OPTIMIZE);
     }
+  }
 
 //    ostringstream out;
 //    model->output_log(out);
@@ -127,10 +132,10 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 //    cout << out.str() << endl;
 //    model->input_log(sinstr);
 
-    /* print progress */
-    model->print_inline(cur_model+1, n_models, ini_t, global_ini_time);
+  /* print progress */
+  model->print_inline(cur_model+1, n_models, ini_t, global_ini_time);
 
-     return res;
+  return res;
 }
 
 bool ModelTest::evaluate_models(const partition_id_t &part_id,
@@ -374,7 +379,7 @@ bool ModelTest::build_instance(mt_options_t & options)
         if( options.tree_filename.compare ("") )
       {
         try {
-                current_instance->tree = new TreePll (options.starting_tree, options.tree_filename, number_of_threads);
+                current_instance->tree = new TreePll (tree_user_fixed, options.tree_filename, number_of_threads);
             }
             catch(int e)
             {
@@ -435,28 +440,15 @@ bool ModelTest::build_instance(mt_options_t & options)
         // return false;
     }
 
-    /* print tree */
-    if (options.output_tree_to_file)
-    {
-        string nw = current_instance->tree->newick();
-        if (!Utils::append_to_file(options.output_tree_file, nw))
-        {
-            mt_errno = MT_ERROR_IO;
-            snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot write starting tree: %s",
-                     options.output_tree_file.c_str());
-            return false;
-        }
-    }
-
     if (current_instance->msa->get_n_sequences() !=
-	current_instance->tree->get_n_tips())
-      {
-        mt_errno = MT_ERROR_TREE;
-        snprintf(mt_errmsg, ERR_MSG_SIZE, "Tips do not agree! %d sequences vs %d tips",
-                 current_instance->msa->get_n_sequences(),
-                 current_instance->tree->get_n_tips());
-        return false;
-      }
+	      current_instance->tree->get_n_tips())
+    {
+      mt_errno = MT_ERROR_TREE;
+      snprintf(mt_errmsg, ERR_MSG_SIZE, "Tips do not agree! %d sequences vs %d tips",
+               current_instance->msa->get_n_sequences(),
+               current_instance->tree->get_n_tips());
+      return false;
+    }
     current_instance->n_tips = current_instance->msa->get_n_sequences();
 
     /* evaluate partitions */
@@ -524,6 +516,49 @@ bool ModelTest::build_instance(mt_options_t & options)
 
         partitioning_scheme->add_partition(part_id, new_part);
         cur_part_id++;
+    }
+
+    /* update tree */
+    int start_matrix_index = 0;
+    mt_mask_t start_model_params = MOD_PARAM_ESTIMATED_FREQ | MOD_PARAM_GAMMA;
+    switch (options.starting_tree)
+    {
+    case tree_user_fixed:
+    case tree_random:
+    case tree_mp:
+    case tree_ml:
+      /* ignore */
+      break;
+    case tree_ml_gtr_fixed:
+    case tree_ml_jc_fixed:
+      start_matrix_index = (options.starting_tree == tree_ml_jc_fixed?
+        DNA_JC_INDEX : DNA_GTR_INDEX);
+      Model * start_model = partitioning_scheme->get_partition({0}).get_model_by_matrix(start_matrix_index, start_model_params);
+      assert (start_model);
+      cout << "Optimizing tree for " << start_model->get_name() << std::endl;
+
+      //TODO: Optimize per partition
+      ModelOptimizer * start_opt = get_model_optimizer(start_model,
+                                           {0},
+                                            0,
+                                            true);
+      start_opt->run(options.epsilon_opt, options.epsilon_param);
+      assert(start_model->is_optimized());
+      cout << "Starting tree fixed " << start_model->get_lnl() << std::endl;
+      break;
+    }
+
+    /* print tree */
+    if (options.output_tree_to_file)
+    {
+        string nw = current_instance->tree->newick();
+        if (!Utils::append_to_file(options.output_tree_file, nw))
+        {
+            mt_errno = MT_ERROR_IO;
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot write starting tree: %s",
+                     options.output_tree_file.c_str());
+            return false;
+        }
     }
 
     return true;

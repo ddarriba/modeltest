@@ -1433,7 +1433,7 @@ margin-left: 5px;</string>
                       <item>
                        <widget class="QRadioButton" name="radTopoFixedJc">
                         <property name="enabled">
-                         <bool>false</bool>
+                         <bool>true</bool>
                         </property>
                         <property name="font">
                          <font>
@@ -1455,7 +1455,7 @@ margin-left: 5px;</string>
                       <item>
                        <widget class="QRadioButton" name="radTopoFixedGtr">
                         <property name="enabled">
-                         <bool>false</bool>
+                         <bool>true</bool>
                         </property>
                         <property name="font">
                          <font>
@@ -1480,7 +1480,7 @@ margin-left: 5px;</string>
                       <item>
                        <widget class="QRadioButton" name="radTopoML">
                         <property name="enabled">
-                         <bool>false</bool>
+                         <bool>true</bool>
                         </property>
                         <property name="font">
                          <font>

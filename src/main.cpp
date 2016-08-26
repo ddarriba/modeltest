@@ -42,12 +42,6 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
-        if (!ModelTestService::instance()->create_instance(opts))
-        {
-            cerr << modeltest::mt_errmsg << endl;
-            return (int)modeltest::mt_errno;
-        }
-
         Meta::print_system_info(cout);
         cout << endl;
         Meta::print_options(opts, cout);
@@ -55,6 +49,12 @@ int main(int argc, char *argv[])
         for (int i=0; i<argc; i++)
             cout << argv[i] << " ";
         cout << endl << endl;
+        
+        if (!ModelTestService::instance()->create_instance(opts))
+        {
+            cerr << modeltest::mt_errmsg << endl;
+            return (int)modeltest::mt_errno;
+        }
 
         if (n_procs == 1 && num_cores > 1)
         {
@@ -151,8 +151,6 @@ int main(int argc, char *argv[])
             delete opts.partitions_desc;
         if (opts.partitions_eff)
             delete opts.partitions_eff;
-
-        ModelTestService::instance()->destroy_instance();
     }
     else
     {
@@ -172,6 +170,8 @@ int main(int argc, char *argv[])
         cerr << "Try '" << PACKAGE << " --help' or '" << PACKAGE << " --usage' for more information" << endl;
         #endif
     }
+
+    ModelTestService::finalize();
 
     return return_val;
 }

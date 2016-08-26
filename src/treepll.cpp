@@ -142,6 +142,7 @@ namespace modeltest
                   throw EXCEPTION_TREE_MP;
               }
           }
+          pll_utree_destroy(random_tree);
       }
           break;
       case tree_mp:
@@ -268,7 +269,13 @@ namespace modeltest
       for (mt_index_t i=0; i<number_of_threads; i++)
       {
         if (pll_tree[i])
+        {
+          if (pll_tree[i]->data)
+          {
+            pllmod_treeinfo_destroy((pllmod_treeinfo_t *)pll_tree[i]->data);
+          }
           pll_utree_destroy(pll_tree[i]);
+        }
         if (pll_tip_nodes[i])
           free(pll_tip_nodes[i]);
         if (pll_inner_nodes[i])
@@ -356,7 +363,7 @@ namespace modeltest
   {
       pll_tree[thread_number] = new_tree;
       pll_start_tree[thread_number] = new_tree;
-      
+
       /* update node arrays */
       pll_utree_query_tipnodes(new_tree, pll_tip_nodes[thread_number]);
       pll_utree_query_innernodes(new_tree, pll_inner_nodes[thread_number]);

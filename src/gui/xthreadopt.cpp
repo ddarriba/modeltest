@@ -65,13 +65,16 @@ void xThreadOpt::optimize_single(const partition_id_t &part_id,
     if (interrupt)
         return;
 
-    ModelTestService::instance()->optimize_single(part_id,
-                                                  model,
-                                                  thread_id,
-                                                  epsilon_param,
-                                                  epsilon_opt,
-                                                  {this});
-
+    if (!model->is_optimized())
+    {
+      ModelTestService::instance()->optimize_single(part_id,
+                                                    model,
+                                                    thread_id,
+                                                    epsilon_param,
+                                                    epsilon_opt,
+                                                    {this});
+    }
+    
     // check for models interrupted during optimization
     if (interrupt)
         return;
