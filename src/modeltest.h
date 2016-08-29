@@ -30,6 +30,7 @@
 #include "model/model.h"
 #include "model_selection.h"
 #include "partitioning_scheme.h"
+#include "thread/observer.h"
 #include "optimize/model_optimizer_pll.h"
 
 namespace modeltest {
@@ -47,7 +48,7 @@ typedef struct
   mt_size_t n_catg;               //! number of Gamma rate categories
 } selection_instance;
 
-class ModelTest
+class ModelTest : public Observer
 {
 public:
     ModelTest(mt_size_t number_of_threads = 1);
@@ -149,6 +150,7 @@ public:
     bool set_models(const std::vector<Model *> &c_models,
                     const partition_id_t &part_id);
 
+    virtual void update(Observable * subject, void * data);
 private:
     mt_size_t number_of_threads;              //! number of threads
     selection_instance * current_instance;    //! model optimization parameters

@@ -13,6 +13,7 @@ modeltestx_SOURCES = \
 	model/parameter_frequencies.cpp \
 	model/model.cpp \
 	optimize/model_optimizer_pll.cpp \
+	optimize/partition_optimizer.cpp \
 	model_selection.cpp \
 	modeltest.cpp \
 	msapll.cpp \
@@ -53,6 +54,7 @@ pkginclude_HEADERS= \
 	model/model.h \
 	optimize/model_optimizer_pll.h \
 	optimize/model_optimizer.h \
+	optimize/partition_optimizer.h \
 	loggable.h \
 	meta.h \
 	utils.h \

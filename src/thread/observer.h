@@ -31,7 +31,7 @@ class Observer
   public:
     Observer();
     virtual ~Observer();
-    virtual void update(Observable * subject) = 0;
+    virtual void update(Observable * subject, void * data) = 0;
 };
 
 class Observable
@@ -40,7 +40,7 @@ class Observable
   public:
     virtual ~Observable();
     void attach(Observer *obs);
-    virtual void notify();
+    virtual void notify(void * data = 0);
 };
 
 #endif // OBSERVER_H

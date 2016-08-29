@@ -32,9 +32,9 @@ void Observable::attach(Observer *obs)
     views.push_back(obs);
 }
 
-void Observable::notify()
+void Observable::notify(void * data)
 {
     // publisher broadcasts
     for (Observer * view : views)
-        view->update(this);
+        view->update(this, data);
 }

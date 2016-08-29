@@ -25,6 +25,7 @@
 #include "msapll.h"
 #include "treepll.h"
 #include "thread/threadpool.h"
+#include "optimize/partition_optimizer.h"
 
 #include <sstream>
 #include <cassert>
@@ -177,15 +178,25 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 
     if (n_procs == 1)
     {
+        bool opt_topology = current_instance->start_tree == tree_ml;
+        MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
+        TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+
         print_execution_header( global_ini_time );
 
-        for (cur_model=0; cur_model < n_models; cur_model++)
-        {
-            Model *model = partition.get_model(cur_model);
-            eval_and_print(part_id, cur_model, n_models, model, 0,
-                           epsilon_param, epsilon_opt,
-                           global_ini_time);
-        }
+        PartitionOptimizer p_opt(partition, *msa, *tree,
+                                  current_instance->n_catg,
+                                 partition_optimize_all, opt_topology,
+                                 epsilon_param, epsilon_opt);
+        p_opt.attach(this);
+        p_opt.evaluate();
+        // for (cur_model=0; cur_model < n_models; cur_model++)
+        // {
+        //     Model *model = partition.get_model(cur_model);
+        //     eval_and_print(part_id, cur_model, n_models, model, 0,
+        //                    epsilon_param, epsilon_opt,
+        //                    global_ini_time);
+        // }
     }
     else
     {
@@ -594,6 +605,13 @@ bool ModelTest::set_models(const std::vector<Model *> &c_models,
                            const partition_id_t &part_id)
 {
     return partitioning_scheme->get_partition(part_id).set_models(c_models);
+}
+
+void ModelTest::update(Observable * subject, void * data)
+{
+  //TODO: Use struct here
+  Model * model = static_cast<Model *>(data);
+  model->print_inline(0, 0, time(NULL), 0);
 }
 
 PartitioningScheme & ModelTest::get_partitioning_scheme( void ) const
