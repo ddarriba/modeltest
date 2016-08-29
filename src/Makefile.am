@@ -12,7 +12,7 @@ modeltestx_SOURCES = \
 	model/parameter_substrates.cpp \
 	model/parameter_frequencies.cpp \
 	model/model.cpp \
-	model_optimizer_pll.cpp \
+	optimize/model_optimizer_pll.cpp \
 	model_selection.cpp \
 	modeltest.cpp \
 	msapll.cpp \
@@ -50,8 +50,9 @@ pkginclude_HEADERS= \
 	model/parameter_pinv.h \
 	model/parameter_substrates.h \
 	model/parameter_frequencies.h \
-	model_optimizer_pll.h \
 	model/model.h \
+	optimize/model_optimizer_pll.h \
+	optimize/model_optimizer.h \
 	loggable.h \
 	meta.h \
 	utils.h \
@@ -60,7 +61,6 @@ pkginclude_HEADERS= \
 	model_selection.h \
 	model_defs.h \
 	partition.h \
-	model_optimizer.h \
 	treepll.h \
 	partitioning_scheme.h \
 	msa.h \

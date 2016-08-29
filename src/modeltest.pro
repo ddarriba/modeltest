@@ -21,8 +21,8 @@ SOURCES += main.cpp\
     model/parameter_pinv.cpp \
     model/parameter_substrates.cpp \
     model/model.cpp \
+    optimize/model_optimizer_pll.cpp \
     modeltest.cpp \
-    model_optimizer_pll.cpp \
     msapll.cpp \
     treepll.cpp \
     model_selection.cpp \
@@ -32,12 +32,11 @@ SOURCES += main.cpp\
     gui/xmodeltest.cpp \
     gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
-    gui/xmodeltest_fill.cpp \
     gui/progressdialog.cpp \
     gui/datainfodialog.cpp \
     gui/xutils.cpp \
     gui/resultsdialog.cpp \
-    partitionselection.cpp \
+    partition_selection.cpp \
     service/modeltestservice.cpp \
     gui/modelsdialog.cpp \
     gui/resultsexportdialog.cpp \
@@ -55,9 +54,9 @@ HEADERS  += \
     model/parameter_pinv.h \
     model/parameter_substrates.h \
     model/model.h \
+    optimize/model_optimizer.h \
+    optimize/model_optimizer_pll.h \
     modeltest.h \
-    model_optimizer.h \
-    model_optimizer_pll.h \
     msa.h \
     msapll.h \
     plldefs.h \
@@ -78,7 +77,7 @@ HEADERS  += \
     gui/datainfodialog.h \
     gui/xutils.h \
     gui/resultsdialog.h \
-    partitionselection.h \
+    partition_selection.h \
     service/modeltestservice.h \
     gui/modelsdialog.h \
     loggable.h \

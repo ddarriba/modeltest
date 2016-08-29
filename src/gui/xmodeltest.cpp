@@ -1,10 +1,31 @@
-#include "xmodeltest.h"
-#include "ui_xmodeltest.h"
+/*
+  Copyright (C) 2016 Diego Darriba
 
-#include "service/modeltestservice.h"
-#include "meta.h"
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  Contact: Diego Darriba <Diego.Darriba@h-its.org>,
+  Heidelberg Institute for Theoretical Studies,
+  Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
+#include "gui/xmodeltest.h"
 #include "gui/progressdialog.h"
 #include "gui/datainfodialog.h"
+#include "service/modeltestservice.h"
+#include "meta.h"
+
+#include "ui_xmodeltest.h"
 
 #ifdef QT_WIDGETS_LIB
 #include <QtWidgets>

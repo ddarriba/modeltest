@@ -19,28 +19,32 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#ifndef OBSERVER_H
-#define OBSERVER_H
+#ifndef PARTITIONSELECTION_H
+#define PARTITIONSELECTION_H
+
+#include "global_defs.h"
+#include "partitioning_scheme.h"
+#include "model_selection.h"
 
 #include <vector>
 
-class Observable;
-
-class Observer
+namespace modeltest
 {
-  public:
-    Observer();
-    virtual ~Observer();
-    virtual void update(Observable * subject) = 0;
+
+class PartitionSelection
+{
+public:
+    PartitionSelection(PartitioningScheme & scheme,
+                       ic_type type);
+
+    double get_score();
+    double get_weight();
+    selection_model & get_model(mt_index_t part_idx);
+private:
+    std::vector<selection_model> best_models;
+    double score;
+    double weight;
 };
 
-class Observable
-{
-    std::vector < Observer * > views;
-  public:
-    virtual ~Observable();
-    void attach(Observer *obs);
-    virtual void notify();
-};
-
-#endif // OBSERVER_H
+}
+#endif // PARTITIONSELECTION_H

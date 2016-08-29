@@ -1,5 +1,26 @@
-#include "parameter_substrates.h"
+/*
+  Copyright (C) 2016 Diego Darriba
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  Contact: Diego Darriba <Diego.Darriba@h-its.org>,
+  Heidelberg Institute for Theoretical Studies,
+  Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
 #include "partition.h"
+#include "model/parameter_substrates.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 100
@@ -76,7 +97,7 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
 {
     const vector<double> empirical_rates = partition.get_empirical_subst_rates();
     assert(empirical_rates.size() == n_subst_params);
-    
+
     for (mt_index_t i=0; i<n_subst_free_params; ++i)
     {
         double sum_rate = 0;

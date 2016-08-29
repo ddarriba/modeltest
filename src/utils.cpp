@@ -1,16 +1,37 @@
+/*
+  Copyright (C) 2016 Diego Darriba
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  Contact: Diego Darriba <Diego.Darriba@h-its.org>,
+  Heidelberg Institute for Theoretical Studies,
+  Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
 #include "utils.h"
 #include "model_defs.h"
 #include "service/modeltestservice.h"
 
-#include <algorithm>
+#include <cerrno>
+#include <cstdio>
 #include <sstream>
 #include <cassert>
-#include <cerrno>
 #include <cstdarg>
-#include <cstdio>
 #include <cstring>
 #include <iomanip>
 #include <unistd.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -709,7 +730,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         CONSUME(TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
         pi.gap_aware = false;
-        
+
         partitions->push_back(pi);
     }
 
