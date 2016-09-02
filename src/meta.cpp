@@ -40,6 +40,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     bool output_files_ok = false;
     bool exist_dna_models = false;
     bool exist_protein_models = false;
+
     template_models_t template_models = template_none;
     dna_subst_schemes_t dna_ss = ss_undef;
     string user_candidate_models = "";
@@ -58,6 +59,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
     exec_opt.smooth_freqs    = false;
+    exec_opt.rate_clustering = false;
     exec_opt.subst_schemes   = ss_undef;
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
@@ -435,15 +437,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 'u':
             exec_opt.tree_filename = optarg;
-            exec_opt.starting_tree = tree_user_fixed;
             break;
         case 'v':
             exec_opt.verbose = VERBOSITY_HIGH;
             break;
         default:
-            exit(1);
-            //cerr << "Unrecognised argument -" << opt << endl;
-            //return false;
+            assert(0);
         }
     }
 
@@ -467,21 +466,53 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     }
 
     /* validate input file */
-    if (input_file_ok) {
-        if (!modeltest::MsaPll::test(exec_opt.msa_filename,
-                                    &exec_opt.n_taxa,
-                                    &exec_opt.n_sites,
-                                    &exec_opt.msa_format))
-        {
-            cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
-            cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
-            params_ok = false;
-        }
+    if (input_file_ok)
+    {
+      if (!modeltest::Utils::file_exists(exec_opt.msa_filename))
+      {
+        cerr << PACKAGE << ": msa file does not exist: " << exec_opt.msa_filename << endl;
+        params_ok = false;
+      }
+      else if (!modeltest::MsaPll::test(exec_opt.msa_filename,
+                                  &exec_opt.n_taxa,
+                                  &exec_opt.n_sites,
+                                  &exec_opt.msa_format))
+      {
+          cerr << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
+          cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
+          params_ok = false;
+      }
     }
     else
     {
-        cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
+      cerr << PACKAGE << ": You must specify an alignment file (-i)" << endl;
+      params_ok = false;
+    }
+
+    if (exec_opt.tree_filename.compare(""))
+    {
+      if (!modeltest::Utils::file_exists(exec_opt.tree_filename))
+      {
+        cerr << PACKAGE << ": tree file does not exist: " << exec_opt.tree_filename << endl;
         params_ok = false;
+      }
+      else if (exec_opt.starting_tree == tree_mp ||
+               exec_opt.starting_tree == tree_random)
+      {
+        cerr << PACKAGE << ": Warning: "
+          "User defined tree (-u) is used only with ml, fixed-ml or fixed-user starting trees" <<
+          endl;
+        cerr << PACKAGE << ":          "
+            "Starting tree will be set to 'user'" << endl;
+        exec_opt.starting_tree = tree_user_fixed;
+      }
+    }
+    else if (exec_opt.starting_tree == tree_user_fixed)
+    {
+      cerr << PACKAGE <<
+        ": Fixed-user starting tree (-t user) requires a tree file (-u)" <<
+        endl;
+      params_ok = false;
     }
 
     if (freqs_mask & MOD_PARAM_ESTIMATED_FREQ)
@@ -499,258 +530,278 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     /* validate partitions file */
     if (exec_opt.partitions_filename.compare(""))
     {
+      if (!modeltest::Utils::file_exists(exec_opt.partitions_filename))
+      {
+        cerr << PACKAGE << ": partitions file does not exist: " <<
+                exec_opt.partitions_filename << endl;
+        params_ok = false;
+      }
+      else
+      {
         exec_opt.partitions_desc =
                 modeltest::Utils::parse_partitions_file(
                     exec_opt.partitions_filename);
         if (!exec_opt.partitions_desc)
         {
-            switch (modeltest::mt_errno)
-            {
-            case MT_ERROR_IO:
-                cerr << PACKAGE << ": Cannot read partitions file: "
-                     << exec_opt.partitions_filename << endl;
-                break;
-            case MT_ERROR_IO_FORMAT:
-                cerr << PACKAGE << ": Cannot parse partitions: "
-                     << exec_opt.partitions_filename << endl;
-                cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
-                     << " [" << modeltest::mt_errno << "] "
-                     << modeltest::mt_errmsg << endl;
-                break;
-            default:
-                assert(0);
-            }
-            params_ok = false;
-        }
-
-        if (params_ok)
-        {
-          if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
-                                                     exec_opt.n_sites))
+          switch (modeltest::mt_errno)
           {
-              cerr << PACKAGE << ": Error in partitions file: "
+          case MT_ERROR_IO:
+              cerr << PACKAGE << ": Cannot read partitions file: "
+                   << exec_opt.partitions_filename << endl;
+              break;
+          case MT_ERROR_IO_FORMAT:
+              cerr << PACKAGE << ": Cannot parse partitions: "
                    << exec_opt.partitions_filename << endl;
               cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
                    << " [" << modeltest::mt_errno << "] "
                    << modeltest::mt_errmsg << endl;
-              params_ok = false;
+              break;
+          default:
+              assert(0);
           }
-          else
-          {
-              if (modeltest::mt_errno)
-              {
-                  cerr << PACKAGE << ": Warning: "
-                       << modeltest::mt_errmsg << endl;
-                  modeltest::mt_errno = 0;
-              }
-          }
-
-          assert(exec_opt.partitions_desc);
-          if (exec_opt.partitions_desc->size() > 1 &&
-              !(exec_opt.asc_bias_corr == asc_none ||
-                exec_opt.asc_bias_corr == asc_lewis))
-          {
-            cerr << PACKAGE <<
-                 ": Only None or Lewis ascertainment bias correction is allowed for partitioned data sets so far."
-                 << endl;
-            params_ok = false;
-          }
-
-          for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
-          {
-              partition.model_params = exec_opt.model_params;
-              partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
-                                                               N_PROT_STATES);
-              exist_dna_models     |= (partition.datatype == dt_dna);
-              exist_protein_models |= (partition.datatype == dt_protein);
-              partition.gap_aware = gap_aware;
-              partition.asc_bias_corr = exec_opt.asc_bias_corr;
-              partition.asc_weights = exec_opt.asc_weights;
-          }
+          params_ok = false;
         }
+      }
+
+      if (params_ok)
+      {
+        if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
+                                                   exec_opt.n_sites))
+        {
+          cerr << PACKAGE << ": Error in partitions file: "
+               << exec_opt.partitions_filename << endl;
+          cerr <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
+               << " [" << modeltest::mt_errno << "] "
+               << modeltest::mt_errmsg << endl;
+          params_ok = false;
+        }
+        else
+        {
+            if (modeltest::mt_errno)
+            {
+                cerr << PACKAGE << ": Warning: "
+                     << modeltest::mt_errmsg << endl;
+                modeltest::mt_errno = 0;
+            }
+        }
+
+        assert(exec_opt.partitions_desc);
+        if (exec_opt.partitions_desc->size() > 1 &&
+            !(exec_opt.asc_bias_corr == asc_none ||
+              exec_opt.asc_bias_corr == asc_lewis))
+        {
+          cerr << PACKAGE <<
+               ": Only None or Lewis ascertainment bias correction is allowed for partitioned data sets so far."
+               << endl;
+          params_ok = false;
+        }
+
+        for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
+        {
+          partition.model_params = exec_opt.model_params;
+          partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
+                                                           N_PROT_STATES);
+          exist_dna_models     |= (partition.datatype == dt_dna);
+          exist_protein_models |= (partition.datatype == dt_protein);
+          partition.gap_aware = gap_aware;
+          partition.asc_bias_corr = exec_opt.asc_bias_corr;
+          partition.asc_weights = exec_opt.asc_weights;
+        }
+      }
     }
     else
     {
-        /* create single partition / single region */
-        exec_opt.partitions_desc = new vector<partition_descriptor_t>();
-        partition_region_t region;
-        partition_descriptor_t partition;
-        region.start = 1;
-        region.end = exec_opt.n_sites;
-        region.stride = 1;
-        partition.datatype = arg_datatype;
-        partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
-                                                         N_PROT_STATES);
-        exist_dna_models     = (arg_datatype == dt_dna);
-        exist_protein_models = (arg_datatype == dt_protein);
-        partition.gap_aware = gap_aware;
-        partition.partition_name = "DATA";
-        partition.regions.push_back(region);
-        partition.model_params = exec_opt.model_params;
-        partition.asc_bias_corr = exec_opt.asc_bias_corr;
-        partition.asc_weights = exec_opt.asc_weights;
-        exec_opt.partitions_desc->push_back(partition);
+      /* create single partition / single region */
+      exec_opt.partitions_desc = new vector<partition_descriptor_t>();
+      partition_region_t region;
+      partition_descriptor_t partition;
+      region.start = 1;
+      region.end = exec_opt.n_sites;
+      region.stride = 1;
+      partition.datatype = arg_datatype;
+      partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
+                                                       N_PROT_STATES);
+      exist_dna_models     = (arg_datatype == dt_dna);
+      exist_protein_models = (arg_datatype == dt_protein);
+      partition.gap_aware = gap_aware;
+      partition.partition_name = "DATA";
+      partition.regions.push_back(region);
+      partition.model_params = exec_opt.model_params;
+      partition.asc_bias_corr = exec_opt.asc_bias_corr;
+      partition.asc_weights = exec_opt.asc_weights;
+      exec_opt.partitions_desc->push_back(partition);
     }
 
     /* set models template */
     exec_opt.template_models = template_models;
     if (template_models != template_none)
     {
-        for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
+      for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
+      {
+        partition.model_params = modeltest::Utils::get_parameters_from_template(template_models, partition.datatype);
+        switch (partition.datatype)
         {
-            partition.model_params = modeltest::Utils::get_parameters_from_template(template_models, partition.datatype);
-            switch (partition.datatype)
-            {
-            case dt_dna:
-            {
-                dna_ss = modeltest::Utils::get_dna_matrices_from_template(template_models);
-            }
-                break;
-            case dt_protein:
-            {
-                mt_size_t n_prot_matrices;
-                const mt_index_t *template_matrices = modeltest::Utils::get_prot_matrices_from_template(template_models,
-                                                                                                        &n_prot_matrices);
-                for (mt_index_t i=0; i<n_prot_matrices; ++i)
-                    exec_opt.aa_candidate_models.push_back(template_matrices[i]);
-            }
-                break;
-            }
+        case dt_dna:
+        {
+            dna_ss = modeltest::Utils::get_dna_matrices_from_template(template_models);
         }
+            break;
+        case dt_protein:
+        {
+            mt_size_t n_prot_matrices;
+            const mt_index_t *template_matrices = modeltest::Utils::get_prot_matrices_from_template(template_models,
+                                                                                                    &n_prot_matrices);
+            for (mt_index_t i=0; i<n_prot_matrices; ++i)
+                exec_opt.aa_candidate_models.push_back(template_matrices[i]);
+        }
+            break;
+        }
+      }
     }
 
     if (exist_protein_models)
     {
-        if (!exist_dna_models && (dna_ss != ss_undef))
-            cerr << PACKAGE << ": Warning: Substitution schemes will be ignored" << endl;
+      if (!exist_dna_models && (dna_ss != ss_undef))
+          cerr << PACKAGE << ": Warning: Substitution schemes will be ignored" << endl;
 
-        if (user_candidate_models.compare(""))
-        {
-            if (exec_opt.aa_candidate_models.size())
-                exec_opt.aa_candidate_models.clear();
+      if (user_candidate_models.compare(""))
+      {
+        if (exec_opt.aa_candidate_models.size())
+            exec_opt.aa_candidate_models.clear();
 
-            int prot_matrices_bitv = 0;
-            /* parse user defined models */
-            istringstream f(user_candidate_models);
-            string s;
-            while (getline(f, s, ',')) {
-                mt_index_t i, c_matrix = 0;
-                for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
-                {
-                    if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
-                    {
-                        c_matrix = i;
-                        break;
-                    }
-                }
-                if (i == N_PROT_MODEL_ALL_MATRICES)
-                {
-                    cerr << PACKAGE << ": Invalid protein matrix: " << s << endl;
-                    params_ok = false;
-                }
-                prot_matrices_bitv |= 1<<c_matrix;
-            }
-            for (mt_index_t i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
+        int prot_matrices_bitv = 0;
+        /* parse user defined models */
+        istringstream f(user_candidate_models);
+        string s;
+        while (getline(f, s, ',')) {
+            mt_index_t i, c_matrix = 0;
+            for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
             {
-                if (prot_matrices_bitv&1)
+                if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
                 {
-                    exec_opt.aa_candidate_models.push_back(i);
+                    c_matrix = i;
+                    break;
                 }
-                prot_matrices_bitv >>= 1;
             }
+            if (i == N_PROT_MODEL_ALL_MATRICES)
+            {
+                cerr << PACKAGE << ": Invalid protein matrix: " << s << endl;
+                params_ok = false;
+            }
+            prot_matrices_bitv |= 1<<c_matrix;
         }
-        else if (!exec_opt.aa_candidate_models.size())
+        for (mt_index_t i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
         {
-            /* the whole set is used */
-            for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            if (prot_matrices_bitv&1)
+            {
                 exec_opt.aa_candidate_models.push_back(i);
+            }
+            prot_matrices_bitv >>= 1;
         }
+      }
+      else if (!exec_opt.aa_candidate_models.size())
+      {
+        /* the whole set is used */
+        for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+            exec_opt.aa_candidate_models.push_back(i);
+      }
     }
+
     if (exist_dna_models)
     {
-        if (user_candidate_models.compare("") && (dna_ss == ss_undef))
-        {
-            if (exec_opt.nt_candidate_models.size())
-                exec_opt.nt_candidate_models.clear();
+      if (user_candidate_models.compare("") && (dna_ss == ss_undef))
+      {
+        if (exec_opt.nt_candidate_models.size())
+            exec_opt.nt_candidate_models.clear();
 
-            int dna_matrices_bitv = 0;
-            /* parse user defined models */
-            istringstream f(user_candidate_models);
-            string s;
-            while (getline(f, s, ',')) {
-                mt_index_t i, c_matrix = 0;
-                for (i=0; i<N_DNA_MODEL_MATRICES; i++)
-                {
-                    if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
-                        !strcasecmp(dna_model_names[2*i+1].c_str(), s.c_str()))
-                    {
-                        c_matrix = i;
-                        break;
-                    }
-                }
-                if (i == N_DNA_MODEL_MATRICES)
-                {
-                    cerr << PACKAGE << ": Invalid dna matrix: " << s << endl;
-                    params_ok = false;
-                }
-                dna_matrices_bitv |= 1<<c_matrix;
-            }
-            for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
+        int dna_matrices_bitv = 0;
+        /* parse user defined models */
+        istringstream f(user_candidate_models);
+        string s;
+        while (getline(f, s, ',')) {
+          mt_index_t i, c_matrix = 0;
+          for (i=0; i<N_DNA_MODEL_MATRICES; i++)
+          {
+            if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
+                !strcasecmp(dna_model_names[2*i+1].c_str(), s.c_str()))
             {
-                if (dna_matrices_bitv&1)
-                {
-                    exec_opt.nt_candidate_models.push_back(
-                                dna_model_matrices_indices[i]);
-                }
-                dna_matrices_bitv >>= 1;
+              c_matrix = i;
+              break;
             }
+          }
+          if (i == N_DNA_MODEL_MATRICES)
+          {
+            cerr << PACKAGE << ": Invalid dna matrix: " << s << endl;
+            params_ok = false;
+          }
+          dna_matrices_bitv |= 1<<c_matrix;
         }
-        else
+        for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
         {
-            if (dna_ss == ss_undef)
-                exec_opt.subst_schemes = default_ss;
-            else
-                exec_opt.subst_schemes = dna_ss;
+          if (dna_matrices_bitv&1)
+          {
+            exec_opt.nt_candidate_models.push_back(
+                        dna_model_matrices_indices[i]);
+          }
+          dna_matrices_bitv >>= 1;
         }
+      }
+      else
+      {
+        if (dna_ss == ss_undef)
+            exec_opt.subst_schemes = default_ss;
+        else
+            exec_opt.subst_schemes = dna_ss;
 
-        /* fill candidate matrices */
+        exec_opt.rate_clustering = (dna_ss == ss_203);
+      }
+
+      /* fill candidate matrices */
+      if(exec_opt.rate_clustering)
+      {
+        /* For rate clustering, fill candidate models only with GTR */
+        exec_opt.nt_candidate_models.push_back(DNA_GTR_INDEX);
+      }
+      else
+      {
         switch(exec_opt.subst_schemes)
         {
         case ss_11:
-            for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
-                exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[i]);
-            break;
+          for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
+              exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[i]);
+          break;
         case ss_7:
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[6]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[9]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[6]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[9]);
 
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
-            break;
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
+          break;
         case ss_5:
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[2]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[3]);
 
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
-            break;
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
+          break;
         case ss_3:
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
-            exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
-            break;
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[0]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[1]);
+          exec_opt.nt_candidate_models.push_back(dna_model_matrices_indices[10]);
+          break;
         case ss_203:
-            for (mt_index_t i=0; i<203; i++)
-                exec_opt.nt_candidate_models.push_back(i);
-            break;
+          for (mt_index_t i=0; i<203; i++)
+              exec_opt.nt_candidate_models.push_back(i);
+          break;
         case ss_undef:
-            /* ignore */
-            break;
+          /* ignore */
+          break;
         }
+      }
     }
 
     if (params_ok)
@@ -910,7 +961,7 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
     {
     case tree_user_fixed:
         assert (opts.tree_filename.compare(""));
-        out << opts.tree_filename << endl;
+        out << "Fixed user" << endl;
         break;
     case tree_mp:
         out << "Maximum parsimony" << endl;
@@ -928,6 +979,11 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
         out << "Random" << endl;
         break;
     }
+    out << "  " << left << setw(10) << "  file:";
+    if (opts.tree_filename.compare(""))
+      out << opts.tree_filename << endl;
+    else
+      out << "-" << endl;
 
     out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
     out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;

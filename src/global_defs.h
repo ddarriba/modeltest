@@ -90,6 +90,7 @@ namespace modeltest
   extern double pinv_alpha_guess;
 
   extern int verbosity;
+  extern time_t global_ini_time;
 }
 
 typedef unsigned int mt_size_t;
@@ -230,6 +231,7 @@ typedef struct {
     /* configuration */
     tree_type_t starting_tree;                    //! Starting tree type
     dna_subst_schemes_t subst_schemes;            //! DNA substitution schemes
+    bool rate_clustering;                         //! DNA rate clustering
     std::vector<mt_index_t> nt_candidate_models;  //! Candidate models for DNA
     std::vector<mt_index_t> aa_candidate_models;  //! Candidate models for AA
     mt_mask_t model_params;                       //! Model parameters to opt

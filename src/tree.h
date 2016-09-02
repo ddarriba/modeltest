@@ -53,11 +53,12 @@ namespace modeltest
     }
 
     Tree (tree_type_t _type,
+          std::string const& filename,
           Msa &_msa,
           mt_size_t _number_of_threads,
           int _random_seed)
         : type(_type),
-          tree_file(""),
+          tree_file(filename),
           n_tips(_msa.get_n_sequences()),
           number_of_threads(_number_of_threads),
           random_seed(_random_seed)

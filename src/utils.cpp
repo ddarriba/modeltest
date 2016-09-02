@@ -797,6 +797,14 @@ string Utils::format_time(time_t seconds)
     return string(ss.str().c_str());
 }
 
+string Utils::int_array_to_string(const int array[], int length)
+{
+  string returnstring = "";
+  for (int i = 0; i < length; i++)
+    returnstring += '0' + array[i];
+  return returnstring;
+}
+
 bool Utils::file_exists(const string &filename)
 {
   FILE *fp;

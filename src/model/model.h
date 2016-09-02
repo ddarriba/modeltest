@@ -314,6 +314,8 @@ public:
     DnaModel(const Model &other);
     virtual ~DnaModel( void );
 
+    static mt_index_t get_index_for_matrix(const int * matrix);
+
     virtual void clone(const Model *other);
 
     virtual data_type_t get_datatype( void ) const
@@ -346,7 +348,7 @@ public:
     virtual void output_log(std::ostream  &out);
     virtual void input_log(std::istream  &in);
 private:
-    int *matrix_symmetries; //! The DNA matrix symmetries
+  int *matrix_symmetries; //! The DNA matrix symmetries
 };
 
 class ProtModel : public Model

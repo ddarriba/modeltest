@@ -344,7 +344,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /* /PTHREADS */
 
     //tree->reroot_random(thread_number);
-    pll_utree_t * pll_tree = tree.get_pll_start_tree(thread_number);
+    pll_utree_t * pll_tree = pll_utree_clone(tree.get_pll_start_tree(thread_number));
     build_parameters(pll_tree);
 
     pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
@@ -406,22 +406,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   {
     /* current logl changes the sign of the lk, such that the optimization
      * function can minimize the score */
-    double logl = start_logl;
-    double cur_logl = logl * -1;
+    double save_logl = start_logl;
+    double cur_logl = save_logl * -1;
 
     /* notify initial likelihood */
     opt_delta = cur_logl;
     notify();
 
     /* logl intialized to an arbitrary value above the current lk */
-    logl = cur_logl + 10;
+    save_logl = cur_logl + 10;
 
     if (opt_per_param)
     {
       bool all_params_done = false;
-      while ((fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+      while ((fabs (cur_logl - save_logl) > epsilon && cur_logl < save_logl))
       {
-        logl = cur_logl;
+        save_logl = cur_logl;
         all_params_done = false;
         while ((!all_params_done) && (!interrupt_optimization))
         {
@@ -429,14 +429,15 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           pll_tree,
                                           tolerance);
 
-          double iter_logl = model.get_lnl();
           cur_logl = model.get_lnl();
 
           /* ensure we never get a worse likelihood score */
-          if (iter_logl - cur_logl > 1e-5)
+          if (cur_logl - save_logl > 1e-5)
           {
-              cout << "Error: " << setprecision(5) << iter_logl << " vs " << setprecision(5) << cur_logl << " [" << cur_parameter << "]" << endl;
-              assert(iter_logl - cur_logl < 1e-5);
+              cout << "Error: " << setprecision(5) << save_logl << " vs " <<
+                      setprecision(5) << cur_logl <<
+                      " [" << cur_parameter << "]" << endl;
+              assert(cur_logl - save_logl < 1e-5);
           }
           opt_delta = cur_logl;
           notify();
@@ -446,9 +447,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       while ((!interrupt_optimization) &&
-        (fabs (cur_logl - logl) > epsilon && cur_logl < logl))
+        (fabs (cur_logl - save_logl) > epsilon && cur_logl < save_logl))
       {
-          logl = cur_logl;
+          save_logl = cur_logl;
           model.optimize(pll_partition, pll_tree, tolerance);
           opt_delta = cur_logl;
           notify();
@@ -474,8 +475,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     // pllmod_search_params_t spr_params;
     int thorough_insertion = false;
     int radius_min = 1;
-    int radius_max = 10;
-    int ntopol_keep = 20;
+    int radius_max = 5;
+    int ntopol_keep = 5;
     int spr_round_id = 0;
     int smoothings = 32;
     int radius_limit = 0;
@@ -505,6 +506,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                      pll_partition, 1.0,
                                      {0}, 0);
 
+      new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
 
       do
       {
@@ -519,7 +521,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           bl_min,
                                           bl_max,
                                           smoothings,
-                                          epsilon,
+                                          tolerance,
                                           NULL, /* cutoff */
                                           0);
 
@@ -546,7 +548,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             radius_max += radius_step;
           }
         }
-      } while (radius_min >= 0 && radius_min < radius_limit);
+      } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
 
       pll_tree = tree_info->root;
       tree.set_pll_tree(pll_tree, thread_number);

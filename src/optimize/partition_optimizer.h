@@ -27,14 +27,27 @@
 #include "treepll.h"
 #include "partition.h"
 #include "thread/observer.h"
+#include "thread/threadpool.h"
 
 namespace modeltest
 {
 
   typedef enum
   {
-    partition_optimize_all
+    partition_optimize_all,
+    partition_optimize_greedy
   } part_opt_t;
+
+  typedef struct
+  {
+    Model * model;
+
+    mt_index_t model_index;
+    mt_size_t n_models;
+
+    time_t start_time;
+    time_t end_time;
+  } opt_info_t;
 
   class PartitionOptimizer : public Observable
   {
@@ -48,9 +61,13 @@ namespace modeltest
                        double epsilon_param,
                        double epsilon_opt);
     ~PartitionOptimizer();
-    bool evaluate( void );
+    bool evaluate( mt_size_t n_procs = 1 );
   private:
 
+    bool evaluate_greedy( mt_size_t n_procs );
+
+    bool evaluate_all_models( std::vector<Model *> const& models,
+                              mt_size_t n_procs );
     bool evaluate_single_model(Model & model,
                                mt_index_t thread_number);
 

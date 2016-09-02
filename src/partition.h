@@ -71,6 +71,9 @@ public:
     std::vector<double> const& get_empirical_subst_rates( void ) const;
     double get_empirical_pinv( void ) const;
 
+    /* hierarchical rate clustering */
+    std::vector<Model *> update_model_set(DnaModel & model);
+
     /* Logging functions */
     virtual void output_log(std::ostream  &out);
     virtual void input_log(std::istream  &in);
@@ -84,6 +87,7 @@ private:
     std::vector<double> emp_freqs;       //! empirical frequencies
     std::vector<double> emp_subst_rates; //! empirical substitution rates
     double emp_pinv;                     //! empirical prop. invar.
+    mt_mask_t model_params;              //! model parameters
 
     std::vector<Model *> c_models;       //! candidate models
 

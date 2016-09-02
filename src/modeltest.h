@@ -41,7 +41,8 @@ typedef struct
   modeltest::Tree * tree;                     //! user defined tree (optional)
   std::vector<partition_descriptor_t> * partitions_eff;  //! partitioning
 
-  tree_type_t start_tree;           //! starting tree type
+  bool rate_clustering;           //! DNA rate clustering
+  tree_type_t start_tree;         //! starting tree type
   mt_size_t sample_size;          //! sample size for model selection
 
   mt_size_t n_tips;               //! number of tips
@@ -133,6 +134,8 @@ public:
                                          bool force_opt_topo = false);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
+
+    Partition & get_partition(partition_id_t const& part_id) const;
 
     /**
      * @brief Gets the set of candidate models

@@ -187,17 +187,17 @@ Model::~Model()
 
 mt_index_t Model::get_matrix_index() const
 {
-    return matrix_index;
+  return matrix_index;
 }
 
 std::string const& Model::get_name() const
 {
-    return name;
+  return name;
 }
 
 bool Model::is_optimized() const
 {
-    return lnL < 0.0;
+  return lnL < 0.0;
 }
 
 mt_mask_t Model::get_model_params( void ) const
@@ -207,22 +207,22 @@ mt_mask_t Model::get_model_params( void ) const
 
 bool Model::is_I() const
 {
-    return optimize_pinv;
+  return optimize_pinv;
 }
 
 bool Model::is_G() const
 {
-    return optimize_gamma;
+  return optimize_gamma;
 }
 
 bool Model::is_F() const
 {
-    return optimize_freqs || empirical_freqs;
+  return optimize_freqs || empirical_freqs;
 }
 
 bool Model::is_mixture( void ) const
 {
-    return mixture;
+  return mixture;
 }
 
 bool Model::is_gap_aware( void ) const
@@ -232,35 +232,35 @@ bool Model::is_gap_aware( void ) const
 
 const int * Model::get_symmetries( void ) const
 {
-    assert(0);
-    return 0;
+  assert(0);
+  return 0;
 }
 
 mt_size_t Model::get_n_categories() const
 {
-    return n_categories;
+  return n_categories;
 }
 
 void Model::set_n_categories( mt_size_t ncat )
 {
-    n_categories = ncat;
-    if (params_indices)
-      free (params_indices);
+  n_categories = ncat;
+  if (params_indices)
+    free (params_indices);
 
-    if (ncat > 0)
-    {
-      params_indices = (unsigned int *) Utils::c_allocate(
-                                        n_categories, sizeof(unsigned int));
-    }
+  if (ncat > 0)
+  {
+    params_indices = (unsigned int *) Utils::c_allocate(
+                                      n_categories, sizeof(unsigned int));
+  }
 
-    if (mixture)
-    {
-      assert(ncat == N_MIXTURE_CATS);
-      for (mt_index_t i = 0; i<N_MIXTURE_CATS; ++i)
-        params_indices[i] = i;
-    }
+  if (mixture)
+  {
+    assert(ncat == N_MIXTURE_CATS);
+    for (mt_index_t i = 0; i<N_MIXTURE_CATS; ++i)
+      params_indices[i] = i;
+  }
 
-    param_gamma->set_n_categories(ncat);
+  param_gamma->set_n_categories(ncat);
 }
 
 mt_size_t Model::get_n_free_variables() const
@@ -306,23 +306,23 @@ void Model::set_alpha(double value)
 
 mt_size_t Model::get_n_states( void ) const
 {
-    return n_frequencies;
+  return n_frequencies;
 }
 
 mt_size_t Model::get_n_subst_rates( void ) const
 {
-    return n_subst_rates;
+  return n_subst_rates;
 }
 
 const double * Model::get_frequencies( void ) const
 {
-    return param_freqs->get_frequencies();
+  return param_freqs->get_frequencies();
 }
 
 const double * Model::get_mixture_frequencies( mt_index_t matrix_idx ) const
 {
-    UNUSED(matrix_idx);
-    return 0;
+  UNUSED(matrix_idx);
+  return 0;
 }
 
 const unsigned int * Model::get_params_indices( void ) const
@@ -343,63 +343,63 @@ void Model::set_frequencies(const vector<double> & value)
 
 const double * Model::get_subst_rates( void ) const
 {
-    return param_substrates->get_subst_rates();
+  return param_substrates->get_subst_rates();
 }
 
 const double * Model::get_mixture_subst_rates( mt_index_t matrix_idx ) const
 {
-    UNUSED(matrix_idx);
-    return 0;
+  UNUSED(matrix_idx);
+  return 0;
 }
 
 const double * Model::get_mixture_weights( void ) const
 {
-    return 0;
+  return 0;
 }
 
 const double * Model::get_mixture_rates( void ) const
 {
-    return 0;
+  return 0;
 }
 
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
                                 double sample_size )
 {
-    if (!is_optimized())
-        return false;
+  if (!is_optimized())
+      return false;
 
-    mt_size_t n_params = n_free_variables + n_branches_params;
+  mt_size_t n_params = n_free_variables + n_branches_params;
 
-    aic = 2*n_params - 2*lnL;
-    aicc = aic + 2*n_params*(n_params+1)/(n_params - sample_size - 1);
-    bic = -2*lnL + n_params * log(sample_size);
+  aic = 2*n_params - 2*lnL;
+  aicc = aic + 2*n_params*(n_params+1)/(n_params - sample_size - 1);
+  bic = -2*lnL + n_params * log(sample_size);
 
-    return true;
+  return true;
 }
 
 double Model::get_bic() const
 {
-    return bic;
+  return bic;
 }
 
 double Model::get_aic() const
 {
-    return aic;
+  return aic;
 }
 
 double Model::get_aicc() const
 {
-    return aicc;
+  return aicc;
 }
 
 double Model::get_dt() const
 {
-    return dt;
+  return dt;
 }
 
 time_t Model::get_exec_time() const
 {
-    return exec_time;
+  return exec_time;
 }
 
 void Model::set_exec_time( time_t t)
@@ -592,77 +592,87 @@ DnaModel::~DnaModel( void )
   delete[] matrix_symmetries;
 }
 
+mt_index_t DnaModel::get_index_for_matrix(const int * matrix)
+{
+  string matrix_str = Utils::int_array_to_string(matrix, N_DNA_SUBST_RATES);
+  mt_index_t matrix_index = (mt_index_t) (find(dna_model_matrices,
+                                   dna_model_matrices + N_DNA_ALLMATRIX_COUNT,
+                                   matrix_str) - dna_model_matrices);
+  assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
+  return matrix_index;
+}
+
 void DnaModel::clone(const Model * other_model)
 {
-    const DnaModel * other = dynamic_cast<const DnaModel *>(other_model);
-    matrix_index = other->matrix_index;
-    name = other->name;
-    memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
-    model_params    = other->model_params;
-    optimize_pinv   = other->optimize_pinv;
-    optimize_gamma  = other->optimize_gamma;
-    optimize_freqs  = other->optimize_freqs;
-    empirical_freqs = other->empirical_freqs;
+  const DnaModel * other = dynamic_cast<const DnaModel *>(other_model);
+  matrix_index = other->matrix_index;
+  name = other->name;
+  memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
+  model_params    = other->model_params;
+  optimize_pinv   = other->optimize_pinv;
+  optimize_gamma  = other->optimize_gamma;
+  optimize_freqs  = other->optimize_freqs;
+  empirical_freqs = other->empirical_freqs;
 
-    set_n_categories(other->n_categories);
-    n_free_variables = other->n_free_variables;
+  set_n_categories(other->n_categories);
+  n_free_variables = other->n_free_variables;
 
-    lnL  = other->lnL;
-    bic  = other->bic;
-    aic  = other->aic;
-    aicc = other->aicc;
-    dt   = other->dt;
+  lnL  = other->lnL;
+  bic  = other->bic;
+  aic  = other->aic;
+  aicc = other->aicc;
+  dt   = other->dt;
 
-    exec_time = other->exec_time;
-    if (other->tree)
-        tree = pll_utree_clone(other->tree);
+  exec_time = other->exec_time;
+  if (other->tree)
+      tree = pll_utree_clone(other->tree);
 
-    /* clone parameters */
-    if (other->param_gamma)
-    {
-      param_gamma = new ParameterGamma(*dynamic_cast<ParameterGamma *>(other->param_gamma));
-      parameters.push_back(param_gamma);
-    }
-    if (other->param_pinv)
-    {
-      param_pinv = new ParameterPinv(*(other->param_pinv));
-      parameters.push_back(param_pinv);
-    }
-    if (other->param_substrates)
-    {
-      const ParameterSubstRatesOpt * other_rates =
-        dynamic_cast<const ParameterSubstRatesOpt *>(other->param_substrates);
-      param_substrates = new ParameterSubstRatesOpt(*other_rates);
-      parameters.push_back(param_substrates);
-    }
-    if (other->param_freqs)
-    {
-      if (optimize_freqs)
-        param_freqs = new ParameterFrequenciesOpt(
-          *(dynamic_cast<const ParameterFrequenciesOpt *>(
-            other->param_freqs)));
-      else
-        param_freqs = new ParameterFrequenciesFixed(
-          *(dynamic_cast<const ParameterFrequenciesFixed *>(
-            other->param_freqs)));
-      parameters.push_back(param_freqs);
-    }
-    if (other->param_branches)
-    {
-      param_branches = new ParameterBranches(*(other->param_branches));
-      parameters.push_back(param_branches);
-    }
+  /* clone parameters */
+  if (other->param_gamma)
+  {
+    param_gamma = new ParameterGamma(*dynamic_cast<ParameterGamma *>(other->param_gamma));
+    parameters.push_back(param_gamma);
+  }
+  if (other->param_pinv)
+  {
+    param_pinv = new ParameterPinv(*(other->param_pinv));
+    parameters.push_back(param_pinv);
+  }
+  if (other->param_substrates)
+  {
+    const ParameterSubstRatesOpt * other_rates =
+      dynamic_cast<const ParameterSubstRatesOpt *>(other->param_substrates);
+    param_substrates = new ParameterSubstRatesOpt(*other_rates);
+    parameters.push_back(param_substrates);
+  }
+  if (other->param_freqs)
+  {
+    if (optimize_freqs)
+      param_freqs = new ParameterFrequenciesOpt(
+        *(dynamic_cast<const ParameterFrequenciesOpt *>(
+          other->param_freqs)));
+    else
+      param_freqs = new ParameterFrequenciesFixed(
+        *(dynamic_cast<const ParameterFrequenciesFixed *>(
+          other->param_freqs)));
+    parameters.push_back(param_freqs);
+  }
+  if (other->param_branches)
+  {
+    param_branches = new ParameterBranches(*(other->param_branches));
+    parameters.push_back(param_branches);
+  }
 }
 
 const int * DnaModel::get_symmetries( void ) const
 {
-    return matrix_symmetries;
+  return matrix_symmetries;
 }
 
 mt_size_t DnaModel::get_n_subst_params() const
 {
-    return (mt_size_t) *max_element(matrix_symmetries,
-                                    matrix_symmetries+N_DNA_SUBST_RATES);
+  return (mt_size_t) *max_element(matrix_symmetries,
+                                  matrix_symmetries+N_DNA_SUBST_RATES);
 }
 
 static mt_mask_t asc_bias_attribute(asc_bias_t v)

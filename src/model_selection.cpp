@@ -106,10 +106,11 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
                 // distance = distances.getDistance(model1.getTree(), model2.getTree());
 
                 assert(distance >= 0);
+
+                /* sum(exp(log(dij) − bic[j] + min_bic)) */
                 sum += distance * bicLike[j];
-                //sum += exp(log(distance) - c_models[j]->get_bic() + minBIC);
             }
-//sum(exp(log(dij) − bic[j] + min_bic))
+
             models[i].score = sum / denom;
             if (models[i].score < minDT)
             {

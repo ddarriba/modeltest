@@ -38,104 +38,104 @@ static bool build_models(const partition_descriptor_t &descriptor,
                          mt_mask_t model_params,
                          vector<Model *> &c_models)
 {
-    data_type_t datatype = descriptor.datatype;
-    asc_bias_t asc_bias_corr = descriptor.asc_bias_corr;
-    const mt_size_t *asc_weights = descriptor.asc_weights;
+  data_type_t datatype = descriptor.datatype;
+  asc_bias_t asc_bias_corr = descriptor.asc_bias_corr;
+  const mt_size_t *asc_weights = descriptor.asc_weights;
 
-    mt_size_t n_matrices = (mt_size_t) candidate_models.size();
-    mt_size_t n_models = 0;
+  mt_size_t n_matrices = (mt_size_t) candidate_models.size();
+  mt_size_t n_models = 0;
 
-    mt_mask_t freq_params = model_params & MOD_MASK_FREQ_PARAMS;
-    mt_mask_t rate_params = model_params & MOD_MASK_RATE_PARAMS;
+  mt_mask_t freq_params = model_params & MOD_MASK_FREQ_PARAMS;
+  mt_mask_t rate_params = model_params & MOD_MASK_RATE_PARAMS;
 
-    n_models = Utils::number_of_models(n_matrices, model_params);
+  n_models = Utils::number_of_models(n_matrices, model_params);
 
-    if (!n_models)
-    {
-        mt_errno = MT_ERROR_MODELS;
-         snprintf(mt_errmsg, ERR_MSG_SIZE, "Candidate models set is empty");
-        return false;
-    }
+  if (!n_models)
+  {
+      mt_errno = MT_ERROR_MODELS;
+       snprintf(mt_errmsg, ERR_MSG_SIZE, "Candidate models set is empty");
+      return false;
+  }
 
-    c_models.reserve(n_models);
+  c_models.reserve(n_models);
 
-    for (mt_index_t i=MOD_PARAM_MIN_RPARAM; i<=MOD_PARAM_MAX_RPARAM; i<<=1)
-    {
-        mt_mask_t cur_rate_param = rate_params & i;
-        if (cur_rate_param)
-        {
-            for (mt_index_t model_matrix : candidate_models)
-            {
-                if (datatype == dt_dna)
-                {
-                    if (freq_params & MOD_PARAM_FIXED_FREQ)
-                        c_models.push_back(
-                                    new DnaModel(model_matrix,
-                                      cur_rate_param | MOD_PARAM_FIXED_FREQ,
-                                      descriptor,
-                                      asc_bias_corr,
-                                      asc_weights)
-                                    );
-                    if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
-                        c_models.push_back(
-                                    new DnaModel(model_matrix,
-                                      cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
-                                      descriptor,
-                                      asc_bias_corr,
-                                      asc_weights)
-                                    );
-                }
-                else if (datatype == dt_protein)
-                {
-                    if (model_matrix == LG4M_INDEX)
-                    {
-                      if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
-                          c_models.push_back(
-                              new ProtModel(LG4M_INDEX,
-                                          cur_rate_param | MOD_PARAM_FIXED_FREQ,
-                                          descriptor,
-                                          asc_bias_corr,
-                                          asc_weights)
-                              );
-                    }
-                    else if (model_matrix == LG4X_INDEX)
-                    {
-                      if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
-                          c_models.push_back(
-                                  new ProtModel(LG4X_INDEX,
-                                          cur_rate_param | MOD_PARAM_FIXED_FREQ,
-                                          descriptor,
-                                          asc_bias_corr,
-                                          asc_weights)
+  for (mt_index_t i=MOD_PARAM_MIN_RPARAM; i<=MOD_PARAM_MAX_RPARAM; i<<=1)
+  {
+      mt_mask_t cur_rate_param = rate_params & i;
+      if (cur_rate_param)
+      {
+          for (mt_index_t model_matrix : candidate_models)
+          {
+              if (datatype == dt_dna)
+              {
+                  if (freq_params & MOD_PARAM_FIXED_FREQ)
+                      c_models.push_back(
+                                  new DnaModel(model_matrix,
+                                    cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                    descriptor,
+                                    asc_bias_corr,
+                                    asc_weights)
                                   );
-                    }
-                    else
-                    {
-                        if (freq_params & MOD_PARAM_FIXED_FREQ)
-                            c_models.push_back(
-                                        new ProtModel(model_matrix,
-                                                      cur_rate_param | MOD_PARAM_FIXED_FREQ,
-                                                      descriptor,
-                                                      asc_bias_corr,
-                                                      asc_weights)
-                                        );
-                        if (freq_params & MOD_PARAM_EMPIRICAL_FREQ)
-                            c_models.push_back(
-                                        new ProtModel(model_matrix,
-                                                      cur_rate_param | MOD_PARAM_EMPIRICAL_FREQ,
-                                                      descriptor,
-                                                      asc_bias_corr,
-                                                      asc_weights)
-                                        );
-                    }
-                }
-                else
-                    assert(0);
-            }
-        }
-    }
-    assert(datatype == dt_protein || (c_models.size() == n_models));
-    return true;
+                  if (freq_params & MOD_PARAM_ESTIMATED_FREQ)
+                      c_models.push_back(
+                                  new DnaModel(model_matrix,
+                                    cur_rate_param | MOD_PARAM_ESTIMATED_FREQ,
+                                    descriptor,
+                                    asc_bias_corr,
+                                    asc_weights)
+                                  );
+              }
+              else if (datatype == dt_protein)
+              {
+                  if (model_matrix == LG4M_INDEX)
+                  {
+                    if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+                        c_models.push_back(
+                            new ProtModel(LG4M_INDEX,
+                                        cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                        descriptor,
+                                        asc_bias_corr,
+                                        asc_weights)
+                            );
+                  }
+                  else if (model_matrix == LG4X_INDEX)
+                  {
+                    if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+                        c_models.push_back(
+                                new ProtModel(LG4X_INDEX,
+                                        cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                        descriptor,
+                                        asc_bias_corr,
+                                        asc_weights)
+                                );
+                  }
+                  else
+                  {
+                      if (freq_params & MOD_PARAM_FIXED_FREQ)
+                          c_models.push_back(
+                                      new ProtModel(model_matrix,
+                                                    cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                                    descriptor,
+                                                    asc_bias_corr,
+                                                    asc_weights)
+                                      );
+                      if (freq_params & MOD_PARAM_EMPIRICAL_FREQ)
+                          c_models.push_back(
+                                      new ProtModel(model_matrix,
+                                                    cur_rate_param | MOD_PARAM_EMPIRICAL_FREQ,
+                                                    descriptor,
+                                                    asc_bias_corr,
+                                                    asc_weights)
+                                      );
+                  }
+              }
+              else
+                  assert(0);
+          }
+      }
+  }
+  assert(datatype == dt_protein || (c_models.size() == n_models));
+  return true;
 }
 
 Partition::Partition(partition_id_t _id,
@@ -145,7 +145,7 @@ Partition::Partition(partition_id_t _id,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params) :
     id(_id), msa(_msa), tree(_tree),
-    descriptor(_descriptor)
+    descriptor(_descriptor), model_params(model_params)
 {
     switch(descriptor.datatype)
     {
@@ -414,6 +414,57 @@ vector<double> const& Partition::get_empirical_subst_rates( void ) const
 double Partition::get_empirical_pinv( void ) const
 {
     return emp_pinv;
+}
+
+vector<Model *> Partition::update_model_set(DnaModel & model)
+{
+  vector<Model *> new_models;
+  vector<mt_index_t> new_matrices;
+
+  const int * symmetries = model.get_symmetries();
+  mt_size_t n_subst_params = model.get_n_subst_params() + 1;
+
+  new_matrices.reserve((n_subst_params*(n_subst_params+1))/2);
+
+  for (int i=0; i<n_subst_params; ++i)
+  {
+    for (int j=(i+1); j<n_subst_params; ++j)
+    {
+      /* merge rates 'i' and 'j' */
+      /* foreach rate 'r'>j, 'r'--*/
+      int new_matrix[N_DNA_SUBST_RATES];
+
+      /* build symmetries set */
+      for (int k=0; k<N_DNA_SUBST_RATES; ++k)
+      {
+        new_matrix[k] = symmetries[k];
+        if (new_matrix[k] == j)
+          new_matrix[k] = i;
+        else if (new_matrix[k] > j)
+          --new_matrix[k];
+      }
+
+      /* add model */
+      mt_index_t matrix_index = DnaModel::get_index_for_matrix(new_matrix);
+      new_matrices.push_back(matrix_index);
+
+      // mt_index_t _matrix_index,
+      // mt_mask_t model_params,
+      // const partition_descriptor_t &partition,
+      // asc_bias_t asc_bias_corr,
+      // const mt_size_t *asc_w
+    }
+  }
+
+  build_models(descriptor,
+               new_matrices,
+               model_params,
+               new_models);
+
+  c_models.reserve(c_models.size() + new_models.size());
+  c_models.insert(c_models.end(), new_models.begin(), new_models.end());
+
+  return new_models;
 }
 
 void Partition::output_log(std::ostream  &out)
