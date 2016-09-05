@@ -123,6 +123,95 @@ namespace modeltest
       /* load user tree */
       for (mt_index_t i=0; i<number_of_threads; i++)
       {
+        /*TODO: copy this for other tree types or move it outside */
+        pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+        pll_start_tree[i] = pll_tree[i];
+        if (pll_tree[i])
+        {
+          pllmod_utree_traverse_apply(pll_tree[i],
+                                   NULL,
+                                   &cb_set_missing_branches,
+                                   NULL);
+          pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+          pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+          pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+          pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+        }
+        else
+        {
+          free (pll_tree);
+          free (pll_start_tree);
+          free (pll_tip_nodes);
+          free (pll_inner_nodes);
+          pll_tree = 0;
+          pll_start_tree = 0;
+          pll_tip_nodes = 0;
+          pll_inner_nodes = 0;
+          mt_errno = pll_errno;
+          snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
+          throw EXCEPTION_TREE_USER;
+        }
+      }
+    }
+    else
+    {
+      //TODO: WARNING: Temporary use a RANDOM tree
+      cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
+      pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+      pllmod_utree_traverse_apply(random_tree,
+                               NULL,
+                               &cb_set_missing_branches,
+                               NULL);
+      for (mt_index_t i=0; i<number_of_threads; i++)
+      {
+        pll_tree[i] = pll_utree_clone(random_tree);
+        pll_start_tree[i] = pll_tree[i];
+        if (pll_tree[i])
+        {
+          pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+          pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+          pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+          pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+        }
+        else
+        {
+          free (pll_tree);
+          free (pll_start_tree);
+          free (pll_tip_nodes);
+          free (pll_inner_nodes);
+          pll_tree = 0;
+          pll_start_tree = 0;
+          pll_tip_nodes = 0;
+          pll_inner_nodes = 0;
+          mt_errno = pll_errno;
+          snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
+          throw EXCEPTION_TREE_MP;
+        }
+      }
+      pll_utree_destroy(random_tree);
+    }
+  }
+
+  TreePll::TreePll (tree_type_t type,
+                    string const& filename,
+                    mt_size_t number_of_threads,
+                    int random_seed)
+      : Tree(type, filename, number_of_threads, random_seed)
+  {
+    assert(type == tree_user_fixed);
+
+    bl_optimized = false;
+    pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
+    pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
+    pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
+    pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
+
+    switch(type)
+    {
+      case tree_user_fixed:
+      {
+        for (mt_index_t i=0; i<number_of_threads; i++)
+        {
           /*TODO: copy this for other tree types or move it outside */
           pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
           assert(pll_tree[i]);
@@ -152,99 +241,9 @@ namespace modeltest
               snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
               throw EXCEPTION_TREE_USER;
           }
-      }
-    }
-    else
-    {
-      //TODO: WARNING: Temporary use a RANDOM tree
-      cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
-      pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
-      pllmod_utree_traverse_apply(random_tree,
-                               NULL,
-                               &cb_set_missing_branches,
-                               NULL);
-      for (mt_index_t i=0; i<number_of_threads; i++)
-      {
-          pll_tree[i] = pll_utree_clone(random_tree);
-          pll_start_tree[i] = pll_tree[i];
-          if (pll_tree[i])
-          {
-              pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-              pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-              pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-              pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-          }
-          else
-          {
-              free (pll_tree);
-              free (pll_start_tree);
-              free (pll_tip_nodes);
-              free (pll_inner_nodes);
-              pll_tree = 0;
-              pll_start_tree = 0;
-              pll_tip_nodes = 0;
-              pll_inner_nodes = 0;
-              mt_errno = pll_errno;
-              snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
-              throw EXCEPTION_TREE_MP;
-          }
-      }
-      pll_utree_destroy(random_tree);
-    }
-  }
-
-  TreePll::TreePll (tree_type_t type,
-                    string const& filename,
-                    mt_size_t number_of_threads,
-                    int random_seed)
-      : Tree(type, filename, number_of_threads, random_seed)
-  {
-    assert(type == tree_user_fixed);
-
-    bl_optimized = false;
-    pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
-    pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
-
-    switch(type)
-    {
-      case tree_user_fixed:
-        {
-          for (mt_index_t i=0; i<number_of_threads; i++)
-          {
-            /*TODO: copy this for other tree types or move it outside */
-            pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
-            assert(pll_tree[i]);
-            pllmod_utree_traverse_apply(pll_tree[i],
-                                     NULL,
-                                     &cb_set_missing_branches,
-                                     NULL);
-            pll_start_tree[i] = pll_tree[i];
-            if (pll_tree[i])
-            {
-                pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-                pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-                pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-                pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-            }
-            else
-            {
-                free (pll_tree);
-                free (pll_start_tree);
-                free (pll_tip_nodes);
-                free (pll_inner_nodes);
-                pll_tree = 0;
-                pll_start_tree = 0;
-                pll_tip_nodes = 0;
-                pll_inner_nodes = 0;
-                mt_errno = pll_errno;
-                snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-                throw EXCEPTION_TREE_USER;
-            }
-          }
         }
         break;
+      }
       case tree_mp:
       case tree_ml_gtr_fixed:
       case tree_ml_jc_fixed:

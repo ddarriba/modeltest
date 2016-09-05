@@ -387,17 +387,18 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_user_fixed:
     if( options.tree_filename.compare ("") )
     {
-      try {
-              current_instance->tree = new TreePll (tree_user_fixed,
-                                                    options.tree_filename,
-                                                    number_of_threads);
-          }
-          catch(int e)
-          {
-              UNUSED(e);
-              free_stuff();
-              return false;
-          }
+      try
+      {
+        current_instance->tree = new TreePll (tree_user_fixed,
+                                              options.tree_filename,
+                                              number_of_threads);
+      }
+      catch(int e)
+      {
+        UNUSED(e);
+        free_stuff();
+        return false;
+      }
       if (!test_link(current_instance->msa, current_instance->tree))
       {
           /* clean memory */
@@ -420,7 +421,8 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_mp:
   case tree_ml_gtr_fixed:
   case tree_ml_jc_fixed:
-    try {
+    try
+    {
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
@@ -428,30 +430,53 @@ bool ModelTest::build_instance(mt_options_t & options)
     }
     catch(int e)
     {
-        switch (e)
-        {
-        case EXCEPTION_TREE_MISSING:
-            mt_errno = MT_ERROR_TREE;
-            break;
-        case EXCEPTION_TREE_SCRIPT:
-            mt_errno = MT_ERROR_IO;
-            break;
-        case EXCEPTION_TREE_USER:
-            mt_errno = MT_ERROR_TREE;
-            break;
-        default:
-            assert(0);
-        }
-        free_stuff();
-        return false;
+      switch (e)
+      {
+      case EXCEPTION_TREE_MISSING:
+          mt_errno = MT_ERROR_TREE;
+          break;
+      case EXCEPTION_TREE_SCRIPT:
+          mt_errno = MT_ERROR_IO;
+          break;
+      case EXCEPTION_TREE_USER:
+          mt_errno = MT_ERROR_TREE;
+          break;
+      default:
+          assert(0);
+      }
+      free_stuff();
+      return false;
     }
     break;
   case tree_ml:
+    try
+    {
     //TODO: Create MP as starting tree, instead of random
     current_instance->tree = new TreePll (options.starting_tree,
                                           options.tree_filename,
                                           *current_instance->msa,
                                           number_of_threads);
+    }
+    catch(int e)
+    {
+      switch (e)
+      {
+      case EXCEPTION_TREE_MISSING:
+          mt_errno = MT_ERROR_TREE;
+          break;
+      case EXCEPTION_TREE_SCRIPT:
+          mt_errno = MT_ERROR_IO;
+          break;
+      case EXCEPTION_TREE_USER:
+          mt_errno = MT_ERROR_TREE;
+          break;
+      default:
+          assert(0);
+      }
+      free_stuff();
+      return false;
+    }
+    break;
   }
 
   if (current_instance->msa->get_n_sequences() !=
