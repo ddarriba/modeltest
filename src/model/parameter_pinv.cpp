@@ -69,14 +69,14 @@ bool ParameterPinv::initialize(mt_opt_params_t * params,
 }
 
 double ParameterPinv::optimize(mt_opt_params_t * params,
-                               double loglikelihood,
+                               double loglh,
                                double tolerance,
                                bool first_guess)
 {
   UNUSED(first_guess);
-  double cur_logl;
+  double cur_loglh;
 
-  cur_logl = pllmod_algo_opt_pinv (params->partition,
+  cur_loglh = pllmod_algo_opt_pinv (params->partition,
                                    params->tree,
                                    params->params_indices,
                                    MIN_PINV,
@@ -85,9 +85,9 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
 
   pinv = params->partition->prop_invar[0];
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  return cur_logl;
+  return cur_loglh;
 }
 
 void ParameterPinv::print(std::ostream  &out) const

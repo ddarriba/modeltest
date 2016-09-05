@@ -69,7 +69,7 @@ static void fill_results(QTableView * result_table,
         results_table_items->setItem(i, 0, new QStandardItem(QString(model->get_name().c_str())));
         results_table_items->setItem(i, 1, new QStandardItem(QString::number(model->get_n_free_variables())));
 
-        results_table_items->setItem(i, 2, new QStandardItem(QString::number(model->get_lnl(), 'f', 4)));
+        results_table_items->setItem(i, 2, new QStandardItem(QString::number(model->get_loglh(), 'f', 4)));
         results_table_items->setItem(i, 3, new QStandardItem(QString::number(model_selection.get_model(i).score, 'f', 4)));
         results_table_items->setItem(i, 4, new QStandardItem(QString::number(model_selection.get_model(i).delta, 'f', 4)));
         results_table_items->setItem(i, 5, new QStandardItem(QString::number(model_selection.get_model(i).weight, 'f', 4)));

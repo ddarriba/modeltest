@@ -103,22 +103,22 @@ bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
 }
 
 double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
   UNUSED(first_guess);
-  double cur_logl;
+  double cur_loglh;
 
-  cur_logl = pllmod_algo_opt_frequencies(params->partition,
+  cur_loglh = pllmod_algo_opt_frequencies(params->partition,
                                          params->tree,
                                          0,
                                          params->params_indices,
                                          tolerance);
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  return cur_logl;
+  return cur_loglh;
 }
 
 mt_size_t ParameterFrequenciesOpt::get_n_free_parameters( void ) const
@@ -170,12 +170,12 @@ bool ParameterFrequenciesFixed::initialize(mt_opt_params_t * params,
 }
 
 double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
   /* do not optimize */
-  return loglikelihood;
+  return loglh;
 }
 
 mt_size_t ParameterFrequenciesFixed::get_n_free_parameters( void ) const

@@ -75,7 +75,7 @@ namespace modeltest
                                 double epsilon,
                                 double tolerance,
                                 bool opt_per_param,
-                                double start_logl );
+                                double start_loglh );
 
     TreePll & tree;   //! the tree instance
 
@@ -84,13 +84,9 @@ namespace modeltest
     /* pthreads */
     void start_job_sync(int JOB, thread_data_t * td);
 
-    //TODO: num_threads is the argument for run(...)
-    //      thread_data should be a vector, and use "length()" instead of reading
-    //      num_threads from here!
-    mt_size_t num_threads;
     thread_data_t * thread_data = NULL;
     volatile int thread_job;
-    volatile double global_lnl;
+    volatile double global_loglh;
   };
 
 } /* namespace modeltest */

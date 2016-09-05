@@ -981,7 +981,7 @@ void xmodeltest::optimized_single_model(modeltest::Model * model, unsigned int n
              << setw(5) << left << n_models
              << setw(15) << left << model->get_name()
              << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-             << model->get_lnl() << endl;
+             << model->get_loglh() << endl;
 }
 
 void xmodeltest::optimized_partition( partition_id_t part_id )

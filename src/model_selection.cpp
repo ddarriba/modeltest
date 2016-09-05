@@ -48,7 +48,7 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         {
         case ic_lnl:
             ic_name = "lnL";
-            models[i].score = models[i].model->get_lnl();
+            models[i].score = models[i].model->get_loglh();
             break;
         case ic_bic:
             ic_name = "BIC";
@@ -200,7 +200,7 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
             << setw(8)  << right << i+1 << "  "
             << setw(15) << left << models[i].model->get_name()
             << setw(5)  << right << models[i].model->get_n_free_variables()
-            << setw(15) << right << models[i].model->get_lnl()
+            << setw(15) << right << models[i].model->get_loglh()
             << setw(15) << models[i].score
             << setw(15) << models[i].delta
             << setw(10) << models[i].weight
@@ -220,7 +220,7 @@ void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit)
     {
         out << "  <model rank=\"" << i+1
             << "\" name=\"" << models[i].model->get_name()
-            << "\" lnL=\"" << setprecision(4) << models[i].model->get_lnl()
+            << "\" lnL=\"" << setprecision(4) << models[i].model->get_loglh()
             << "\" score=\"" << setprecision(4) << models[i].score
             << "\" delta=\"" << setprecision(4) << models[i].delta
             << "\" weight=\"" << setprecision(4) << models[i].weight

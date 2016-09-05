@@ -101,7 +101,7 @@ Model::Model(mt_mask_t model_params,
     matrix_index = 0;
     current_opt_parameter = 0;
 
-    lnL  = 0.0;
+    loglh  = 0.0;
     bic  = 0.0;
     aic  = 0.0;
     aicc = 0.0;
@@ -157,7 +157,7 @@ Model::Model( void )
     matrix_index = 0;
     current_opt_parameter = 0;
 
-    lnL  = 0.0;
+    loglh  = 0.0;
     bic  = 0.0;
     aic  = 0.0;
     aicc = 0.0;
@@ -197,7 +197,7 @@ std::string const& Model::get_name() const
 
 bool Model::is_optimized() const
 {
-  return lnL < 0.0;
+  return loglh < 0.0;
 }
 
 mt_mask_t Model::get_model_params( void ) const
@@ -268,14 +268,14 @@ mt_size_t Model::get_n_free_variables() const
   return n_free_variables;
 }
 
-double Model::get_lnl() const
+double Model::get_loglh() const
 {
-  return lnL;
+  return loglh;
 }
 
-void Model::set_lnl( double l )
+void Model::set_loglh( double l )
 {
-  lnL = l;
+  loglh = l;
 }
 
 mt_size_t Model::get_n_subst_params() const
@@ -370,9 +370,9 @@ bool Model::evaluate_criteria (mt_size_t n_branches_params,
 
   mt_size_t n_params = n_free_variables + n_branches_params;
 
-  aic = 2*n_params - 2*lnL;
+  aic = 2*n_params - 2*loglh;
   aicc = aic + 2*n_params*(n_params+1)/(n_params - sample_size - 1);
-  bic = -2*lnL + n_params * log(sample_size);
+  bic = -2*loglh + n_params * log(sample_size);
 
   return true;
 }
@@ -452,7 +452,7 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
     }
 
     for (AbstractParameter * parameter : parameters)
-      parameter->optimize(&params, lnL, tolerance, true);
+      parameter->optimize(&params, loglh, tolerance, true);
     //lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
 
     if (optimize_gamma)
@@ -477,7 +477,7 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
   params.params_indices = params_indices;
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
-  lnL = parameter->optimize(&params, lnL, tolerance, true);
+  loglh = parameter->optimize(&params, loglh, tolerance, true);
 
   ++current_opt_parameter;
   if (current_opt_parameter >= parameters.size())
@@ -504,7 +504,7 @@ void Model::print_inline(int index,
   if (global_ini_time)
       out << setw(11) << Utils::format_time(time(NULL) - global_ini_time);
   out << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
-      << get_lnl();
+      << get_loglh();
   if (is_G())
     out << setw(8) << get_alpha();
   else
@@ -617,7 +617,7 @@ void DnaModel::clone(const Model * other_model)
   set_n_categories(other->n_categories);
   n_free_variables = other->n_free_variables;
 
-  lnL  = other->lnL;
+  loglh  = other->loglh;
   bic  = other->bic;
   aic  = other->aic;
   aicc = other->aicc;
@@ -731,7 +731,7 @@ void DnaModel::print(std::ostream  &out)
 {
     const double * subst_rates = get_subst_rates();
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << loglh << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
     param_freqs->print(out);
     out << endl;
@@ -755,7 +755,7 @@ void DnaModel::print_xml(std::ostream  &out)
 {
     const double * subst_rates = get_subst_rates();
     out << "<model datatype=\"dna\" name=\"" << name
-        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << lnL
+        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << loglh
         << "\">" << endl;
     out << "  <frequencies type=\"";
     if (is_F())
@@ -783,7 +783,7 @@ void DnaModel::output_log(std::ostream  &out)
         out << matrix_symmetries[i] << " ";
     out << n_free_variables << " ";
     out << optimize_freqs << " " << empirical_freqs << " " << optimize_pinv << " " << optimize_gamma << " ";
-    out << lnL << " ";
+    out << loglh << " ";
     param_freqs->print(out);
     for (mt_index_t i=0; i<n_subst_rates; i++)
         out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
@@ -826,7 +826,7 @@ void DnaModel::input_log(std::istream  &in)
     read_word(in, str, LOG_LEN); empirical_freqs = atoi(str);
     read_word(in, str, LOG_LEN); optimize_pinv = atoi(str);
     read_word(in, str, LOG_LEN); optimize_gamma = atoi(str);
-    read_word(in, str, LOG_LEN); lnL = atof(str);
+    read_word(in, str, LOG_LEN); loglh = atof(str);
 
     double frequencies[n_frequencies];
     for (mt_index_t i=0; i<n_frequencies; i++)
@@ -983,7 +983,7 @@ void ProtModel::clone(const Model * other_model)
     set_n_categories(other->n_categories);
     n_free_variables = other->n_free_variables;
 
-    lnL  = other->lnL;
+    loglh  = other->loglh;
     bic  = other->bic;
     aic  = other->aic;
     aicc = other->aicc;
@@ -1068,7 +1068,7 @@ void ProtModel::print(std::ostream  &out)
   double const *rates = param_gamma->get_rates();
   double const *rate_weights = param_gamma->get_weights();
   out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << lnL << endl;
+      << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << loglh << endl;
   if (mixture)
   {
       for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
@@ -1121,7 +1121,7 @@ void ProtModel::print(std::ostream  &out)
 void ProtModel::print_xml(std::ostream  &out)
 {
     out << "<model type=\"aa\" name=\"" << name
-        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << lnL
+        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << loglh
         << "\">" << endl;
     out << "  <frequencies type=\"";
     if (is_F())
@@ -1146,7 +1146,7 @@ void ProtModel::output_log(std::ostream  &out)
     out << get_name() << " ";
     out << get_matrix_index() << " ";
     out << is_F() << " " << is_I() << " " << is_G() << " ";
-    out << get_lnl() << " ";
+    out << get_loglh() << " ";
     param_freqs->print(out);
     // for (mt_index_t i=0; i<N_PROT_STATES; i++)
     //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";

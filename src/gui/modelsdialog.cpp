@@ -58,7 +58,7 @@ void ModelsDialog::fill_data( modeltest::Partition &partition )
         modeltest::Model * model = partition.get_model(i);
         models_table_items->setItem(i, cur_column++, new QStandardItem(QString(model->get_name().c_str())));
         models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_n_free_variables())));
-        models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_lnl(), 'f', 4)));
+        models_table_items->setItem(i, cur_column++, new QStandardItem(QString::number(model->get_loglh(), 'f', 4)));
         switch (partition.get_datatype())
         {
         case dt_dna:

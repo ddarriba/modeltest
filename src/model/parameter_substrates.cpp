@@ -125,14 +125,14 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
 }
 
 double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
   UNUSED(first_guess);
-  double cur_logl;
+  double cur_loglh;
 
-  cur_logl = pllmod_algo_opt_subst_rates (params->partition,
+  cur_loglh = pllmod_algo_opt_subst_rates (params->partition,
                                           params->tree,
                                           0,
                                           params->params_indices,
@@ -141,10 +141,10 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
                                           MAX_RATE,
                                           tolerance);
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
   memcpy(subst_rates, params->partition->subst_params[0], n_subst_params * sizeof(double));
-  return cur_logl;
+  return cur_loglh;
 }
 
 void ParameterSubstRatesOpt::print(std::ostream  &out) const

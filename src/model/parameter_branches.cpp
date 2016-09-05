@@ -55,25 +55,33 @@ bool ParameterBranches::initialize(mt_opt_params_t * params,
 }
 
 double ParameterBranches::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
   UNUSED(first_guess);
-  double cur_logl;
+  double cur_loglh;
 
-  double test_logl = pllmod_utree_compute_lk(params->partition, params->tree, params->params_indices, 1, 1);
+#ifdef DEBUG
+  /* verify that matrices and partials where up to date */
+  double test_loglh = pllmod_utree_compute_lk(params->partition,
+                                              params->tree,
+                                              params->params_indices,
+                                              1,
+                                              1);
+  assert(fabs(test_loglh - loglh) < 1e-6);
+#endif
 
-  cur_logl = pllmod_opt_optimize_branch_lengths_iterative (
+  cur_loglh = pllmod_opt_optimize_branch_lengths_iterative (
              params->partition,
              params->tree,
              params->params_indices,
              MIN_BL, MAX_BL,
              tolerance, SMOOTHINGS, true);
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  return cur_logl;
+  return cur_loglh;
 }
 
 void ParameterBranches::print(std::ostream  &out) const

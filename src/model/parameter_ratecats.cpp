@@ -102,23 +102,23 @@ void ParameterRateCats::extract_rates_and_weights(mt_opt_params_t * params)
 }
 
 double ParameterRateCats::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
   UNUSED(first_guess);
-  double cur_logl;
+  double cur_loglh;
 
-  cur_logl = pllmod_algo_opt_rates_weights(params->partition,
-                                           params->tree,
-                                           params->params_indices,
-                                           0.01, 10,
-                                           tolerance);
+  cur_loglh = pllmod_algo_opt_rates_weights(params->partition,
+                                            params->tree,
+                                            params->params_indices,
+                                            0.01, 10,
+                                            tolerance);
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood < 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
   extract_rates_and_weights(params);
 
-  return cur_logl;
+  return cur_loglh;
 
 }
 

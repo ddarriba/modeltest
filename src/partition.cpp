@@ -426,9 +426,9 @@ vector<Model *> Partition::update_model_set(DnaModel & model)
 
   new_matrices.reserve((n_subst_params*(n_subst_params+1))/2);
 
-  for (int i=0; i<n_subst_params; ++i)
+  for (int i=0; i<(int)n_subst_params; ++i)
   {
-    for (int j=(i+1); j<n_subst_params; ++j)
+    for (int j=(i+1); j<(int)n_subst_params; ++j)
     {
       /* merge rates 'i' and 'j' */
       /* foreach rate 'r'>j, 'r'--*/

@@ -60,29 +60,30 @@ bool ParameterGamma::initialize(mt_opt_params_t * params,
 }
 
 double ParameterGamma::optimize(mt_opt_params_t * params,
-                                double loglikelihood,
+                                double loglh,
                                 double tolerance,
                                 bool first_guess)
 {
-  double cur_logl, alpha_prev;
+  double cur_loglh;
+  //double alpha_prev;
   UNUSED(first_guess);
 
   if (n_cats == 1)
-    return loglikelihood;
+    return loglh;
 
-  alpha_prev = alpha;
-  cur_logl = pllmod_algo_opt_alpha(params->partition,
-                                   params->tree,
-                                   params->params_indices,
-                                   MIN_ALPHA,
-                                   MAX_ALPHA,
-                                   &alpha,
-                                   tolerance);
+  //alpha_prev = alpha;
+  cur_loglh = pllmod_algo_opt_alpha(params->partition,
+                                    params->tree,
+                                    params->params_indices,
+                                    MIN_ALPHA,
+                                    MAX_ALPHA,
+                                    &alpha,
+                                    tolerance);
 
-  assert(!loglikelihood || (cur_logl - loglikelihood)/loglikelihood <= 1e-10);
+  assert(!loglh || (cur_loglh - loglh)/loglh <= 1e-10);
   extract_rates_and_weights(params);
 
-  return cur_logl;
+  return cur_loglh;
 }
 
 void ParameterGamma::print(std::ostream  &out) const

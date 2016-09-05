@@ -188,13 +188,13 @@ public:
      * @brief Gets the log-Likelihood score
      * @return the log-Likelihood score
      */
-    double get_lnl( void ) const;
+    double get_loglh( void ) const;
 
     /**
      * @brief Sets the log-Likelihood score
      * @param l the log-Likelihood score
      */
-    void set_lnl( double l );
+    void set_loglh( double l );
 
     bool optimize_init ( pll_partition_t * pll_partition,
                          pll_utree_t * pll_tree,
@@ -281,7 +281,7 @@ protected:
 
     mt_size_t n_free_variables;
 
-    double lnL;
+    double loglh;
     double bic;
     double aic;
     double aicc;

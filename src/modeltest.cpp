@@ -583,7 +583,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                           true);
     start_opt->run(options.epsilon_opt, options.epsilon_param);
     assert(start_model->is_optimized());
-    cout << "Starting tree fixed " << start_model->get_lnl() << std::endl;
+    cout << "Starting tree fixed " << start_model->get_loglh() << std::endl;
     break;
   }
 

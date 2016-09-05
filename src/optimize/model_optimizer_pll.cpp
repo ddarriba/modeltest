@@ -178,7 +178,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       tree(_tree)
 {
     thread_job = 0;
-    global_lnl = 0;
+    global_loglh = 0;
 
     mt_size_t n_tips = tree.get_n_tips ();
     mt_size_t n_patterns = partition.get_n_patterns();
@@ -350,11 +350,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
-    double test_logl;         /* temporary variable */
+    double test_loglh;         /* temporary variable */
     mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-    double cur_logl = optimize_model(pll_tree, epsilon, tolerance, true);
+    double cur_loglh = optimize_model(pll_tree, epsilon, tolerance, true);
 
 
       /* TODO: if bl are reoptimized */
@@ -389,7 +389,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       optimized = true;
-      model.set_lnl(cur_logl);
+      model.set_loglh(cur_loglh);
       model.set_exec_time(end_time - start_time);
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
@@ -402,26 +402,26 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                                  double epsilon,
                                                  double tolerance,
                                                  bool opt_per_param,
-                                                 double start_logl )
+                                                 double start_loglh )
   {
-    /* current logl changes the sign of the lk, such that the optimization
+    /* current loglh changes the sign of the lk, such that the optimization
      * function can minimize the score */
-    double save_logl = start_logl;
-    double cur_logl = save_logl * -1;
+    double save_loglh = start_loglh;
+    double cur_loglh = save_loglh * -1;
 
     /* notify initial likelihood */
-    opt_delta = cur_logl;
+    opt_delta = cur_loglh;
     notify();
 
-    /* logl intialized to an arbitrary value above the current lk */
-    save_logl = cur_logl + 10;
+    /* loglh intialized to an arbitrary value above the current lk */
+    save_loglh = cur_loglh + 10;
 
     if (opt_per_param)
     {
       bool all_params_done = false;
-      while ((fabs (cur_logl - save_logl) > epsilon && cur_logl < save_logl))
+      while ((fabs (cur_loglh - save_loglh) > epsilon && cur_loglh < save_loglh))
       {
-        save_logl = cur_logl;
+        save_loglh = cur_loglh;
         all_params_done = false;
         while ((!all_params_done) && (!interrupt_optimization))
         {
@@ -429,17 +429,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           pll_tree,
                                           tolerance);
 
-          cur_logl = model.get_lnl();
+          cur_loglh = model.get_loglh();
 
           /* ensure we never get a worse likelihood score */
-          if (cur_logl - save_logl > 1e-5)
+          if (cur_loglh - save_loglh > 1e-5)
           {
-              cout << "Error: " << setprecision(5) << save_logl << " vs " <<
-                      setprecision(5) << cur_logl <<
+              cout << "Error: " << setprecision(5) << save_loglh << " vs " <<
+                      setprecision(5) << cur_loglh <<
                       " [" << cur_parameter << "]" << endl;
-              assert(cur_logl - save_logl < 1e-5);
+              assert(cur_loglh - save_loglh < 1e-5);
           }
-          opt_delta = cur_logl;
+          opt_delta = cur_loglh;
           notify();
         }
       }
@@ -447,17 +447,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       while ((!interrupt_optimization) &&
-        (fabs (cur_logl - save_logl) > epsilon && cur_logl < save_logl))
+        (fabs (cur_loglh - save_loglh) > epsilon && cur_loglh < save_loglh))
       {
-          save_logl = cur_logl;
+          save_loglh = cur_loglh;
           model.optimize(pll_partition, pll_tree, tolerance);
-          opt_delta = cur_logl;
+          opt_delta = cur_loglh;
           notify();
-          cur_logl = model.get_lnl();
+          cur_loglh = model.get_loglh();
       }
     }
 
-    return cur_logl * -1;
+    return cur_loglh * -1;
   }
 
   const int radius_step = 5;
@@ -467,7 +467,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                             double tolerance,
                                             bool opt_per_param )
   {
-    double logl;
+    double loglh;
     double old_loglh,
            new_loglh;
     double bl_min = 1e-2,
@@ -482,7 +482,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     int radius_limit = 0;
     pllmod_treeinfo_t * tree_info;
 
-    logl = pll_compute_edge_loglikelihood (pll_partition,
+    loglh = pll_compute_edge_loglikelihood (pll_partition,
                                            pll_tree->clv_index,
                                            pll_tree->scaler_index,
                                            pll_tree->back->clv_index,
@@ -490,7 +490,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                            pll_tree->pmatrix_index,
                                            model.get_params_indices(),
                                            NULL);
-    new_loglh = logl;
+    new_loglh = loglh;
 
     if (optimize_topology)
     {
@@ -555,10 +555,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
 
     /* final thorough parameter optimization */
-    model.set_lnl(new_loglh);
-    logl = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
+    model.set_loglh(new_loglh);
+    loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
 
-    return logl;
+    return loglh;
   }
 
   /* PTHREADS */
@@ -642,7 +642,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     //     case JOB_REDUCE_LK_EDGE:
     //       {
     //         if (!id)
-    //           global_lnl = 0;
+    //           global_loglh = 0;
     //         barrier (local_thread_data);
     //
     //         local_thread_data->result_buf[id] =
@@ -660,7 +660,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     //         barrier (local_thread_data);
     //         if (!id)
     //           for (i=0; i<local_thread_data->num_threads; i++)
-    //             global_lnl += local_thread_data->result_buf[i];
+    //             global_loglh += local_thread_data->result_buf[i];
     //         barrier (local_thread_data);
     //
     //         if (!id)
@@ -672,7 +672,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     //       {
     //         /* execute */
     //         if (!id)
-    //           global_lnl = 0;
+    //           global_loglh = 0;
     //         barrier (local_thread_data);
     //
     //         pll_update_partials (local_thread_data->partition, local_thread_data->operations,
@@ -693,7 +693,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     //         barrier (local_thread_data);
     //         if (!id)
     //           for (i = 0; i < local_thread_data->num_threads; i++)
-    //             global_lnl += local_thread_data->result_buf[i];
+    //             global_loglh += local_thread_data->result_buf[i];
     //         barrier (local_thread_data);
     //
     //         if (!id)
