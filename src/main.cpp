@@ -111,36 +111,42 @@ int main(int argc, char *argv[])
                          modeltest::Utils::format_time(time(NULL) - ini_global_time) << std::endl;
 
             modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
-            ModelTestService::instance()->print_selection(bic_selection, cout);
+            ModelTestService::instance()->print_selection(*bic_selection, cout);
             if (results_stream)
-                ModelTestService::instance()->print_selection(bic_selection, *results_stream);
+                ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
             best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
-            delete bic_selection;
 
             modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
-            ModelTestService::instance()->print_selection(aic_selection, cout);
+            ModelTestService::instance()->print_selection(*aic_selection, cout);
             if (results_stream)
-                ModelTestService::instance()->print_selection(aic_selection, *results_stream);
+                ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
             best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
-            delete aic_selection;
 
             modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
-            ModelTestService::instance()->print_selection(aicc_selection, cout);
+            ModelTestService::instance()->print_selection(*aicc_selection, cout);
             if (results_stream)
-                ModelTestService::instance()->print_selection(aicc_selection, *results_stream);
+                ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
             best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
-            delete aicc_selection;
 
             /* ignore DT if topology is not fixed */
             if (opts.starting_tree != tree_ml)
             {
                 modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
-                ModelTestService::instance()->print_selection(dt_selection, cout);
+                ModelTestService::instance()->print_selection(*dt_selection, cout);
                 if (results_stream)
-                    ModelTestService::instance()->print_selection(dt_selection, *results_stream);
+                    ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
                 best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
                 delete dt_selection;
             }
+
+            /* topological summary */
+            ModelTestService::instance()->topological_summary(part_id,
+                                                              *bic_selection,
+                                                              *aic_selection,
+                                                              *aicc_selection);
+            delete bic_selection;
+            delete aic_selection;
+            delete aicc_selection;
         }
 
         if (results_stream)

@@ -80,6 +80,7 @@ namespace modeltest
     TreePll & tree;   //! the tree instance
 
     pll_partition_t * pll_partition; //! partition
+    pll_utree_t * pll_tree;
 
     /* pthreads */
     void start_job_sync(int JOB, thread_data_t * td);

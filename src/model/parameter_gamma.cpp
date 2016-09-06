@@ -53,7 +53,7 @@ bool ParameterGamma::initialize(mt_opt_params_t * params,
   if (!pll_compute_gamma_cats (alpha,
                           n_cats,
                           rates))
-    assert(0);                        
+    assert(0);
   pll_set_category_rates(params->partition,
                          rates);
   return true;
@@ -103,7 +103,7 @@ void ParameterGamma::set_alpha( double _alpha )
 
 mt_size_t ParameterGamma::get_n_free_parameters( void ) const
 {
-  return (n_cats > 1)?1:0;
+  return (n_cats != 1)?1:0;
 }
 
 } /* namespace modeltest */

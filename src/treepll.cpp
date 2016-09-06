@@ -265,17 +265,18 @@ namespace modeltest
 
   TreePll::~TreePll ()
   {
-    if(pll_start_tree) free(pll_start_tree);
     if (pll_tree)
     {
       for (mt_index_t i=0; i<number_of_threads; i++)
       {
+        if(pll_start_tree)
+          free(pll_start_tree[i]);
         if (pll_tree[i])
         {
-          if (pll_tree[i]->data)
-          {
-            pllmod_treeinfo_destroy((pllmod_treeinfo_t *)pll_tree[i]->data);
-          }
+          // if (pll_tree[i]->data)
+          // {
+          //   pllmod_treeinfo_destroy((pllmod_treeinfo_t *)pll_tree[i]->data);
+          // }
           pll_utree_destroy(pll_tree[i]);
         }
         if (pll_tip_nodes[i])
@@ -283,7 +284,8 @@ namespace modeltest
         if (pll_inner_nodes[i])
           free(pll_inner_nodes[i]);
       }
-      free( pll_tree );
+      if(pll_start_tree) free(pll_start_tree);
+      free(pll_tree);
       free(pll_tip_nodes);
       free(pll_inner_nodes);
     }
@@ -366,7 +368,7 @@ namespace modeltest
   {
     assert(pll_utree_check_integrity(new_tree));
     pll_tree[thread_number] = new_tree;
-    pll_start_tree[thread_number] = new_tree;
+    //pll_start_tree[thread_number] = new_tree;
 
     /* update node arrays */
     pll_utree_query_tipnodes(new_tree, pll_tip_nodes[thread_number]);

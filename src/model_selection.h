@@ -66,34 +66,44 @@ public:
      */
     const selection_model & get_model(size_t i) const;
 
+    double get_weight(Model * model) const;
+
     /**
      * @brief Print out the selection results
      * @param[in] out the output stream to print to
      * @param[in] limit the number of models to print
      */
-    void print(std::ostream  &out = std::cout, mt_size_t limit = 0);
+    void print(std::ostream  &out = std::cout, mt_size_t limit = 0) const;
 
     /**
      * @brief Prints out the model in XML format
      * @param[in] out the output stream to print to
      * @param[in] limit the number of models to print
      */
-    void print_xml(std::ostream  &out = std::cout, mt_size_t limit = 0);
+    void print_xml(std::ostream  &out = std::cout, mt_size_t limit = 0) const;
 
     /**
      * @brief Print out the best model
      * @param[in] out the output stream to print to
      */
-    void print_best_model(std::ostream &out = std::cout);
+    void print_best_model(std::ostream &out = std::cout) const;
 
     static void print_inline_header(std::ostream &out = std::cout);
-    static void print_inline_best_model(ic_type type, selection_model &model, std::ostream &out = std::cout);
+    static void print_inline_best_model(ic_type type,
+                                        selection_model &model,
+                                        std::ostream &out = std::cout);
 
     /**
      * @brief Print out the parameter importances
      * @param[in] out the output stream to print to
      */
-    void print_importances(std::ostream  &out = std::cout);
+    void print_importances(std::ostream  &out = std::cout) const;
+
+    /**
+     * @brief Print out the model averaged estimates
+     * @param[in] out the output stream to print to
+     */
+    void print_averages(std::ostream  &out = std::cout) const;
 
     /**
      * @brief Get the importance of +I parameter
@@ -135,7 +145,7 @@ public:
      * @brief Get the criterion name
      * @return the criterion name
      */
-    std::string & get_name()
+    std::string const& get_name() const
     {
         return ic_name;
     }
@@ -147,6 +157,13 @@ private:
     double importance_gamma;             //! importance of +G parameter
     double importance_gamma_inv;         //! importance of +I+G parameters
     double importance_freqs;             //! importance of +F parameter
+
+    std::vector<double> avg_frequencies;
+    std::vector<double> avg_rates;
+    double avg_pinv;
+    double avg_gamma;
+    double avg_pinv_gamma;
+    double avg_gamma_pinv;
 };
 
 }

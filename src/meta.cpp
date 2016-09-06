@@ -603,6 +603,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                                            N_PROT_STATES);
           exist_dna_models     |= (partition.datatype == dt_dna);
           exist_protein_models |= (partition.datatype == dt_protein);
+          partition.n_categories = exec_opt.n_catg;
           partition.gap_aware = gap_aware;
           partition.asc_bias_corr = exec_opt.asc_bias_corr;
           partition.asc_weights = exec_opt.asc_weights;
@@ -623,6 +624,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                                                        N_PROT_STATES);
       exist_dna_models     = (arg_datatype == dt_dna);
       exist_protein_models = (arg_datatype == dt_protein);
+      partition.n_categories = exec_opt.n_catg;
       partition.gap_aware = gap_aware;
       partition.partition_name = "DATA";
       partition.regions.push_back(region);

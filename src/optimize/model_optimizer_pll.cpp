@@ -26,10 +26,10 @@
 #include <iostream>
 
 #define CHECK_LOCAL_CONVERGENCE 0
-#define USE_ML_FREQUENCIES      0
 
-/* epsilon for Weights/Rates optimization */
-#define WR_EPSILON 0.9
+#define DO_THOROUGH_ML_SEARCH false
+#define ML_SEARCH_PARAM_EPS   1.0
+#define ML_SEARCH_PARAM_TOL   1.0
 
 #define JOB_WAIT             0
 #define JOB_UPDATE_MATRICES  1
@@ -191,7 +191,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     model.set_n_categories(pll_partition->rate_cats);
 
-    pll_utree_t* pll_tree = tree.get_pll_start_tree (_thread_number);
+    pll_tree = pll_utree_clone(tree.get_pll_start_tree(_thread_number));
 
     pll_utree_t ** tipnodes = (pll_utree_t **) Utils::c_allocate (n_tips,
                                                        sizeof(pll_utree_t *));
@@ -249,6 +249,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   ModelOptimizerPll::~ModelOptimizerPll ()
   {
       pll_partition_destroy(pll_partition);
+    //  pll_utree_destroy(pll_tree);
   }
 
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
@@ -343,8 +344,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
     /* /PTHREADS */
 
-    //tree->reroot_random(thread_number);
-    pll_utree_t * pll_tree = pll_utree_clone(tree.get_pll_start_tree(thread_number));
     build_parameters(pll_tree);
 
     pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
@@ -479,7 +478,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     int ntopol_keep = 5;
     int spr_round_id = 0;
     int smoothings = 32;
-    int radius_limit = 0;
+    int radius_limit = 1;
     pllmod_treeinfo_t * tree_info;
 
     loglh = pll_compute_edge_loglikelihood (pll_partition,
@@ -531,7 +530,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           radius_min = 1;
           radius_max = radius_step;
         }
-        else if (!impr)
+        else if (!impr && DO_THOROUGH_ML_SEARCH)
         {
           if (!thorough_insertion)
           {
@@ -540,7 +539,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             radius_min = 1;
             radius_max = radius_step;
 
-            new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
+            new_loglh = optimize_parameters(tree_info->root,
+                                            ML_SEARCH_PARAM_EPS,
+                                            ML_SEARCH_PARAM_TOL,
+                                            opt_per_param,
+                                            new_loglh);
           }
           else
           {
@@ -557,6 +560,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /* final thorough parameter optimization */
     model.set_loglh(new_loglh);
     loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
+
+    pllmod_treeinfo_destroy(tree_info);
 
     return loglh;
   }

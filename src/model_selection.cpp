@@ -39,133 +39,163 @@ static bool compare_score(const selection_model &m1, const selection_model &m2)
 ModelSelection::ModelSelection(const vector<Model *> &c_models,
                                ic_type type)
 {
-    double sum_exp = 0.0;
-    models.resize(c_models.size());
-    for (size_t i=0; i<c_models.size(); i++)
+  mt_size_t n_states = c_models[0]->get_n_states();
+  double sum_exp = 0.0;
+  models.resize(c_models.size());
+  for (size_t i=0; i<c_models.size(); i++)
+  {
+      models[i].model = c_models[i];
+      switch(type)
+      {
+      case ic_lnl:
+          ic_name = "lnL";
+          models[i].score = models[i].model->get_loglh();
+          break;
+      case ic_bic:
+          ic_name = "BIC";
+          models[i].score = models[i].model->get_bic();
+          break;
+      case ic_aic:
+          ic_name = "AIC";
+          models[i].score = models[i].model->get_aic();
+          break;
+      case ic_aicc:
+          ic_name = "AICc";
+          models[i].score = models[i].model->get_aicc();
+          break;
+      case ic_dt:
+          ic_name = "DT";
+          models[i].score = models[i].model->get_dt();
+          break;
+      }
+  }
+
+  if (type == ic_dt)
+  {
+      /* exactly as in DT-ModSel.pl */
+      double * bicLike = new double[c_models.size()];
+      double minBIC = c_models[0]->get_bic();
+      double minDT;
+      double denom = 0.0;
+      double sum, sumReciprocal;
+
+      /* get minimum BIC */
+      for (size_t i=0; i<c_models.size(); i++)
+      {
+          if (c_models[i]->get_bic() < minBIC)
+              minBIC = c_models[i]->get_bic();
+      }
+
+      for (size_t i=0; i<c_models.size(); i++)
+      {
+          bicLike[i] = exp(-0.5*(c_models[i]->get_bic() - minBIC));
+          denom += bicLike[i];
+      }
+
+      /* TODO: set to DOUBLE_MAX */
+      minDT = 999999999999;
+      for (mt_index_t i=0; i<c_models.size(); i++)
+      {
+          Model * model1 = models[i].model;
+          sum = 0.0;
+          for (mt_index_t j=0; j<c_models.size(); j++)
+          {
+              Model * model2 = models[j].model;
+
+              double distance = TreePll::compute_euclidean_distance(model1->get_tree(), model2->get_tree());
+              /* TODO: compute distance between trees in a table*/
+              // distance = distances.getDistance(model1.getTree(), model2.getTree());
+
+              assert(distance >= 0);
+
+              /* sum(exp(log(dij) − bic[j] + min_bic)) */
+              sum += distance * bicLike[j];
+          }
+
+          models[i].score = sum / denom;
+          if (models[i].score < minDT)
+          {
+              minDT = models[i].score;
+          }
+      }
+
+      // Calculate DT differences
+      sumReciprocal = sum = 0;
+      for (mt_index_t i=0; i<c_models.size(); i++)
+      {
+          models[i].delta = models[i].score - minDT;
+          sumReciprocal += 1.0 / models[i].score;
+      }
+
+      // DP we need to do it in a different way?: i think so...
+      for (size_t i=0; i<c_models.size(); i++)
+      {
+          if (models[i].delta > 1000)
+              models[i].weight = 0.0;
+          else
+              models[i].weight = (1.0 / models[i].score) / sumReciprocal;
+      }
+
+      delete[] bicLike;
+  }
+
+  sort(models.begin(), models.end(), compare_score);
+
+  for (mt_index_t i=0; i<models.size(); i++)
+  {
+      models[i].delta = models[i].score - models[0].score;
+      sum_exp += exp(-0.5 * models[i].delta);
+  }
+
+  importance_freqs     = 0.0;
+  importance_inv       = 0.0;
+  importance_gamma     = 0.0;
+  importance_gamma_inv = 0.0;
+  avg_frequencies.resize(n_states);
+  fill(avg_frequencies.begin(), avg_frequencies.end(), 0.0);
+  fill(avg_rates.begin(), avg_rates.end(), 0.0);
+  avg_pinv        = 0.0;
+  avg_gamma       = 0.0;
+  avg_pinv_gamma  = 0.0;
+  avg_gamma_pinv  = 0.0;
+  for (mt_index_t i=0; i<models.size(); i++)
+  {
+    Model * model = models[i].model;
+
+    /* weights */
+    models[i].weight = exp(-0.5 * models[i].delta) / sum_exp;
+    if(model->is_I()&& !model->is_G())
     {
-        models[i].model = c_models[i];
-        switch(type)
-        {
-        case ic_lnl:
-            ic_name = "lnL";
-            models[i].score = models[i].model->get_loglh();
-            break;
-        case ic_bic:
-            ic_name = "BIC";
-            models[i].score = models[i].model->get_bic();
-            break;
-        case ic_aic:
-            ic_name = "AIC";
-            models[i].score = models[i].model->get_aic();
-            break;
-        case ic_aicc:
-            ic_name = "AICc";
-            models[i].score = models[i].model->get_aicc();
-            break;
-        case ic_dt:
-            ic_name = "DT";
-            models[i].score = models[i].model->get_dt();
-            break;
-        }
+      avg_pinv += model->get_prop_inv() * models[i].weight;
+      importance_inv += models[i].weight;
     }
-
-    if (type == ic_dt)
+    if(model->is_G() && !model->is_I())
     {
-        /* exactly as in DT-ModSel.pl */
-        double * bicLike = new double[c_models.size()];
-        double minBIC = c_models[0]->get_bic();
-        double minDT;
-        double denom = 0.0;
-        double sum, sumReciprocal;
-
-        /* get minimum BIC */
-        for (size_t i=0; i<c_models.size(); i++)
-        {
-            if (c_models[i]->get_bic() < minBIC)
-                minBIC = c_models[i]->get_bic();
-        }
-
-        for (size_t i=0; i<c_models.size(); i++)
-        {
-            bicLike[i] = exp(-0.5*(c_models[i]->get_bic() - minBIC));
-            denom += bicLike[i];
-        }
-
-        /* TODO: set to DOUBLE_MAX */
-        minDT = 999999999999;
-        for (size_t i=0; i<c_models.size(); i++)
-        {
-            Model * model1 = models[i].model;
-            sum = 0.0;
-            for (size_t j=0; j<c_models.size(); j++)
-            {
-                Model * model2 = models[j].model;
-
-                double distance = TreePll::compute_euclidean_distance(model1->get_tree(), model2->get_tree());
-                /* TODO: compute distance between trees in a table*/
-                // distance = distances.getDistance(model1.getTree(), model2.getTree());
-
-                assert(distance >= 0);
-
-                /* sum(exp(log(dij) − bic[j] + min_bic)) */
-                sum += distance * bicLike[j];
-            }
-
-            models[i].score = sum / denom;
-            if (models[i].score < minDT)
-            {
-                minDT = models[i].score;
-            }
-        }
-
-        // Calculate DT differences
-        sumReciprocal = sum = 0;
-        for (size_t i=0; i<c_models.size(); i++)
-        {
-            models[i].delta = models[i].score - minDT;
-            sumReciprocal += 1.0 / models[i].score;
-        }
-
-        // DP we need to do it in a different way?: i think so...
-        for (size_t i=0; i<c_models.size(); i++)
-        {
-            if (models[i].delta > 1000)
-                models[i].weight = 0.0;
-            else
-                models[i].weight = (1.0 / models[i].score) / sumReciprocal;
-        }
-
-        delete[] bicLike;
+      avg_gamma += model->get_alpha() * models[i].weight;
+      importance_gamma += models[i].weight;
     }
-    else
+    if(model->is_I() && model->is_G())
     {
-
+      avg_pinv_gamma += model->get_prop_inv() * models[i].weight;
+      avg_gamma_pinv += model->get_alpha() * models[i].weight;
+      importance_gamma_inv += models[i].weight;
     }
-    sort(models.begin(), models.end(), compare_score);
-
-    for (size_t i=0; i<models.size(); i++)
+    if(model->is_F())
     {
-        models[i].delta = models[i].score - models[0].score;
-        sum_exp += exp(-0.5 * models[i].delta);
+      for (mt_index_t j=0; j<n_states; ++j)
+        avg_frequencies[j] += model->get_frequencies()[j] * models[i].weight;
+      importance_freqs += models[i].weight;
     }
+    //TODO: We need to compute the importance of every rate for doing this
+  }
+  avg_gamma /= importance_gamma;
+  avg_pinv /= importance_inv;
+  avg_pinv_gamma /= importance_gamma_inv;
+  avg_gamma_pinv /= importance_gamma_inv;
+  for (mt_index_t j=0; j<n_states; ++j)
+    avg_frequencies[j] /= importance_freqs;
 
-    importance_freqs = 0.0;
-    importance_inv = 0.0;
-    importance_gamma = 0.0;
-    importance_gamma_inv = 0.0;
-    for (size_t i=0; i<models.size(); i++)
-    {
-        /* weights */
-        models[i].weight = exp(-0.5 * models[i].delta) / sum_exp;
-        if(models[i].model->is_I())
-            importance_inv += models[i].weight;
-        if(models[i].model->is_G())
-            importance_gamma += models[i].weight;
-        if(models[i].model->is_I() && models[i].model->is_G())
-            importance_gamma_inv += models[i].weight;
-        if(models[i].model->is_F())
-            importance_freqs += models[i].weight;
-    }
+  mt_size_t n_subst_rates = models[0].model->get_n_subst_rates();
 }
 
 size_t ModelSelection::size() const
@@ -179,7 +209,17 @@ const selection_model & ModelSelection::get_model(size_t i) const
     return models[i];
 }
 
-void ModelSelection::print(ostream &out, mt_size_t limit)
+double ModelSelection::get_weight(Model * model) const
+{
+  for (selection_model m : models)
+    if (m.model == model)
+      return m.weight;
+
+  assert(0);
+  return 0;
+}
+
+void ModelSelection::print(ostream &out, mt_size_t limit) const
 {
     mt_size_t n_models = limit;
     out << endl
@@ -209,7 +249,7 @@ void ModelSelection::print(ostream &out, mt_size_t limit)
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 }
 
-void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit)
+void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit) const
 {
     mt_size_t n_models = limit;
     if (n_models<=0 || (size_t) n_models > models.size())
@@ -229,9 +269,9 @@ void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit)
     out << "</selection>" << endl;
 }
 
-void ModelSelection::print_best_model(std::ostream  &out)
+void ModelSelection::print_best_model(std::ostream  &out) const
 {
-    selection_model &best_sel_model = models[0];
+    const selection_model &best_sel_model = models[0];
     Model * best_model = best_sel_model.model;
     best_model->print(out);
     out << setw(PRINTMODEL_TABSIZE) << left << "Score:" << best_sel_model.score << endl
@@ -275,11 +315,23 @@ void ModelSelection::print_inline_best_model(ic_type type, selection_model &mode
     out << endl;
 }
 
-void ModelSelection::print_importances(std::ostream  &out)
+void ModelSelection::print_importances(std::ostream  &out) const
 {
     out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Gamma:" << importance_gamma << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:" << importance_gamma_inv << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:" << importance_freqs << endl;
+}
+
+void ModelSelection::print_averages(std::ostream  &out) const
+{
+    out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << avg_pinv << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Alpha:" << avg_gamma << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Alpha-P.Inv:" << avg_gamma_pinv << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "P.Inv-Alpha:" << avg_pinv_gamma << endl
+        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+    for (mt_index_t j=0; j<avg_frequencies.size(); ++j)
+      out << avg_frequencies[j] << " ";
+    out << endl;
 }
 }

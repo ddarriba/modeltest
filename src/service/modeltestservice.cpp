@@ -118,24 +118,28 @@ ModelSelection * ModelTestService::select_models(partition_id_t const& part_id,
     return new ModelSelection(modeltest_instance->get_models(part_id), type);
 }
 
-bool ModelTestService::print_selection(ModelSelection * selection,
+bool ModelTestService::print_selection(ModelSelection const& selection,
                                        std::ostream  &out) const
 {
-    selection->print(out, 10);
-    selection->get_name();
-    out << "Best model according to " << selection->get_name() << endl;
+    selection.print(out, 10);
+    selection.get_name();
+    out << "Best model according to " << selection.get_name() << endl;
     out << "---------------------------" << endl;
-    selection->print_best_model(out);
+    selection.print_best_model(out);
     out << "---------------------------" << endl;
     out << "Parameter importances" << endl;
     out << "---------------------------" << endl;
-    selection->print_importances(out);
+    selection.print_importances(out);
+    out << "---------------------------" << endl;
+    out << "Model averaged estimates" << endl;
+    out << "---------------------------" << endl;
+    selection.print_averages(out);
     out << endl;
     out << "Commands:" << endl;
-    out << "  > phyml " << get_phyml_command_line(*(selection->get_model(0).model)) << endl;
-    out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection->get_model(0).model)) << endl;
-    out << "  > paup " << get_paup_command_line(*(selection->get_model(0).model)) << endl;
-    out << "  > iqtree " << get_iqtree_command_line(*(selection->get_model(0).model)) << endl;
+    out << "  > phyml " << get_phyml_command_line(*(selection.get_model(0).model)) << endl;
+    out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection.get_model(0).model)) << endl;
+    out << "  > paup " << get_paup_command_line(*(selection.get_model(0).model)) << endl;
+    out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model)) << endl;
 
     return true;
 }
@@ -156,6 +160,80 @@ PartitioningScheme & ModelTestService::get_partitioning_scheme( void ) const
     return modeltest_instance->get_partitioning_scheme();
 }
 
+typedef struct
+{
+  mt_index_t id;
+  double aic_support;
+  double aicc_support;
+  double bic_support;
+  char * tree_str;
+} topo_info_t;
+
+void ModelTestService::topological_summary(partition_id_t const& part_id,
+                                           ModelSelection const& bic_selection,
+                                           ModelSelection const& aic_selection,
+                                           ModelSelection const& aicc_selection)
+{
+  const std::vector<Model *> &c_models = modeltest_instance->get_models(part_id);
+  Partition &partition = modeltest_instance->get_partition(part_id);
+  pll_split_t **all_splits = (pll_split_t**) calloc(c_models.size(), sizeof(pll_split_t*));
+  mt_size_t n_models = c_models.size();
+  mt_size_t n_tips = partition.get_n_sequences();
+  mt_size_t n_splits;
+  mt_index_t *topo_v = new mt_index_t[n_models]();
+  mt_size_t n_topologies;
+  vector<topo_info_t> topologies;
+
+  for (mt_index_t tree_id = 0; tree_id < n_models; ++tree_id)
+  {
+    all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree(),
+                                                    n_tips,
+                                                    &n_splits);
+  }
+
+  n_topologies = 0;
+  for (mt_index_t i=0; i<n_models; ++i)
+  {
+    if (!topo_v[i])
+    {
+      ++n_topologies;
+      topo_v[i] = n_topologies;
+    }
+    for (mt_index_t j=i+1; j<n_models; ++j)
+    {
+      mt_size_t rf_dist = pllmod_utree_split_rf_distance(all_splits[i], all_splits[j], n_tips);
+      if (!rf_dist)
+        topo_v[j] = topo_v[i];
+    }
+  }
+
+  cout << endl << "There are " << n_topologies << " different topologies\n";
+  topologies.resize(n_topologies);
+
+  for (mt_index_t tree_id = 0; tree_id < c_models.size(); ++tree_id)
+  {
+    pllmod_utree_split_destroy(all_splits[tree_id]);
+    if (!topologies[topo_v[tree_id] - 1].id)
+    {
+      topologies[topo_v[tree_id] - 1].id = topo_v[tree_id];
+      topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree());
+    }
+    topologies[topo_v[tree_id] - 1].bic_support += bic_selection.get_weight(c_models[tree_id]);
+    topologies[topo_v[tree_id] - 1].aic_support += aic_selection.get_weight(c_models[tree_id]);
+    topologies[topo_v[tree_id] - 1].aicc_support += aicc_selection.get_weight(c_models[tree_id]);
+  }
+
+  delete[] topo_v;
+  free(all_splits);
+
+  for (mt_index_t i = 0; i < n_topologies; ++i)
+  {
+    cout << topologies[i].id << " " << topologies[i].bic_support << " " << topologies[i].aic_support << " " << topologies[i].aicc_support << " " << topologies[i].tree_str << endl;
+  }
+
+  cout << endl;
+}
+
 string ModelTestService::get_iqtree_command_line(Model const& model,
                                                  string const& msa_filename) const
 {
@@ -163,7 +241,9 @@ string ModelTestService::get_iqtree_command_line(Model const& model,
     stringstream iqtree_args;
     //mt_index_t matrix_index = model.get_matrix_index();
 
-    iqtree_args << "-s " << msa_filename;
+    iqtree_args << "-s " << msa_filename << " -m " << model.get_name();
+    if (model.is_G())
+      iqtree_args << model.get_n_categories();
 
     return iqtree_args.str();
 }

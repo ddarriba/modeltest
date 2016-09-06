@@ -200,6 +200,7 @@ typedef struct
     mt_size_t states;                        //! number of states
     std::string partition_name;              //! name of the partition
     mt_mask_t model_params;                  //! model parameters
+    mt_size_t n_categories;                  //! number of categories
     asc_bias_t asc_bias_corr;                //! ascertainment bias correction
     mt_size_t *asc_weights;                  //! state weights
 } partition_descriptor_t;
