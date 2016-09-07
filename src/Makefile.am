@@ -1,6 +1,9 @@
 bin_PROGRAMS = modeltestx 
 
 modeltestx_SOURCES = \
+	genesis/date_time.cpp \
+	genesis/string.cpp \
+	genesis/logging.cpp \
 	static_analyzer.cpp \
 	service/modeltestservice.cpp \
 	thread/observer.cpp \
@@ -42,6 +45,9 @@ modeltestx_LDADD = -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lp
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
 	static_analyzer.h \
+	genesis/date_time.h \
+	genesis/string.h \
+	genesis/logging.h \
 	service/modeltestservice.h \
 	thread/observer.h \
 	thread/threadpool.h \

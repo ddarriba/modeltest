@@ -822,9 +822,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       exec_opt.output_log_file.append(OUTPUT_LOG_SUFFIX);
       exec_opt.output_tree_file.append(OUTPUT_TREE_SUFFIX);
       exec_opt.output_results_file.append(OUTPUT_RESULTS_SUFFIX);
-      exec_opt.output_tree_to_file = (exec_opt.starting_tree == tree_mp ||
-                                   exec_opt.starting_tree == tree_ml_gtr_fixed ||
-                                   exec_opt.starting_tree == tree_ml_jc_fixed);
+      exec_opt.output_tree_to_file = (exec_opt.starting_tree != tree_user_fixed);
 
       //TODO: Temporary checkpoint enabled by default
       exec_opt.checkpoint_file = output_basename;
