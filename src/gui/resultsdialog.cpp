@@ -108,7 +108,10 @@ ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
       model_selection[i][modeltest::ic_aic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aic);
       model_selection[i][modeltest::ic_aicc] =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_aicc);
       model_selection[i][modeltest::ic_bic]  =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_bic);
-      model_selection[i][modeltest::ic_dt]   =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_dt);
+
+      //TODO: Allow this only for fixed trees
+      if (false)
+        model_selection[i][modeltest::ic_dt]   =  ModelTestService::instance()->select_models(scheme.get_partition(i).get_id(), modeltest::ic_dt);
     }
 
     fill_results(ui->table_results_aic, *model_selection[0][modeltest::ic_aic],
@@ -120,9 +123,11 @@ ResultsDialog::ResultsDialog(modeltest::PartitioningScheme &scheme,
     fill_results(ui->table_results_bic, *model_selection[0][modeltest::ic_bic],
                  ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
                  ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-    fill_results(ui->table_results_dt, *model_selection[0][modeltest::ic_dt],
-                 ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                 ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+    //TODO: Allow this only for fixed trees
+    if (false)
+      fill_results(ui->table_results_dt, *model_selection[0][modeltest::ic_dt],
+                   ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                   ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
     for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
     {
@@ -155,7 +160,10 @@ ResultsDialog::~ResultsDialog()
         delete model_selection[i][modeltest::ic_aic];
         delete model_selection[i][modeltest::ic_aicc];
         delete model_selection[i][modeltest::ic_bic];
-        delete model_selection[i][modeltest::ic_dt];
+
+        //TODO: Allow this only for fixed trees
+        if (false)
+          delete model_selection[i][modeltest::ic_dt];
     }
     delete ui;
 }
@@ -180,7 +188,9 @@ void ResultsDialog::on_cmb_results_partition_currentIndexChanged(int index)
     fill_results(ui->table_results_bic, *model_selection[index][modeltest::ic_bic],
                  ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
                  ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-    fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
-                 ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                 ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+    //TODO: Allow this only for fixed trees
+    if (false)
+      fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
+                   ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                   ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 }

@@ -115,7 +115,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             print_usage(cout);
             return false;
         case 2:
-            print_version(cout);
+            print_version();
             return false;
         case 3:
             /* partitioning search */
@@ -442,7 +442,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             exec_opt.verbose = VERBOSITY_HIGH;
             break;
         default:
-            assert(0);
+            return false;
         }
     }
 
@@ -904,21 +904,21 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
 void Meta::print_ascii_logo(std::ostream  &out)
 {
-out << "                                     _      _ _            _   " << endl;
-out << "                                    | |    | | |          | |  " << endl;
-out << "                 _ __ ___   ___   __| | ___| | |_ ___  ___| |_ " << endl;
-out << "                | '_ ` _ \\ / _ \\ / _` |/ _ \\ | __/ _ \\/ __| __|" << endl;
-out << "                | | | | | | (_) | (_| |  __/ | ||  __/\\__ \\ |_ " << endl;
-out << "                |_| |_| |_|\\___/ \\__,_|\\___|_|\\__\\___||___/\\__|" << endl;
+  out << "                                     _      _ _            _   " << endl;
+  out << "                                    | |    | | |          | |  " << endl;
+  out << "                 _ __ ___   ___   __| | ___| | |_ ___  ___| |_ " << endl;
+  out << "                | '_ ` _ \\ / _ \\ / _` |/ _ \\ | __/ _ \\/ __| __|" << endl;
+  out << "                | | | | | | (_) | (_| |  __/ | ||  __/\\__ \\ |_ " << endl;
+  out << "                |_| |_| |_|\\___/ \\__,_|\\___|_|\\__\\___||___/\\__|" << endl;
 }
 void Meta::print_header(std::ostream  &out)
 {
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    print_version(out);
+    print_version();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl << endl;
 }
 
-void Meta::print_version(std::ostream& out)
+void Meta::print_version(std::ostream  &out)
 {
     out << PACKAGE << " " << VERSION << endl;
     out << "Copyright (C) 2015 Diego Darriba, David Posada, Alexandros Stamatakis" << endl;
@@ -928,7 +928,7 @@ void Meta::print_version(std::ostream& out)
     out << endl << "Written by Diego Darriba." << endl;
 }
 
-void Meta::print_system_info(ostream  &out)
+void Meta::print_system_info(std::ostream  &out)
 {
 //    double memcount_gb = (double)(get_memtotal() >> 30);
     double memcount_gb = ((double) modeltest::Utils::get_memtotal() / BYTE_TO_GB);
@@ -938,7 +938,7 @@ void Meta::print_system_info(ostream  &out)
     out << "Memory:         " << setprecision(3) << memcount_gb << "GB" << endl;
 }
 
-static void print_model_params(mt_mask_t model_params, ostream &out)
+static void print_model_params(mt_mask_t model_params, std::ostream  &out)
 {
     out << "  " << left << setw(20) << "include model parameters:" << endl;
     out << "    " << left << setw(17) << "Uniform:" << ((model_params&MOD_PARAM_NO_RATE_VAR)?"true":"false") << endl;
@@ -949,7 +949,7 @@ static void print_model_params(mt_mask_t model_params, ostream &out)
     out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
 }
 
-void Meta::print_options(mt_options_t & opts, ostream  &out)
+void Meta::print_options(mt_options_t & opts, ostream &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
@@ -981,9 +981,13 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
     }
     out << "  " << left << setw(10) << "  file:";
     if (opts.tree_filename.compare(""))
+    {
       out << opts.tree_filename << endl;
+    }
     else
+    {
       out << "-" << endl;
+    }
 
     out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
     out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;
@@ -991,7 +995,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
     out << endl << "Output:" << endl;
     out << "  " << left << setw(15) << "Log:" << opts.output_log_file << endl;
     if (opts.output_tree_to_file)
-        out << "  " << left << setw(15) << "Starting tree:" << opts.output_tree_file << endl;
+    {
+      out << "  " << left << setw(15) << "Starting tree:" << opts.output_tree_file << endl;
+    }
     out << "  " << left << setw(15) << "Results:" << opts.output_results_file << endl;
 
     out << endl << "Selection options:" << endl;
@@ -1029,7 +1035,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
 
     }
     if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
-        out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
+    {
+      out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
+    }
     out << "  " << left << setw(20) << "asc bias:";
     switch(opts.asc_bias_corr)
     {
@@ -1042,7 +1050,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
       case asc_felsenstein:
         out << "felsenstein" << endl;
         if (opts.asc_weights[0])
+        {
           out << "    " << left << setw(18) << "weight: " << opts.asc_weights[0] << endl;
+        }
         break;
       case asc_stamatakis:
         {
@@ -1056,7 +1066,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
               weights_undef = false;
             }
           if (weights_undef)
+          {
             out << "-";
+          }
           out << endl;
         }
         break;
@@ -1086,7 +1098,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
     out << "  " << left << setw(14) << "threads:" << opts.n_threads << "/" << num_cores << endl;
     out << "  " << left << setw(14) << "RNG seed:" << opts.rnd_seed << endl;
     if (opts.verbose == VERBOSITY_MID)
-        out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
+    {
+      out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
+    }
 
     if (opts.partitions_desc)
     {
@@ -1120,7 +1134,9 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
                 {
                     out << region.start << "-" << region.end;
                     if (region.stride != 1)
+                    {
                         out << "/" << region.stride;
+                    }
                     out << " ";
                 }
                 out << endl;
@@ -1144,13 +1160,17 @@ void Meta::print_options(mt_options_t & opts, ostream  &out)
             }
           }
           if (n_dna_parts)
+          {
             out << left << setw(15) << " "
                 << setw(4) << right << n_dna_parts
                 << " DNA partitions" << endl;
+          }
           if (n_prot_parts)
+          {
             out << left << setw(15) << " "
                 << setw(4) << right << n_prot_parts
                 << " protein partitions" << endl;
+          }
         }
     }
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;

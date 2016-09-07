@@ -62,8 +62,9 @@ xThreadOpt::xThreadOpt(modeltest::PartitioningScheme & scheme,
     }
 }
 
-void xThreadOpt::update(Observable * subject)
+void xThreadOpt::update(Observable * subject, void * data)
 {
+    UNUSED(data);
     modeltest::ModelOptimizer * mopt = static_cast<modeltest::ModelOptimizer *>(subject);
 
     //emit next_model( model, thread_map[my_id] );

@@ -35,6 +35,7 @@
 #include <vector>
 #include <chrono>
 
+#include "genesis/logging.h"
 #include "thread/threadpool.h"
 
 ModelTestService *ModelTestService::s_instance = 0;
@@ -48,8 +49,11 @@ int main(int argc, char *argv[])
 {
     int return_val = EXIT_SUCCESS;
 
-    Meta::print_ascii_logo(cout);
-    Meta::print_header(cout);
+    genesis::utils::Logging::log_to_stream(cout);
+    genesis::utils::Logging::err_to_stream(cerr);
+    genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
+    Meta::print_ascii_logo(MT_INFO);
+    Meta::print_header(MT_INFO);
 
     if (argc > 1)
     {
@@ -63,17 +67,23 @@ int main(int argc, char *argv[])
             return(EXIT_FAILURE);
         }
 
-        Meta::print_system_info(cout);
-        cout << endl;
-        Meta::print_options(opts, cout);
-        cout << PACKAGE << " was called as follows: " << endl << ">> ";
+        if (opts.output_log_file.compare(""))
+        {
+          genesis::utils::Logging::log_to_file(opts.output_log_file);
+        }
+
+        Meta::print_system_info(MT_INFO);
+        MT_INFO << endl;
+
+        Meta::print_options(opts, MT_INFO);
+        MT_INFO << PACKAGE << " was called as follows: " << endl << ">> ";
         for (int i=0; i<argc; i++)
-            cout << argv[i] << " ";
-        cout << endl << endl;
+            MT_INFO << argv[i] << " ";
+        MT_INFO << endl << endl;
 
         if (!ModelTestService::instance()->create_instance(opts))
         {
-            cerr << modeltest::mt_errmsg << endl;
+            LOG_ERR << modeltest::mt_errmsg << endl;
             return (int)modeltest::mt_errno;
         }
 
@@ -81,12 +91,12 @@ int main(int argc, char *argv[])
         {
             /* We warn only if the number of processors is 1. */
             /* Otherwise we assume that the user is aware of this feature */
-            cerr << PACKAGE << ": Warning: You are using one single thread out of "
+            LOG_WARN << endl << PACKAGE << ": Warning: You are using one single thread out of "
                     << num_cores << " physical cores." << endl;
-            cerr << PACKAGE
+            LOG_WARN << PACKAGE
                  << ":          You can set the number of threads with -p argument."
                  << endl;
-            cerr << PACKAGE << ": Try '" << PACKAGE << " --help' or '"
+            LOG_WARN << PACKAGE << ": Try '" << PACKAGE << " --help' or '"
                  << PACKAGE << " --usage' for more information" << endl;
         }
 
@@ -99,31 +109,34 @@ int main(int argc, char *argv[])
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
 
-            cout << endl << "Partition "
+            MT_INFO << endl << "Partition "
                  << i+1 << "/" << opts.partitions_eff->size()
                  << endl << endl;
 
             partition_id_t part_id = {i};
-            ModelTestService::instance()->evaluate_models(part_id, n_procs,
-                               opts.epsilon_param, opts.epsilon_opt);
+            ModelTestService::instance()->evaluate_models(part_id,
+                                                          n_procs,
+                                                          opts.epsilon_param,
+                                                          opts.epsilon_opt,
+                                                          MT_INFO);
 
-            std::cout << std::endl << "Computation of likelihood scores completed. It took " <<
-                         modeltest::Utils::format_time(time(NULL) - ini_global_time) << std::endl;
+            MT_INFO << endl << "Computation of likelihood scores completed. It took " <<
+                         modeltest::Utils::format_time(time(NULL) - ini_global_time) << endl;
 
             modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
-            ModelTestService::instance()->print_selection(*bic_selection, cout);
+            ModelTestService::instance()->print_selection(*bic_selection, MT_INFO);
             if (results_stream)
                 ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
             best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
 
             modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
-            ModelTestService::instance()->print_selection(*aic_selection, cout);
+            ModelTestService::instance()->print_selection(*aic_selection, MT_INFO);
             if (results_stream)
                 ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
             best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
 
             modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
-            ModelTestService::instance()->print_selection(*aicc_selection, cout);
+            ModelTestService::instance()->print_selection(*aicc_selection, MT_INFO);
             if (results_stream)
                 ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
             best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
@@ -132,7 +145,7 @@ int main(int argc, char *argv[])
             if (opts.starting_tree != tree_ml)
             {
                 modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
-                ModelTestService::instance()->print_selection(*dt_selection, cout);
+                ModelTestService::instance()->print_selection(*dt_selection, MT_INFO);
                 if (results_stream)
                     ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
                 best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
@@ -155,23 +168,23 @@ int main(int argc, char *argv[])
             delete results_stream;
         }
 
-        cout << "Summary:" << endl;
+        MT_INFO << "Summary:" << endl;
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
-            cout <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
-            modeltest::ModelSelection::print_inline_header(cout);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], cout);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], cout);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], cout);
+            MT_INFO <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
+            modeltest::ModelSelection::print_inline_header(MT_INFO);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], MT_INFO);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], MT_INFO);
+            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], MT_INFO);
             if (opts.starting_tree != tree_ml)
-                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], cout);
+                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
         }
 
-        cout << endl;
-        cout << "Execution results written to " << opts.output_results_file << endl;
+        MT_INFO << endl;
+        MT_INFO << "Execution results written to " << opts.output_results_file << endl;
         if (opts.output_tree_to_file)
-            cout << "Starting tree written to " << opts.output_tree_file << endl;
-        //cout << "Log written to " << opts.output_log_file << endl;
+            MT_INFO << "Starting tree written to " << opts.output_tree_file << endl;
+        //MT_INFO << "Log written to " << opts.output_log_file << endl;
 
         /* clean */
         if (opts.partitions_desc)
@@ -193,8 +206,9 @@ int main(int argc, char *argv[])
 
         return_val = a.exec();
         #else
-        cerr << PACKAGE << " was compiled without GUI support" << endl;
-        cerr << "Try '" << PACKAGE << " --help' or '" << PACKAGE << " --usage' for more information" << endl;
+        LOG_ERR << PACKAGE << " was compiled without GUI support" << endl;
+        LOG_ERR << "Try '" << PACKAGE << " --help' or '"
+                << PACKAGE << " --usage' for more information" << endl;
         #endif
     }
 

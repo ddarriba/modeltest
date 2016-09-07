@@ -40,7 +40,7 @@ public:
                int n_threads,
                double epsilon_param,
                double epsilon_opt);
-    virtual void update(Observable * subject);
+    virtual void update(Observable * subject, void * data);
     mt_size_t get_number_of_models( void ) const;
 
 public slots:

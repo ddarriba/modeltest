@@ -33,18 +33,18 @@ ModelTestService::~ModelTestService()
     destroy_instance();
 }
 
-bool ModelTestService::test_msa( std::string const& msa_filename,
-               mt_size_t * n_seqs,
-               mt_size_t * n_sites,
-               msa_format_t * msa_format,
-               data_type_t * datatype)
+bool ModelTestService::test_msa( string const& msa_filename,
+                                 mt_size_t * n_seqs,
+                                 mt_size_t * n_sites,
+                                 msa_format_t * msa_format,
+                                 data_type_t * datatype)
 {
     return test_msa(msa_filename,
                                n_seqs, n_sites,
                                msa_format, datatype);
 }
 
-bool ModelTestService::test_tree( std::string const& tree_filename,
+bool ModelTestService::test_tree( string const& tree_filename,
                                   mt_size_t * n_tips )
 {
     return test_tree(tree_filename, n_tips);
@@ -85,7 +85,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
                      mt_index_t thread_id,
                      double epsilon_param,
                      double epsilon_opt,
-                     const std::vector<Observer *> observers)
+                     const vector<Observer *> observers)
 {
     assert(modeltest_instance);
 
@@ -103,13 +103,15 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                        mt_size_t n_procs,
                                        double epsilon_param,
-                                       double epsilon_opt)
+                                       double epsilon_opt,
+                                       ostream &out)
 {
     assert(modeltest_instance);
     return modeltest_instance->evaluate_models(part_id,
                                                n_procs,
                                                epsilon_param,
-                                               epsilon_opt);
+                                               epsilon_opt,
+                                               out);
 }
 
 ModelSelection * ModelTestService::select_models(partition_id_t const& part_id,
@@ -119,7 +121,7 @@ ModelSelection * ModelTestService::select_models(partition_id_t const& part_id,
 }
 
 bool ModelTestService::print_selection(ModelSelection const& selection,
-                                       std::ostream  &out) const
+                                       ostream  &out) const
 {
     selection.print(out, 10);
     selection.get_name();
@@ -174,7 +176,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
                                            ModelSelection const& aic_selection,
                                            ModelSelection const& aicc_selection)
 {
-  const std::vector<Model *> &c_models = modeltest_instance->get_models(part_id);
+  const vector<Model *> &c_models = modeltest_instance->get_models(part_id);
   Partition &partition = modeltest_instance->get_partition(part_id);
   pll_split_t **all_splits = (pll_split_t**) calloc(c_models.size(), sizeof(pll_split_t*));
   mt_size_t n_models = c_models.size();

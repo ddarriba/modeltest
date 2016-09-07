@@ -21,6 +21,7 @@
 
 #include "utils.h"
 #include "optimize/model_optimizer_pll.h"
+#include "genesis/logging.h"
 
 #include <cassert>
 #include <iostream>
@@ -186,7 +187,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
 
     if (!pll_partition)
-        cout << "PLL ERROR " << pll_errno << " " << pll_errmsg << endl;
+        LOG_ERR << "Error [PLL:" << pll_errno << "]: " << pll_errmsg << endl;
     assert(pll_partition);
 
     pll_tree = tree.get_pll_tree(_thread_number);
@@ -208,7 +209,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                  c_seq))
         {
             /* data type and tip states should be validated beforehand */
-            cerr << "ERROR: Sequence does not match the datatype" << endl;
+            LOG_ERR << "Error: Sequence does not match the datatype" << endl;
             assert(0);
         }
     }
@@ -253,7 +254,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     //num_threads = 2;
 
 #ifdef VERBOSE //TODO: Verbosity medium
-    cout << "Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
+    LOG_DBG << "[DBG] Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
 #endif
     time_t start_time = time(NULL);
     mt_size_t n_branches = tree.get_n_branches();
@@ -271,16 +272,16 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
 
 #ifdef VERBOSE //TODO: Verbosity high
-    cout << "Initial Frequencies:   ";
+    LOG_DBG << "[DBG] Initial Frequencies:   ";
     for (mt_index_t i=0; i<pll_partition->states; i++)
-      cout << pll_partition->frequencies[0][i] << " ";
-    cout << endl;
+      LOG_DBG << pll_partition->frequencies[0][i] << " ";
+    LOG_DBG << endl;
 #endif
 
     /* /PTHREADS */
     if (_num_threads > 1)
     {
-      cerr << "Multithread optimization is temporary unavailable" << endl;
+      LOG_INFO << "Multithread optimization is temporary unavailable" << endl;
       return false;
 
       threads = (pthread_t *) Utils::allocate(_num_threads, sizeof(pthread_t));
@@ -308,7 +309,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         {
             thread_wrap * w = new thread_wrap(&(thread_data[i]), this);
             if(pthread_create(&(threads[i]), NULL, thread_worker, w)) {
-              cerr << "ERROR: Cannot create thread " << i << endl;
+              LOG_ERR << "Error: Cannot create thread " << i << endl;
               return false;
             }
         }
@@ -409,7 +410,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           /* ensure we never get a worse likelihood score */
           if (cur_loglh - save_loglh > 1e-5)
           {
-              cout << "Error: " << setprecision(5) << save_loglh << " vs " <<
+              LOG_ERR << "Error: " << setprecision(5) << save_loglh << " vs " <<
                       setprecision(5) << cur_loglh <<
                       " [" << cur_parameter << "]" << endl;
               assert(cur_loglh - save_loglh < 1e-5);

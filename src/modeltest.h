@@ -126,7 +126,8 @@ public:
     bool evaluate_models(const partition_id_t &part_id,
                          mt_size_t n_threads,
                          double epsilon_param,
-                         double epsilon_opt);
+                         double epsilon_opt,
+                         std::ostream &out = std::cout);
 
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
@@ -177,7 +178,8 @@ private:
                               mt_index_t thread_id,
                               double epsilon_param,
                               double epsilon_opt,
-                              time_t global_ini_time = 0);
+                              time_t global_ini_time = 0,
+                              std::ostream &out = std::cout);
 };
 
 }

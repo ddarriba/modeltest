@@ -66,12 +66,13 @@ LoggingDetails Logging::details = {
     false, // file
     false, // line
     false, // function
-    true   // level
+    false  // level
 };
 Logging::LoggingLevel      Logging::max_level_  = kDebug4;
 long                       Logging::count_      = 0;
 clock_t                    Logging::last_clock_ = 0;
 std::vector<std::ostream*> Logging::ostreams_;
+std::vector<std::ostream*> Logging::estreams_;
 int                        Logging::report_percentage_ = 5;
 std::string                Logging::debug_indent       = "    ";
 
@@ -115,8 +116,10 @@ void Logging::report_percentage (const int percentage)
  */
 std::string Logging::level_to_string(const LoggingLevel level)
 {
+    /* NONE ERR WARN INFO PROG DBG DBG1 DBG2 DBG3 DBG4 */
     static const char* const buffer[] = {
-        "NONE", "ERR ", "WARN", "INFO", "PROG", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
+        "NONE", "[ERR] ", "[WARN] ", "[INFO] ",
+        "[PROG] ", "[DBG] ", "[DBG1] ", "[DBG2] ", "[DBG3] ", "[DBG4] "
     };
     return buffer[level];
 }
@@ -129,6 +132,22 @@ void Logging::log_to_stdout ()
     // check whether stdout was already added.
     for (std::ostream* os : ostreams_) {
         if (os == &std::cout) {
+            return;
+        }
+    }
+
+    // if not, add it as output stream.
+    ostreams_.push_back (&std::cout);
+}
+
+/**
+ * @brief Add stdout as output stream to which log messages are written.
+ */
+void Logging::log_to_stderr ()
+{
+    // check whether stdout was already added.
+    for (std::ostream* os : ostreams_) {
+        if (os == &std::cerr) {
             return;
         }
     }
@@ -158,6 +177,64 @@ void Logging::log_to_file (const std::string& fn)
     file->open (fn, std::ios::out | std::ios::app);
     if (file->is_open()) {
         ostreams_.push_back (file);
+    } else {
+        throw std::runtime_error( "Cannot open logging file " + fn );
+    }
+}
+
+/**
+ * @brief Add stdout as output stream to which log messages are written.
+ */
+void Logging::err_to_stdout ()
+{
+    // check whether stdout was already added.
+    for (std::ostream* os : ostreams_) {
+        if (os == &std::cout) {
+            return;
+        }
+    }
+
+    // if not, add it as output stream.
+    estreams_.push_back (&std::cout);
+}
+
+/**
+ * @brief Add stdout as output stream to which log messages are written.
+ */
+void Logging::err_to_stderr ()
+{
+    // check whether stdout was already added.
+    for (std::ostream* os : ostreams_) {
+        if (os == &std::cerr) {
+            return;
+        }
+    }
+
+    // if not, add it as output stream.
+    estreams_.push_back (&std::cout);
+}
+
+/**
+ * @brief Add an output stream to which log messages are written.
+ */
+void Logging::err_to_stream (std::ostream& os)
+{
+    estreams_.push_back (&os);
+}
+
+/**
+ * @brief Add an output file to which log messages are written.
+ *
+ * This creates a stream to the file.
+ */
+void Logging::err_to_file (const std::string& fn)
+{
+    // TODO the log file stream is never deleted. this is not a big leak,
+    // as commonly only one file is used for logging, but still is a smell.
+    std::ofstream* file = new std::ofstream();
+    file->open (fn, std::ios::out | std::ios::app);
+    if (file->is_open()) {
+        estreams_.push_back (file);
     } else {
         throw std::runtime_error( "Cannot open logging file " + fn );
     }
@@ -215,7 +292,7 @@ Logging::~Logging()
         det_buff << "(" << function_ << ") ";
     }
     if (details_.level) {
-        det_buff << level_to_string(level_) << " ";
+        det_buff << level_to_string(level_);
     }
 
     // add spaces for nested debug levels
@@ -235,14 +312,25 @@ Logging::~Logging()
     } else {
         msg += buff_.str();
     }
-    msg = utils::trim_right(msg);
 
     // output the message to every stream, thread safe!
 #   ifdef PTHREADS
     log_mutex.lock();
 #   endif
-    for (std::ostream* out : ostreams_) {
-        (*out) << msg << std::endl << std::flush;
+
+    if (level_ == kError)
+    {
+      for (std::ostream* out : estreams_) {
+          //(*out) << msg << std::endl << std::flush;
+          (*out) << msg << std::flush;
+      }
+    }
+    else
+    {
+      for (std::ostream* out : ostreams_) {
+          //(*out) << msg << std::endl << std::flush;
+          (*out) << msg << std::flush;
+      }
     }
 #   ifdef PTHREADS
     log_mutex.unlock();

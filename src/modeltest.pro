@@ -13,6 +13,9 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     utils.cpp \
+    genesis/date_time.cpp \
+    genesis/string.cpp \
+    genesis/logging.cpp \
     model/abstract_parameter.cpp \
     model/parameter_branches.cpp \
     model/parameter_gamma.cpp \
@@ -22,6 +25,7 @@ SOURCES += main.cpp\
     model/parameter_substrates.cpp \
     model/model.cpp \
     optimize/model_optimizer_pll.cpp \
+    optimize/partition_optimizer.cpp \
     modeltest.cpp \
     msapll.cpp \
     treepll.cpp \
@@ -46,6 +50,9 @@ SOURCES += main.cpp\
 HEADERS  += \
     model_defs.h \
     utils.h \
+    genesis/date_time.h \
+    genesis/string.h \
+    genesis/logging.h \
     model/abstract_parameter.h \
     model/parameter_branches.h \
     model/parameter_gamma.h \
@@ -56,6 +63,7 @@ HEADERS  += \
     model/model.h \
     optimize/model_optimizer.h \
     optimize/model_optimizer_pll.h \
+    optimize/partition_optimizer.h \
     modeltest.h \
     msa.h \
     msapll.h \

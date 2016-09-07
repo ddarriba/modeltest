@@ -24,6 +24,7 @@
 #include "utils.h"
 #include "msapll.h"
 #include "treepll.h"
+#include "genesis/logging.h"
 #include "thread/threadpool.h"
 #include "optimize/partition_optimizer.h"
 
@@ -88,19 +89,22 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                thread_number);
 }
 
-static void print_execution_header( bool print_elapsed_time )
+static void print_execution_header( bool print_elapsed_time,
+                                    ostream &out )
 {
   /* print header */
-  cout << setw(11) << right << " ----ID--- "
-       << setw(15) << left << " ----MODEL---- "
-       << setw(11) << "---Time---";
+  out << setw(11) << right << " ----ID--- "
+      << setw(15) << left << " ----MODEL---- "
+      << setw(11) << "---Time---";
   if (print_elapsed_time)
-      cout << setw(11) << "-Elapsed---";
-  cout << setw(18) << right
-       << " -------LnL-------"
-       << setw(8) << " -Alpha-"
-       << setw(8) << " -P-inv-"
-       << endl;
+  {
+    out << setw(11) << "-Elapsed---";
+  }
+  out << setw(18) << right
+      << " -------LnL-------"
+      << setw(8) << " -Alpha-"
+      << setw(8) << " -P-inv-"
+      << endl;
 }
 
 bool ModelTest::evaluate_single_model(Model * model,
@@ -127,7 +131,8 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
                           mt_index_t thread_id,
                           double epsilon_param,
                           double epsilon_opt,
-                          time_t global_ini_time)
+                          time_t global_ini_time,
+                          ostream &out)
 {
   time_t ini_t = time(NULL);
   int res = PLL_SUCCESS;
@@ -152,11 +157,11 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 
 //    istringstream sinstr;
 //    sinstr.str(out.str());
-//    cout << out.str() << endl;
+//    out << out.str() << endl;
 //    model->input_log(sinstr);
 
   /* print progress */
-  model->print_inline(cur_model+1, n_models, ini_t, global_ini_time);
+  model->print_inline(cur_model+1, n_models, ini_t, global_ini_time, out);
 
   return res;
 }
@@ -164,7 +169,8 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 bool ModelTest::evaluate_models(const partition_id_t &part_id,
                                 mt_size_t n_procs,
                                 double epsilon_param,
-                                double epsilon_opt)
+                                double epsilon_opt,
+                                ostream &out)
 {
   Partition &partition = partitioning_scheme->get_partition(part_id);
 
@@ -179,7 +185,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
   TreePll *tree = static_cast<TreePll *>(current_instance->tree);
 
-  print_execution_header( global_ini_time );
+  print_execution_header( global_ini_time, out );
 
   part_opt_t opt_type;
 
@@ -203,7 +209,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   return true;
 }
 
-bool ModelTest::test_msa(std::string const& msa_filename,
+bool ModelTest::test_msa(string const& msa_filename,
                          mt_size_t *n_tips,
                          mt_size_t *n_sites,
                          msa_format_t *msa_format,
@@ -212,7 +218,7 @@ bool ModelTest::test_msa(std::string const& msa_filename,
  return MsaPll::test(msa_filename, n_tips, n_sites, msa_format, datatype);
 }
 
-bool ModelTest::test_tree(std::string const& tree_filename,
+bool ModelTest::test_tree(string const& tree_filename,
               mt_size_t *n_tips)
 {
   return TreePll::test_tree(tree_filename, n_tips);
@@ -350,7 +356,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   {
     if (options.partitions_eff)
       delete options.partitions_eff;
-    options.partitions_eff = new std::vector<partition_descriptor_t>(*options.partitions_desc);
+    options.partitions_eff = new vector<partition_descriptor_t>(*options.partitions_desc);
     if (!current_instance->msa->reorder_sites(*options.partitions_eff))
     {
       return false;
@@ -366,17 +372,17 @@ bool ModelTest::build_instance(mt_options_t & options)
 //        /* compute empirical frequencies */
 //        if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
 //        {
-//            std::cerr << "Error computing frequencies in " << partition.partition_name << std::endl;
+//            cerr << "Error computing frequencies in " << partition.partition_name << endl;
 //            return false;
 //        }
 //        if (!current_instance->msa->compute_empirical_pinv(partition))
 //        {
-//            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
+//            cerr << "Error computing invariant sites in " << partition.partition_name << endl;
 //            return false;
 //        }
 //        if (partition.datatype == dt_dna && !current_instance->msa->compute_empirical_subst_rates(partition))
 //        {
-//            std::cerr << "Error computing invariant sites in " << partition.partition_name << std::endl;
+//            cerr << "Error computing invariant sites in " << partition.partition_name << endl;
 //            return false;
 //        }
 //    }
@@ -575,7 +581,7 @@ bool ModelTest::build_instance(mt_options_t & options)
       DNA_JC_INDEX : DNA_GTR_INDEX);
     Model * start_model = partitioning_scheme->get_partition({0}).get_model_by_matrix(start_matrix_index, start_model_params);
     assert (start_model);
-    cout << "Optimizing tree for " << start_model->get_name() << std::endl;
+    LOG_DBG << "[DBG] Optimizing tree for " << start_model->get_name() << endl;
 
     //TODO: Optimize per partition
     ModelOptimizer * start_opt = get_model_optimizer(start_model,
@@ -584,7 +590,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                           true);
     start_opt->run(options.epsilon_opt, options.epsilon_param);
     assert(start_model->is_optimized());
-    cout << "Starting tree fixed " << start_model->get_loglh() << std::endl;
+    LOG_DBG << "[DBG] Starting tree fixed " << start_model->get_loglh() << endl;
     break;
   }
 
@@ -609,7 +615,7 @@ vector<Model *> const& ModelTest::get_models(partition_id_t const& part_id)
   return partitioning_scheme->get_partition(part_id).get_models();
 }
 
-bool ModelTest::set_models(const std::vector<Model *> &c_models,
+bool ModelTest::set_models(const vector<Model *> &c_models,
                            const partition_id_t &part_id)
 {
   return partitioning_scheme->get_partition(part_id).set_models(c_models);
@@ -620,7 +626,8 @@ void ModelTest::update(Observable * subject, void * data)
   //TODO: Use struct here
   opt_info_t * opt_info = static_cast<opt_info_t *>(data);
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
-                                opt_info->start_time, global_ini_time);
+                                opt_info->start_time, global_ini_time,
+                                MT_INFO);
 }
 
 PartitioningScheme & ModelTest::get_partitioning_scheme( void ) const

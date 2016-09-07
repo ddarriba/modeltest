@@ -82,6 +82,9 @@ namespace utils {
 #    endif
 #endif
 
+#define MT_INFO \
+        genesis::utils::Logging().get(__FILE__, __LINE__, GENESIS_FUNC, genesis::utils::Logging::kInfo)
+
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
 #define GENESIS_LOG(level) \
@@ -436,8 +439,14 @@ public:
 
     // methods to handle the output streams to write the log messages to
     static void log_to_stdout ();
+    static void log_to_stderr ();
     static void log_to_stream (std::ostream& os);
     static void log_to_file   (const std::string& fn);
+
+    static void err_to_stdout ();
+    static void err_to_stderr ();
+    static void err_to_stream (std::ostream& os);
+    static void err_to_file   (const std::string& fn);
 
     /**
      * @brief Settings for which information is included with each log message.
@@ -534,8 +543,9 @@ protected:
     // when was the last call to logging (used for time measurements)
     static clock_t last_clock_;
 
-    // array of streams that are used for output
+    // array of streams that are used for output and error
     static std::vector<std::ostream*> ostreams_;
+    static std::vector<std::ostream*> estreams_;
 };
 
 // =============================================================================

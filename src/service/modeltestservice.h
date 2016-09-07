@@ -85,7 +85,8 @@ public:
   bool evaluate_models(partition_id_t const& part_id,
                        mt_size_t n_procs,
                        double epsilon_param,
-                       double epsilon_opt);
+                       double epsilon_opt,
+                       std::ostream &out = std::cout);
 
   modeltest::ModelSelection * select_models(partition_id_t const& part_id,
                                             modeltest::ic_type type);

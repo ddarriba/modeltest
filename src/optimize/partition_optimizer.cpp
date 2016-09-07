@@ -70,9 +70,7 @@ namespace modeltest
 
   bool PartitionOptimizer::evaluate_greedy( mt_size_t n_procs )
   {
-    Model * start_model;
-    mt_mask_t start_model_params;
-    opt_info_t exec_info;
+    //opt_info_t exec_info;
     bool exec_ok = true;
     if (partition.get_datatype() != dt_dna)
       return false;
