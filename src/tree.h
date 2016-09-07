@@ -42,18 +42,6 @@ namespace modeltest
   public:
     Tree (tree_type_t _type,
           std::string const& filename,
-          mt_size_t _number_of_threads = 1,
-          int _random_seed = 12345)
-    : type(_type),
-      tree_file(filename),
-      n_tips(0),
-      number_of_threads(_number_of_threads),
-      random_seed(_random_seed)
-    {
-    }
-
-    Tree (tree_type_t _type,
-          std::string const& filename,
           Msa &_msa,
           mt_size_t _number_of_threads,
           int _random_seed)
@@ -63,8 +51,6 @@ namespace modeltest
           number_of_threads(_number_of_threads),
           random_seed(_random_seed)
     {
-        assert(type != tree_user_fixed);
-        UNUSED(_msa);
     }
 
     virtual ~Tree ();

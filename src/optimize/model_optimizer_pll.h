@@ -66,8 +66,7 @@ namespace modeltest
   private:
 
     bool build_parameters( pll_utree_t * pll_tree );
-    double optimize_model( pll_utree_t * pll_tree,
-                           double epsilon,
+    double optimize_model( double epsilon,
                            double tolerance,
                            bool opt_per_param );
 

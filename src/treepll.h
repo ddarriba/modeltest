@@ -31,10 +31,6 @@ namespace modeltest
   class TreePll : public Tree
   {
   public:
-    TreePll (tree_type_t type,
-             std::string const& filename,
-             mt_size_t number_of_threads = 1,
-             int random_seed = 12345);
     TreePll (tree_type_t _type,
              std::string const& filename,
              Msa &_msa,
@@ -96,6 +92,8 @@ namespace modeltest
      */
     static double compute_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2);
   private:
+    void cleanup( void );
+    void clone_tree( pll_utree_t * tree );
     pll_utree_t **pll_tree;          //! pll tree structures for each thread
     pll_utree_t **pll_start_tree;    //! pll initial tree structures for each thread
     pll_utree_t ***pll_tip_nodes;    //! list of tip node pointers for each thread

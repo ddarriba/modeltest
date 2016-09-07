@@ -189,67 +189,39 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         cout << "PLL ERROR " << pll_errno << " " << pll_errmsg << endl;
     assert(pll_partition);
 
+    pll_tree = tree.get_pll_tree(_thread_number);
+
     model.set_n_categories(pll_partition->rate_cats);
-
-    pll_tree = pll_utree_clone(tree.get_pll_start_tree(_thread_number));
-
-    pll_utree_t ** tipnodes = (pll_utree_t **) Utils::c_allocate (n_tips,
-                                                       sizeof(pll_utree_t *));
-    if (!pll_utree_query_tipnodes (pll_tree, tipnodes))
-    {
-        assert(0);
-    }
 
     /* find sequences and link them with the corresponding taxa */
     for (mt_index_t i = 0; i < n_tips; ++i)
     {
-        mt_index_t tip_clv_index = MT_SIZE_UNDEF;
-        const char * header = msa.get_header (i);
-
-        for (mt_index_t j = 0; j < n_tips; ++j)
-        {
-            if (!strcmp (tipnodes[j]->label, header))
-            {
-                tip_clv_index = j;
-                break;
-            }
-        }
-
-        if (tip_clv_index == MT_SIZE_UNDEF)
-            cerr << "ERROR: Cannot find tip \"" << header << "\"" << endl;
-        assert(tip_clv_index != MT_SIZE_UNDEF);
-
-        //TODO: keep tip states between models
         const char *c_seq = partition.get_sequence(i);
         const unsigned int *states_map =
           (model.get_datatype() == dt_dna)?
             (model.is_gap_aware()?extended_dna_map:pll_map_nt)
               :pll_map_aa;
+
         if (!pll_set_tip_states (pll_partition,
-                            (unsigned int)tip_clv_index,
-                            states_map,
-                             c_seq))
+                                 i,
+                                 states_map,
+                                 c_seq))
         {
             /* data type and tip states should be validated beforehand */
             cerr << "ERROR: Sequence does not match the datatype" << endl;
             assert(0);
         }
-
-        delete[] c_seq;
     }
 
     /* set weights */
     const mt_size_t * weights = partition.get_weights();
     pll_set_pattern_weights(pll_partition, weights);
     delete[] weights;
-
-    free (tipnodes);
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
   {
       pll_partition_destroy(pll_partition);
-    //  pll_utree_destroy(pll_tree);
   }
 
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
@@ -353,12 +325,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-    double cur_loglh = optimize_model(pll_tree, epsilon, tolerance, true);
+    double cur_loglh = optimize_model(epsilon, tolerance, true);
 
 
-      /* TODO: if bl are reoptimized */
-      if (keep_branch_lengths)
-        tree.set_bl_optimized();
+    /* TODO: if bl are reoptimized */
+    if (keep_branch_lengths)
+      tree.set_bl_optimized();
 
     time_t end_time = time(NULL);
 
@@ -392,7 +364,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       model.set_exec_time(end_time - start_time);
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
-      model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
+      if (optimize_topology)
+        model.set_tree(pll_tree);
+      else
+        model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
+
       return true;
     }
   }
@@ -461,8 +437,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   const int radius_step = 5;
 
-  double ModelOptimizerPll::optimize_model( pll_utree_t * pll_tree,
-                                            double epsilon,
+  double ModelOptimizerPll::optimize_model( double epsilon,
                                             double tolerance,
                                             bool opt_per_param )
   {
@@ -471,7 +446,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
            new_loglh;
     double bl_min = 1e-2,
            bl_max = 1e2;
-    // pllmod_search_params_t spr_params;
+
     int thorough_insertion = false;
     int radius_min = 1;
     int radius_max = 5;
@@ -493,11 +468,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     if (optimize_topology)
     {
-      if (pll_tree->data)
-        tree_info = (pllmod_treeinfo_t *) pll_tree->data;
-      else
-        tree_info = pllmod_treeinfo_create(pll_tree, tree.get_n_tips(), 1,1);
-
+      assert(!pll_tree->data);
+      tree_info = pllmod_treeinfo_create(pll_utree_clone(pll_tree),
+                                         tree.get_n_tips(),
+                                         1,
+                                         1);
       radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
 
       pllmod_treeinfo_destroy_partition(tree_info, 0);
@@ -554,14 +529,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
 
       pll_tree = tree_info->root;
-      tree.set_pll_tree(pll_tree, thread_number);
+      pllmod_treeinfo_destroy(tree_info);
     }
 
     /* final thorough parameter optimization */
     model.set_loglh(new_loglh);
     loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
-
-    pllmod_treeinfo_destroy(tree_info);
 
     return loglh;
   }

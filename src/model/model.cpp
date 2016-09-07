@@ -153,22 +153,22 @@ Model::Model( void )
       gap_aware(false),
       asc_bias_corr(asc_none)
 {
-    model_params = (mt_mask_t) 0;
-    matrix_index = 0;
-    current_opt_parameter = 0;
+  model_params = (mt_mask_t) 0;
+  matrix_index = 0;
+  current_opt_parameter = 0;
 
-    loglh  = 0.0;
-    bic  = 0.0;
-    aic  = 0.0;
-    aicc = 0.0;
-    dt   = 0.0;
+  loglh  = 0.0;
+  bic  = 0.0;
+  aic  = 0.0;
+  aicc = 0.0;
+  dt   = 0.0;
 
-    n_categories = 0;
-    params_indices = 0;
+  n_categories = 0;
+  params_indices = 0;
 
-    tree = 0;
+  tree = 0;
 
-    asc_weights = 0;
+  asc_weights = 0;
 }
 
 Model::~Model()
@@ -179,7 +179,7 @@ Model::~Model()
     free(params_indices);
   if (tree)
   {
-      pll_utree_destroy(tree->back);
+    pll_utree_destroy(tree->back);
   }
   for (AbstractParameter * parameter : parameters)
     delete parameter;
@@ -415,9 +415,11 @@ pll_utree_t * Model::get_tree( void ) const
 
 void Model::set_tree( pll_utree_t * _tree )
 {
-    if (tree)
-        pll_utree_destroy(tree->back);
-    tree = _tree;
+  if (tree)
+  {
+    pll_utree_destroy(tree->back);
+  }
+  tree = _tree;
 }
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,

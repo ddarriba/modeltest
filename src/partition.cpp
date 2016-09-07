@@ -321,11 +321,15 @@ bool Partition::set_models(const std::vector<Model *> &models)
 
 const char * Partition::get_sequence(mt_index_t idx) const
 {
-    char *seq = new char[n_patterns];
+    char *seq = 0;
     const char * msa_seq = msa.get_sequence (idx);
 
     if (descriptor.regions.size() > 1 || descriptor.regions[0].stride > 1)
     {
+      // for this case, we need to build the new sequence and cache it
+      // instead of creating a copy!
+      assert(0);
+
         /* complex partition */
         char *seq_ptr = seq;
         for (const partition_region_t & region : descriptor.regions)
@@ -354,7 +358,8 @@ const char * Partition::get_sequence(mt_index_t idx) const
     else
     {
         /* simple partition */
-        memcpy(seq, msa_seq + descriptor.regions[0].start - 1, n_patterns * sizeof(char));
+        return msa_seq;
+        //memcpy(seq, msa_seq + descriptor.regions[0].start - 1, n_patterns * sizeof(char));
     }
 
     return seq;

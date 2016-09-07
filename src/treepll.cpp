@@ -30,49 +30,28 @@ using namespace std;
 /* a callback function for resetting missing branches */
 static int cb_set_missing_branches(pll_utree_t * node, void *data)
 {
-   UNUSED(data);
+  UNUSED(data);
 
-    /* reset branches */
-    if (!(node->length > 0.))
-    {
-        node->length = 0.1;
-        node->back->length = 0.1;
-    }
-
-    return 1;
-}
-
-static void set_branch_length_recursive (pll_utree_t * tree,
-                                         double length,
-                                         bool reset)
-{
-  if (tree)
+  /* reset branches */
+  if (!(node->length > 0.))
   {
-    /* set branch length to default if not set */
-    if (tree->length < DOUBLE_EPSILON || reset)
-      tree->length = length;
-
-    if (tree->next)
-    {
-      if (tree->next->length < DOUBLE_EPSILON || reset)
-        tree->next->length = length;
-
-      if (tree->next->next->length < DOUBLE_EPSILON || reset)
-        tree->next->next->length = length;
-
-      set_branch_length_recursive (tree->next->back, length, reset);
-      set_branch_length_recursive (tree->next->next->back, length, reset);
-    }
+    node->length = 0.1;
+    node->back->length = 0.1;
   }
+
+  return 1;
 }
 
-/* branch lengths not present in the newick file get a value of 0.000001 */
-static void set_branch_length (pll_utree_t * tree,
-                               double length,
-                               bool reset)
+/* a callback function for resetting all branches */
+static int cb_set_all_branches(pll_utree_t * node, void *data)
 {
-  set_branch_length_recursive (tree, length, reset);
-  set_branch_length_recursive (tree->back, length, reset);
+  double * length = (double *) data;
+
+  /* reset branches */
+  node->length = *length;
+  node->back->length = *length;
+
+  return 1;
 }
 
 static void scale_branch_length_recursive (pll_utree_t * tree,
@@ -105,6 +84,38 @@ namespace modeltest
 
   Tree::~Tree() {}
 
+  static void set_indices(pll_utree_t * pll_tree, Msa &msa)
+  {
+    mt_size_t n_tips = msa.get_n_sequences();
+    pll_utree_t ** tip_nodes;
+
+    tip_nodes = (pll_utree_t **) Utils::c_allocate(n_tips,
+                                                   sizeof(pll_utree_t *));
+    pll_utree_query_tipnodes(pll_tree, tip_nodes);
+
+    /* find sequences and link them with the corresponding taxa */
+    for (mt_index_t i = 0; i < n_tips; ++i)
+    {
+        mt_index_t tip_clv_index = MT_SIZE_UNDEF;
+        const char * header = msa.get_header (i);
+
+        for (mt_index_t j = 0; j < n_tips; ++j)
+        {
+            if (!strcmp (tip_nodes[j]->label, header))
+            {
+                tip_nodes[j]->clv_index = tip_clv_index = i;
+                break;
+            }
+        }
+
+        if (tip_clv_index == MT_SIZE_UNDEF)
+            cerr << "ERROR: Cannot find tip \"" << header << "\"" << endl;
+        assert(tip_clv_index != MT_SIZE_UNDEF);
+    }
+
+    free(tip_nodes);
+  }
+
   TreePll::TreePll (tree_type_t type,
                     string const& filename,
                     Msa &msa,
@@ -120,175 +131,42 @@ namespace modeltest
 
     if (filename.compare(""))
     {
-      /* load user tree */
-      for (mt_index_t i=0; i<number_of_threads; i++)
+      pll_utree_t * user_tree = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+      if (!user_tree)
       {
-        /*TODO: copy this for other tree types or move it outside */
-        pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
-        pll_start_tree[i] = pll_tree[i];
-        if (pll_tree[i])
-        {
-          pllmod_utree_traverse_apply(pll_tree[i],
-                                   NULL,
-                                   &cb_set_missing_branches,
-                                   NULL);
-          pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-          pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-          pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-          pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-        }
-        else
-        {
-          free (pll_tree);
-          free (pll_start_tree);
-          free (pll_tip_nodes);
-          free (pll_inner_nodes);
-          pll_tree = 0;
-          pll_start_tree = 0;
-          pll_tip_nodes = 0;
-          pll_inner_nodes = 0;
-          mt_errno = pll_errno;
-          snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-          throw EXCEPTION_TREE_USER;
-        }
+        cleanup();
+        snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
+        throw EXCEPTION_TREE_USER;
       }
+
+      set_indices(user_tree, msa);
+
+      clone_tree( user_tree );
+
+      pll_utree_destroy(user_tree);
     }
     else
     {
       //TODO: WARNING: Temporary use a RANDOM tree
       cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
       pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
-      pllmod_utree_traverse_apply(random_tree,
-                               NULL,
-                               &cb_set_missing_branches,
-                               NULL);
-      for (mt_index_t i=0; i<number_of_threads; i++)
+      if (!random_tree)
       {
-        pll_tree[i] = pll_utree_clone(random_tree);
-        pll_start_tree[i] = pll_tree[i];
-        if (pll_tree[i])
-        {
-          pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-          pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-          pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-          pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-        }
-        else
-        {
-          free (pll_tree);
-          free (pll_start_tree);
-          free (pll_tip_nodes);
-          free (pll_inner_nodes);
-          pll_tree = 0;
-          pll_start_tree = 0;
-          pll_tip_nodes = 0;
-          pll_inner_nodes = 0;
-          mt_errno = pll_errno;
-          snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
-          throw EXCEPTION_TREE_MP;
-        }
+        cleanup();
+        snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
+        throw EXCEPTION_TREE_MP;
       }
+      set_indices(random_tree, msa);
+
+      clone_tree( random_tree );
+
       pll_utree_destroy(random_tree);
-    }
-  }
-
-  TreePll::TreePll (tree_type_t type,
-                    string const& filename,
-                    mt_size_t number_of_threads,
-                    int random_seed)
-      : Tree(type, filename, number_of_threads, random_seed)
-  {
-    assert(type == tree_user_fixed);
-
-    bl_optimized = false;
-    pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
-    pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
-
-    switch(type)
-    {
-      case tree_user_fixed:
-      {
-        for (mt_index_t i=0; i<number_of_threads; i++)
-        {
-          /*TODO: copy this for other tree types or move it outside */
-          pll_tree[i] = pll_utree_parse_newick (filename.c_str(), &(n_tips));
-          assert(pll_tree[i]);
-          pllmod_utree_traverse_apply(pll_tree[i],
-                                   NULL,
-                                   &cb_set_missing_branches,
-                                   NULL);
-          pll_start_tree[i] = pll_tree[i];
-          if (pll_tree[i])
-          {
-              pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-              pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-              pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-              pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
-          }
-          else
-          {
-              free (pll_tree);
-              free (pll_start_tree);
-              free (pll_tip_nodes);
-              free (pll_inner_nodes);
-              pll_tree = 0;
-              pll_start_tree = 0;
-              pll_tip_nodes = 0;
-              pll_inner_nodes = 0;
-              mt_errno = pll_errno;
-              snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-              throw EXCEPTION_TREE_USER;
-          }
-        }
-        break;
-      }
-      case tree_mp:
-      case tree_ml_gtr_fixed:
-      case tree_ml_jc_fixed:
-      case tree_ml:
-      case tree_random:
-        {
-            assert(0);
-        }
-        break;
-    }
-
-    n_inner = n_tips-2;
-    /* fix all missing branch lengths to 0.00001 */
-    for (mt_index_t i=0; i<number_of_threads; i++)
-    {
-        set_branch_length (pll_tree[i], 0.00001, false);
     }
   }
 
   TreePll::~TreePll ()
   {
-    if (pll_tree)
-    {
-      for (mt_index_t i=0; i<number_of_threads; i++)
-      {
-        if(pll_start_tree)
-          free(pll_start_tree[i]);
-        if (pll_tree[i])
-        {
-          // if (pll_tree[i]->data)
-          // {
-          //   pllmod_treeinfo_destroy((pllmod_treeinfo_t *)pll_tree[i]->data);
-          // }
-          pll_utree_destroy(pll_tree[i]);
-        }
-        if (pll_tip_nodes[i])
-          free(pll_tip_nodes[i]);
-        if (pll_inner_nodes[i])
-          free(pll_inner_nodes[i]);
-      }
-      if(pll_start_tree) free(pll_start_tree);
-      free(pll_tree);
-      free(pll_tip_nodes);
-      free(pll_inner_nodes);
-    }
+    cleanup();
   }
 
   void TreePll::reroot_random(mt_index_t thread_number)
@@ -312,7 +190,10 @@ namespace modeltest
   {
     assert(thread_number < number_of_threads);
     assert(length > 0);
-    set_branch_length(pll_tree[thread_number], length, true);
+    pllmod_utree_traverse_apply(pll_tree[thread_number],
+                                NULL,
+                                &cb_set_all_branches,
+                                &length);
     return true;
   }
 
@@ -405,5 +286,50 @@ namespace modeltest
     double sum_branches = recurse_euclidean_distance(tree1, tree2);
 
     return sqrt(sum_branches);
+  }
+
+  void TreePll::cleanup( void )
+  {
+    if (pll_tree)
+    {
+      for (mt_index_t i=0; i<number_of_threads; i++)
+      {
+        if (pll_tree[i])
+        {
+          pll_utree_destroy(pll_tree[i]);
+        }
+        if (pll_tip_nodes[i])
+          free(pll_tip_nodes[i]);
+        if (pll_inner_nodes[i])
+          free(pll_inner_nodes[i]);
+      }
+      if(pll_start_tree) free(pll_start_tree);
+      free(pll_tree);
+      free(pll_tip_nodes);
+      free(pll_inner_nodes);
+    }
+    pll_tree        = 0;
+    pll_start_tree  = 0;
+    pll_tip_nodes   = 0;
+    pll_inner_nodes = 0;
+  }
+
+  void TreePll::clone_tree( pll_utree_t * tree )
+  {
+    pllmod_utree_traverse_apply(tree,
+                                NULL,
+                                &cb_set_missing_branches,
+                                NULL);
+
+    for (mt_index_t i=0; i<number_of_threads; i++)
+    {
+      pll_tree[i] = pll_utree_clone (tree);
+      pll_start_tree[i] = pll_tree[i];
+
+      pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
+      pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
+      pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
+      pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
+    }
   }
 } /* namespace modeltest */

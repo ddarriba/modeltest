@@ -389,8 +389,9 @@ bool ModelTest::build_instance(mt_options_t & options)
     {
       try
       {
-        current_instance->tree = new TreePll (tree_user_fixed,
+        current_instance->tree = new TreePll (options.starting_tree,
                                               options.tree_filename,
+                                              *current_instance->msa,
                                               number_of_threads);
       }
       catch(int e)
