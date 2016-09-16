@@ -47,6 +47,9 @@ typedef struct
 
   mt_size_t n_tips;               //! number of tips
   mt_size_t n_catg;               //! number of Gamma rate categories
+
+  bool ckp_enabled;
+  std::string ckp_filename;
 } selection_instance;
 
 class ModelTest : public Observer
@@ -172,14 +175,14 @@ private:
     void free_stuff();
 
     int eval_and_print(const partition_id_t &part_id,
-                              mt_index_t cur_model,
-                              mt_index_t n_models,
-                              modeltest::Model *model,
-                              mt_index_t thread_id,
-                              double epsilon_param,
-                              double epsilon_opt,
-                              time_t global_ini_time = 0,
-                              std::ostream &out = std::cout);
+                       mt_index_t cur_model,
+                       mt_index_t n_models,
+                       modeltest::Model *model,
+                       mt_index_t thread_id,
+                       double epsilon_param,
+                       double epsilon_opt,
+                       time_t global_ini_time = 0,
+                       std::ostream &out = std::cout);
 };
 
 }

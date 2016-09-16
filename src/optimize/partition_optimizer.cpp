@@ -22,6 +22,8 @@
 #include "optimize/partition_optimizer.h"
 #include "optimize/model_optimizer_pll.h"
 
+#include <fstream>
+
 using namespace std;
 
 namespace modeltest

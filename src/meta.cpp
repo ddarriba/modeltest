@@ -607,6 +607,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
           partition.gap_aware = gap_aware;
           partition.asc_bias_corr = exec_opt.asc_bias_corr;
           partition.asc_weights = exec_opt.asc_weights;
+          partition.starting_tree = exec_opt.starting_tree;
         }
       }
     }
@@ -631,6 +632,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       partition.model_params = exec_opt.model_params;
       partition.asc_bias_corr = exec_opt.asc_bias_corr;
       partition.asc_weights = exec_opt.asc_weights;
+      partition.starting_tree = exec_opt.starting_tree;
       exec_opt.partitions_desc->push_back(partition);
     }
 
@@ -816,8 +818,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
           output_basename = exec_opt.msa_filename;
 
       exec_opt.output_log_file =
-              exec_opt.output_tree_file =
-              exec_opt.output_results_file =
+      exec_opt.output_tree_file =
+      exec_opt.output_results_file =
+      exec_opt.output_results_file =
               output_basename;
       exec_opt.output_log_file.append(OUTPUT_LOG_SUFFIX);
       exec_opt.output_tree_file.append(OUTPUT_TREE_SUFFIX);

@@ -837,34 +837,35 @@ void DnaModel::input_log(std::istream  &in)
     }
     param_freqs->set_frequencies(frequencies);
 
-    // for (mt_index_t i=0; i<n_subst_rates; i++)
-    // {
-    //     read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
-    // }
-    read_word(in, str, LOG_LEN); set_prop_inv(atof(str));
-    read_word(in, str, LOG_LEN); set_alpha(atof(str));
+    double subst_rates[n_subst_rates];
+    for (mt_index_t i=0; i<n_subst_rates; i++)
+    {
+       read_word(in, str, LOG_LEN); subst_rates[i] = atof(str);
+    }
+    param_substrates->set_subst_rates(subst_rates);
+
+    read_word(in, str, LOG_LEN);
+    if (optimize_pinv)
+    {
+      set_prop_inv(atof(str));
+    }
+    if (optimize_gamma)
+    {
+      read_word(in, str, LOG_LEN); set_alpha(atof(str));
+    }
     read_word(in, str, LOG_LEN); mt_size_t treelen = Utils::parse_size(str);
 
     treestr = (char *) Utils::allocate(treelen + 1, 1);
     read_word(in, treestr, treelen);
-    //TODO: TEMPORARY DUMP TO FILE
-    char fname[16] = "temptree.XXXXXX";
-    int f_desc = mkstemp(fname);
-    if (f_desc == -1)
-    {
-        cerr << "ERROR: mkstemp returned error " << errno << endl;
-        assert(0);
-        return;
-    }
-    ofstream f;
-    f.open(fname);
-    f << treestr << endl;
-    f.close();
-    mt_size_t n_tips;
-    tree = pll_utree_parse_newick(fname, &n_tips);
-    free(treestr);
 
-    //unlink(fname);
+    //TODO: USE BINARY MODULE
+    mt_size_t n_tips;
+    tree = pll_utree_parse_newick_string(treestr, &n_tips);
+    pll_utree_t **nodes = (pll_utree_t **) malloc(n_tips * sizeof(pll_utree_t *));
+    pll_utree_query_tipnodes(tree, nodes);
+    tree = nodes[0];
+
+    free(treestr);
 }
 
 #undef LOG_LEN

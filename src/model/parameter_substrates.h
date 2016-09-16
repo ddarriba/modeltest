@@ -36,6 +36,7 @@ public:
                           Partition const& partition);
 
   const double * get_subst_rates( void ) const;
+  void set_subst_rates(double * values);
 
 protected:
   double *subst_rates;

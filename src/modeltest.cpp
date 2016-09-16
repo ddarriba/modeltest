@@ -152,14 +152,6 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
     }
   }
 
-//    ostringstream out;
-//    model->output_log(out);
-
-//    istringstream sinstr;
-//    sinstr.str(out.str());
-//    out << out.str() << endl;
-//    model->input_log(sinstr);
-
   /* print progress */
   model->print_inline(cur_model+1, n_models, ini_t, global_ini_time, out);
 
@@ -342,6 +334,12 @@ bool ModelTest::build_instance(mt_options_t & options)
   free_stuff ();
   create_instance ();
 
+  current_instance->ckp_enabled = options.write_checkpoint;
+  if (current_instance->ckp_enabled)
+  {
+    current_instance->ckp_filename = options.checkpoint_file;
+  }
+
   if (options.msa_format == mf_fasta)
     current_instance->msa = new MsaPll (options.msa_filename, options.n_taxa);
   else if (options.msa_format == mf_phylip)
@@ -365,7 +363,6 @@ bool ModelTest::build_instance(mt_options_t & options)
   }
 
   verbosity = options.verbose;
-
 //    /* evaluate partitions */
 //    for (partition_descriptor_t & partition : *options.partitions_eff)
 //    {
@@ -628,6 +625,14 @@ void ModelTest::update(Observable * subject, void * data)
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
                                 opt_info->start_time, global_ini_time,
                                 MT_INFO);
+
+  if (current_instance->ckp_enabled)
+  {
+    std::ofstream* file = new std::ofstream();
+    file->open (current_instance->ckp_filename, std::ios::out | std::ios::app);
+    opt_info->model->output_log(*file);
+    file->close();
+  }
 }
 
 PartitioningScheme & ModelTest::get_partitioning_scheme( void ) const

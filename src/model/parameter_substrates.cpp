@@ -41,6 +41,11 @@ const double * ParameterSubstRates::get_subst_rates( void ) const
   return subst_rates;
 }
 
+void ParameterSubstRates::set_subst_rates(double * values)
+{
+  memcpy(subst_rates, values, n_subst_params * sizeof(double));
+}
+
 /******************************************************************************/
 /* OPTIMIZABLE RATES (defined symmetries) */
 /******************************************************************************/

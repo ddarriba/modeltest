@@ -108,12 +108,15 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
 {
   UNUSED(first_guess);
   double cur_loglh;
+  double branch_scaler;
 
   cur_loglh = pllmod_algo_opt_rates_weights(params->partition,
                                             params->tree,
                                             params->params_indices,
                                             0.01, 10,
-                                            tolerance);
+                                            tolerance,
+                                            &branch_scaler,
+                                            false);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
   extract_rates_and_weights(params);

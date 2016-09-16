@@ -510,6 +510,12 @@ void xmodeltest::run_modelselection()
         partition.regions.push_back(region);
         scheme->push_back(partition);
     }
+
+    for (partition_descriptor_t &partition : scheme)
+    {
+      partition.starting_tree = start_tree;
+    }
+
     opts.partitions_desc = scheme;
     //TODO: Create option for smoothing
     opts.smooth_freqs = false;
@@ -860,11 +866,6 @@ void xmodeltest::action_open_parts()
             parts_filename = "";
             ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
             ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
-            if (scheme)
-            {
-                delete scheme;
-                scheme = 0;
-            }
             status &= ~st_parts_loaded;
         }
         else

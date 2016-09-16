@@ -178,46 +178,48 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                      _optimize_topology, _thread_number),
       tree(_tree)
 {
-    thread_job = 0;
-    global_loglh = 0;
+  thread_job = 0;
+  global_loglh = 0;
 
-    mt_size_t n_tips = tree.get_n_tips ();
-    mt_size_t n_patterns = partition.get_n_patterns();
+  mt_size_t n_tips = tree.get_n_tips ();
+  mt_size_t n_patterns = partition.get_n_patterns();
 
-    pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
+  pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
 
-    if (!pll_partition)
-        LOG_ERR << "Error [PLL:" << pll_errno << "]: " << pll_errmsg << endl;
+  if (!pll_partition)
+  {
+    LOG_ERR << "Error [PLL:" << pll_errno << "]: " << pll_errmsg << endl;
     assert(pll_partition);
+  }
 
-    pll_tree = tree.get_pll_tree(_thread_number);
+  pll_tree = tree.get_pll_tree(_thread_number);
 
-    model.set_n_categories(pll_partition->rate_cats);
+  model.set_n_categories(pll_partition->rate_cats);
 
-    /* find sequences and link them with the corresponding taxa */
-    for (mt_index_t i = 0; i < n_tips; ++i)
-    {
-        const char *c_seq = partition.get_sequence(i);
-        const unsigned int *states_map =
-          (model.get_datatype() == dt_dna)?
-            (model.is_gap_aware()?extended_dna_map:pll_map_nt)
-              :pll_map_aa;
+  /* find sequences and link them with the corresponding taxa */
+  for (mt_index_t i = 0; i < n_tips; ++i)
+  {
+      const char *c_seq = partition.get_sequence(i);
+      const unsigned int *states_map =
+        (model.get_datatype() == dt_dna)?
+          (model.is_gap_aware()?extended_dna_map:pll_map_nt)
+            :pll_map_aa;
 
-        if (!pll_set_tip_states (pll_partition,
-                                 i,
-                                 states_map,
-                                 c_seq))
-        {
-            /* data type and tip states should be validated beforehand */
-            LOG_ERR << "Error: Sequence does not match the datatype" << endl;
-            assert(0);
-        }
-    }
+      if (!pll_set_tip_states (pll_partition,
+                               i,
+                               states_map,
+                               c_seq))
+      {
+          /* data type and tip states should be validated beforehand */
+          LOG_ERR << "Error: Sequence does not match the datatype" << endl;
+          assert(0);
+      }
+  }
 
-    /* set weights */
-    const mt_size_t * weights = partition.get_weights();
-    pll_set_pattern_weights(pll_partition, weights);
-    delete[] weights;
+  /* set weights */
+  const mt_size_t * weights = partition.get_weights();
+  pll_set_pattern_weights(pll_partition, weights);
+  delete[] weights;
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
