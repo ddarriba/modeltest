@@ -192,6 +192,7 @@ namespace modeltest
     assert(length > 0);
     pllmod_utree_traverse_apply(pll_tree[thread_number],
                                 NULL,
+                                NULL,
                                 &cb_set_all_branches,
                                 &length);
     return true;
@@ -317,6 +318,7 @@ namespace modeltest
   void TreePll::clone_tree( pll_utree_t * tree )
   {
     pllmod_utree_traverse_apply(tree,
+                                NULL,
                                 NULL,
                                 &cb_set_missing_branches,
                                 NULL);

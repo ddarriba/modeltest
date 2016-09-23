@@ -27,6 +27,7 @@
 
 #define MIN_FREQ_RATE 0.01
 #define MAX_FREQ_RATE 100
+#define LBFGSB_FACTOR 1e9
 
 using namespace std;
 
@@ -114,6 +115,7 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
                                          params->tree,
                                          0,
                                          params->params_indices,
+                                         LBFGSB_FACTOR,
                                          tolerance);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
@@ -170,9 +172,9 @@ bool ParameterFrequenciesFixed::initialize(mt_opt_params_t * params,
 }
 
 double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
-                                double loglh,
-                                double tolerance,
-                                bool first_guess)
+                                           double loglh,
+                                           double tolerance,
+                                           bool first_guess)
 {
   /* do not optimize */
   return loglh;

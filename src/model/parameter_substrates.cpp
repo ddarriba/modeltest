@@ -24,6 +24,7 @@
 
 #define MIN_RATE 0.02
 #define MAX_RATE 100
+#define LBFGSB_FACTOR 1e9
 
 using namespace std;
 
@@ -144,6 +145,7 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
                                           (int *)&symmetries[0],
                                           MIN_RATE,
                                           MAX_RATE,
+                                          LBFGSB_FACTOR,
                                           tolerance);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

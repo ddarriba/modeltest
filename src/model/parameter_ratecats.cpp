@@ -23,6 +23,7 @@
 
 #define MIN_RATE 0.02
 #define MAX_RATE 2
+#define LBFGSB_FACTOR 1e9
 
 /* epsilon for Weights/Rates optimization */
 #define WR_EPSILON 0.9
@@ -114,6 +115,7 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
                                             params->tree,
                                             params->params_indices,
                                             0.01, 10,
+                                            LBFGSB_FACTOR,
                                             tolerance,
                                             &branch_scaler,
                                             false);
