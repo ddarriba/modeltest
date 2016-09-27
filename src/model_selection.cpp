@@ -195,7 +195,7 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
   for (mt_index_t j=0; j<n_states; ++j)
     avg_frequencies[j] /= importance_freqs;
 
-  mt_size_t n_subst_rates = models[0].model->get_n_subst_rates();
+  //mt_size_t n_subst_rates = models[0].model->get_n_subst_rates();
 }
 
 size_t ModelSelection::size() const
@@ -236,12 +236,12 @@ void ModelSelection::print(ostream &out, mt_size_t limit) const
         n_models = (mt_size_t) models.size();
     for (size_t i=0; i<n_models; i++)
     {
-        out << setprecision(4)
+        out << fixed << setprecision(MT_PRECISION_DIGITS)
             << setw(8)  << right << i+1 << "  "
             << setw(15) << left << models[i].model->get_name()
             << setw(5)  << right << models[i].model->get_n_free_variables()
             << setw(15) << right << models[i].model->get_loglh()
-            << setw(15) << models[i].score
+            << setw(15) <<  models[i].score
             << setw(15) << models[i].delta
             << setw(10) << models[i].weight
             << endl;
@@ -258,13 +258,14 @@ void ModelSelection::print_xml(std::ostream  &out, mt_size_t limit) const
     out << "<selection type=\""<<ic_name<<"\">" << endl;
     for (size_t i=0; i<n_models; i++)
     {
-        out << "  <model rank=\"" << i+1
-            << "\" name=\"" << models[i].model->get_name()
-            << "\" lnL=\"" << setprecision(4) << models[i].model->get_loglh()
-            << "\" score=\"" << setprecision(4) << models[i].score
-            << "\" delta=\"" << setprecision(4) << models[i].delta
-            << "\" weight=\"" << setprecision(4) << models[i].weight
-            << "\" />" << endl;
+      out << fixed << setprecision(MT_PRECISION_DIGITS)
+          << "  <model rank=\"" << i+1
+          << "\" name=\"" << models[i].model->get_name()
+          << "\" lnL=\"" << models[i].model->get_loglh()
+          << "\" score=\"" << models[i].score
+          << "\" delta=\"" << models[i].delta
+          << "\" weight=\"" << models[i].weight
+          << "\" />" << endl;
     }
     out << "</selection>" << endl;
 }
@@ -274,7 +275,8 @@ void ModelSelection::print_best_model(std::ostream  &out) const
     const selection_model &best_sel_model = models[0];
     Model * best_model = best_sel_model.model;
     best_model->print(out);
-    out << setw(PRINTMODEL_TABSIZE) << left << "Score:" << best_sel_model.score << endl
+    out << fixed << setprecision(MT_PRECISION_DIGITS)
+        << setw(PRINTMODEL_TABSIZE) << left << "Score:" << best_sel_model.score << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Weight:" << best_sel_model.weight << endl;
 }
 
@@ -310,28 +312,31 @@ void ModelSelection::print_inline_best_model(ic_type type, selection_model &mode
     }
 
     out << setw(20) << model.model->get_name();
-    out << setw(14) << setprecision(4) << model.score;
-    out << setw(14) << setprecision(4) << model.weight;
+    out << fixed << setprecision(MT_PRECISION_DIGITS);
+    out << setw(14) << model.score;
+    out << setw(14) << model.weight;
     out << endl;
 }
 
 void ModelSelection::print_importances(std::ostream  &out) const
 {
-    out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Gamma:" << importance_gamma << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:" << importance_gamma_inv << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:" << importance_freqs << endl;
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
+  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Gamma:" << importance_gamma << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:" << importance_gamma_inv << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:" << importance_freqs << endl;
 }
 
 void ModelSelection::print_averages(std::ostream  &out) const
 {
-    out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << avg_pinv << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Alpha:" << avg_gamma << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Alpha-P.Inv:" << avg_gamma_pinv << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "P.Inv-Alpha:" << avg_pinv_gamma << endl
-        << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-    for (mt_index_t j=0; j<avg_frequencies.size(); ++j)
-      out << avg_frequencies[j] << " ";
-    out << endl;
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
+  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << avg_pinv << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Alpha:" << avg_gamma << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Alpha-P.Inv:" << avg_gamma_pinv << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "P.Inv-Alpha:" << avg_pinv_gamma << endl
+      << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+  for (mt_index_t j=0; j<avg_frequencies.size(); ++j)
+    out  << avg_frequencies[j] << " ";
+  out << endl;
 }
 }

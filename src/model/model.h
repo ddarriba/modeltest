@@ -38,6 +38,27 @@ namespace modeltest {
 
 class Partition;
 
+typedef struct
+{
+  mt_index_t matrix_index;
+  int optimize_freqs;
+  int optimize_pinv;
+  int optimize_gamma;
+  unsigned int n_tips;
+  double loglh;
+  double bic;
+  double aic;
+  double aicc;
+  double dt;
+
+  double frequencies[N_DNA_STATES];
+  double rates[N_DNA_SUBST_RATES];
+  double prop_invar;
+  double alpha;
+
+  time_t exec_time;
+} dna_ckpdata_t;
+
 class Model : public Loggable
 {
 public:
@@ -158,6 +179,7 @@ public:
      * @return the substitution rates
      */
     virtual const double * get_subst_rates( void ) const;
+    void set_subst_rates(const double value[]);
 
     /**
      * @brief Gets the substitution rates for mixture model
@@ -227,13 +249,27 @@ public:
      * @brief Prints out the model for logging
      * @param[in] out the output stream to print log to
      */
-    virtual void output_log(std::ostream  &out) = 0;
+    virtual void output_log(std::ostream  &out) const = 0;
 
     /**
      * @brief Load the model from a logging stream
      * @param[in] in the input stream for reading the log
      */
     virtual void input_log(std::istream  &in) = 0;
+
+    /**
+     * @brief Export object in binary format
+     * @param  bin_filename binary file
+     * @return true, if success
+     */
+    virtual int output_bin(std::string const& bin_filename) const = 0;
+
+    /**
+     * @brief Import object in binary format
+     * @param  bin_filename binary file
+     * @return true, if success
+     */
+    virtual int input_bin(std::string const& bin_filename) = 0;
 
     bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
@@ -256,13 +292,14 @@ public:
 
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
                                                mt_size_t n_sites,
-                                               mt_size_t n_cat_g ) const = 0;
+                                               mt_size_t n_cat_g ) = 0;
     pll_utree_t * get_tree( void ) const;
     void set_tree( pll_utree_t * tree );
 
 protected:
     mt_index_t matrix_index;
     mt_index_t current_opt_parameter;
+    mt_index_t unique_id;
     std::string name;
 
     /* model parameters */
@@ -294,6 +331,7 @@ protected:
     mt_size_t n_subst_rates;
 
     pll_utree_t *tree;
+    mt_size_t n_tips;
 
     std::vector<AbstractParameter *> parameters;
     ParameterRateCats * param_gamma;
@@ -342,11 +380,14 @@ public:
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
                                                mt_size_t n_sites,
-                                               mt_size_t n_cat_g ) const;
+                                               mt_size_t n_cat_g );
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);
-    virtual void output_log(std::ostream  &out);
+    virtual void output_log(std::ostream  &out) const;
     virtual void input_log(std::istream  &in);
+    virtual int output_bin(std::string const& bin_filename) const;
+    virtual int input_bin(std::string const& bin_filename);
+
 private:
   int *matrix_symmetries; //! The DNA matrix symmetries
 };
@@ -374,15 +415,17 @@ public:
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
                                                mt_size_t n_sites,
-                                               mt_size_t n_cat_g ) const;
+                                               mt_size_t n_cat_g );
     virtual mt_size_t get_n_subst_params( void ) const;
     virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
     virtual const double * get_subst_rates( void ) const;
     virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);
-    virtual void output_log(std::ostream  &out);
+    virtual void output_log(std::ostream  &out) const;
     virtual void input_log(std::istream  &in);
+    virtual int output_bin(std::string const& bin_filename) const;
+    virtual int input_bin(std::string const& bin_filename);
 
 private:
     const double *fixed_subst_rates;

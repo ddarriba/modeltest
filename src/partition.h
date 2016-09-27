@@ -43,7 +43,8 @@ public:
               Tree &_tree,
               partition_descriptor_t _descriptor,
               std::vector<mt_index_t> candidate_models,
-              mt_mask_t model_params);
+              mt_mask_t model_params,
+              std::string const& ckp_filename = "");
     virtual ~Partition();
 
     const partition_descriptor_t get_descriptor( void ) const;
@@ -75,8 +76,11 @@ public:
     std::vector<Model *> update_model_set(DnaModel & model);
 
     /* Logging functions */
-    virtual void output_log(std::ostream  &out);
+    virtual void output_log(std::ostream  &out) const;
     virtual void input_log(std::istream  &in);
+    virtual int output_bin(std::string const& bin_filename) const;
+    virtual int input_bin(std::string const& bin_filename);
+
 private:
     partition_id_t id;                   //! id of the partition
     Msa & msa;                           //! input MSA
@@ -88,6 +92,7 @@ private:
     std::vector<double> emp_subst_rates; //! empirical substitution rates
     double emp_pinv;                     //! empirical prop. invar.
     mt_mask_t model_params;              //! model parameters
+    std::string const& ckp_filename;
 
     std::vector<Model *> c_models;       //! candidate models
 

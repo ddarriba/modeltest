@@ -23,6 +23,7 @@
 #include "optimize/model_optimizer_pll.h"
 
 #include <fstream>
+#include "genesis/logging.h"
 
 using namespace std;
 
@@ -79,13 +80,13 @@ namespace modeltest
 
     vector<Model *> candidate_models = partition.get_models();
 
-    cout << "Step 1/6" << endl;
+    MT_INFO << "Step 1/6" << endl;
     /* 1. optimize starting models */
     evaluate_all_models( candidate_models, n_procs );
 
     for (int k=N_DNA_SUBST_RATES-1; k>0; --k)
     {
-      cout << "Step " << N_DNA_SUBST_RATES - k + 1 << "/6" << endl;
+      MT_INFO << "Step " << N_DNA_SUBST_RATES - k + 1 << "/6" << endl;
       /* 2. select best-fit model */
       //TODO: So far, choose first
       Model * best_model = candidate_models[0];
@@ -185,15 +186,22 @@ namespace modeltest
   {
     bool result;
 
-    ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
-                                                  partition,
-                                                  optimize_topology,
-                                                  n_categories,
-                                                  thread_number);
-    assert(mopt);
-    result = mopt->run(epsilon_param, epsilon_opt);
+    if (model.is_optimized())
+    {
+      result = true;
+    }
+    else
+    {
+      ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
+                                                    partition,
+                                                    optimize_topology,
+                                                    n_categories,
+                                                    thread_number);
+      assert(mopt);
+      result = mopt->run(epsilon_param, epsilon_opt);
 
-    delete mopt;
+      delete mopt;
+    }
 
     return result;
   }

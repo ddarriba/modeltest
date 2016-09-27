@@ -26,6 +26,7 @@ extern "C" {
 #include <pll_tree.h>
 #include <pllmod_util.h>
 #include <pll_optimize.h>
+#include <pll_binary.h>
 #include <pllmod_algorithm.h>
 
 typedef unsigned int pll_index_t;

@@ -26,17 +26,18 @@
 #include <iostream>
 #include <algorithm>
 
+#include "genesis/logging.h"
+
 using namespace std;
 
 namespace modeltest
 {
 
-
-
 static bool build_models(const partition_descriptor_t &descriptor,
                          std::vector<mt_index_t> candidate_models,
                          mt_mask_t model_params,
-                         vector<Model *> &c_models)
+                         vector<Model *> &c_models,
+                         string const& ckp_filename)
 {
   data_type_t datatype = descriptor.datatype;
   asc_bias_t asc_bias_corr = descriptor.asc_bias_corr;
@@ -135,6 +136,19 @@ static bool build_models(const partition_descriptor_t &descriptor,
       }
   }
   assert(datatype == dt_protein || (c_models.size() == n_models));
+
+  if (ckp_filename.compare(""))
+  {
+    LOG_DBG << "[DBG] Attempting to load partition from checkpoint " << ckp_filename << endl;
+    for (Model * model : c_models)
+    {
+      if (model->input_bin(ckp_filename))
+      {
+        LOG_DBG << "[DBG] Loaded model from checkpoint: " << model->get_name() << endl;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -143,9 +157,14 @@ Partition::Partition(partition_id_t _id,
                      Tree & _tree,
                      partition_descriptor_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
-                     mt_mask_t model_params) :
-    id(_id), msa(_msa), tree(_tree),
-    descriptor(_descriptor), model_params(model_params)
+                     mt_mask_t model_params,
+                     string const& ckp_filename) :
+    id(_id),
+    msa(_msa),
+    tree(_tree),
+    descriptor(_descriptor),
+    model_params(model_params),
+    ckp_filename(ckp_filename)
 {
     switch(descriptor.datatype)
     {
@@ -186,7 +205,11 @@ Partition::Partition(partition_id_t _id,
         if (!compute_empirical_pinv())
             throw EXCEPTION_PARTITION_EMP_PINV;
 
-    build_models(descriptor, candidate_models, model_params, c_models);
+    build_models(descriptor,
+                 candidate_models,
+                 model_params,
+                 c_models,
+                 ckp_filename);
 }
 
 Partition::~Partition()
@@ -464,7 +487,8 @@ vector<Model *> Partition::update_model_set(DnaModel & model)
   build_models(descriptor,
                new_matrices,
                model_params,
-               new_models);
+               new_models,
+               ckp_filename);
 
   c_models.reserve(c_models.size() + new_models.size());
   c_models.insert(c_models.end(), new_models.begin(), new_models.end());
@@ -472,16 +496,30 @@ vector<Model *> Partition::update_model_set(DnaModel & model)
   return new_models;
 }
 
-void Partition::output_log(std::ostream  &out)
+void Partition::output_log(std::ostream  &out) const
 {
-    UNUSED(out);
-    assert(0);
+  UNUSED(out);
+  assert(0);
 }
 
 void Partition::input_log(std::istream  &in)
 {
-    UNUSED(in);
-    assert(0);
+  UNUSED(in);
+  assert(0);
+}
+
+int Partition::output_bin(string const& bin_filename) const
+{
+  //TODO
+  UNUSED(bin_filename);
+  return false;
+}
+
+int Partition::input_bin(string const& bin_filename)
+{
+  //TODO
+  UNUSED(bin_filename);
+  return false;
 }
 
 /* private methods */
@@ -552,7 +590,7 @@ bool Partition::compute_empirical_frequencies(bool smooth)
     {
         if (smooth)
         {
-            std::cerr << "WARNING: Forced freq. smoothing" << std::endl;
+            LOG_WARN << "WARNING: Forced freq. smoothing" << endl;
             for (mt_index_t i=0; i<states; i++)
                 emp_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
         }

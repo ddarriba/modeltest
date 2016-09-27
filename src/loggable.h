@@ -40,13 +40,27 @@ public:
      * @brief Prints out the log
      * @param[in] out the output stream to print log to
      */
-    virtual void output_log(std::ostream  &out) = 0;
+    virtual void output_log(std::ostream  &out) const = 0;
 
     /**
      * @brief Loads a logfile from an input stream
      * @param[in] in the input stream to read log from
      */
     virtual void input_log(std::istream  &in) = 0;
+
+    /**
+     * @brief Export object in binary format
+     * @param  bin_filename binary file
+     * @return true, if success
+     */
+    virtual int output_bin(std::string const& bin_filename) const = 0;
+
+    /**
+     * @brief Import object in binary format
+     * @param  bin_filename binary file
+     * @return true, if success
+     */
+    virtual int input_bin(std::string const& bin_filename) = 0;
 };
 
 #endif // LOGGABLE_H

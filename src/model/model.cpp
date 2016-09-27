@@ -100,6 +100,7 @@ Model::Model(mt_mask_t model_params,
 {
     matrix_index = 0;
     current_opt_parameter = 0;
+    unique_id = 0;
 
     loglh  = 0.0;
     bic  = 0.0;
@@ -111,6 +112,7 @@ Model::Model(mt_mask_t model_params,
     params_indices = 0;
 
     tree = 0;
+    n_tips = 0;
 
     asc_weights = 0;
 
@@ -346,6 +348,11 @@ const double * Model::get_subst_rates( void ) const
   return param_substrates->get_subst_rates();
 }
 
+void Model::set_subst_rates(const double value[])
+{
+  param_substrates->set_subst_rates(value);
+}
+
 const double * Model::get_mixture_subst_rates( mt_index_t matrix_idx ) const
 {
   UNUSED(matrix_idx);
@@ -499,13 +506,14 @@ void Model::print_inline(int index,
                          time_t global_ini_time,
                          ostream &out)
 {
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
   out << setw(5) << right << index << "/"
       << setw(5) << left << n_models
       << setw(15) << left << get_name()
       << setw(11) << Utils::format_time(time(NULL) - ini_time);
   if (global_ini_time)
       out << setw(11) << Utils::format_time(time(NULL) - global_ini_time);
-  out << setw(18) << right << setprecision(MT_PRECISION_DIGITS) << fixed
+  out << setw(18) << right << fixed
       << get_loglh();
   if (is_G())
     out << setw(8) << get_alpha();
@@ -528,6 +536,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     stringstream ss_name;
 
     matrix_index = _matrix_index;
+
     assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
 
     n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
@@ -580,6 +589,8 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
       asc_weights = new mt_size_t[N_DNA_STATES];
       memcpy(asc_weights, asc_w, N_DNA_STATES * sizeof(mt_size_t));
     }
+
+    unique_id = matrix_index * 8 + optimize_freqs + 2 * optimize_pinv + 4 * optimize_gamma;
 }
 
 DnaModel::DnaModel(const Model & other)
@@ -693,12 +704,15 @@ static mt_mask_t asc_bias_attribute(asc_bias_t v)
   return attr;
 }
 
-pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
+pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites,
-                                            mt_size_t n_cat_g) const
+                                            mt_size_t n_cat_g)
 {
     mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
     mt_size_t states = n_frequencies;
+
+    assert(!n_tips && _n_tips);
+    n_tips = _n_tips;
 
 #ifdef HAVE_AVX
     attributes |= PLL_ATTRIB_ARCH_AVX;
@@ -732,6 +746,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t n_tips,
 void DnaModel::print(std::ostream  &out)
 {
     const double * subst_rates = get_subst_rates();
+    out << fixed << setprecision(MT_PRECISION_DIGITS);
     out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
         << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << loglh << endl
         << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
@@ -739,7 +754,7 @@ void DnaModel::print(std::ostream  &out)
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Subst. Rates:";
     for (mt_index_t i=0; i<n_subst_rates; i++)
-        out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
+        out << subst_rates[i] << " ";
     out << endl;
     out << setw(PRINTMODEL_TABSIZE) << left << "Inv. sites prop:";
     if (is_I())
@@ -756,8 +771,9 @@ void DnaModel::print(std::ostream  &out)
 void DnaModel::print_xml(std::ostream  &out)
 {
     const double * subst_rates = get_subst_rates();
+    out << fixed << setprecision(MT_PRECISION_DIGITS);
     out << "<model datatype=\"dna\" name=\"" << name
-        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << loglh
+        << "\" lnl=\"" << loglh
         << "\">" << endl;
     out << "  <frequencies type=\"";
     if (is_F())
@@ -769,16 +785,17 @@ void DnaModel::print_xml(std::ostream  &out)
     out << endl << "  </frequencies>" << endl;
     out << "  <subst_rates>" << endl << "  ";
     for (mt_index_t i=0; i<n_subst_rates; i++)
-        out << "  " << setprecision(MT_PRECISION_DIGITS) << subst_rates[i];
+        out << "  " << subst_rates[i];
     out << endl << "  </subst_rates>" << endl;
-    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() <<
+    out << "  <rate_params pinv=\"" << get_prop_inv() <<
            "\" alpha=\"" << get_alpha() << "\"/>" << endl;
     out << "</model>" << endl;
 }
 
-void DnaModel::output_log(std::ostream  &out)
+void DnaModel::output_log(std::ostream  &out) const
 {
     const double * subst_rates = get_subst_rates();
+    out << fixed << setprecision(MT_PRECISION_DIGITS);
     out << name << " ";
     out << matrix_index << " ";
     for (mt_index_t i=0; i<n_subst_rates; i++)
@@ -788,9 +805,9 @@ void DnaModel::output_log(std::ostream  &out)
     out << loglh << " ";
     param_freqs->print(out);
     for (mt_index_t i=0; i<n_subst_rates; i++)
-        out << setprecision(MT_PRECISION_DIGITS) << subst_rates[i] << " ";
-    out << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() << " ";
-    out << setprecision(MT_PRECISION_DIGITS) << get_alpha() << " ";
+        out << subst_rates[i] << " ";
+    out << get_prop_inv() << " ";
+    out << get_alpha() << " ";
     char *newick = pll_utree_export_newick(tree);
     out << strlen(newick) << " ";
     out << newick << " ";
@@ -869,6 +886,134 @@ void DnaModel::input_log(std::istream  &in)
 }
 
 #undef LOG_LEN
+
+int DnaModel::output_bin(std::string const& bin_filename) const
+{
+  dna_ckpdata_t ckp_data;
+  pll_binary_header_t input_header;
+  const double * subst_rates = get_subst_rates();
+  const double * frequencies = get_frequencies();
+  int write_ok;
+  FILE * bin_file;
+
+  bin_file = pllmod_binary_append_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+    return false;
+
+  ckp_data.matrix_index = matrix_index;
+  ckp_data.optimize_freqs = optimize_freqs;
+  ckp_data.optimize_pinv = optimize_pinv;
+  ckp_data.optimize_gamma = optimize_gamma;
+  ckp_data.loglh = loglh;
+  ckp_data.bic = bic;
+  ckp_data.aic = aic;
+  ckp_data.aicc = aicc;
+  ckp_data.dt = dt;
+  ckp_data.n_tips = n_tips;
+
+  memcpy(ckp_data.frequencies, frequencies, N_DNA_STATES * sizeof(double));
+  memcpy(ckp_data.rates, subst_rates, N_DNA_SUBST_RATES * sizeof(double));
+  ckp_data.prop_invar = get_prop_inv();
+  ckp_data.alpha = get_alpha();
+
+  ckp_data.exec_time = exec_time;
+
+  assert(bin_file);
+  write_ok = pllmod_binary_custom_dump(bin_file,
+                            unique_id,
+                            &ckp_data,
+                            sizeof(dna_ckpdata_t),
+                            PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  assert(n_tips > 0);
+  write_ok &= pllmod_binary_utree_dump(bin_file, 2000+unique_id, tree->back, n_tips,
+                                       PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  pllmod_binary_close(bin_file);
+
+  if(!write_ok)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error dumping checkpoint");
+  }
+
+  return write_ok;
+}
+
+int DnaModel::input_bin(std::string const& bin_filename)
+{
+  dna_ckpdata_t * ckp_data;
+  pll_binary_header_t input_header;
+  size_t size = 0;
+  unsigned int type, attributes;
+  int read_ok;
+  FILE * bin_file;
+
+  bin_file = pllmod_binary_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
+             pll_errno, pll_errmsg);
+    return false;
+  }
+
+  ckp_data = (dna_ckpdata_t *) pllmod_binary_custom_load(bin_file,
+                                             unique_id,
+                                             &size,
+                                             &type,
+                                             &attributes,
+                                             PLLMOD_BIN_ACCESS_SEEK);
+  read_ok = (ckp_data != NULL);
+
+  if (read_ok)
+  {
+    assert(ckp_data->matrix_index == matrix_index);
+    assert(ckp_data->optimize_freqs == optimize_freqs);
+    assert(ckp_data->optimize_pinv == optimize_pinv);
+    assert(ckp_data->optimize_gamma == optimize_gamma);
+    set_loglh(ckp_data->loglh);
+    bic  = ckp_data->bic;
+    aic  = ckp_data->aic;
+    aicc = ckp_data->aicc;
+    dt   = ckp_data->dt;
+    exec_time = ckp_data->exec_time;
+
+    set_frequencies(ckp_data->frequencies);
+    set_subst_rates(ckp_data->rates);
+    if (optimize_pinv)
+      set_prop_inv(ckp_data->prop_invar);
+    if (optimize_gamma)
+      set_alpha(ckp_data->alpha);
+    n_tips = ckp_data->n_tips;
+
+    free(ckp_data);
+
+    pll_errno = 0;
+    tree = pllmod_binary_utree_load(bin_file,
+                                 2000+unique_id,
+                                 &attributes,
+                                 PLLMOD_BIN_ACCESS_SEEK);
+
+    if(!tree)
+    {
+      mt_errno = pll_errno;
+      snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
+      read_ok = false;
+    }
+    else
+      tree = tree->back;
+  }
+  else
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "%s", pll_errmsg);
+  }
+
+  pllmod_binary_close(bin_file);
+
+  return read_ok;
+}
 
 /* PROTEIN MODELS */
 
@@ -1028,11 +1173,15 @@ const double * ProtModel::get_mixture_rates( void ) const
     return param_gamma->get_rates();
 }
 
-pll_partition_t * ProtModel::build_partition(mt_size_t n_tips,
+pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites,
-                                            mt_size_t n_cat_g) const
+                                            mt_size_t n_cat_g)
 {
     mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+
+    assert(!n_tips && _n_tips);
+    n_tips = _n_tips;
+
 #ifdef HAVE_AVX
     attributes |= PLL_ATTRIB_ARCH_AVX;
 #else
@@ -1070,6 +1219,7 @@ void ProtModel::print(std::ostream  &out)
 {
   double const *rates = param_gamma->get_rates();
   double const *rate_weights = param_gamma->get_weights();
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
   out << setw(PRINTMODEL_TABSIZE) << left << "Model:" << name << endl
       << setw(PRINTMODEL_TABSIZE) << left << "lnL:" << loglh << endl;
   if (mixture)
@@ -1078,7 +1228,7 @@ void ProtModel::print(std::ostream  &out)
       {
           for (mt_index_t i=0; i<N_PROT_STATES; i++)
           {
-              out << setprecision(MT_PRECISION_DIGITS) << mixture_frequencies[j][i] << " ";
+              out <<mixture_frequencies[j][i] << " ";
               if ((i+1)<N_PROT_STATES && !((i+1)%5))
               {
                   out << endl << setw(PRINTMODEL_TABSIZE) << " ";
@@ -1092,13 +1242,13 @@ void ProtModel::print(std::ostream  &out)
         out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
         for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
         {
-           out << setprecision(MT_PRECISION_DIGITS) << rate_weights[j] << " ";
+           out << rate_weights[j] << " ";
         }
         out << endl;
         out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
         for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
         {
-           out << setprecision(MT_PRECISION_DIGITS) << rates[j] << " ";
+           out << rates[j] << " ";
         }
         out << endl;
       }
@@ -1123,53 +1273,67 @@ void ProtModel::print(std::ostream  &out)
 
 void ProtModel::print_xml(std::ostream  &out)
 {
-    out << "<model type=\"aa\" name=\"" << name
-        << "\" lnl=\"" << setprecision(MT_PRECISION_DIGITS) << loglh
-        << "\">" << endl;
-    out << "  <frequencies type=\"";
-    if (is_F())
-        out << "empirical";
-    else
-        out << "model";
-    out << "\">" << endl << "  ";
-    param_freqs->print(out);
-    // for (mt_index_t i=0; i<N_PROT_STATES; i++)
-    // {
-    //     out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
-    //     if ((i%5)==4) out << endl << "  ";
-    // }
-    out << "</frequencies>" << endl;
-    out << "  <rate_params pinv=\"" << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() <<
-           "\" alpha=\"" << get_alpha() << "\"/>" << endl;
-    out << "</model>" << endl;
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
+  out << "<model type=\"aa\" name=\"" << name
+      << "\" lnl=\"" << loglh
+      << "\">" << endl;
+  out << "  <frequencies type=\"";
+  if (is_F())
+      out << "empirical";
+  else
+      out << "model";
+  out << "\">" << endl << "  ";
+  param_freqs->print(out);
+  // for (mt_index_t i=0; i<N_PROT_STATES; i++)
+  // {
+  //     out << "  " << setprecision(MT_PRECISION_DIGITS) << frequencies[i];
+  //     if ((i%5)==4) out << endl << "  ";
+  // }
+  out << "</frequencies>" << endl;
+  out << "  <rate_params pinv=\"" << get_prop_inv() <<
+         "\" alpha=\"" << get_alpha() << "\"/>" << endl;
+  out << "</model>" << endl;
 }
 
-void ProtModel::output_log(std::ostream  &out)
+void ProtModel::output_log(std::ostream  &out) const
 {
-    out << get_name() << " ";
-    out << get_matrix_index() << " ";
-    out << is_F() << " " << is_I() << " " << is_G() << " ";
-    out << get_loglh() << " ";
-    param_freqs->print(out);
-    // for (mt_index_t i=0; i<N_PROT_STATES; i++)
-    //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
-    if (is_I())
-        out << setprecision(MT_PRECISION_DIGITS) << get_prop_inv() << " ";
-    else
-        out << "- ";
-    if (is_G())
-        out << setprecision(MT_PRECISION_DIGITS) << get_alpha() << " ";
-    else
-        out << "- ";
-    char *newick = pll_utree_export_newick(tree);
-    out << newick << " ";
-    free(newick);
-    out << endl;
+  out << fixed << setprecision(MT_PRECISION_DIGITS);
+  out << get_name() << " ";
+  out << get_matrix_index() << " ";
+  out << is_F() << " " << is_I() << " " << is_G() << " ";
+  out << get_loglh() << " ";
+  param_freqs->print(out);
+  // for (mt_index_t i=0; i<N_PROT_STATES; i++)
+  //     out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+  if (is_I())
+      out << get_prop_inv() << " ";
+  else
+      out << "- ";
+  if (is_G())
+      out << get_alpha() << " ";
+  else
+      out << "- ";
+  char *newick = pll_utree_export_newick(tree);
+  out << newick << " ";
+  free(newick);
+  out << endl;
 }
 
 void ProtModel::input_log(std::istream  &in)
 {
-    //TODO:
+  //TODO:
 }
 
+int ProtModel::output_bin(std::string const& bin_filename) const
+{
+  //TODO
+  return false;
 }
+
+int ProtModel::input_bin(std::string const& bin_filename)
+{
+  //TODO
+  return false;
+}
+
+} /* namespace */

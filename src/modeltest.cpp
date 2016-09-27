@@ -338,6 +338,22 @@ bool ModelTest::build_instance(mt_options_t & options)
   if (current_instance->ckp_enabled)
   {
     current_instance->ckp_filename = options.checkpoint_file;
+
+    if (!Utils::file_exists(current_instance->ckp_filename))
+    {
+      cout << "Creating checkpoint file: " << current_instance->ckp_filename << endl;
+      pll_binary_header_t bin_header;
+      FILE * bin_file = pllmod_binary_create(current_instance->ckp_filename.c_str(),
+                           &bin_header,
+                           PLLMOD_BIN_ACCESS_RANDOM,
+                           2048);
+      if (!bin_file)
+      {
+        printf("Cannot create binary file: %s\n", current_instance->ckp_filename.c_str());
+        return false;
+      }
+      pllmod_binary_close(bin_file);
+    }
   }
 
   if (options.msa_format == mf_fasta)
@@ -520,14 +536,16 @@ bool ModelTest::build_instance(mt_options_t & options)
                                  *current_instance->tree,
                                  partition,
                                  options.nt_candidate_models,
-                                 options.model_params);
+                                 options.model_params,
+                                 options.checkpoint_file);
         else if (partition.datatype == dt_protein)
             new_part = new Partition(part_id,
                                  *current_instance->msa,
                                  *current_instance->tree,
                                  partition,
                                  options.aa_candidate_models,
-                                 options.model_params);
+                                 options.model_params,
+                                 options.checkpoint_file);
         else
             assert(0);
     }
@@ -628,10 +646,7 @@ void ModelTest::update(Observable * subject, void * data)
 
   if (current_instance->ckp_enabled)
   {
-    std::ofstream* file = new std::ofstream();
-    file->open (current_instance->ckp_filename, std::ios::out | std::ios::app);
-    opt_info->model->output_log(*file);
-    file->close();
+    opt_info->model->output_bin(current_instance->ckp_filename);
   }
 }
 
