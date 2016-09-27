@@ -627,6 +627,8 @@ void DnaModel::clone(const Model * other_model)
   optimize_freqs  = other->optimize_freqs;
   empirical_freqs = other->empirical_freqs;
 
+  unique_id = other->unique_id;
+
   set_n_categories(other->n_categories);
   n_free_variables = other->n_free_variables;
 
@@ -889,7 +891,7 @@ void DnaModel::input_log(std::istream  &in)
 
 int DnaModel::output_bin(std::string const& bin_filename) const
 {
-  dna_ckpdata_t ckp_data;
+  ckpdata_t ckp_data;
   pll_binary_header_t input_header;
   const double * subst_rates = get_subst_rates();
   const double * frequencies = get_frequencies();
@@ -902,6 +904,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
 
   ckp_data.matrix_index = matrix_index;
   ckp_data.optimize_freqs = optimize_freqs;
+  ckp_data.empirical_freqs = empirical_freqs;
   ckp_data.optimize_pinv = optimize_pinv;
   ckp_data.optimize_gamma = optimize_gamma;
   ckp_data.loglh = loglh;
@@ -911,8 +914,9 @@ int DnaModel::output_bin(std::string const& bin_filename) const
   ckp_data.dt = dt;
   ckp_data.n_tips = n_tips;
 
+  memset(ckp_data.frequencies, 0, N_PROT_STATES * sizeof(double));
   memcpy(ckp_data.frequencies, frequencies, N_DNA_STATES * sizeof(double));
-  memcpy(ckp_data.rates, subst_rates, N_DNA_SUBST_RATES * sizeof(double));
+  memcpy(ckp_data.subst_rates, subst_rates, N_DNA_SUBST_RATES * sizeof(double));
   ckp_data.prop_invar = get_prop_inv();
   ckp_data.alpha = get_alpha();
 
@@ -922,7 +926,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
   write_ok = pllmod_binary_custom_dump(bin_file,
                             unique_id,
                             &ckp_data,
-                            sizeof(dna_ckpdata_t),
+                            sizeof(ckpdata_t),
                             PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   assert(n_tips > 0);
@@ -942,7 +946,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
 
 int DnaModel::input_bin(std::string const& bin_filename)
 {
-  dna_ckpdata_t * ckp_data;
+  ckpdata_t * ckp_data;
   pll_binary_header_t input_header;
   size_t size = 0;
   unsigned int type, attributes;
@@ -958,7 +962,7 @@ int DnaModel::input_bin(std::string const& bin_filename)
     return false;
   }
 
-  ckp_data = (dna_ckpdata_t *) pllmod_binary_custom_load(bin_file,
+  ckp_data = (ckpdata_t *) pllmod_binary_custom_load(bin_file,
                                              unique_id,
                                              &size,
                                              &type,
@@ -970,6 +974,7 @@ int DnaModel::input_bin(std::string const& bin_filename)
   {
     assert(ckp_data->matrix_index == matrix_index);
     assert(ckp_data->optimize_freqs == optimize_freqs);
+    assert(ckp_data->empirical_freqs == empirical_freqs);
     assert(ckp_data->optimize_pinv == optimize_pinv);
     assert(ckp_data->optimize_gamma == optimize_gamma);
     set_loglh(ckp_data->loglh);
@@ -980,7 +985,7 @@ int DnaModel::input_bin(std::string const& bin_filename)
     exec_time = ckp_data->exec_time;
 
     set_frequencies(ckp_data->frequencies);
-    set_subst_rates(ckp_data->rates);
+    set_subst_rates(ckp_data->subst_rates);
     if (optimize_pinv)
       set_prop_inv(ckp_data->prop_invar);
     if (optimize_gamma)
@@ -1024,83 +1029,88 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
              const mt_size_t *asc_w)
     : Model(model_params, partition, N_PROT_STATES, asc_bias_corr)
 {
-    stringstream ss_name;
+  stringstream ss_name;
 
-    matrix_index = _matrix_index;
-    assert(matrix_index < N_PROT_MODEL_ALL_MATRICES);
-    mixture = (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX);
+  matrix_index = _matrix_index;
+  assert(matrix_index < N_PROT_MODEL_ALL_MATRICES);
+  mixture = (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX);
 
-    n_frequencies   = N_PROT_STATES;
-    n_subst_rates   = N_PROT_SUBST_RATES;
-    n_free_variables = 0;
+  n_frequencies   = N_PROT_STATES;
+  n_subst_rates   = N_PROT_SUBST_RATES;
+  n_free_variables = 0;
 
-    if (mixture)
-    {
-        assert (optimize_gamma && !empirical_freqs);
-        if (matrix_index == LG4M_INDEX)
-        {
-            /* LG4M model */
-            param_gamma = new ParameterGamma(n_categories);
-            parameters.push_back(param_gamma);
+  if (mixture)
+  {
+      assert (optimize_gamma && !empirical_freqs);
+      if (matrix_index == LG4M_INDEX)
+      {
+          /* LG4M model */
+          param_gamma = new ParameterGamma(n_categories);
+          parameters.push_back(param_gamma);
 
-            mixture_frequencies = pll_aa_freqs_lg4m;
-            mixture_subst_rates = pll_aa_rates_lg4m;
-        }
-        else
-        {
-            /* LG4X model / free rates */
-            param_gamma = new ParameterRateCats(4);
-            parameters.push_back(param_gamma);
+          mixture_frequencies = pll_aa_freqs_lg4m;
+          mixture_subst_rates = pll_aa_rates_lg4m;
+      }
+      else
+      {
+          /* LG4X model / free rates */
+          param_gamma = new ParameterRateCats(4);
+          parameters.push_back(param_gamma);
 
-            optimize_gamma = false;
-            n_free_variables += 6;
-            mixture_frequencies = pll_aa_freqs_lg4x;
-            mixture_subst_rates = pll_aa_rates_lg4x;
-        }
-    }
-    else
-    {
-        param_gamma = new ParameterGamma(optimize_gamma?n_categories:1);
-        parameters.push_back(param_gamma);
+          optimize_gamma = false;
+          n_free_variables += 6;
+          mixture_frequencies = pll_aa_freqs_lg4x;
+          mixture_subst_rates = pll_aa_rates_lg4x;
+      }
+  }
+  else
+  {
+      param_gamma = new ParameterGamma(optimize_gamma?n_categories:1);
+      parameters.push_back(param_gamma);
 
-        fixed_subst_rates = prot_model_rates[matrix_index];
-        if (!empirical_freqs)
-          param_freqs->set_frequencies(prot_model_freqs[matrix_index]);
-    }
+      fixed_subst_rates = prot_model_rates[matrix_index];
+      if (!empirical_freqs)
+        param_freqs->set_frequencies(prot_model_freqs[matrix_index]);
+  }
 
-    if (asc_bias_corr == asc_felsenstein)
-    {
-      assert(asc_w);
-      asc_weights = new mt_size_t[N_PROT_STATES];
-      fill_n(asc_weights, N_PROT_STATES, 0);
-      asc_weights[0] = asc_w[0];
-    }
-    else if (asc_bias_corr == asc_stamatakis)
-    {
-      assert(asc_w);
-      asc_weights = new mt_size_t[N_PROT_STATES];
-      memcpy(asc_weights, asc_w, N_PROT_STATES * sizeof(mt_size_t));
-    }
+  if (asc_bias_corr == asc_felsenstein)
+  {
+    assert(asc_w);
+    asc_weights = new mt_size_t[N_PROT_STATES];
+    fill_n(asc_weights, N_PROT_STATES, 0);
+    asc_weights[0] = asc_w[0];
+  }
+  else if (asc_bias_corr == asc_stamatakis)
+  {
+    assert(asc_w);
+    asc_weights = new mt_size_t[N_PROT_STATES];
+    memcpy(asc_weights, asc_w, N_PROT_STATES * sizeof(mt_size_t));
+  }
 
-    ss_name << prot_model_names[matrix_index];
-    if (optimize_pinv)
-        ss_name << "+I";
-    if (optimize_gamma && !mixture)
-        ss_name << "+G";
+  ss_name << prot_model_names[matrix_index];
+  if (optimize_pinv)
+      ss_name << "+I";
+  if (optimize_gamma && !mixture)
+      ss_name << "+G";
 
-    if (empirical_freqs)
-    {
-      ss_name << "+F";
-    }
-    name = ss_name.str();
+  if (empirical_freqs)
+  {
+    ss_name << "+F";
+  }
+  name = ss_name.str();
 
-    if (optimize_freqs || empirical_freqs)
-        n_free_variables += N_PROT_STATES-1;
+  if (optimize_freqs || empirical_freqs)
+      n_free_variables += N_PROT_STATES-1;
 
-    if (optimize_pinv)
-        n_free_variables ++;
-    if (optimize_gamma)
-        n_free_variables ++;
+  if (optimize_pinv)
+      n_free_variables ++;
+  if (optimize_gamma)
+      n_free_variables ++;
+
+  unique_id = 8 * matrix_index +
+              4 * optimize_gamma +
+              2 * optimize_pinv +
+              (optimize_freqs || empirical_freqs);
 }
 
 ProtModel::ProtModel(const Model & other)
@@ -1124,6 +1134,7 @@ void ProtModel::clone(const Model * other_model)
     optimize_freqs  = other->optimize_freqs;
     empirical_freqs = other->empirical_freqs;
 
+    unique_id = other->unique_id;
     //TODO: Check for LG4!
     // memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
     fixed_subst_rates = other->fixed_subst_rates;
@@ -1326,14 +1337,131 @@ void ProtModel::input_log(std::istream  &in)
 
 int ProtModel::output_bin(std::string const& bin_filename) const
 {
-  //TODO
-  return false;
+  ckpdata_t ckp_data;
+  pll_binary_header_t input_header;
+  const double * frequencies = get_frequencies();
+  int write_ok;
+  FILE * bin_file;
+
+  bin_file = pllmod_binary_append_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+    return false;
+
+  ckp_data.matrix_index    = matrix_index;
+  ckp_data.optimize_freqs  = optimize_freqs;
+  ckp_data.empirical_freqs = empirical_freqs;
+  ckp_data.optimize_pinv   = optimize_pinv;
+  ckp_data.optimize_gamma  = optimize_gamma;
+  ckp_data.loglh = loglh;
+  ckp_data.bic   = bic;
+  ckp_data.aic   = aic;
+  ckp_data.aicc  = aicc;
+  ckp_data.dt    = dt;
+  ckp_data.n_tips = n_tips;
+
+  memcpy(ckp_data.frequencies, frequencies, N_PROT_STATES * sizeof(double));
+  memset(ckp_data.subst_rates, 0, N_DNA_SUBST_RATES * sizeof(double));
+
+  ckp_data.prop_invar = get_prop_inv();
+  ckp_data.alpha = get_alpha();
+
+  ckp_data.exec_time = exec_time;
+
+  assert(bin_file);
+  write_ok = pllmod_binary_custom_dump(bin_file,
+                            unique_id,
+                            &ckp_data,
+                            sizeof(ckpdata_t),
+                            PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  assert(n_tips > 0);
+  write_ok &= pllmod_binary_utree_dump(bin_file, 2000+unique_id, tree->back, n_tips,
+                                       PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  pllmod_binary_close(bin_file);
+
+  if(!write_ok)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error dumping checkpoint");
+  }
+
+  return write_ok;
 }
 
 int ProtModel::input_bin(std::string const& bin_filename)
 {
-  //TODO
-  return false;
+  ckpdata_t * ckp_data;
+  pll_binary_header_t input_header;
+  size_t size = 0;
+  unsigned int type, attributes;
+  int read_ok;
+  FILE * bin_file;
+
+  bin_file = pllmod_binary_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
+             pll_errno, pll_errmsg);
+    return false;
+  }
+
+  ckp_data = (ckpdata_t *) pllmod_binary_custom_load(bin_file,
+                                             unique_id,
+                                             &size,
+                                             &type,
+                                             &attributes,
+                                             PLLMOD_BIN_ACCESS_SEEK);
+  read_ok = (ckp_data != NULL);
+
+  if (read_ok)
+  {
+    assert(ckp_data->matrix_index == matrix_index);
+    assert(ckp_data->optimize_freqs == optimize_freqs);
+    assert(ckp_data->empirical_freqs == empirical_freqs);
+    assert(ckp_data->optimize_pinv == optimize_pinv);
+    assert(ckp_data->optimize_gamma == optimize_gamma);
+    set_loglh(ckp_data->loglh);
+    bic  = ckp_data->bic;
+    aic  = ckp_data->aic;
+    aicc = ckp_data->aicc;
+    dt   = ckp_data->dt;
+    exec_time = ckp_data->exec_time;
+
+    set_frequencies(ckp_data->frequencies);
+    if (optimize_pinv)
+      set_prop_inv(ckp_data->prop_invar);
+    if (optimize_gamma)
+      set_alpha(ckp_data->alpha);
+    n_tips = ckp_data->n_tips;
+
+    free(ckp_data);
+
+    pll_errno = 0;
+    tree = pllmod_binary_utree_load(bin_file,
+                                 2000+unique_id,
+                                 &attributes,
+                                 PLLMOD_BIN_ACCESS_SEEK);
+
+    if(!tree)
+    {
+      mt_errno = pll_errno;
+      snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
+      read_ok = false;
+    }
+    else
+      tree = tree->back;
+  }
+  else
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "%s", pll_errmsg);
+  }
+
+  pllmod_binary_close(bin_file);
+
+  return read_ok;
 }
 
 } /* namespace */

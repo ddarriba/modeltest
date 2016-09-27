@@ -42,6 +42,7 @@ typedef struct
 {
   mt_index_t matrix_index;
   int optimize_freqs;
+  int empirical_freqs;
   int optimize_pinv;
   int optimize_gamma;
   unsigned int n_tips;
@@ -51,13 +52,13 @@ typedef struct
   double aicc;
   double dt;
 
-  double frequencies[N_DNA_STATES];
-  double rates[N_DNA_SUBST_RATES];
+  double frequencies[N_PROT_STATES];
+  double subst_rates[N_DNA_SUBST_RATES];
   double prop_invar;
   double alpha;
 
   time_t exec_time;
-} dna_ckpdata_t;
+} ckpdata_t;
 
 class Model : public Loggable
 {
