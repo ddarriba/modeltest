@@ -389,9 +389,21 @@ double Model::get_bic() const
   return bic;
 }
 
+void Model::set_bic(double value)
+{
+  assert(is_optimized());
+  bic = value;
+}
+
 double Model::get_aic() const
 {
   return aic;
+}
+
+void Model::set_aic(double value)
+{
+  assert(is_optimized());
+  aic = value;
 }
 
 double Model::get_aicc() const
@@ -399,9 +411,21 @@ double Model::get_aicc() const
   return aicc;
 }
 
+void Model::set_aicc(double value)
+{
+  assert(is_optimized());
+  aicc = value;
+}
+
 double Model::get_dt() const
 {
   return dt;
+}
+
+void Model::set_dt(double value)
+{
+  assert(is_optimized());
+  dt = value;
 }
 
 time_t Model::get_exec_time() const
@@ -427,6 +451,11 @@ void Model::set_tree( pll_utree_t * _tree )
     pll_utree_destroy(tree->back);
   }
   tree = _tree;
+}
+
+mt_index_t Model::get_unique_id( void ) const
+{
+  return unique_id;
 }
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,
@@ -472,6 +501,7 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
       else
         alpha_guess = param_gamma->get_alpha();
     }
+
     return true;
 }
 
@@ -489,6 +519,7 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
   loglh = parameter->optimize(&params, loglh, tolerance, true);
 
   ++current_opt_parameter;
+
   if (current_opt_parameter >= parameters.size())
   {
     current_opt_parameter = 0;
@@ -725,6 +756,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
     attributes |= PLL_ATTRIB_ARCH_CPU;
 #endif
 #endif
+
     attributes |= asc_bias_attribute(asc_bias_corr);
 
     pll_partition_t * part = pll_partition_create (

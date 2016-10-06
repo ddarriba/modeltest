@@ -101,7 +101,7 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
           for (mt_index_t j=0; j<c_models.size(); j++)
           {
               Model * model2 = models[j].model;
-
+              //printf("\n\n%s\n%s\n", pll_utree_export_newick(model1->get_tree()), pll_utree_export_newick(model2->get_tree()));
               double distance = TreePll::compute_euclidean_distance(model1->get_tree(), model2->get_tree());
               /* TODO: compute distance between trees in a table*/
               // distance = distances.getDistance(model1.getTree(), model2.getTree());

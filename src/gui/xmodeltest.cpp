@@ -511,7 +511,7 @@ void xmodeltest::run_modelselection()
         scheme->push_back(partition);
     }
 
-    for (partition_descriptor_t &partition : scheme)
+    for (partition_descriptor_t &partition : *scheme)
     {
       partition.starting_tree = start_tree;
     }

@@ -278,9 +278,16 @@ public:
     unsigned int * params_indices;
 
     double get_bic( void ) const;
+    void set_bic(double value);
+
     double get_aic( void ) const;
+    void set_aic(double value);
+
     double get_aicc( void ) const;
+    void set_aicc(double value);
+
     double get_dt( void ) const;
+    void set_dt(double value);
 
     double get_prop_inv( void ) const;
     void set_prop_inv(double value);
@@ -297,6 +304,7 @@ public:
     pll_utree_t * get_tree( void ) const;
     void set_tree( pll_utree_t * tree );
 
+    mt_index_t get_unique_id( void ) const;
 protected:
     mt_index_t matrix_index;
     mt_index_t current_opt_parameter;

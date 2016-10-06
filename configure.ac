@@ -23,12 +23,39 @@ AC_PROG_CPP
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([pthread], [pthread_create])
 
-#AC_SEARCH_LIBS([pll_partition_create], [pll], [], [
-#  AC_MSG_ERROR([PLL library not found])
-#])
-#AC_CHECK_LIB([pll_optimize], [pll_compute_empirical_frequencies], [], [
-#  AC_MSG_ERROR([PLL_Optimize library not found])
-#])
+AC_CHECK_LIB([pll], [pll_partition_create], [], [
+  AC_MSG_ERROR([PLL library not found])
+])
+AC_CHECK_LIB([pll_optimize], [pllmod_opt_minimize_newton], [], [
+  AC_MSG_ERROR([PLL_Optimize library not found])
+])
+AC_CHECK_LIB([pll_tree], [pllmod_treeinfo_compute_loglh], [], [
+  AC_MSG_ERROR([PLL_Tree library not found])
+])
+AC_CHECK_LIB([pll_binary], [pllmod_binary_create], [], [
+  AC_MSG_ERROR([PLL_Binary library not found])
+])
+AC_CHECK_LIB([pll_algorithm], [pllmod_algo_opt_frequencies], [], [
+  AC_MSG_ERROR([PLL_Algorithm library not found])
+])
+
+AC_CHECK_HEADERS([pll.h], [], [
+    AC_CHECK_HEADERS([libpll/pll.h], [
+      have_prefix=yes
+    ], [
+      AC_MSG_ERROR([pll.h not found])
+    ])])
+if test "x$have_prefix" = "xyes"; then
+  AC_CHECK_HEADERS([libpll/pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
+  AC_CHECK_HEADERS([libpll/pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
+  AC_CHECK_HEADERS([libpll/pll_optimize.h], [], [AC_MSG_ERROR([pll_optimize.h not found])])
+  AC_CHECK_HEADERS([libpll/pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
+else
+  AC_CHECK_HEADERS([pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
+  AC_CHECK_HEADERS([pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
+  AC_CHECK_HEADERS([pll_optimize.h], [], [AC_MSG_ERROR([pll_optimize.h not found])])
+  AC_CHECK_HEADERS([pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
+fi
 
 AC_MSG_CHECKING(for SSE in current arch/CFLAGS)
 AC_LINK_IFELSE([
@@ -64,6 +91,7 @@ if test "x${ax_cv_have_avx_ext}" = "xyes"; then
   have_avx=yes
 fi
 
+AM_CONDITIONAL(PLL_PREFIX, test "x$have_prefix" = "xyes")
 AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
 AM_CONDITIONAL(HAVE_SSE, test "x$have_sse" = "xyes")

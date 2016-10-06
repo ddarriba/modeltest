@@ -107,21 +107,14 @@ UI_DIR = build
 OBJECTS_DIR = build
 RCC_DIR = build
 
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll
-#else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll
-
 CONFIG += c++11 -g
 QMAKE_CXXFLAGS += -std=c++11 -g
 
-#INCLUDEPATH += $$PWD/../../../../../usr/local/lib
-#DEPENDPATH += $$PWD/../../../../../usr/local/lib
+pll_prefix {
+    QMAKE_CXXFLAGS += -DPLL_PREFIX
+    message(pll headers expected to be in 'libpll' subdirectory)
+} else {
+    message(pll headers expected to be directly in the include path)
+}
 
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lpll_optimize
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lpll_optimize
-#else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lpll_optimize
-
-#INCLUDEPATH += $$PWD/../../../../../usr/local/include
-#DEPENDPATH += $$PWD/../../../../../usr/local/include
-
-unix|win32: LIBS += -lpll -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree
+unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree

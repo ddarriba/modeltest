@@ -6,6 +6,7 @@ modeltestx_SOURCES = \
 	genesis/logging.cpp \
 	static_analyzer.cpp \
 	service/modeltestservice.cpp \
+	service/checkpoint.cpp \
 	thread/observer.cpp \
 	model/abstract_parameter.cpp \
 	model/parameter_branches.cpp \
@@ -32,15 +33,9 @@ modeltestx_CPPFLAGS += -DHAVE_PTHREADS
 modeltestx_LDFLAGS =
 modeltestx_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
 
-#if HAVE_AVX
-#  modeltestx_CPPFLAGS += -DHAVE_AVX
-#  modeltestx_LDFLAGS += -DHAVE_AVX
-#endif
-
-#if HAVE_SSE
-#  modeltestx_CPPFLAGS += -DHAVE_SSE
-#  modeltestx_LDFLAGS += -DHAVE_SSE
-#endif
+if PLL_PREFIX
+  modeltestx_CPPFLAGS += -DPLL_PREFIX
+endif
 
 pkgincludedir=${includedir}/modeltest
 pkginclude_HEADERS= \
@@ -49,6 +44,7 @@ pkginclude_HEADERS= \
 	genesis/string.h \
 	genesis/logging.h \
 	service/modeltestservice.h \
+	service/checkpoint.h \
 	thread/observer.h \
 	thread/threadpool.h \
 	model/abstract_parameter.h \

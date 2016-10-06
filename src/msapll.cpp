@@ -21,12 +21,12 @@
 
 #include "utils.h"
 #include "msapll.h"
+#include "plldefs.h"
 
 #include <cerrno>
 #include <vector>
 #include <cassert>
 #include <iomanip>
-#include <pll_msa.h>
 
 using namespace std;
 

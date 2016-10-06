@@ -31,7 +31,7 @@
 #include <config.h>
 #else
 #define PACKAGE "modeltest"
-#define VERSION "1.0.1"
+#define VERSION "x.y.z"
 #endif
 
 #ifndef __has_cpp_attribute         // Optional of course.

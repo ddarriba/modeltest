@@ -581,7 +581,13 @@ bool ModelTest::build_instance(mt_options_t & options)
 
   /* update tree */
   int start_matrix_index = 0;
-  mt_mask_t start_model_params = MOD_PARAM_ESTIMATED_FREQ | MOD_PARAM_GAMMA;
+  mt_mask_t start_model_params =
+    (options.model_params & MOD_PARAM_ESTIMATED_FREQ) ?
+      MOD_PARAM_ESTIMATED_FREQ : MOD_PARAM_FIXED_FREQ;
+  start_model_params |=
+    (options.model_params & MOD_PARAM_GAMMA) ?
+      MOD_PARAM_GAMMA : MOD_PARAM_NO_RATE_VAR;
+
   switch (options.starting_tree)
   {
   case tree_user_fixed:
@@ -606,6 +612,8 @@ bool ModelTest::build_instance(mt_options_t & options)
     start_opt->run(options.epsilon_opt, options.epsilon_param);
     assert(start_model->is_optimized());
     LOG_DBG << "[DBG] Starting tree fixed " << start_model->get_loglh() << endl;
+    TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+    tree->set_pll_tree(start_model->get_tree());
     break;
   }
 
