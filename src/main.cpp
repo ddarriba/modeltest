@@ -21,6 +21,7 @@
 
 #ifndef _NO_GUI_
 #include "gui/xmodeltest.h"
+#include "gui2/xmodeltestfancy.h"
 #include "service/modeltestservice.h"
 #include <QApplication>
 #else
@@ -44,6 +45,8 @@ using namespace std;
 
 /** number of parallel processes */
 static mt_size_t n_procs = 1;
+
+#define FANCY_GUI
 
 int main(int argc, char *argv[])
 {
@@ -199,7 +202,11 @@ int main(int argc, char *argv[])
         QApplication a(argc, argv);
         //Q_INIT_RESOURCE(mtgraphics);
 
+#ifdef FANCY_GUI
+        XModelTestFancy xmt;
+#else
         xmodeltest xmt;
+#endif
         xmt.show();
 //        modeltest::jModelTest w;
 //        w.show();

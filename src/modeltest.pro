@@ -45,7 +45,8 @@ SOURCES += main.cpp\
     gui/modelsdialog.cpp \
     gui/resultsexportdialog.cpp \
     thread/observer.cpp \
-    meta.cpp
+    meta.cpp \
+    gui2/xmodeltestfancy.cpp
 
 HEADERS  += \
     model_defs.h \
@@ -90,7 +91,8 @@ HEADERS  += \
     gui/modelsdialog.h \
     loggable.h \
     gui/resultsexportdialog.h \
-    meta.h
+    meta.h \
+    gui2/xmodeltestfancy.h
 
 FORMS    += \
     gui/xmodeltest.ui \
@@ -98,7 +100,8 @@ FORMS    += \
     gui/datainfodialog.ui \
     gui/resultsdialog.ui \
     gui/modelsdialog.ui \
-    gui/resultsexportdialog.ui
+    gui/resultsexportdialog.ui \
+    gui2/xmodeltestfancy.ui
 
 RESOURCES = mtgraphics.qrc
 
