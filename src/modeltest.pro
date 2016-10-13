@@ -46,7 +46,8 @@ SOURCES += main.cpp\
     gui/resultsexportdialog.cpp \
     thread/observer.cpp \
     meta.cpp \
-    gui2/xmodeltestfancy.cpp
+    gui2/xmodeltestfancy.cpp \
+    gui2/xmodeltestfancy_actions.cpp
 
 HEADERS  += \
     model_defs.h \

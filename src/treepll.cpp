@@ -249,6 +249,7 @@ namespace modeltest
   void TreePll::set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number)
   {
     assert(pll_utree_check_integrity(new_tree));
+    pll_utree_destroy(pll_tree[thread_number]);
     pll_tree[thread_number] = new_tree;
     //pll_start_tree[thread_number] = new_tree;
 

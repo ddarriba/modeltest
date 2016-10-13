@@ -81,6 +81,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
   opt_topology = force_opt_topo || current_instance->start_tree == tree_ml;
   MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
   TreePll *tree = static_cast<TreePll *>(current_instance->tree);
+
   Partition &partition = partitioning_scheme->get_partition(part_id);
   return new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
@@ -602,18 +603,24 @@ bool ModelTest::build_instance(mt_options_t & options)
       DNA_JC_INDEX : DNA_GTR_INDEX);
     Model * start_model = partitioning_scheme->get_partition({0}).get_model_by_matrix(start_matrix_index, start_model_params);
     assert (start_model);
-    LOG_DBG << "[DBG] Optimizing tree for " << start_model->get_name() << endl;
+
+    LOG_INFO << endl << "Optimizing tree for " << start_model->get_name() << endl;
 
     //TODO: Optimize per partition
     ModelOptimizer * start_opt = get_model_optimizer(start_model,
                                          {0},
                                           0,
                                           true);
+
     start_opt->run(options.epsilon_opt, options.epsilon_param);
     assert(start_model->is_optimized());
-    LOG_DBG << "[DBG] Starting tree fixed " << start_model->get_loglh() << endl;
+    LOG_INFO << "Starting tree fixed " << start_model->get_loglh() << endl;
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
-    tree->set_pll_tree(start_model->get_tree());
+    tree->set_pll_tree(pll_utree_clone(start_model->get_tree()));
+    start_model->set_tree((pll_utree_t *)tree->extract_tree());
+
+    delete start_opt;
+    
     break;
   }
 

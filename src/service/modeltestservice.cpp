@@ -231,9 +231,10 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   for (mt_index_t i = 0; i < n_topologies; ++i)
   {
     cout << topologies[i].id << " " << topologies[i].bic_support << " " << topologies[i].aic_support << " " << topologies[i].aicc_support << " " << topologies[i].tree_str << endl;
+    free(topologies[i].tree_str);
   }
-
   cout << endl;
+
 }
 
 string ModelTestService::get_iqtree_command_line(Model const& model,
