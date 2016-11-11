@@ -44,6 +44,8 @@ ParameterRateCats::ParameterRateCats(mt_size_t n_cats)
                           rates);
   for (mt_index_t i=0; i<n_cats; ++i)
     weights[i] = 1.0/n_cats;
+
+  name = "RateCategories";
 }
 
 ParameterRateCats::ParameterRateCats( const ParameterRateCats & other )
@@ -51,6 +53,7 @@ ParameterRateCats::ParameterRateCats( const ParameterRateCats & other )
   n_cats = other.n_cats;
   weights = new double[n_cats];
   rates   = new double[n_cats];
+  name = other.name;
 }
 
 ParameterRateCats::~ParameterRateCats( void )
@@ -111,7 +114,7 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
   double cur_loglh;
   double branch_scaler;
 
-  cur_loglh = pllmod_algo_opt_rates_weights(params->partition,
+  cur_loglh = -1 * pllmod_algo_opt_rates_weights(params->partition,
                                             params->tree,
                                             params->params_indices,
                                             0.01, 10,

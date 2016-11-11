@@ -219,7 +219,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   /* set weights */
   const mt_size_t * weights = partition.get_weights();
   pll_set_pattern_weights(pll_partition, weights);
-  delete[] weights;
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
@@ -385,7 +384,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /* current loglh changes the sign of the lk, such that the optimization
      * function can minimize the score */
     double save_loglh = start_loglh;
-    double cur_loglh = save_loglh * -1;
+    double cur_loglh = save_loglh;
 
     /* notify initial likelihood */
     opt_delta = cur_loglh;
@@ -406,13 +405,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           all_params_done = model.optimize_oneparameter(pll_partition,
                                           pll_tree,
                                           tolerance);
-
           cur_loglh = model.get_loglh();
 
           /* ensure we never get a worse likelihood score */
-          if (cur_loglh - save_loglh > 1e-5)
+          if (save_loglh - cur_loglh > 1e-5)
           {
-              LOG_ERR << "Error: " << setprecision(5) << save_loglh << " vs " <<
+              LOG_ERR << "Error: " << fixed << setprecision(5) << save_loglh << " vs " <<
                       setprecision(5) << cur_loglh <<
                       " [" << cur_parameter << "]" << endl;
               assert(cur_loglh - save_loglh < 1e-5);
@@ -435,7 +433,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       }
     }
 
-    return cur_loglh * -1;
+    return cur_loglh;
   }
 
   const int radius_step = 5;
@@ -447,7 +445,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double loglh;
     double old_loglh,
            new_loglh;
-    double bl_min = 1e-2,
+    double bl_min = 1e-6,
            bl_max = 1e2;
 
     int thorough_insertion = false;
@@ -479,9 +477,13 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
 
       pllmod_treeinfo_destroy_partition(tree_info, 0);
-      pllmod_treeinfo_init_partition(tree_info, 0,
-                                     pll_partition, 1.0,
-                                     {0}, 0);
+      pllmod_treeinfo_init_partition(tree_info,         /* treeinfo */
+                                     0,                 /* partition index */
+                                     pll_partition,     /* partition */
+                                     0,                 /* params to optimize */
+                                     1.0,               /* alpha */
+                                     {0},               /* param_indices */
+                                     0);                /* subst matrix symmetries */
 
       new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
 
@@ -537,6 +539,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     /* final thorough parameter optimization */
     model.set_loglh(new_loglh);
+
+    tolerance = 1e-4;
     loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
 
     return loglh;

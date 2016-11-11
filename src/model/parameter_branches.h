@@ -42,7 +42,9 @@ public:
   virtual void print(std::ostream  &out = std::cout) const;
   virtual mt_size_t get_n_free_parameters( void ) const;
 private:
+
   mt_size_t n_branches;
+  std::vector<double> branch_lengths;
 };
 
 } /* namespace modeltest */

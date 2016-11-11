@@ -35,11 +35,15 @@ ParameterPinv::ParameterPinv( void )
   pinv = 0.5;
   min_pinv = MIN_PINV;
   max_pinv = MAX_PINV;
+  name = "P-inv";
 }
 
 ParameterPinv::ParameterPinv( const ParameterPinv & other )
 {
   pinv = other.pinv;
+  max_pinv = other.max_pinv;
+  min_pinv = other.min_pinv;
+  name = other.name;
 }
 
 ParameterPinv::~ParameterPinv( void )
@@ -76,7 +80,7 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
-  cur_loglh = pllmod_algo_opt_pinv (params->partition,
+  cur_loglh = -1 * pllmod_algo_opt_pinv (params->partition,
                                    params->tree,
                                    params->params_indices,
                                    MIN_PINV,

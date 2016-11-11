@@ -228,6 +228,7 @@ typedef struct {
     std::string checkpoint_file;      //! Checkpoint filename
     bool write_checkpoint;
 
+    bool compress_patterns;  //! Compress site patterns
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
 

@@ -33,12 +33,14 @@ ParameterGamma::ParameterGamma(mt_size_t n_cats, double alpha)
   : ParameterRateCats(n_cats), alpha(alpha)
 {
   alpha = 1.0;
+  name = "Alpha";
 }
 
 ParameterGamma::ParameterGamma( const ParameterGamma & other )
   : ParameterRateCats(other.n_cats)
 {
   alpha = other.alpha;
+  name = other.name;
 }
 
 ParameterGamma::~ParameterGamma( void )
@@ -72,7 +74,7 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
     return loglh;
 
   //alpha_prev = alpha;
-  cur_loglh = pllmod_algo_opt_alpha(params->partition,
+  cur_loglh = -1 * pllmod_algo_opt_alpha(params->partition,
                                     params->tree,
                                     params->params_indices,
                                     MIN_ALPHA,

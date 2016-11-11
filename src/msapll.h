@@ -40,7 +40,8 @@ namespace modeltest
     virtual const char * const *get_headers() const;
     virtual const char * get_sequence (mt_index_t index) const;
     virtual const unsigned int * get_weights( void ) const;
-    virtual bool reorder_sites(partitioning_scheme_t & scheme);
+    virtual bool reorder_sites(partitioning_scheme_t & scheme,
+                               bool compress_patterns = true);
 
     virtual void print() const;
 

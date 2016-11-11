@@ -38,6 +38,7 @@ ParameterFrequencies::ParameterFrequencies( mt_size_t states ) :
   states(states)
 {
   frequencies = 0;
+  name = "Frequencies";
 }
 
 ParameterFrequencies::~ParameterFrequencies( void )
@@ -111,7 +112,7 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
-  cur_loglh = pllmod_algo_opt_frequencies(params->partition,
+  cur_loglh = -1 * pllmod_algo_opt_frequencies(params->partition,
                                          params->tree,
                                          0,
                                          params->params_indices,

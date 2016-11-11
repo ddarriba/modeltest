@@ -39,4 +39,9 @@ namespace modeltest
 
     return score;
   }
+
+  const std::string & AbstractParameter::get_name( void ) const
+  {
+      return name;
+  }
 }

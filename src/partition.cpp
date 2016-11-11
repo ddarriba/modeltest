@@ -344,89 +344,22 @@ bool Partition::set_models(const std::vector<Model *> &models)
 
 const char * Partition::get_sequence(mt_index_t idx) const
 {
-    char *seq = 0;
-    const char * msa_seq = msa.get_sequence (idx);
+  const char * msa_seq = msa.get_sequence (idx);
 
-    if (descriptor.regions.size() > 1 || descriptor.regions[0].stride > 1)
-    {
-      // for this case, we need to build the new sequence and cache it
-      // instead of creating a copy!
-      assert(0);
+  /* the number of regions and stride should be reduced to 1 during site reordering */
+  assert(descriptor.regions.size() == 1 || descriptor.regions[0].stride == 1);
 
-        /* complex partition */
-        char *seq_ptr = seq;
-        for (const partition_region_t & region : descriptor.regions)
-        {
-            mt_index_t region_start  = region.start-1;
-            mt_index_t region_end    = region.end;
-            mt_index_t region_stride = region.stride;
-            mt_size_t region_patterns   = (region_end - region_start)/region_stride;
-            if (region_stride == 1)
-            {
-                /* copy consecutive sites in sequence */
-                memcpy(seq_ptr, msa_seq + region_start, region_patterns * sizeof(char));
-            }
-            else
-            {
-                /* copy strided sites in sequence */
-                mt_index_t k = 0;
-                for (mt_index_t s = region_start; s < region_end; s+=region.stride)
-                {
-                    seq_ptr[k++] = msa_seq[s];
-                }
-            }
-            seq_ptr += region_patterns;
-        }
-    }
-    else
-    {
-        /* simple partition */
-        return msa_seq;
-        //memcpy(seq, msa_seq + descriptor.regions[0].start - 1, n_patterns * sizeof(char));
-    }
-
-    return seq;
+  return msa_seq + descriptor.regions[0].start - 1;
 }
 
 const mt_size_t * Partition::get_weights( void ) const
 {
-    mt_size_t *wgt = new mt_size_t[n_patterns];
-    const mt_size_t * msa_wgt = msa.get_weights();
+  mt_size_t *wgt = new mt_size_t[n_patterns];
+  const mt_size_t * msa_wgt = msa.get_weights();
 
-    if (descriptor.regions.size() > 1 || descriptor.regions[0].stride > 1)
-    {
-        /* complex partition */
-        mt_size_t *wgt_ptr = wgt;
-        for (const partition_region_t & region : descriptor.regions)
-        {
-            mt_index_t region_start  = region.start-1;
-            mt_index_t region_end    = region.end;
-            mt_index_t region_stride = region.stride;
-            mt_size_t region_patterns   = (region_end - region_start)/region_stride;
-            if (region_stride == 1)
-            {
-                /* copy consecutive sites in sequence */
-                memcpy(wgt_ptr, msa_wgt + region_start, region_patterns * sizeof(mt_size_t));
-            }
-            else
-            {
-                /* copy strided sites in sequence */
-                mt_index_t k = 0;
-                for (mt_index_t s = region_start; s < region_end; s+=region.stride)
-                {
-                    wgt_ptr[k++] = msa_wgt[s];
-                }
-            }
-            wgt_ptr += region_patterns;
-        }
-    }
-    else
-    {
-        /* simple partition */
-        memcpy(wgt, msa_wgt + descriptor.regions[0].start - 1, n_patterns * sizeof(mt_size_t));
-    }
-
-    return wgt;
+  /* the number of regions and stride should be reduced to 1 during site reordering */
+  assert(descriptor.regions.size() == 1 || descriptor.regions[0].stride == 1);
+  return msa_wgt + descriptor.regions[0].start - 1;
 }
 
 vector<double> const& Partition::get_empirical_frequencies( void ) const
@@ -563,6 +496,7 @@ bool Partition::compute_empirical_frequencies(bool smooth)
             }
         }
     }
+    // return false;
 
     for (mt_index_t i=0; i<states; i++)
     {

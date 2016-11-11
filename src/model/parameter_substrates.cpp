@@ -63,6 +63,8 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt(vector<int> symmetries)
     if (symmetries[i] > (int)n_subst_free_params)
       n_subst_free_params = (int)symmetries[i];
   }
+
+  name = "SubstRates";
 }
 
 ParameterSubstRatesOpt::ParameterSubstRatesOpt(const int * a_symmetries,
@@ -81,6 +83,8 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt(const int * a_symmetries,
   subst_rates = new double[n_subst_params];
   for (mt_index_t i=0; i<n_subst_params; ++i)
     subst_rates[i] = 1.0;
+
+  name = "SubstRates";
 }
 
 ParameterSubstRatesOpt::ParameterSubstRatesOpt( const ParameterSubstRatesOpt & other )
@@ -91,6 +95,7 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt( const ParameterSubstRatesOpt & o
   n_subst_free_params = other.n_subst_free_params;
   subst_rates = new double[n_subst_params];
   memcpy(subst_rates, other.subst_rates, sizeof(double)*n_subst_params);
+  name = other.name;
 }
 
 ParameterSubstRatesOpt::~ParameterSubstRatesOpt( void )
@@ -138,7 +143,7 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
-  cur_loglh = pllmod_algo_opt_subst_rates (params->partition,
+  cur_loglh = -1 * pllmod_algo_opt_subst_rates (params->partition,
                                           params->tree,
                                           0,
                                           params->params_indices,

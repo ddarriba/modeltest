@@ -51,8 +51,10 @@ public:
                           bool first_guess = false) = 0;
   virtual void print(std::ostream  &out = std::cout) const = 0;
   virtual mt_size_t get_n_free_parameters( void ) const = 0;
+  const std::string & get_name( void ) const;
 protected:
   static double cb_compute_negative_loglikelihood(void *p);
+  std::string name;
 };
 
 } /* namespace modeltest */

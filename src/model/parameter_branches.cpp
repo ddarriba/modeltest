@@ -34,11 +34,13 @@ namespace modeltest
 ParameterBranches::ParameterBranches( const ParameterBranches & other )
 {
   n_branches = other.n_branches;
+  name = other.name;
 }
 
 ParameterBranches::ParameterBranches( void )
 {
   n_branches = 0;
+  name = "BranchLengths";
 }
 
 ParameterBranches::~ParameterBranches( void )
@@ -51,8 +53,39 @@ bool ParameterBranches::initialize(mt_opt_params_t * params,
   UNUSED(params);
   UNUSED(partition);
   n_branches = partition.get_n_sequences()*2 - 3;
+  branch_lengths.resize(n_branches);
   return true;
 }
+
+struct bl_data_t {
+    vector<double> & bl_vector;
+    size_t bl_pos;
+};
+
+static int cb_extract_branches(pll_utree_t * node, void *data)
+{
+  struct bl_data_t * bl_data = (struct bl_data_t *) data;
+  if(bl_data->bl_pos >= bl_data->bl_vector.size())
+      return 0;
+
+  bl_data->bl_vector[bl_data->bl_pos] = node->length;
+  ++bl_data->bl_pos;
+
+  return 1;
+}
+
+static int cb_reset_branches(pll_utree_t * node, void *data)
+{
+    struct bl_data_t * bl_data = (struct bl_data_t *) data;
+    if(bl_data->bl_pos >= bl_data->bl_vector.size())
+        return 0;
+
+    node->length = node->back->length = bl_data->bl_vector[bl_data->bl_pos];
+    ++bl_data->bl_pos;
+
+    return 1;
+}
+
 
 double ParameterBranches::optimize(mt_opt_params_t * params,
                                 double loglh,
@@ -69,15 +102,38 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
                                               params->params_indices,
                                               1,
                                               1);
-  assert(fabs(test_loglh - loglh) < 1e-6);
+  assert(!loglh || fabs(test_loglh - loglh) < 1e-6);
 #endif
 
-  cur_loglh = pllmod_opt_optimize_branch_lengths_iterative (
+  struct bl_data_t bl_data = {branch_lengths, 0};
+  pllmod_utree_traverse_apply(params->tree,
+                              NULL,
+                              NULL,
+                              &cb_extract_branches,
+                              &bl_data);
+
+  cur_loglh = -1 * pllmod_opt_optimize_branch_lengths_iterative (
              params->partition,
              params->tree,
              params->params_indices,
              MIN_BL, MAX_BL,
              tolerance, SMOOTHINGS, true);
+
+  if (pll_errno)
+  {
+      bl_data.bl_pos = 0;
+      pllmod_utree_traverse_apply(params->tree,
+                                  NULL,
+                                  NULL,
+                                  &cb_reset_branches,
+                                  &bl_data);
+      cur_loglh = pllmod_utree_compute_lk(params->partition,
+                                          params->tree,
+                                          params->params_indices,
+                                          1,
+                                          1);
+      assert(fabs(cur_loglh - loglh) < 1e-6);
+  }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 

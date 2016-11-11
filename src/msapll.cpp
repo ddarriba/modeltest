@@ -389,7 +389,8 @@ namespace modeltest
   }
 
 
-  bool MsaPll::reorder_sites(partitioning_scheme_t & scheme)
+  bool MsaPll::reorder_sites(partitioning_scheme_t & scheme,
+                             bool compress_patterns)
   {
       mt_size_t compressed_sum = 0;
       /* sort partitioning scheme */
@@ -432,9 +433,19 @@ namespace modeltest
             partition_sequences[i] = sequences[i] + new_region.start - 1;
           }
 
-          int compressed_length = cur - new_region.start - 1;
+          int compressed_length = cur - new_region.start + 1;
           const unsigned int * char_map = partition.datatype == dt_dna ? pll_map_nt : pll_map_aa;
-          unsigned int * pw = pll_compress_site_patterns(partition_sequences, char_map, n_taxa, &compressed_length);
+          unsigned int * pw;
+          if (compress_patterns)
+          {
+            pw = pll_compress_site_patterns(partition_sequences, char_map, n_taxa, &compressed_length);
+          }
+          else
+          {
+             pw = (unsigned int *) malloc(compressed_length * sizeof(unsigned int));
+             for (mt_index_t i=0; i<compressed_length;++i) pw[i]=1;
+          }
+
           compressed_sum += compressed_length;
 
           cur = new_region.start + compressed_length - 1;
@@ -461,6 +472,7 @@ namespace modeltest
       for (mt_index_t i=0; i<n_taxa; ++i)
       {
         sequences[i] = (char *)realloc(sequences[i], compressed_sum+1);
+
       }
 
     return true;

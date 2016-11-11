@@ -473,6 +473,7 @@ void xmodeltest::run_modelselection()
     opts.asc_bias_corr = asc_bias;
     opts.n_taxa = n_taxa;
     opts.n_sites = n_sites;
+    opts.compress_patterns = true;
     opts.rnd_seed = 12345;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();

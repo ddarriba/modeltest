@@ -58,6 +58,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
+    exec_opt.compress_patterns = true;
     exec_opt.smooth_freqs    = false;
     exec_opt.rate_clustering = false;
     exec_opt.subst_schemes   = ss_undef;
@@ -72,38 +73,39 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     static struct option long_options[] =
     {
-        { "asc-bias", required_argument, 0, 'a' },
-        { "categories", required_argument, 0, 'c' },
-        { "datatype", required_argument, 0, 'd' },
-        { "gap-aware", no_argument, 0, 13 },
-        { "input", required_argument, 0, 'i' },
-        { "model-freqs", required_argument, 0, 'f' },
-        { "model-het", required_argument, 0, 'h' },
-        { "models", required_argument, 0, 'm' },
-        { "output", required_argument, 0, 'o' },
-        { "processes", required_argument, 0, 'p' },
-        { "partitions", required_argument, 0, 'q' },
-        { "rngseed", required_argument, 0, 'r' },
-        { "schemes", required_argument, 0, 's' },
-        { "template", required_argument, 0, 'T' },
-        { "tree", required_argument, 0, 't' },
-        { "utree", required_argument, 0, 'u' },
-        { "verbose", no_argument, 0, 'v' },
-        { "help", no_argument, 0, 0 },
-        { "usage", no_argument, 0, 1 },
-        { "version", no_argument, 0, 2 },
-        { "psearch", required_argument, 0, 3 },
+        { "asc-bias", required_argument,     0, 'a' },
+        { "categories", required_argument,   0, 'c' },
+        { "datatype", required_argument,     0, 'd' },
+        { "gap-aware", no_argument,          0, 13 },
+        { "input", required_argument,        0, 'i' },
+        { "model-freqs", required_argument,  0, 'f' },
+        { "no-compress", no_argument,        0, 'H' },
+        { "model-het", required_argument,    0, 'h' },
+        { "models", required_argument,       0, 'm' },
+        { "output", required_argument,       0, 'o' },
+        { "processes", required_argument,    0, 'p' },
+        { "partitions", required_argument,   0, 'q' },
+        { "rngseed", required_argument,      0, 'r' },
+        { "schemes", required_argument,      0, 's' },
+        { "template", required_argument,     0, 'T' },
+        { "tree", required_argument,         0, 't' },
+        { "utree", required_argument,        0, 'u' },
+        { "verbose", no_argument,            0, 'v' },
+        { "help", no_argument,               0, 0 },
+        { "usage", no_argument,              0, 1 },
+        { "version", no_argument,            0, 2 },
+        { "psearch", required_argument,      0, 3 },
         { "smooth-frequencies", no_argument, 0, 4 },
-        { "eps", required_argument, 0, 10 },
-        { "tol", required_argument, 0, 11 },
-        { "force", no_argument, 0, 20 },
-        { "msa-info", no_argument, 0, 12 },
+        { "eps", required_argument,          0, 10 },
+        { "tol", required_argument,          0, 11 },
+        { "force", no_argument,              0, 20 },
+        { "msa-info", no_argument,           0, 12 },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:h:i:m:o:p:q:r:s:t:T:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:h:Hi:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -321,6 +323,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     params_ok = false;
                 }
             }
+            break;
+        case 'H':
+            exec_opt.compress_patterns = false;
             break;
         case 'i':
             exec_opt.msa_filename = optarg;
@@ -1363,6 +1368,8 @@ void Meta::print_help(std::ostream& out)
         << "sets the parameter optimization tolerance" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
         << "forces frequencies smoothing" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -H, --no-compress"
+        << "disables pattern compression" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
         << PACKAGE << " ignores if there are missing states" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"

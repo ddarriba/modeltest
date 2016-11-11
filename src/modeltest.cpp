@@ -114,15 +114,19 @@ bool ModelTest::evaluate_single_model(Model * model,
                                       double tolerance,
                                       double epsilon)
 {
+  bool result = true;
+  if (!model->is_optimized())
+  {
     ModelOptimizer * mopt = get_model_optimizer(model,
                                                 part_id,
                                                 thread_number);
     assert(mopt);
 
-    bool result = mopt->run(epsilon, tolerance);
+    result = mopt->run(epsilon, tolerance);
     delete mopt;
+  }
 
-    return result;
+  return result;
 }
 
 int ModelTest::eval_and_print(const partition_id_t &part_id,
@@ -350,7 +354,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                            2048);
       if (!bin_file)
       {
-        printf("Cannot create binary file: %s\n", current_instance->ckp_filename.c_str());
+        printf("Cannot create ckp binary file: \"%s\"\n", current_instance->ckp_filename.c_str());
         return false;
       }
       pllmod_binary_close(bin_file);
@@ -372,7 +376,8 @@ bool ModelTest::build_instance(mt_options_t & options)
     if (options.partitions_eff)
       delete options.partitions_eff;
     options.partitions_eff = new vector<partition_descriptor_t>(*options.partitions_desc);
-    if (!current_instance->msa->reorder_sites(*options.partitions_eff))
+    if (!current_instance->msa->reorder_sites(*options.partitions_eff,
+                                              options.compress_patterns))
     {
       return false;
     }
@@ -607,20 +612,22 @@ bool ModelTest::build_instance(mt_options_t & options)
     LOG_INFO << endl << "Optimizing tree for " << start_model->get_name() << endl;
 
     //TODO: Optimize per partition
-    ModelOptimizer * start_opt = get_model_optimizer(start_model,
-                                         {0},
-                                          0,
-                                          true);
+    if (!start_model->is_optimized())
+    {
+      ModelOptimizer * start_opt = get_model_optimizer(start_model,
+                                           {0},
+                                            0,
+                                            true);
 
-    start_opt->run(options.epsilon_opt, options.epsilon_param);
-    assert(start_model->is_optimized());
+      start_opt->run(options.epsilon_opt, options.epsilon_param);
+      assert(start_model->is_optimized());
+      delete start_opt;
+    }
     LOG_INFO << "Starting tree fixed " << start_model->get_loglh() << endl;
     TreePll *tree = static_cast<TreePll *>(current_instance->tree);
     tree->set_pll_tree(pll_utree_clone(start_model->get_tree()));
     start_model->set_tree((pll_utree_t *)tree->extract_tree());
 
-    delete start_opt;
-    
     break;
   }
 
@@ -631,7 +638,7 @@ bool ModelTest::build_instance(mt_options_t & options)
       if (!Utils::append_to_file(options.output_tree_file, nw))
       {
           mt_errno = MT_ERROR_IO;
-          snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot write starting tree: %s",
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot write starting tree: \"%s\"",
                    options.output_tree_file.c_str());
           return false;
       }

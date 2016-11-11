@@ -6,6 +6,7 @@
 
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
+#include "gui/xthreadopt.h"
 
 #define st_active         (1<<0)
 #define st_msa_loaded     (1<<1)
@@ -51,6 +52,8 @@ private slots:
 
     void on_actionLoad_Tree_triggered();
 
+    void on_btn_run_clicked();
+
 private:
     void update_gui( void );
     void set_active_tab(QString text);
@@ -59,6 +62,7 @@ private:
     void autoSelectSchemes(const int schemes[], int n);
     void set_substitution_schemes(mt_index_t n_schemes);
     void reset_xmt( void );
+    void run_modelselection( void );
 
     Ui::XModelTestFancy *ui;
 
@@ -75,7 +79,13 @@ private:
     unsigned int tree_type;
     unsigned int n_threads;
 
+    partitioning_scheme_t * scheme;
+    tree_type_t start_tree;
+    asc_bias_t asc_bias;
+    mt_options_t opts;
+
     MyDebugStream *redirect;
+    xThreadOpt * mythread;
 };
 
 #endif // XMODELTESTFANCY_H

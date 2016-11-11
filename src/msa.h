@@ -69,9 +69,11 @@ namespace modeltest
     /**
      * @brief Reorder the sites according to a partitioning scheme
      * @param[in,out] scheme valid partitioning scheme
+     * @param[in] compress_patterns compress identical site patterns
      * @return true, if success
      */
-    virtual bool reorder_sites(partitioning_scheme_t & scheme) = 0;
+    virtual bool reorder_sites(partitioning_scheme_t & scheme,
+                               bool compress_patterns = true) = 0;
 
     /**
      * @brief Prints the sequence
