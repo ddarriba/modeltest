@@ -29,6 +29,7 @@
  */
 
 #include "genesis/logging.h"
+#include "global_defs.h"
 
 #include <fstream>
 #include <iomanip>
@@ -85,7 +86,7 @@ std::string                Logging::debug_indent       = "    ";
  */
 void Logging::max_level (const LoggingLevel level)
 {
-    if (level > LOG_LEVEL_MAX) {
+    if (ROOT && level > LOG_LEVEL_MAX) {
         LOG_WARN << "Logging max level set to " << level << ", but compile "
                  << "time max level is " << LOG_LEVEL_MAX << ", so that "
                  << "everything above that will not be logged.";
@@ -129,15 +130,17 @@ std::string Logging::level_to_string(const LoggingLevel level)
  */
 void Logging::log_to_stdout ()
 {
-    // check whether stdout was already added.
-    for (std::ostream* os : ostreams_) {
-        if (os == &std::cout) {
-            return;
-        }
-    }
+  if(!ROOT) return;
 
-    // if not, add it as output stream.
-    ostreams_.push_back (&std::cout);
+  // check whether stdout was already added.
+  for (std::ostream* os : ostreams_) {
+      if (os == &std::cout) {
+          return;
+      }
+  }
+
+  // if not, add it as output stream.
+  ostreams_.push_back (&std::cout);
 }
 
 /**
@@ -145,15 +148,17 @@ void Logging::log_to_stdout ()
  */
 void Logging::log_to_stderr ()
 {
-    // check whether stdout was already added.
-    for (std::ostream* os : ostreams_) {
-        if (os == &std::cerr) {
-            return;
-        }
-    }
+  if(!ROOT) return;
 
-    // if not, add it as output stream.
-    ostreams_.push_back (&std::cout);
+  // check whether stdout was already added.
+  for (std::ostream* os : ostreams_) {
+      if (os == &std::cerr) {
+          return;
+      }
+  }
+
+  // if not, add it as output stream.
+  ostreams_.push_back (&std::cout);
 }
 
 /**
@@ -161,7 +166,8 @@ void Logging::log_to_stderr ()
  */
 void Logging::log_to_stream (std::ostream& os)
 {
-    ostreams_.push_back (&os);
+  if(!ROOT) return;
+  ostreams_.push_back (&os);
 }
 
 /**
@@ -171,15 +177,17 @@ void Logging::log_to_stream (std::ostream& os)
  */
 void Logging::log_to_file (const std::string& fn)
 {
-    // TODO the log file stream is never deleted. this is not a big leak,
-    // as commonly only one file is used for logging, but still is a smell.
-    std::ofstream* file = new std::ofstream();
-    file->open (fn, std::ios::out | std::ios::app);
-    if (file->is_open()) {
-        ostreams_.push_back (file);
-    } else {
-        throw std::runtime_error( "Cannot open logging file " + fn );
-    }
+  if(!ROOT) return;
+
+  // TODO the log file stream is never deleted. this is not a big leak,
+  // as commonly only one file is used for logging, but still is a smell.
+  std::ofstream* file = new std::ofstream();
+  file->open (fn, std::ios::out | std::ios::app);
+  if (file->is_open()) {
+      ostreams_.push_back (file);
+  } else {
+      throw std::runtime_error( "Cannot open logging file " + fn );
+  }
 }
 
 /**
@@ -187,15 +195,17 @@ void Logging::log_to_file (const std::string& fn)
  */
 void Logging::err_to_stdout ()
 {
-    // check whether stdout was already added.
-    for (std::ostream* os : ostreams_) {
-        if (os == &std::cout) {
-            return;
-        }
-    }
+  if(!ROOT) return;
 
-    // if not, add it as output stream.
-    estreams_.push_back (&std::cout);
+  // check whether stdout was already added.
+  for (std::ostream* os : ostreams_) {
+      if (os == &std::cout) {
+          return;
+      }
+  }
+
+  // if not, add it as output stream.
+  estreams_.push_back (&std::cout);
 }
 
 /**
@@ -203,15 +213,17 @@ void Logging::err_to_stdout ()
  */
 void Logging::err_to_stderr ()
 {
-    // check whether stdout was already added.
-    for (std::ostream* os : ostreams_) {
-        if (os == &std::cerr) {
-            return;
-        }
-    }
+  if(!ROOT) return;
 
-    // if not, add it as output stream.
-    estreams_.push_back (&std::cout);
+  // check whether stdout was already added.
+  for (std::ostream* os : ostreams_) {
+      if (os == &std::cerr) {
+          return;
+      }
+  }
+
+  // if not, add it as output stream.
+  estreams_.push_back (&std::cout);
 }
 
 /**
@@ -219,7 +231,9 @@ void Logging::err_to_stderr ()
  */
 void Logging::err_to_stream (std::ostream& os)
 {
-    estreams_.push_back (&os);
+  if(!ROOT) return;
+
+  estreams_.push_back (&os);
 }
 
 /**
@@ -229,15 +243,17 @@ void Logging::err_to_stream (std::ostream& os)
  */
 void Logging::err_to_file (const std::string& fn)
 {
-    // TODO the log file stream is never deleted. this is not a big leak,
-    // as commonly only one file is used for logging, but still is a smell.
-    std::ofstream* file = new std::ofstream();
-    file->open (fn, std::ios::out | std::ios::app);
-    if (file->is_open()) {
-        estreams_.push_back (file);
-    } else {
-        throw std::runtime_error( "Cannot open logging file " + fn );
-    }
+  if(!ROOT) return;
+
+  // TODO the log file stream is never deleted. this is not a big leak,
+  // as commonly only one file is used for logging, but still is a smell.
+  std::ofstream* file = new std::ofstream();
+  file->open (fn, std::ios::out | std::ios::app);
+  if (file->is_open()) {
+      estreams_.push_back (file);
+  } else {
+      throw std::runtime_error( "Cannot open logging file " + fn );
+  }
 }
 
 // =============================================================================

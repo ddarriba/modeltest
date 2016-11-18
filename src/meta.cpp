@@ -922,7 +922,7 @@ void Meta::print_ascii_logo(std::ostream  &out)
 void Meta::print_header(std::ostream  &out)
 {
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    print_version();
+    print_version(out);
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl << endl;
 }
 

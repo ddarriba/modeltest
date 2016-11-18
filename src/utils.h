@@ -230,7 +230,7 @@ public:
     static std::string format_time(time_t seconds);
 
     static std::string int_array_to_string(const int array[], int length);
-    
+
     /* File utils */
 
     /**

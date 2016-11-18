@@ -84,7 +84,7 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
                                    params->tree,
                                    params->params_indices,
                                    MIN_PINV,
-                                   MAX_PINV,
+                                   max_pinv,
                                    tolerance);
 
   pinv = params->partition->prop_invar[0];

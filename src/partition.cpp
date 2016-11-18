@@ -354,7 +354,7 @@ const char * Partition::get_sequence(mt_index_t idx) const
 
 const mt_size_t * Partition::get_weights( void ) const
 {
-  mt_size_t *wgt = new mt_size_t[n_patterns];
+  //mt_size_t *wgt = new mt_size_t[n_patterns];
   const mt_size_t * msa_wgt = msa.get_weights();
 
   /* the number of regions and stride should be reduced to 1 during site reordering */
@@ -624,23 +624,26 @@ bool Partition::compute_empirical_subst_rates( void )
 bool Partition::compute_empirical_pinv( void )
 {
     const mt_size_t * weights = msa.get_weights();
-    const char * sequence0 = msa.get_sequence(0);
     mt_size_t n_inv = 0;
     double sum_wgt = 0.0;
+    mt_size_t gap_state = descriptor.datatype == dt_protein?((1<<20)-1):15;
+    const unsigned int * charmap = descriptor.datatype == dt_protein?pll_map_aa:pll_map_nt;
     for (partition_region_t region : descriptor.regions)
     {
         for (mt_index_t j = region.start - 1; j < region.end; j += region.stride)
         {
             sum_wgt += weights[j];
             n_inv   += weights[j];
-            char state = sequence0[j];
-            for (mt_index_t i=1; i<msa.get_n_sequences(); ++i)
+            char state = gap_state;
+            for (mt_index_t i=0; i<msa.get_n_sequences(); ++i)
             {
-                if (msa.get_sequence(i)[j] != state)
-                {
-                    n_inv -= weights[j];
-                    break;
-                }
+              state &= charmap[(mt_index_t) msa.get_sequence(i)[j]];
+              if (!state)
+                break;
+            }
+            if (__builtin_popcount(state) != 1)
+            {
+              n_inv -= weights[j];
             }
         }
     }

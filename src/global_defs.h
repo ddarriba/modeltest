@@ -34,6 +34,14 @@
 #define VERSION "x.y.z"
 #endif
 
+#ifdef BUILD_MPI
+#define MPI_ENABLED 1
+#define BARRIER MPI_Barrier(MPI_COMM_WORLD)
+#else
+#define MPI_ENABLED 0
+#define BARRIER
+#endif
+
 #ifndef __has_cpp_attribute         // Optional of course.
   #define __has_cpp_attribute(x) 0  // Compatibility with non-clang compilers.
 #endif
@@ -99,7 +107,7 @@ typedef mt_size_t mt_mask_t;
 
 typedef std::vector<mt_index_t> partition_id_t;
 
-#ifdef HAVE_MPI
+#if(MPI_ENABLED)
 #include <mpi.h>
 #define ROOT (!mpi_rank)
 #define MINE(x) ((x % mpi_numprocs) == mpi_rank)

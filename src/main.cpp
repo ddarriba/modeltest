@@ -45,11 +45,22 @@ using namespace std;
 
 /** number of parallel processes */
 static mt_size_t n_procs = 1;
+#if(MPI_ENABLED)
+int mpi_rank;
+int mpi_numprocs;
+#endif
 
 #define FANCY_GUI
 
 int main(int argc, char *argv[])
 {
+#if(MPI_ENABLED)
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_numprocs);
+    printf("size: %u, rank: %u\n", mpi_numprocs, mpi_rank);
+#endif
+
     int return_val = EXIT_SUCCESS;
 
     genesis::utils::Logging::log_to_stream(cout);
@@ -67,7 +78,7 @@ int main(int argc, char *argv[])
 
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
-            return(EXIT_FAILURE);
+            modeltest::Utils::exit_with_error("");
         }
 
         if (opts.output_log_file.compare(""))
@@ -90,6 +101,13 @@ int main(int argc, char *argv[])
             return (int)modeltest::mt_errno;
         }
 
+// #if(MPI_ENABLED)
+//         /* broadcast stuff */
+//
+//         MPI_Finalize();
+//         exit(0);
+// #else
+
         if (n_procs == 1 && num_cores > 1)
         {
             /* We warn only if the number of processors is 1. */
@@ -105,7 +123,10 @@ int main(int argc, char *argv[])
 
         vector<map<modeltest::ic_type, modeltest::selection_model>> best_models(opts.partitions_eff->size());
 
-        ofstream * results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
+        ofstream * results_stream = 0;
+
+        results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
+
         if (results_stream)
             Meta::print_options(opts, *results_stream);
 
@@ -164,6 +185,7 @@ int main(int argc, char *argv[])
             delete aic_selection;
             delete aicc_selection;
         }
+// #endif
 
         if (results_stream)
         {
@@ -220,6 +242,10 @@ int main(int argc, char *argv[])
     }
 
     ModelTestService::finalize();
+
+#if(MPI_ENABLED)
+    MPI_Finalize();
+#endif
 
     return return_val;
 }

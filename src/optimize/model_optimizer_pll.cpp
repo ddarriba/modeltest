@@ -391,12 +391,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     notify();
 
     /* loglh intialized to an arbitrary value above the current lk */
-    save_loglh = cur_loglh + 10;
+    save_loglh = cur_loglh - 1;
 
     if (opt_per_param)
     {
       bool all_params_done = false;
-      while ((fabs (cur_loglh - save_loglh) > epsilon && cur_loglh < save_loglh))
+      while ((fabs (cur_loglh - save_loglh) > epsilon && cur_loglh > save_loglh))
       {
         save_loglh = cur_loglh;
         all_params_done = false;
@@ -417,7 +417,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           }
           opt_delta = cur_loglh;
           notify();
+// printf("PAR:%d SAVE:%.4f CUR:%.4f\n", all_params_done, save_loglh, cur_loglh);
         }
+// printf("ePAR:%d SAVE:%.4f CUR:%.4f\n", all_params_done, save_loglh, cur_loglh);
       }
     }
     else

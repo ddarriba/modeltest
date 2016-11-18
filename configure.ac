@@ -123,5 +123,6 @@ AC_SUBST(MPICXX)
 AM_CONDITIONAL(BUILD_MPI, test "x$have_mpi" = "xyes")
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 mpi/Makefile])
 AC_OUTPUT

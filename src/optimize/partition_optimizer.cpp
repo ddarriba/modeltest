@@ -122,6 +122,8 @@ namespace modeltest
     bool exec_ok = true;
     mt_size_t n_models = models.size();
 
+BARRIER;
+
     if (n_procs > 1)
     {
       /* execute on thread pool */
@@ -168,15 +170,24 @@ namespace modeltest
       for (Model *model : models)
       {
         exec_info.start_time = time(NULL);
-
-        exec_ok &= evaluate_single_model(*model, 0);
         ++exec_info.model_index;
+#if(MPI_ENABLED)
+if ((exec_info.model_index % mpi_numprocs) == mpi_rank)
+{
+  printf("Eval[%d] %s\n", mpi_rank, model->get_name().c_str());
+}
+else
+  continue;
+#endif
+        exec_ok &= evaluate_single_model(*model, 0);
         exec_info.model = model;
 
         exec_info.end_time = time(NULL);
         notify((void *) &exec_info);
       }
     }
+
+BARRIER;
 
     return exec_ok;
   }

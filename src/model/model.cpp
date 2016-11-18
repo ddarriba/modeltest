@@ -517,7 +517,6 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
   loglh = parameter->optimize(&params, loglh, tolerance, true);
-
   ++current_opt_parameter;
 
   if (current_opt_parameter >= parameters.size())

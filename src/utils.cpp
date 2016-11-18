@@ -240,7 +240,7 @@ void Utils::exit_with_error(const char * message, ...) {
 
     ModelTestService::instance()->destroy_instance();
 
-#ifdef HAVE_MPI
+#if(MPI_ENABLED)
     MPI_Finalize();
 #endif
     exit(EXIT_FAILURE);
