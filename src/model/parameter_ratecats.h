@@ -44,7 +44,9 @@ public:
   virtual double get_alpha( void ) const { return -1; }
   virtual void set_alpha( double alpha ) { UNUSED(alpha); }
   virtual double * get_weights( void ) const;
+  virtual void set_weights( const double * weights );
   virtual double * get_rates( void ) const;
+  virtual void set_rates( const double * rates );
   void set_n_categories( mt_size_t n_categories );
 
   virtual mt_size_t get_n_free_parameters( void ) const;

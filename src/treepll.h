@@ -73,6 +73,12 @@ namespace modeltest
     void set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number = 0);
 
     /**
+     * @brief set missing taxa names into topology
+     * @param[in,out] tree tree to update
+     */
+    void update_names( pll_utree_t * tree, Msa * msa = 0 );
+
+    /**
      * @brief test whether a tree is correct
      * @param[in] tree_filename the filename of the tree in NEWICK format
      * @param[out] n_tips the number of tips

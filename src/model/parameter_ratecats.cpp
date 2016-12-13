@@ -78,9 +78,19 @@ double * ParameterRateCats::get_weights( void ) const
   return weights;
 }
 
+void ParameterRateCats::set_weights( const double * w)
+{
+  memcpy(weights, w, sizeof(double) * n_cats);
+}
+
 double * ParameterRateCats::get_rates( void ) const
 {
   return rates;
+}
+
+void ParameterRateCats::set_rates( const double * r)
+{
+  memcpy(rates, r, sizeof(double) * n_cats);
 }
 
 void ParameterRateCats::set_n_categories( mt_size_t n_categories )

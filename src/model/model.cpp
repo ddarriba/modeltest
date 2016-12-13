@@ -364,9 +364,21 @@ const double * Model::get_mixture_weights( void ) const
   return 0;
 }
 
+void Model::set_mixture_weights( const double * weights )
+{
+  /* this applies only to mixture models */
+  assert(0);
+}
+
 const double * Model::get_mixture_rates( void ) const
 {
   return 0;
+}
+
+void Model::set_mixture_rates( const double * rates )
+{
+  /* this applies only to mixture models */
+  assert(0);
 }
 
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
@@ -444,12 +456,22 @@ pll_utree_t * Model::get_tree( void ) const
     return tree;
 }
 
-void Model::set_tree( pll_utree_t * _tree )
+void Model::set_tree( pll_utree_t * _tree, int _n_tips )
 {
+  /* set node zero */
+  while (_tree->node_index > 0)
+    if (_tree->next)
+      _tree = _tree->next->back;
+    else
+     _tree = _tree->back;
+
+  assert(!_tree->next && _tree->back->next);
+
   if (tree)
   {
     pll_utree_destroy(tree->back);
   }
+  if (_n_tips > 0) n_tips = _n_tips;
   tree = _tree;
 }
 
@@ -922,6 +944,8 @@ void DnaModel::input_log(std::istream  &in)
 
 int DnaModel::output_bin(std::string const& bin_filename) const
 {
+  assert(ROOT);
+
   ckpdata_t ckp_data;
   pll_binary_header_t input_header;
   const double * subst_rates = get_subst_rates();
@@ -1210,9 +1234,19 @@ const double * ProtModel::get_mixture_weights( void ) const
     return param_gamma->get_weights();
 }
 
+void ProtModel::set_mixture_weights( const double * weights )
+{
+  param_gamma->set_weights(weights);
+}
+
 const double * ProtModel::get_mixture_rates( void ) const
 {
     return param_gamma->get_rates();
+}
+
+void ProtModel::set_mixture_rates( const double * rates )
+{
+  param_gamma->set_rates(rates);
 }
 
 pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
@@ -1368,6 +1402,8 @@ void ProtModel::input_log(std::istream  &in)
 
 int ProtModel::output_bin(std::string const& bin_filename) const
 {
+  assert(ROOT);
+
   ckpdata_t ckp_data;
   pll_binary_header_t input_header;
   const double * frequencies = get_frequencies();

@@ -63,13 +63,15 @@ namespace modeltest
     ~PartitionOptimizer();
     bool evaluate( mt_size_t n_procs = 1 );
   private:
-
     bool evaluate_greedy( mt_size_t n_procs );
 
     bool evaluate_all_models( std::vector<Model *> const& models,
                               mt_size_t n_procs );
+
     bool evaluate_single_model(Model & model,
                                mt_index_t thread_number);
+
+    void * model_scheduler( std::vector<Model *> const& models );
 
     Partition & partition;  //! partition instance
     MsaPll & msa;           //! msa instance

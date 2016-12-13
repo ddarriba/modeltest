@@ -443,6 +443,8 @@ void Partition::input_log(std::istream  &in)
 
 int Partition::output_bin(string const& bin_filename) const
 {
+  assert(ROOT);
+
   //TODO
   UNUSED(bin_filename);
   return false;
@@ -450,6 +452,8 @@ int Partition::output_bin(string const& bin_filename) const
 
 int Partition::input_bin(string const& bin_filename)
 {
+  assert(ROOT);
+  
   //TODO
   UNUSED(bin_filename);
   return false;

@@ -116,13 +116,130 @@ namespace modeltest
     return exec_ok;
   }
 
+  #if(MPI_ENABLED)
+  typedef struct mpi_comm_data
+  {
+    int model_index;
+    time_t t_start;
+    time_t t_end;
+    double alpha;
+    double pinv;
+    double loglh;
+    union {
+        struct {
+          double rates[N_DNA_SUBST_RATES];
+          double freqs[N_DNA_STATES];
+        } dna_data;
+        struct {
+          double freqs[N_PROT_STATES];
+          /* specific for LG4X (4 rates) */
+          double mixture_weights[4];
+          double mixture_rates[4];
+        } prot_data;
+    };
+  } mpi_comm_data_t;
+
+  void * PartitionOptimizer::model_scheduler( vector<Model *> const& models ) {
+    mt_size_t n_jobs = models.size();
+    vector<int> job_map;
+    MPI_Request * request = new MPI_Request[mpi_numprocs];
+    MPI_Status * status = new MPI_Status[mpi_numprocs];
+    mpi_comm_data_t rec_data;
+
+    job_map.resize(n_jobs);
+    for (mt_index_t i=1 ; i<n_jobs; ++i) job_map[i] = -1;
+
+    /* schedule jobs sequentially */
+    int opt_index = 0;
+    for (mt_index_t i=0 ; i<(n_jobs + mpi_numprocs - 1); ++i)
+    {
+      int next_index = (i<n_jobs)?i:-1;
+
+      /* receive request notification from processes
+       * either the previous optimized model or an empty block
+       */
+      MPI_Recv(&rec_data, sizeof(mpi_comm_data_t), MPI_BYTE, MPI_ANY_SOURCE, 201, master_mpi_comm, &status[0]);
+
+      if (rec_data.model_index >= 0)
+      {
+        /* update local model information */
+        pll_utree_t * serialized_tree;
+        pll_utree_t * expanded_tree;
+
+        serialized_tree = (pll_utree_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_utree_t));
+
+        /* receive serialized tree */
+        MPI_Recv(serialized_tree, sizeof(pll_utree_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
+
+        /* update model */
+        Model *model = models[rec_data.model_index];
+        if (model->is_G()) model->set_alpha(rec_data.alpha);
+        if (model->is_I()) model->set_prop_inv(rec_data.pinv);
+        model->set_loglh(rec_data.loglh);
+
+        expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
+        tree.update_names(expanded_tree);
+        model->set_tree(expanded_tree, tree.get_n_tips());
+        free(serialized_tree);
+
+        if (partition.get_datatype() == dt_dna)
+        {
+          model->set_frequencies(rec_data.dna_data.freqs);
+          model->set_subst_rates(rec_data.dna_data.rates);
+        }
+        else
+        {
+          model->set_frequencies(rec_data.prot_data.freqs);
+          if (model->is_mixture())
+          {
+            ProtModel * pmodel = (ProtModel *) model;
+            pmodel->set_mixture_weights(rec_data.prot_data.mixture_weights);
+            pmodel->set_mixture_rates(rec_data.prot_data.mixture_rates);
+          }
+        }
+
+        model->evaluate_criteria(tree.get_n_branches(), msa.get_n_sites());
+
+        opt_info_t exec_info;
+        exec_info.n_models = n_jobs;
+        exec_info.model_index = ++opt_index;
+        exec_info.start_time = rec_data.t_start;
+        exec_info.model = model;
+        exec_info.end_time = rec_data.t_end;
+
+        /* notify to observers the updated model */
+        notify((void *) &exec_info);
+      }
+
+      /* send reply back to sender with the next model index */
+      MPI_Isend(&next_index, 1, MPI_INT, status[0].MPI_SOURCE, 202,
+                master_mpi_comm, &request[status[0].MPI_SOURCE]);
+      if (next_index >= 0)
+        job_map[i] = status[0].MPI_SOURCE;
+    }
+
+    delete[] request;
+    delete[] status;
+
+    return 0;
+  }
+  #else
+  void * PartitionOptimizer::model_scheduler( vector<Model *> const& models ) {
+    assert(0);
+    return 0;
+  }
+  #endif
+
   bool PartitionOptimizer::evaluate_all_models( vector<Model *> const& models,
                                                 mt_size_t n_procs )
   {
     bool exec_ok = true;
     mt_size_t n_models = models.size();
 
-BARRIER;
+    BARRIER;
+#if(MPI_ENABLED)
+    mpi_comm_data_t snd_data;
+#endif
 
     if (n_procs > 1)
     {
@@ -167,23 +284,74 @@ BARRIER;
       opt_info_t exec_info;
       exec_info.n_models = n_models;
       exec_info.model_index = 0;
+#if(MPI_ENABLED)
+  int next_model = 0;
+  if (ROOT)
+  {
+    model_scheduler(models);
+    next_model = -1;
+  }
+
+  pll_utree_t * serialized_tree = 0;
+  snd_data.model_index = -1;
+  while (next_model != -1)
+  {
+    /* request model */
+    MPI_Status status;
+    snd_data.t_start = exec_info.start_time;
+    snd_data.t_end = exec_info.end_time;
+    MPI_Send(&snd_data, sizeof(mpi_comm_data_t), MPI_BYTE, 0, 201, master_mpi_comm);
+
+    if (snd_data.model_index >= 0)
+    {
+      assert(serialized_tree);
+      MPI_Send(serialized_tree, sizeof(pll_utree_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
+      free(serialized_tree);
+    }
+    MPI_Recv(&next_model, 1, MPI_INT, 0, 202, master_mpi_comm, &status);
+
+    if (next_model < 0) break;
+    exec_info.model_index = next_model;
+
+    Model *model = models[exec_info.model_index];
+#else
       for (Model *model : models)
       {
-        exec_info.start_time = time(NULL);
         ++exec_info.model_index;
-#if(MPI_ENABLED)
-if ((exec_info.model_index % mpi_numprocs) == mpi_rank)
-{
-  printf("Eval[%d] %s\n", mpi_rank, model->get_name().c_str());
-}
-else
-  continue;
 #endif
+        exec_info.start_time = time(NULL);
         exec_ok &= evaluate_single_model(*model, 0);
         exec_info.model = model;
 
         exec_info.end_time = time(NULL);
         notify((void *) &exec_info);
+
+#if(MPI_ENABLED)
+        snd_data.model_index = next_model;
+        snd_data.loglh = model->get_loglh();
+        serialized_tree = pllmod_utree_serialize(model->get_tree(),
+                                                 tree.get_n_tips());
+        if (model->is_G()) snd_data.alpha = model->get_alpha();
+        if (model->is_I()) snd_data.pinv = model->get_prop_inv();
+        if (partition.get_datatype() == dt_dna)
+        {
+          memcpy(snd_data.dna_data.freqs, model->get_frequencies(), N_DNA_STATES * sizeof(double));
+          memcpy(snd_data.dna_data.rates, model->get_subst_rates(), N_DNA_SUBST_RATES * sizeof(double));
+        }
+        else
+        {
+          memcpy(snd_data.prot_data.freqs, model->get_frequencies(), N_PROT_STATES * sizeof(double));
+          if (model->is_mixture())
+          {
+            memcpy(snd_data.prot_data.mixture_weights,
+                   model->get_mixture_weights(),
+                   4 * sizeof(double));
+            memcpy(snd_data.prot_data.mixture_rates,
+                   model->get_mixture_rates(),
+                   4 * sizeof(double));
+          }
+        }
+#endif
       }
     }
 

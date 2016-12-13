@@ -42,6 +42,63 @@ static int cb_set_missing_branches(pll_utree_t * node, void *data)
   return 1;
 }
 
+static int cb_set_names(pll_utree_t * node, void *data)
+{
+  modeltest::Msa *msa = (modeltest::Msa *) data;
+
+  if (!node->label)
+  {
+    if (!node->next)
+    {
+      /* update name name */
+      node->label = (char *) malloc (strlen(msa->get_header(node->node_index))+1);
+      strcpy(node->label, msa->get_header(node->node_index));
+    }
+    else
+    {
+      node->label = (char *) malloc (1);
+      node->next->label = (char *) malloc (1);
+      node->next->next->label = (char *) malloc (1);
+      strcpy(node->label,"");
+      strcpy(node->next->label,"");
+      strcpy(node->next->next->label,"");
+    }
+  }
+
+  return 1;
+}
+
+static int cb_set_missing_names(pll_utree_t * node, void *data)
+{
+  pll_utree_t **tip_nodes = (pll_utree_t **) data;
+  pll_utree_t **tip_nodes_ptr = tip_nodes;
+
+  if (!node->label)
+  {
+    if (!node->next)
+    {
+      /* find name */
+      while ((*tip_nodes_ptr)->node_index != node->node_index)
+        ++tip_nodes_ptr;
+
+      /* update missing name */
+      node->label = (char *) malloc (strlen((*tip_nodes_ptr)->label)+1);
+      strcpy(node->label, (*tip_nodes_ptr)->label);
+    }
+    else
+    {
+      node->label = (char *) malloc (2);
+      node->next->label = (char *) malloc (2);
+      node->next->next->label = (char *) malloc (2);
+      strcpy(node->label,"A");
+      strcpy(node->next->label,"A");
+      strcpy(node->next->next->label,"A");
+    }
+  }
+
+  return 1;
+}
+
 /* a callback function for resetting all branches */
 static int cb_set_all_branches(pll_utree_t * node, void *data)
 {
@@ -123,45 +180,67 @@ namespace modeltest
                     int random_seed)
     : Tree(type, filename, msa, number_of_threads, random_seed)
   {
+    pll_utree_t * starting_tree;
+
     bl_optimized = false;
     pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
     pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
     pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
     pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
 
-    if (filename.compare(""))
+    if (ROOT)
     {
-      pll_utree_t * user_tree = pll_utree_parse_newick (filename.c_str(), &(n_tips));
-      if (!user_tree)
+      if (filename.compare(""))
       {
-        cleanup();
-        snprintf(mt_errmsg, 400, "PLL Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-        throw EXCEPTION_TREE_USER;
+        starting_tree = pll_utree_parse_newick (filename.c_str(), &(n_tips));
       }
+      else
+      {
+          //TODO: WARNING: Temporary use a RANDOM tree
+          cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
+          starting_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+      }
+    }
 
-      set_indices(user_tree, msa);
+    #if (MPI_ENABLED)
 
-      clone_tree( user_tree );
+    /* broadcast starting topology */
+    pll_utree_t * serialized_tree;
+    if (ROOT)
+    {
+      serialized_tree = pllmod_utree_serialize(starting_tree,
+                                               n_tips);
 
-      pll_utree_destroy(user_tree);
+      MPI_Bcast(serialized_tree,
+                sizeof(pll_utree_t) * (2*n_tips - 2),
+                MPI_BYTE,
+                0,
+                master_mpi_comm );
     }
     else
     {
-      //TODO: WARNING: Temporary use a RANDOM tree
-      cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
-      pll_utree_t * random_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
-      if (!random_tree)
-      {
-        cleanup();
-        snprintf(mt_errmsg, 400, "Error %d creating random tree: %s", pll_errno, pll_errmsg);
-        throw EXCEPTION_TREE_MP;
-      }
-      set_indices(random_tree, msa);
-
-      clone_tree( random_tree );
-
-      pll_utree_destroy(random_tree);
+      serialized_tree = (pll_utree_t *) malloc(sizeof(pll_utree_t) * (2*n_tips - 2));
+      MPI_Bcast(serialized_tree,
+                sizeof(pll_utree_t) * (2*n_tips - 2),
+                MPI_BYTE,
+                0,
+                master_mpi_comm );
+      starting_tree = pllmod_utree_expand(serialized_tree, n_tips);
+      update_names(starting_tree, &msa);
+      free(serialized_tree);
     }
+    #endif
+
+    if (!starting_tree)
+    {
+      cleanup();
+      snprintf(mt_errmsg, 400, "Error %d creating starting tree: %s", pll_errno, pll_errmsg);
+      throw EXCEPTION_TREE_MP;
+    }
+
+    set_indices(starting_tree, msa);
+    clone_tree( starting_tree );
+    pll_utree_destroy(starting_tree);
   }
 
   TreePll::~TreePll ()
@@ -258,6 +337,27 @@ namespace modeltest
     pll_utree_query_innernodes(new_tree, pll_inner_nodes[thread_number]);
   }
 
+  void TreePll::update_names( pll_utree_t * tree, Msa * msa )
+  {
+    if (msa)
+    {
+      pllmod_utree_traverse_apply(tree,
+                                  NULL,
+                                  NULL,
+                                  &cb_set_names,
+                                  msa);
+    }
+    else
+    {
+      assert(pll_tip_nodes[0]);
+      pllmod_utree_traverse_apply(tree,
+                                  NULL,
+                                  NULL,
+                                  &cb_set_missing_names,
+                                  pll_tip_nodes[0]);
+    }
+  }
+
   void * TreePll::extract_tree ( mt_index_t thread_number) const
   {
     assert(thread_number < number_of_threads);
@@ -283,7 +383,7 @@ namespace modeltest
 
   double TreePll::compute_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2)
   {
-    assert(!(tree1->next || tree2->next) && !strcmp(tree1->label, tree2->label));
+    assert(!(tree1->next || tree2->next) && tree1->node_index == tree2->node_index);//!strcmp(tree1->label, tree2->label));
 
     double sum_branches = recurse_euclidean_distance(tree1, tree2);
 

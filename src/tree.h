@@ -94,7 +94,7 @@ namespace modeltest
      * @return true, if OK
      */
     virtual bool set_branches(double length, mt_index_t thread_number = 0) = 0;
-
+    
     /**
      * @brief scale all branches
      * @param factor the factor

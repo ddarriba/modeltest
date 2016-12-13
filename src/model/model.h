@@ -193,7 +193,11 @@ public:
 
     virtual const double * get_mixture_weights( void ) const;
 
+    virtual void set_mixture_weights( const double * weights );
+
     virtual const double * get_mixture_rates( void ) const;
+
+    virtual void set_mixture_rates( const double * rates );
 
     /**
      * @brief Gets the number of model substitution rate parameters
@@ -302,7 +306,7 @@ public:
                                                mt_size_t n_sites,
                                                mt_size_t n_cat_g ) = 0;
     pll_utree_t * get_tree( void ) const;
-    void set_tree( pll_utree_t * tree );
+    void set_tree( pll_utree_t * tree, int n_tips = 0 );
 
     mt_index_t get_unique_id( void ) const;
 protected:
@@ -419,7 +423,9 @@ public:
     }
 
     virtual const double * get_mixture_weights( void ) const;
+    virtual void set_mixture_weights( const double * weights );
     virtual const double * get_mixture_rates( void ) const;
+    virtual void set_mixture_rates( const double * rates );
 
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,

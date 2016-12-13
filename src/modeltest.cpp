@@ -33,6 +33,8 @@
 #include <iostream>
 #include <algorithm>
 
+#define CKP_HEAD_ID 42 /* arbirary id */
+
 namespace modeltest {
 
 int mt_errno;
@@ -334,6 +336,19 @@ bool ModelTest::test_partitions(const partitioning_scheme_t &scheme,
   return true;
 }
 
+typedef struct {
+  size_t h_msa_filename;
+  size_t h_tree_filename;
+  size_t h_parts_filename;
+  mt_size_t n_taxa;
+  mt_size_t n_sites;
+  tree_type_t starting_tree;
+  bool smooth_freqs;
+  unsigned int rnd_seed;
+  double epsilon_param;
+  double epsilon_opt;
+} bin_desc_t;
+
 bool ModelTest::build_instance(mt_options_t & options)
 {
   free_stuff ();
@@ -344,20 +359,120 @@ bool ModelTest::build_instance(mt_options_t & options)
   {
     current_instance->ckp_filename = options.checkpoint_file;
 
-    if (!Utils::file_exists(current_instance->ckp_filename))
+    if (ROOT)
     {
-      cout << "Creating checkpoint file: " << current_instance->ckp_filename << endl;
       pll_binary_header_t bin_header;
-      FILE * bin_file = pllmod_binary_create(current_instance->ckp_filename.c_str(),
-                           &bin_header,
-                           PLLMOD_BIN_ACCESS_RANDOM,
-                           2048);
-      if (!bin_file)
+      bin_desc_t bin_desc;
+      bin_desc.h_msa_filename = hash<string>{}(options.msa_filename);
+      bin_desc.h_tree_filename = hash<string>{}(options.tree_filename);
+      bin_desc.h_parts_filename = hash<string>{}(options.partitions_filename);
+      bin_desc.n_taxa = options.n_taxa;
+      bin_desc.n_sites = options.n_sites;
+      bin_desc.starting_tree = options.starting_tree;
+      bin_desc.smooth_freqs = options.smooth_freqs;
+      bin_desc.rnd_seed = options.rnd_seed;
+      bin_desc.epsilon_param = options.epsilon_param;
+      bin_desc.epsilon_opt = options.epsilon_opt;
+
+      if (!Utils::file_exists(current_instance->ckp_filename))
       {
-        printf("Cannot create ckp binary file: \"%s\"\n", current_instance->ckp_filename.c_str());
-        return false;
+        LOG_INFO << "Creating checkpoint file: "
+                 << current_instance->ckp_filename << endl;
+
+        FILE * bin_file = pllmod_binary_create(
+                             current_instance->ckp_filename.c_str(),
+                             &bin_header,
+                             PLLMOD_BIN_ACCESS_RANDOM,
+                             2048);
+        if (!bin_file)
+        {
+          LOG_ERR << "Cannot create ckp binary file: "
+                  << current_instance->ckp_filename << endl;
+          return false;
+        }
+
+        /* dump options */
+        pllmod_binary_custom_dump(bin_file, CKP_HEAD_ID,
+                                  &bin_desc,
+                                  sizeof(bin_desc_t),
+                                  PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+        pllmod_binary_close(bin_file);
       }
-      pllmod_binary_close(bin_file);
+      else
+      {
+        /* validate binary file */
+        bin_desc_t * rec_bin_desc;
+        size_t size;
+        unsigned int type, attributes;
+        bool ckp_valid = true;
+        FILE * bin_file = pllmod_binary_open(
+                             current_instance->ckp_filename.c_str(),
+                             &bin_header);
+         if (!bin_file)
+         {
+           mt_errno = pll_errno;
+           snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
+                    pll_errno, pll_errmsg);
+           return false;
+         }
+
+         pll_errno = 0;
+         rec_bin_desc = (bin_desc_t *) pllmod_binary_custom_load(bin_file,
+                                                   CKP_HEAD_ID,
+                                                   &size,
+                                                   &type,
+                                                   &attributes,
+                                                   PLLMOD_BIN_ACCESS_SEEK);
+        cout << "Validating binary file " << pll_errno << " "
+             << options.msa_filename << endl;
+
+        LOG_INFO << "Validating binary checkpoint" << endl;
+        if (rec_bin_desc->h_msa_filename != bin_desc.h_msa_filename)
+        {
+          ckp_valid = false;
+          LOG_ERR << "MSA filename differs" << endl;
+        }
+        if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
+        {
+          ckp_valid = false;
+          LOG_ERR << "Tree filename differs" << endl;
+        }
+        if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
+        {
+          ckp_valid = false;
+          LOG_ERR << "Partitions filename differs" << endl;
+        }
+        if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
+        {
+          ckp_valid = false;
+          LOG_ERR << "Starting tree differs" << endl;
+        }
+        if (rec_bin_desc->rnd_seed != bin_desc.rnd_seed)
+        {
+          ckp_valid = false;
+          LOG_ERR << "RNG seed differs" << endl;
+        }
+        if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
+            fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
+        {
+          ckp_valid = false;
+          LOG_ERR << "Optimization epsilons differ" << endl;
+        }
+        if (ckp_valid)
+        {
+          LOG_INFO << "OK!" << endl;
+        }
+        else
+        {
+          LOG_ERR << "Binary checkpoint mismatch!" << endl <<
+          "Run modeltest with the saved configuration or delete the checkpoint file: " <<
+          current_instance->ckp_filename << endl;
+
+          return false;
+        }
+        free(rec_bin_desc);
+      }
     }
   }
 
@@ -661,6 +776,7 @@ bool ModelTest::set_models(const vector<Model *> &c_models,
 void ModelTest::update(Observable * subject, void * data)
 {
   //TODO: Use struct here
+  if (!ROOT) return;
   opt_info_t * opt_info = static_cast<opt_info_t *>(data);
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
                                 opt_info->start_time, global_ini_time,

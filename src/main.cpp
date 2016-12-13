@@ -44,10 +44,12 @@ ModelTestService *ModelTestService::s_instance = 0;
 using namespace std;
 
 /** number of parallel processes */
-static mt_size_t n_procs = 1;
-#if(MPI_ENABLED)
 int mpi_rank;
 int mpi_numprocs;
+
+static mt_size_t n_procs = 1;
+#if(MPI_ENABLED)
+MPI_Comm master_mpi_comm;
 #endif
 
 #define FANCY_GUI
@@ -58,8 +60,18 @@ int main(int argc, char *argv[])
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_numprocs);
-    printf("size: %u, rank: %u\n", mpi_numprocs, mpi_rank);
+
+    /* so far, allow only for single-process tasks */
+    master_mpi_comm = MPI_COMM_WORLD;
+
+    cout << "MPI Start: Size: " << mpi_numprocs
+             << " Rank: " << mpi_rank << endl;
+#else
+    mpi_rank = 0;
+    mpi_numprocs = 1;
 #endif
+
+    BARRIER;
 
     int return_val = EXIT_SUCCESS;
 
@@ -78,7 +90,7 @@ int main(int argc, char *argv[])
 
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
-            modeltest::Utils::exit_with_error("");
+            modeltest::Utils::exit_with_error("Invalid arguments");
         }
 
         if (opts.output_log_file.compare(""))
@@ -101,14 +113,15 @@ int main(int argc, char *argv[])
             return (int)modeltest::mt_errno;
         }
 
-// #if(MPI_ENABLED)
-//         /* broadcast stuff */
-//
-//         MPI_Finalize();
-//         exit(0);
-// #else
+        if (mpi_numprocs > 1 && n_procs > 1)
+        {
+           modeltest::Utils::exit_with_error("MPI and multithreading is not supported");
+           /* for the future, in this case n_procs should be <= mpi_numprocs, and
+            * the master communicator will be split into per-task communicators.
+            */
+        }
 
-        if (n_procs == 1 && num_cores > 1)
+        if (mpi_numprocs == 1 && n_procs == 1 && num_cores > 1)
         {
             /* We warn only if the number of processors is 1. */
             /* Otherwise we assume that the user is aware of this feature */
@@ -144,78 +157,84 @@ int main(int argc, char *argv[])
                                                           opts.epsilon_opt,
                                                           MT_INFO);
 
-            MT_INFO << endl << "Computation of likelihood scores completed. It took " <<
-                         modeltest::Utils::format_time(time(NULL) - ini_global_time) << endl;
-
-            modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
-            ModelTestService::instance()->print_selection(*bic_selection, MT_INFO);
-            if (results_stream)
-                ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
-            best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
-
-            modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
-            ModelTestService::instance()->print_selection(*aic_selection, MT_INFO);
-            if (results_stream)
-                ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
-            best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
-
-            modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
-            ModelTestService::instance()->print_selection(*aicc_selection, MT_INFO);
-            if (results_stream)
-                ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
-            best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
-
-            /* ignore DT if topology is not fixed */
-            if (opts.starting_tree != tree_ml)
+            if (ROOT)
             {
-                modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
-                ModelTestService::instance()->print_selection(*dt_selection, MT_INFO);
-                if (results_stream)
-                    ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
-                best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
-                delete dt_selection;
+              MT_INFO << endl << "Computation of likelihood scores completed. It took " <<
+                           modeltest::Utils::format_time(time(NULL) - ini_global_time) << endl;
+
+              modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
+              ModelTestService::instance()->print_selection(*bic_selection, MT_INFO);
+              if (results_stream)
+                  ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
+              best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
+
+              modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
+              ModelTestService::instance()->print_selection(*aic_selection, MT_INFO);
+              if (results_stream)
+                  ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
+              best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
+
+              modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
+              ModelTestService::instance()->print_selection(*aicc_selection, MT_INFO);
+              if (results_stream)
+                  ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
+              best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
+
+              /* ignore DT if topology is not fixed */
+              if (opts.starting_tree != tree_ml)
+              {
+                  modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
+                  ModelTestService::instance()->print_selection(*dt_selection, MT_INFO);
+                  if (results_stream)
+                      ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
+                  best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
+                  delete dt_selection;
+              }
+
+              /* topological summary */
+              ModelTestService::instance()->topological_summary(part_id,
+                                                                *bic_selection,
+                                                                *aic_selection,
+                                                                *aicc_selection);
+
+              delete bic_selection;
+              delete aic_selection;
+              delete aicc_selection;
             }
-
-            /* topological summary */
-            ModelTestService::instance()->topological_summary(part_id,
-                                                              *bic_selection,
-                                                              *aic_selection,
-                                                              *aicc_selection);
-            delete bic_selection;
-            delete aic_selection;
-            delete aicc_selection;
         }
-// #endif
 
-        if (results_stream)
+        if (ROOT)
         {
-            results_stream->close();
-            delete results_stream;
+          if (results_stream)
+          {
+              results_stream->close();
+              delete results_stream;
+          }
+
+          MT_INFO << "Summary:" << endl;
+          for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
+          {
+              MT_INFO <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
+              modeltest::ModelSelection::print_inline_header(MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], MT_INFO);
+              if (opts.starting_tree != tree_ml)
+                  modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
+          }
+
+          MT_INFO << endl;
+          MT_INFO << "Execution results written to " << opts.output_results_file << endl;
+          if (opts.output_tree_to_file)
+              MT_INFO << "Starting tree written to " << opts.output_tree_file << endl;
+          //MT_INFO << "Log written to " << opts.output_log_file << endl;
+
+          /* clean */
+          if (opts.partitions_desc)
+              delete opts.partitions_desc;
+          if (opts.partitions_eff)
+              delete opts.partitions_eff;
         }
-
-        MT_INFO << "Summary:" << endl;
-        for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
-        {
-            MT_INFO <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
-            modeltest::ModelSelection::print_inline_header(MT_INFO);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], MT_INFO);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], MT_INFO);
-            modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], MT_INFO);
-            if (opts.starting_tree != tree_ml)
-                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
-        }
-
-        MT_INFO << endl;
-        MT_INFO << "Execution results written to " << opts.output_results_file << endl;
-        if (opts.output_tree_to_file)
-            MT_INFO << "Starting tree written to " << opts.output_tree_file << endl;
-        //MT_INFO << "Log written to " << opts.output_log_file << endl;
-
-        /* clean */
-        if (opts.partitions_desc)
-            delete opts.partitions_desc;
-        if (opts.partitions_eff)
-            delete opts.partitions_eff;
     }
     else
     {
@@ -240,6 +259,7 @@ int main(int argc, char *argv[])
                 << PACKAGE << " --usage' for more information" << endl;
         #endif
     }
+BARRIER;
 
     ModelTestService::finalize();
 

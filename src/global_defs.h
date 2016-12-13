@@ -107,12 +107,14 @@ typedef mt_size_t mt_mask_t;
 
 typedef std::vector<mt_index_t> partition_id_t;
 
+extern int mpi_rank;
+extern int mpi_numprocs;
+
 #if(MPI_ENABLED)
 #include <mpi.h>
 #define ROOT (!mpi_rank)
 #define MINE(x) ((x % mpi_numprocs) == mpi_rank)
-extern int mpi_rank;
-extern int mpi_numprocs;
+extern MPI_Comm master_mpi_comm;
 #else
 #define ROOT (true)
 #define MINE(x) (true)
