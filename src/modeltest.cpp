@@ -424,40 +424,46 @@ bool ModelTest::build_instance(mt_options_t & options)
                                                    &type,
                                                    &attributes,
                                                    PLLMOD_BIN_ACCESS_SEEK);
-        cout << "Validating binary file " << pll_errno << " "
-             << options.msa_filename << endl;
+        if (!rec_bin_desc)
+        {
+          mt_errno = pll_errno;
+          snprintf(mt_errmsg, ERR_MSG_SIZE,
+                   "Cannot retrieve checkpoint header: %d %s",
+                   pll_errno, pll_errmsg);
+          return false;
+        }
 
         LOG_INFO << "Validating binary checkpoint" << endl;
         if (rec_bin_desc->h_msa_filename != bin_desc.h_msa_filename)
         {
           ckp_valid = false;
-          LOG_ERR << "MSA filename differs" << endl;
+          LOG_ERR << "  MSA filename differs" << endl;
         }
         if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
         {
           ckp_valid = false;
-          LOG_ERR << "Tree filename differs" << endl;
+          LOG_ERR << "  Tree filename differs" << endl;
         }
         if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
         {
           ckp_valid = false;
-          LOG_ERR << "Partitions filename differs" << endl;
+          LOG_ERR << "  Partitions filename differs" << endl;
         }
         if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
         {
           ckp_valid = false;
-          LOG_ERR << "Starting tree differs" << endl;
+          LOG_ERR << "  Starting tree differs" << endl;
         }
         if (rec_bin_desc->rnd_seed != bin_desc.rnd_seed)
         {
           ckp_valid = false;
-          LOG_ERR << "RNG seed differs" << endl;
+          LOG_ERR << "  RNG seed differs" << endl;
         }
         if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
             fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
         {
           ckp_valid = false;
-          LOG_ERR << "Optimization epsilons differ" << endl;
+          LOG_ERR << "  Optimization epsilons differ" << endl;
         }
         if (ckp_valid)
         {

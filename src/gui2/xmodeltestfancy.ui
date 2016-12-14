@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1111</width>
-    <height>562</height>
+    <width>1178</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -326,7 +326,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -344,6 +344,11 @@
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QTextBrowser" name="consoleRun">
+              <property name="font">
+               <font>
+                <family>FreeMono</family>
+               </font>
+              </property>
               <property name="cursor" stdset="0">
                <cursorShape>IBeamCursor</cursorShape>
               </property>
@@ -610,8 +615,8 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-79</y>
-                 <width>679</width>
+                 <y>0</y>
+                 <width>746</width>
                  <height>609</height>
                 </rect>
                </property>
@@ -2395,7 +2400,7 @@
                <enum>QTabWidget::Rounded</enum>
               </property>
               <property name="currentIndex">
-               <number>3</number>
+               <number>0</number>
               </property>
               <property name="documentMode">
                <bool>false</bool>
@@ -3135,7 +3140,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1111</width>
+     <width>1178</width>
      <height>25</height>
     </rect>
    </property>

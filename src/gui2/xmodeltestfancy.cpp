@@ -10,6 +10,8 @@
 #include <QtWidgets>
 #else
 #include <QtGui/QFileDialog>
+#include <QStandardItemModel>
+#include <QTableView>
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
 #endif
@@ -30,6 +32,9 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::XModelTestFancy)
 {
+  qRegisterMetaType<partition_id_t>();
+  qRegisterMetaType<mt_size_t>();
+
   ui->setupUi(this);
 
   ui->slider_nthreads->setRange(1, QThread::idealThreadCount());
@@ -104,6 +109,54 @@ void XModelTestFancy::update_gui()
   ui->actionLoad_Partitions->setEnabled(status & st_msa_loaded);
   ui->btn_run->setEnabled(status & st_msa_loaded);
   ui->tabResults->setEnabled(status & st_optimized);
+}
+
+static void fill_results(QTableView * result_table,
+                         modeltest::ModelSelection &model_selection,
+                         QLabel *imp_inv, QLabel *imp_gamma, QLabel *imp_gammainv, QLabel *imp_freqs)
+{
+    QStandardItemModel * results_table_items;
+    double cum_weight = 0.0;
+
+    if (result_table->model() != NULL)
+    {
+        delete result_table->model();
+    }
+    results_table_items = new QStandardItemModel(0,7);
+
+    int cur_column = 0;
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("Model")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("K")));
+
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("lnL")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("score")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("delta")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("weight")));
+    results_table_items->setHorizontalHeaderItem(cur_column++, new QStandardItem(QString("cum weight")));
+    result_table->setModel(results_table_items);
+
+    for (size_t i=0; i<model_selection.size(); i++)
+    {
+        modeltest::Model * model = model_selection.get_model(i).model;
+        results_table_items->setItem(i, 0, new QStandardItem(QString(model->get_name().c_str())));
+        results_table_items->setItem(i, 1, new QStandardItem(QString::number(model->get_n_free_variables())));
+
+        results_table_items->setItem(i, 2, new QStandardItem(QString::number(model->get_loglh(), 'f', 4)));
+        results_table_items->setItem(i, 3, new QStandardItem(QString::number(model_selection.get_model(i).score, 'f', 4)));
+        results_table_items->setItem(i, 4, new QStandardItem(QString::number(model_selection.get_model(i).delta, 'f', 4)));
+        results_table_items->setItem(i, 5, new QStandardItem(QString::number(model_selection.get_model(i).weight, 'f', 4)));
+        cum_weight += model_selection.get_model(i).weight;
+        results_table_items->setItem(i, 6, new QStandardItem(QString::number(cum_weight, 'f', 4)));
+    }
+
+    if (imp_gamma)
+        imp_gamma->setText(QString::number(model_selection.get_importance_gamma()));
+    if (imp_inv)
+        imp_inv->setText(QString::number(model_selection.get_importance_inv()));
+    if (imp_gammainv)
+        imp_gammainv->setText(QString::number(model_selection.get_importance_gamma_inv()));
+    if (imp_freqs)
+        imp_freqs->setText(QString::number(model_selection.get_importance_freqs()));
 }
 
 void XModelTestFancy::on_slider_nthreads_valueChanged(int value)
@@ -394,16 +447,6 @@ void XModelTestFancy::reset_xmt( void )
 
 }
 
-/* SLOTS */
-
-void XModelTestFancy::set_text(char * message)
-{
-    //TODO: Improve this allocation/deallocation
-    ui->consoleRun->append(message);
-    free(message);
-    ui->consoleRun->show();
-}
-
 void XModelTestFancy::on_btn_run_clicked()
 {
     if (!ui->btn_run->isEnabled())
@@ -415,6 +458,7 @@ void XModelTestFancy::on_btn_run_clicked()
         return;
     }
 
+    set_active_tab("Console");
     ui->frame_settings->setEnabled(false);
     update_gui();
     //ini_t = time(NULL);
@@ -650,6 +694,134 @@ void XModelTestFancy::run_modelselection()
     status |= st_optimizing;
     modeltest::on_run = true;
 
+    ini_t = time(NULL);
+
     mythread->start();
     dialog.exec();
+}
+
+/* SLOTS */
+
+void XModelTestFancy::set_text(char * message)
+{
+    //TODO: Improve this allocation/deallocation
+    ui->consoleRun->append(message);
+    free(message);
+    ui->consoleRun->show();
+}
+
+void XModelTestFancy::optimized_single_model(modeltest::Model * model, unsigned int n_models )
+{
+    /* print progress */
+    cout << setw(5) << right << (++model_index) << "/"
+         << setw(5) << left << n_models
+         << setw(15) << left << model->get_name()
+         << setw(18) << right << setprecision(MT_PRECISION_DIGITS)
+         << fixed << model->get_loglh()
+         << setw(18) << right << setprecision(MT_PRECISION_DIGITS)
+         << fixed << model->get_bic() << endl;
+}
+
+void XModelTestFancy::optimized_partition( partition_id_t part_id )
+{
+    UNUSED(part_id);
+    cout << "Finished partition " << endl;
+}
+
+void XModelTestFancy::optimization_done( )
+{
+    //TODO: FIX
+//    const std::vector<modeltest::Model *> & modelsPtr = ModelTestService::instance()->get_modeltest()->get_models(part_id);
+//        QVector<int> models;
+//        for (int i=0; (size_t)i < modelsPtr.size(); i++)
+//            models.append(i);
+
+        status &= ~st_optimizing;
+        status |= st_optimized;
+
+        modeltest::on_run = false;
+
+        update_gui();
+
+        cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+        cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
+
+        delete mythread;
+
+        /* fill results */
+        modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
+
+        ui->cmb_results_partition->setVisible(partitioning_scheme.get_size() > 1);
+        model_selection.resize(partitioning_scheme.get_size());
+        for (mt_index_t i=0; i<partitioning_scheme.get_size(); ++i)
+        {
+          //TODO: fix for multiple partition
+          // if (scheme.get_size() > 1)
+          //   ui->cmb_results_partition->addItem(scheme.get_partition(i).get_name().c_str());
+
+          model_selection[i][modeltest::ic_aic]  =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_aic);
+          model_selection[i][modeltest::ic_aicc] =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_aicc);
+          model_selection[i][modeltest::ic_bic]  =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_bic);
+
+          //TODO: Allow this only for fixed trees
+          if (false)
+            model_selection[i][modeltest::ic_dt]   =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_dt);
+        }
+
+        fill_results(ui->table_results_aic, *model_selection[0][modeltest::ic_aic],
+                     ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
+                     ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
+        fill_results(ui->table_results_aicc, *model_selection[0][modeltest::ic_aicc],
+                     ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
+                     ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
+        fill_results(ui->table_results_bic, *model_selection[0][modeltest::ic_bic],
+                     ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
+                     ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
+        //TODO: Allow this only for fixed trees
+        bool do_dt = false;
+        if (do_dt)
+          fill_results(ui->table_results_dt, *model_selection[0][modeltest::ic_dt],
+                       ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                       ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+
+        for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
+        {
+    #ifdef QT_WIDGETS_LIB
+            ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
+                c, QHeaderView::Stretch);
+            ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
+                c, QHeaderView::Stretch);
+            ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
+                c, QHeaderView::Stretch);
+            if (do_dt)
+              ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
+                c, QHeaderView::Stretch);
+    #else
+            ui->table_results_bic->horizontalHeader()->setResizeMode(
+                c, QHeaderView::Stretch);
+            ui->table_results_aic->horizontalHeader()->setResizeMode(
+                c, QHeaderView::Stretch);
+            ui->table_results_aicc->horizontalHeader()->setResizeMode(
+                c, QHeaderView::Stretch);
+            if (do_dt)
+              ui->table_results_dt->horizontalHeader()->setResizeMode(
+                c, QHeaderView::Stretch);
+    #endif
+        }
+}
+
+void XModelTestFancy::optimization_interrupted()
+{
+        status &= ~st_optimizing;
+        status &= ~st_optimized;
+
+        modeltest::on_run = false;
+
+        update_gui();
+
+        cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+        cout << "optimization interrupted after " << time(NULL) - ini_t << " seconds" << endl;
+
+        ModelTestService::instance()->destroy_instance();
+        delete mythread;
 }

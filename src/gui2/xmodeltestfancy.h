@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "global_defs.h"
+#include "model_selection.h"
 
 #include "gui/qdebugstream.h"
 #include "gui/mydebugstream.h"
@@ -25,6 +26,11 @@ class XModelTestFancy : public QMainWindow
 
 public slots:
     void set_text(char *message );
+    void optimized_single_model(modeltest::Model * model, unsigned int n_models);
+    void optimized_partition( partition_id_t part_id );
+    void optimization_done( );
+    void optimization_interrupted( );
+
 
 public:
     explicit XModelTestFancy(QWidget *parent = 0);
@@ -84,8 +90,12 @@ private:
     asc_bias_t asc_bias;
     mt_options_t opts;
 
+    time_t ini_t;
+
     MyDebugStream *redirect;
     xThreadOpt * mythread;
+
+    std::vector<std::map<modeltest::ic_type, modeltest::ModelSelection *>> model_selection;
 };
 
 #endif // XMODELTESTFANCY_H

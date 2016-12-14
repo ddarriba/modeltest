@@ -121,4 +121,4 @@ pll_prefix {
     message(pll headers expected to be directly in the include path)
 }
 
-unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree
+unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree -lpll_util
