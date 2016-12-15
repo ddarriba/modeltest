@@ -78,8 +78,6 @@ int main(int argc, char *argv[])
     genesis::utils::Logging::log_to_stream(cout);
     genesis::utils::Logging::err_to_stream(cerr);
     genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
-    Meta::print_ascii_logo(MT_INFO);
-    Meta::print_header(MT_INFO);
 
     if (argc > 1)
     {
@@ -88,6 +86,9 @@ int main(int argc, char *argv[])
         mt_size_t num_cores = modeltest::Utils::count_physical_cores();
         time_t ini_global_time = time(NULL);
 
+        Meta::print_ascii_logo(MT_INFO);
+        Meta::print_header(MT_INFO);
+        
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
             modeltest::Utils::exit_with_error("Invalid arguments");

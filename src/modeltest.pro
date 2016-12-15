@@ -112,7 +112,7 @@ OBJECTS_DIR = build
 RCC_DIR = build
 
 CONFIG += c++11 -g
-QMAKE_CXXFLAGS += -std=c++11 -g
+QMAKE_CXXFLAGS += -std=c++11 -g -DHAVE_CONFIG_H
 
 pll_prefix {
     QMAKE_CXXFLAGS += -DPLL_PREFIX

@@ -691,6 +691,7 @@ void xmodeltest::action_open_msa()
             if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_taxa,
                                      &n_sites,
+                                     0,
                                      &msa_format,
                                      &test_dt))
             {

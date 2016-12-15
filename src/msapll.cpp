@@ -227,6 +227,7 @@ namespace modeltest
   bool MsaPll::test(string const& msa_filename,
                mt_size_t *n_tips,
                mt_size_t *n_sites,
+               mt_size_t *n_patterns,
                msa_format_t *msa_format,
                data_type_t *datatype)
   {
@@ -236,6 +237,7 @@ namespace modeltest
 
       char *hdr = NULL;
       char *seq = NULL;
+      vector<char *> seqs;
       long n_sites_read;
       long hdr_len;
       long seq_idx;
@@ -283,6 +285,10 @@ namespace modeltest
           if (datatype)
               *datatype = dt_dna;
 
+          /* resize sequences vector to hardcoded soft limit */
+          if (n_patterns)
+              seqs.reserve(1000);
+
           /* read FASTA sequences for finding the number of tips and seq len */
           /* make sure they are all of the same length */
           for (cur_seq = 0;
@@ -318,7 +324,11 @@ namespace modeltest
               }
               else if (sites == MT_SIZE_UNDEF)
                   sites = (mt_size_t) n_sites_read;
-              free (seq);
+
+              if (n_patterns)
+                seqs.push_back(seq);
+              else
+                free (seq);
               free (hdr);
           }
 
@@ -341,6 +351,30 @@ namespace modeltest
 
               mt_errno = pll_errno;
               strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
+          }
+
+          if (n_patterns)
+          {
+            int i_n_patterns;
+            const unsigned int * char_map = *datatype == dt_dna ?
+                                              pll_map_nt :
+                                              pll_map_aa;
+
+            assert(seqs.size() == cur_seq);
+            unsigned int * pw = pll_compress_site_patterns(&(seqs[0]),
+                                                           char_map,
+                                                           cur_seq,
+                                                           &i_n_patterns);
+
+            for (char * seq : seqs)
+              free(seq);
+
+            if (!pw)
+              return false;
+
+            *n_patterns = i_n_patterns;
+
+            free(pw);
           }
 
           pll_fasta_close (fp);
@@ -443,7 +477,7 @@ namespace modeltest
           else
           {
              pw = (unsigned int *) malloc(compressed_length * sizeof(unsigned int));
-             for (mt_index_t i=0; i<compressed_length;++i) pw[i]=1;
+             for (mt_index_t i=0; i<(mt_size_t)compressed_length;++i) pw[i]=1;
           }
 
           compressed_sum += compressed_length;

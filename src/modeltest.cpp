@@ -211,10 +211,13 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
 bool ModelTest::test_msa(string const& msa_filename,
                          mt_size_t *n_tips,
                          mt_size_t *n_sites,
+                         mt_size_t *n_patterns,
                          msa_format_t *msa_format,
                          data_type_t *datatype)
 {
- return MsaPll::test(msa_filename, n_tips, n_sites, msa_format, datatype);
+ return MsaPll::test(msa_filename,
+                     n_tips, n_sites, n_patterns,
+                     msa_format, datatype);
 }
 
 bool ModelTest::test_tree(string const& tree_filename,

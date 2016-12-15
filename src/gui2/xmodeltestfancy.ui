@@ -304,6 +304,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btn_reset">
+          <property name="text">
+           <string>Reset</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="spc_mainconf">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -326,7 +333,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -496,7 +503,7 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="3" column="0">
+                     <item row="4" column="0">
                       <widget class="QLabel" name="lblH_nsites">
                        <property name="maximumSize">
                         <size>
@@ -516,7 +523,7 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="1" column="1">
+                     <item row="1" column="2">
                       <widget class="QLabel" name="lbl_datatype">
                        <property name="text">
                         <string>-</string>
@@ -543,14 +550,14 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="2" column="1">
+                     <item row="2" column="2">
                       <widget class="QLabel" name="lbl_ntaxa">
                        <property name="text">
                         <string>-</string>
                        </property>
                       </widget>
                      </item>
-                     <item row="3" column="1">
+                     <item row="4" column="2">
                       <widget class="QLabel" name="lbl_nsites">
                        <property name="text">
                         <string>-</string>
@@ -577,8 +584,27 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
+                     <item row="0" column="2">
                       <widget class="QLabel" name="lbl_format">
+                       <property name="text">
+                        <string>-</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="5" column="0">
+                      <widget class="QLabel" name="lblH_npatterns">
+                       <property name="font">
+                        <font>
+                         <italic>true</italic>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>#Patterns:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="5" column="2">
+                      <widget class="QLabel" name="lbl_npatterns">
                        <property name="text">
                         <string>-</string>
                        </property>
@@ -617,7 +643,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>746</width>
-                 <height>609</height>
+                 <height>606</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -1936,37 +1962,6 @@
                           </widget>
                          </item>
                          <item>
-                          <widget class="QCheckBox" name="cbShowMatrices">
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>16777215</width>
-                             <height>20</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>Courier 10 Pitch</family>
-                             <pointsize>10</pointsize>
-                             <weight>50</weight>
-                             <italic>false</italic>
-                             <bold>false</bold>
-                            </font>
-                           </property>
-                           <property name="toolTip">
-                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show the candidate matrices&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                           </property>
-                           <property name="text">
-                            <string>Show model matrices</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
                           <spacer name="spacer_models">
                            <property name="orientation">
                             <enum>Qt::Vertical</enum>
@@ -1986,7 +1981,6 @@
                         <zorder>frame_settings_ratevar</zorder>
                         <zorder>frame_settings_freqs</zorder>
                         <zorder>label_settings_ratevar</zorder>
-                        <zorder>cbShowMatrices</zorder>
                         <zorder>frame_ascbias</zorder>
                         <zorder>spacer_models</zorder>
                        </widget>
@@ -2047,43 +2041,27 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QLabel" name="label">
+                  <property name="font">
+                   <font>
+                    <family>Courier 10 Pitch</family>
+                    <pointsize>11</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Advanced options</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="Line" name="line_4">
                   <property name="frameShadow">
                    <enum>QFrame::Sunken</enum>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="cbAdvanced">
-                  <property name="minimumSize">
-                   <size>
-                    <width>205</width>
-                    <height>22</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>22</height>
-                   </size>
-                  </property>
-                  <property name="font">
-                   <font>
-                    <family>Courier</family>
-                    <pointsize>10</pointsize>
-                    <weight>75</weight>
-                    <italic>true</italic>
-                    <bold>true</bold>
-                   </font>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show advanced options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Show advanced options</string>
                   </property>
                  </widget>
                 </item>
@@ -2117,7 +2095,7 @@
                    <property name="verticalSpacing">
                     <number>0</number>
                    </property>
-                   <item row="1" column="1">
+                   <item row="2" column="1">
                     <widget class="QLineEdit" name="txtOptEpsilon">
                      <property name="minimumSize">
                       <size>
@@ -2154,7 +2132,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="1">
+                   <item row="1" column="1">
                     <widget class="QLineEdit" name="txtParEpsilon">
                      <property name="minimumSize">
                       <size>
@@ -2191,7 +2169,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="0">
+                   <item row="1" column="0">
                     <widget class="QLabel" name="lblParEpsText">
                      <property name="minimumSize">
                       <size>
@@ -2219,7 +2197,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="0">
+                   <item row="2" column="0">
                     <widget class="QLabel" name="lblOptEpsText">
                      <property name="minimumSize">
                       <size>
@@ -2247,7 +2225,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="2">
+                   <item row="1" column="2">
                     <spacer name="horizontalSpacer_18">
                      <property name="orientation">
                       <enum>Qt::Horizontal</enum>
@@ -3151,6 +3129,8 @@
     <addaction name="actionLoad_MSA"/>
     <addaction name="actionLoad_Tree"/>
     <addaction name="actionLoad_Partitions"/>
+    <addaction name="separator"/>
+    <addaction name="action_quit"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -3236,6 +3216,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="action_quit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>

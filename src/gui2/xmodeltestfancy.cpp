@@ -47,7 +47,21 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
   redirect = new MyDebugStream(std::cout);
   QObject::connect(redirect, SIGNAL(newText(char *)), this, SLOT(set_text(char *)), Qt::QueuedConnection);
 
+#ifdef QT_WIDGETS_LIB
+    addAction(ui->actionLoad_MSA);
+    addAction(ui->actionLoad_Partitions);
+    addAction(ui->actionLoad_Tree);
+    addAction(ui->actionConsole);
+    addAction(ui->actionData);
+    addAction(ui->actionResults);
+    addAction(ui->actionSettings);
+    addAction(ui->action_quit);
+#endif
+
   update_gui();
+
+  Meta::print_ascii_logo();
+  Meta::print_header();
 }
 
 XModelTestFancy::~XModelTestFancy()
@@ -110,6 +124,8 @@ void XModelTestFancy::update_gui()
   ui->actionLoad_Partitions->setEnabled(status & st_msa_loaded);
   ui->btn_run->setEnabled(status & st_msa_loaded);
   ui->tabResults->setEnabled(status & st_optimized);
+
+  ui->frame_settings->setEnabled(!(status & (st_optimizing | st_optimized)));
 }
 
 static void fill_results(QTableView * result_table,
@@ -252,6 +268,7 @@ void XModelTestFancy::action_open_msa()
             if (modeltest::ModelTest::test_msa(msa_filename,
                                      &n_taxa,
                                      &n_sites,
+                                     &n_patterns,
                                      &msa_format,
                                      &test_dt))
             {
@@ -290,6 +307,8 @@ void XModelTestFancy::action_open_msa()
                 cout << "Num.Sequences:   " << n_taxa << endl;
                 ui->lbl_nsites->setText(QString::number(n_sites));
                 cout << "Sequence Length: " << n_sites << endl;
+                ui->lbl_npatterns->setText(QString::number(n_patterns));
+                cout << "Site patterns: " << n_patterns << endl;
                 status |= st_msa_loaded;
             }
             else
@@ -328,7 +347,7 @@ size_t XModelTestFancy::compute_size(int n_cats, int n_threads)
     if ((status & st_msa_loaded) && n_taxa && n_sites && n_cats && states)
     {
         mem_b = modeltest::Utils::mem_size(n_taxa,
-                        n_sites,
+                        n_patterns,
                         n_cats,
                         states);
         mem_b *= n_threads;
@@ -445,7 +464,35 @@ void XModelTestFancy::on_actionLoad_Tree_triggered()
 
 void XModelTestFancy::reset_xmt( void )
 {
+    status = st_active;
 
+    n_taxa  = 0;
+    n_sites = 0;
+
+    msa_filename   = "";
+    utree_filename = "";
+    parts_filename = "";
+    asc_filename   = "";
+
+    ui->lbl_msa_fname->setText("none");
+    ui->lbl_tree_fname->setText("none");
+    ui->lbl_parts_fname->setText("none");
+    ui->lbl_datatype->setText("-");
+    ui->lbl_format->setText("-");
+    ui->lbl_ntaxa->setText("-");
+    ui->lbl_nsites->setText("-");
+
+    ui->consoleRun->clear();
+    Meta::print_ascii_logo();
+    Meta::print_header();
+
+    if (scheme)
+    {
+        delete scheme;
+        scheme = 0;
+    }
+
+    ModelTestService::instance()->destroy_instance();
 }
 
 void XModelTestFancy::on_btn_run_clicked()
@@ -460,14 +507,35 @@ void XModelTestFancy::on_btn_run_clicked()
     }
 
     set_active_tab("Console");
-    ui->frame_settings->setEnabled(false);
+
+    status &= ~st_optimized;
+    status |= st_optimizing;
+
     update_gui();
     //ini_t = time(NULL);
+
     run_modelselection();
+    status &= ~st_optimizing;
+
     update_gui();
 }
 
-void XModelTestFancy::run_modelselection()
+void XModelTestFancy::on_btn_reset_clicked()
+{
+    QMessageBox msgBox;
+    msgBox.setText("This action will reset modeltest");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setStandardButtons(QMessageBox::Reset | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Reset)
+    {
+        reset_xmt();
+    }
+    update_gui();
+}
+
+bool XModelTestFancy::run_modelselection()
 {
     partition_id_t part_id;
     int number_of_threads  = ui->slider_nthreads->value();
@@ -479,7 +547,7 @@ void XModelTestFancy::run_modelselection()
     msgBox.setDefaultButton(QMessageBox::Ok);
     int ret = msgBox.exec();
     if (ret != QMessageBox::Ok)
-        return;
+        return false;
 
     model_index = 0;
 
@@ -528,8 +596,8 @@ void XModelTestFancy::run_modelselection()
             msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.exec();
-            ui->frame_settings->setEnabled(true);
-            return;
+
+            return false;
         }
     }
 
@@ -636,7 +704,7 @@ void XModelTestFancy::run_modelselection()
     {
         ui->consoleRun->append(xutils::to_qstring("Error building instance [%1]", msg_lvl_error).arg(modeltest::mt_errno));
         ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
-        return;
+        return false;
     }
 
     /* print settings */
@@ -692,14 +760,14 @@ void XModelTestFancy::run_modelselection()
     QObject::connect(mythread, SIGNAL(next_parameter(uint,double,uint)), &dialog, SLOT(set_delta_running(uint,double,uint)));
     QObject::connect(&dialog, SIGNAL(canceled()), mythread, SLOT(kill_threads()));
 
-    status &= ~st_optimized;
-    status |= st_optimizing;
     modeltest::on_run = true;
 
     ini_t = time(NULL);
 
     mythread->start();
     dialog.exec();
+
+    return true;
 }
 
 /* SLOTS */
@@ -826,4 +894,18 @@ void XModelTestFancy::optimization_interrupted()
 
         ModelTestService::instance()->destroy_instance();
         delete mythread;
+}
+
+void XModelTestFancy::on_action_quit_triggered()
+{
+    QMessageBox msgBox;
+    msgBox.setText("You will exit modeltest");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        close();
+    }
 }

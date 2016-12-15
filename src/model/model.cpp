@@ -367,6 +367,7 @@ const double * Model::get_mixture_weights( void ) const
 void Model::set_mixture_weights( const double * weights )
 {
   /* this applies only to mixture models */
+  UNUSED(weights);
   assert(0);
 }
 
@@ -378,6 +379,7 @@ const double * Model::get_mixture_rates( void ) const
 void Model::set_mixture_rates( const double * rates )
 {
   /* this applies only to mixture models */
+  UNUSED(rates);
   assert(0);
 }
 
@@ -390,7 +392,7 @@ bool Model::evaluate_criteria (mt_size_t n_branches_params,
   mt_size_t n_params = n_free_variables + n_branches_params;
 
   aic = 2*n_params - 2*loglh;
-  aicc = aic + 2*n_params*(n_params+1)/(n_params - sample_size - 1);
+  aicc = aic + 2*n_params*(n_params+1)/(sample_size - n_params - 1);
   bic = -2*loglh + n_params * log(sample_size);
 
   return true;

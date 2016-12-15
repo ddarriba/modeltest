@@ -60,6 +60,10 @@ private slots:
 
     void on_btn_run_clicked();
 
+    void on_btn_reset_clicked();
+
+    void on_action_quit_triggered();
+
 private:
     void update_gui( void );
     void set_active_tab(QString text);
@@ -68,7 +72,7 @@ private:
     void autoSelectSchemes(const int schemes[], int n);
     void set_substitution_schemes(mt_index_t n_schemes);
     void reset_xmt( void );
-    void run_modelselection( void );
+    bool run_modelselection( void );
 
     Ui::XModelTestFancy *ui;
 
@@ -80,6 +84,7 @@ private:
 
     mt_size_t n_taxa;
     mt_size_t n_sites;
+    mt_size_t n_patterns;
 
     unsigned int status;
     unsigned int tree_type;

@@ -177,6 +177,10 @@ double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
                                            double tolerance,
                                            bool first_guess)
 {
+  UNUSED(params);
+  UNUSED(tolerance);
+  UNUSED(first_guess);
+  
   /* do not optimize */
   return loglh;
 }

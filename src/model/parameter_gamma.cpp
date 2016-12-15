@@ -51,6 +51,8 @@ ParameterGamma::~ParameterGamma( void )
 bool ParameterGamma::initialize(mt_opt_params_t * params,
                                 Partition const& partition)
 {
+  UNUSED(partition);
+  
   assert(n_cats == params->partition->rate_cats);
   if (!pll_compute_gamma_cats (alpha,
                           n_cats,

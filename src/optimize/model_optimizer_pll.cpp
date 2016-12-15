@@ -228,6 +228,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
   {
+    UNUSED(pll_tree);
+    
     // TODO: Refactor in paramter_substrates and parameter_frequencies
     /* set initial model parameters */
     if (model.is_mixture())

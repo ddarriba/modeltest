@@ -21,17 +21,17 @@ This step is not necessary if you downloaded the released tarball.
 
 1. Graphical User Interface
 
-  To install ModelTest-Light GUI type the following commands:
+  To install ModelTest GUI type the following commands:
   
   ```bash
-  $ qmake -o Makefile.qmake src/modeltest.pro
+  $ ./build_qmake-sh
   $ make -f Makefile.qmake
   $ make install -f Makefile.qmake
   ```
 
 2. Command Console Interface
 
-  To install ModelTest-Light type the following commands:
+  To install ModelTest type the following commands:
   
   ```bash
   $ ./configure [--prefix=INSTALL_DIR]

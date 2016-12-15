@@ -34,6 +34,9 @@ namespace modeltest
 bool ParameterSubstRates::initialize(mt_opt_params_t * params,
                                      Partition const& partition)
 {
+  UNUSED(params);
+  UNUSED(partition);
+
   return true;
 }
 
@@ -161,7 +164,12 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 
 void ParameterSubstRatesOpt::print(std::ostream  &out) const
 {
-
+  for (mt_index_t i=0; i<n_subst_params; ++i)
+  {
+    if (i > 0)
+      out << ",";
+    out << subst_rates[i];
+  }
 }
 
 mt_size_t ParameterSubstRatesOpt::get_n_free_parameters( void ) const

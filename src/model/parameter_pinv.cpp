@@ -96,7 +96,7 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
 
 void ParameterPinv::print(std::ostream  &out) const
 {
-
+  out << pinv;
 }
 
 double ParameterPinv::get_pinv() const

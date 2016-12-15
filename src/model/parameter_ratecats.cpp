@@ -65,6 +65,8 @@ ParameterRateCats::~ParameterRateCats( void )
 bool ParameterRateCats::initialize(mt_opt_params_t * params,
                                    Partition const& partition)
 {
+  UNUSED(partition);
+
   assert(n_cats == params->partition->rate_cats);
   pll_set_category_rates(params->partition,
                          rates);
