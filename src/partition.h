@@ -52,6 +52,7 @@ public:
 
     void sort_models(bool forwards);
 
+    mt_index_t get_unique_id( void ) const;
     mt_size_t get_number_of_models( void ) const;
     mt_size_t get_n_sites( void ) const;
     mt_size_t get_n_patterns( void ) const;

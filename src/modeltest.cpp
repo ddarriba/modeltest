@@ -33,7 +33,7 @@
 #include <iostream>
 #include <algorithm>
 
-#define CKP_HEAD_ID 42 /* arbirary id */
+#define CKP_HEAD_ID 0xFFFFFF42 /* arbirary id */
 
 namespace modeltest {
 

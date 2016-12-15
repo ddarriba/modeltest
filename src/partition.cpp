@@ -166,50 +166,52 @@ Partition::Partition(partition_id_t _id,
     model_params(model_params),
     ckp_filename(ckp_filename)
 {
-    switch(descriptor.datatype)
-    {
-    case dt_dna:
-        emp_freqs.resize(N_DNA_STATES);
-        emp_subst_rates.resize(N_DNA_SUBST_RATES);
-        break;
-    case dt_protein:
-        emp_freqs.resize(N_PROT_STATES);
-        break;
-    }
+  assert(_descriptor.unique_id > 0 && _descriptor.unique_id < MAX_PARTITION_INDEX);
 
-    n_patterns = 0;
-    n_sites = 0;
-    const unsigned int * wgt = msa.get_weights();
-    for (const partition_region_t & region : descriptor.regions)
-    {
-        n_patterns += (region.end - region.start + 1)/region.stride;
-        for (mt_index_t s = region.start - 1; s < region.end; s+=region.stride)
-        {
-            n_sites += wgt[s];
-        }
-     }
+  switch(descriptor.datatype)
+  {
+  case dt_dna:
+      emp_freqs.resize(N_DNA_STATES);
+      emp_subst_rates.resize(N_DNA_SUBST_RATES);
+      break;
+  case dt_protein:
+      emp_freqs.resize(N_PROT_STATES);
+      break;
+  }
 
-    assert(n_patterns > 0);
-    assert(n_sites >= n_patterns);
+  n_patterns = 0;
+  n_sites = 0;
+  const unsigned int * wgt = msa.get_weights();
+  for (const partition_region_t & region : descriptor.regions)
+  {
+      n_patterns += (region.end - region.start + 1)/region.stride;
+      for (mt_index_t s = region.start - 1; s < region.end; s+=region.stride)
+      {
+          n_sites += wgt[s];
+      }
+   }
 
-    if (!compute_empirical_frequencies( false ))
-        throw EXCEPTION_PARTITION_EMP_FREQS;
+  assert(n_patterns > 0);
+  assert(n_sites >= n_patterns);
 
-    if (descriptor.datatype == dt_dna)
-    {
-        if (!compute_empirical_subst_rates())
-            throw EXCEPTION_PARTITION_EMP_RATES;
-    }
+  if (!compute_empirical_frequencies( false ))
+      throw EXCEPTION_PARTITION_EMP_FREQS;
 
-    if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
-        if (!compute_empirical_pinv())
-            throw EXCEPTION_PARTITION_EMP_PINV;
+  if (descriptor.datatype == dt_dna)
+  {
+      if (!compute_empirical_subst_rates())
+          throw EXCEPTION_PARTITION_EMP_RATES;
+  }
 
-    build_models(descriptor,
-                 candidate_models,
-                 model_params,
-                 c_models,
-                 ckp_filename);
+  if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
+      if (!compute_empirical_pinv())
+          throw EXCEPTION_PARTITION_EMP_PINV;
+
+  build_models(descriptor,
+               candidate_models,
+               model_params,
+               c_models,
+               ckp_filename);
 }
 
 Partition::~Partition()
@@ -283,6 +285,11 @@ void Partition::sort_models(bool forwards)
     sort(c_models.begin(),
          c_models.end(),
          fsort);
+}
+
+mt_index_t Partition::get_unique_id( void ) const
+{
+  return descriptor.unique_id;
 }
 
 mt_size_t Partition::get_number_of_models( void ) const
@@ -453,7 +460,7 @@ int Partition::output_bin(string const& bin_filename) const
 int Partition::input_bin(string const& bin_filename)
 {
   assert(ROOT);
-  
+
   //TODO
   UNUSED(bin_filename);
   return false;

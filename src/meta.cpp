@@ -605,6 +605,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
         for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
         {
+          assert(partition.unique_id > 0);
           partition.model_params = exec_opt.model_params;
           partition.states = (partition.datatype == dt_dna?N_DNA_STATES:
                                                            N_PROT_STATES);
@@ -640,6 +641,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       partition.asc_bias_corr = exec_opt.asc_bias_corr;
       partition.asc_weights = exec_opt.asc_weights;
       partition.starting_tree = exec_opt.starting_tree;
+      partition.unique_id = 1;
       exec_opt.partitions_desc->push_back(partition);
     }
 

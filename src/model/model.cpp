@@ -642,7 +642,10 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
       memcpy(asc_weights, asc_w, N_DNA_STATES * sizeof(mt_size_t));
     }
 
-    unique_id = matrix_index * 8 + optimize_freqs + 2 * optimize_pinv + 4 * optimize_gamma;
+    assert(partition.unique_id > 0 && partition.unique_id < MAX_PARTITION_INDEX);
+
+    unique_id = (partition.unique_id << (31-NBIT_PARTITION_INDEX)) +
+                matrix_index * 8 + optimize_freqs + 2 * optimize_pinv + 4 * optimize_gamma;
 }
 
 DnaModel::DnaModel(const Model & other)
@@ -1162,10 +1165,13 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
   if (optimize_gamma)
       n_free_variables ++;
 
-  unique_id = 8 * matrix_index +
-              4 * optimize_gamma +
-              2 * optimize_pinv +
-              (optimize_freqs || empirical_freqs);
+  assert(partition.unique_id > 0 && partition.unique_id < MAX_PARTITION_INDEX);
+
+  unique_id = (partition.unique_id << (31-NBIT_PARTITION_INDEX)) +
+               8 * matrix_index +
+               4 * optimize_gamma +
+               2 * optimize_pinv +
+               (optimize_freqs || empirical_freqs);
 }
 
 ProtModel::ProtModel(const Model & other)

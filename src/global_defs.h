@@ -149,6 +149,10 @@ extern MPI_Comm master_mpi_comm;
 
 #define MT_WARN_PARTITIONS_UNASIGNED   10410
 
+/* 14 bits for partition descriptor: 16384 */
+#define NBIT_PARTITION_INDEX 14
+#define MAX_PARTITION_INDEX (1<<NBIT_PARTITION_INDEX)
+
 typedef enum {
     dt_dna,
     dt_protein
@@ -214,6 +218,7 @@ typedef struct
     asc_bias_t asc_bias_corr;                //! ascertainment bias correction
     mt_size_t *asc_weights;                  //! state weights
     tree_type_t starting_tree;               //! starting tree type
+    mt_index_t unique_id;                    //! id for checkpointing
 } partition_descriptor_t;
 
 typedef std::vector<partition_descriptor_t> partitioning_scheme_t;

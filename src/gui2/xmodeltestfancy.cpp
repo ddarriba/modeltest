@@ -40,6 +40,7 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
   ui->slider_nthreads->setRange(1, QThread::idealThreadCount());
   ui->slider_nthreads->setValue(modeltest::Utils::count_physical_cores());
 
+  scheme = 0;
   status = st_active;
 
   /* Redirect Console output to QTextEdit */
@@ -615,6 +616,7 @@ void XModelTestFancy::run_modelselection()
         partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
+        partition.unique_id = 1;
         scheme->push_back(partition);
     }
 

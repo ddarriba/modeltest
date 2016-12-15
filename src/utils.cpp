@@ -553,6 +553,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
     int input;
     lexToken token;
     int lines = 0;
+    int partition_id = 0;
     partition_region_t region;
     char * tmpchar;
 
@@ -730,7 +731,8 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         CONSUME(TOKEN_WHITESPACE | TOKEN_NEWLINE)
 
         pi.gap_aware = false;
-
+        pi.unique_id = ++partition_id;
+        
         partitions->push_back(pi);
     }
 
