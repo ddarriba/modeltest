@@ -536,6 +536,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_user_fixed:
     if( options.tree_filename.compare ("") )
     {
+      LOG_DBG << "Loading fixed tree from " << options.tree_filename << endl;
       try
       {
         current_instance->tree = new TreePll (options.starting_tree,
@@ -546,17 +547,20 @@ bool ModelTest::build_instance(mt_options_t & options)
       catch(int e)
       {
         UNUSED(e);
+        LOG_DBG << ". Exception caught!" << endl;
         free_stuff();
         return false;
       }
       if (!test_link(current_instance->msa, current_instance->tree))
       {
-          /* clean memory */
-          delete current_instance->msa;
-          current_instance->msa = 0;
-          delete current_instance->tree;
-          current_instance->tree = 0;
-          return false;
+        LOG_DBG << ". Error linking tree and MSA!" << endl;
+
+        /* clean memory */
+        delete current_instance->msa;
+        current_instance->msa = 0;
+        delete current_instance->tree;
+        current_instance->tree = 0;
+        return false;
       }
     }
     else
@@ -730,6 +734,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     start_matrix_index = (options.starting_tree == tree_ml_jc_fixed?
       DNA_JC_INDEX : DNA_GTR_INDEX);
+
     Model * start_model = partitioning_scheme->get_partition({0}).get_model_by_matrix(start_matrix_index, start_model_params);
     assert (start_model);
 

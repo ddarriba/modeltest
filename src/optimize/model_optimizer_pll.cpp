@@ -28,9 +28,9 @@
 
 #define CHECK_LOCAL_CONVERGENCE 0
 
-#define DO_THOROUGH_ML_SEARCH false
-#define ML_SEARCH_PARAM_EPS   1.0
-#define ML_SEARCH_PARAM_TOL   1.0
+#define DO_THOROUGH_ML_SEARCH true
+#define ML_SEARCH_PARAM_EPS   0.1
+#define ML_SEARCH_PARAM_TOL   0.1
 
 #define JOB_WAIT             0
 #define JOB_UPDATE_MATRICES  1
@@ -193,6 +193,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   }
 
   pll_tree = tree.get_pll_tree(_thread_number);
+  if (pllmod_utree_is_tip(pll_tree))
+    pll_tree = pll_tree->back;
 
   model.set_n_categories(pll_partition->rate_cats);
 
@@ -229,7 +231,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
   {
     UNUSED(pll_tree);
-    
+
     // TODO: Refactor in paramter_substrates and parameter_frequencies
     /* set initial model parameters */
     if (model.is_mixture())
@@ -319,9 +321,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       }
     }
     /* /PTHREADS */
-
+    LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;
     build_parameters(pll_tree);
-
     pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
@@ -331,6 +332,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     double cur_loglh = optimize_model(epsilon, tolerance, true);
 
+    LOG_DBG << "[dbg] Model optimization done: " << cur_loglh << endl;
 
     /* TODO: if bl are reoptimized */
     if (keep_branch_lengths)
@@ -388,6 +390,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double save_loglh = start_loglh;
     double cur_loglh = save_loglh;
 
+    if (start_loglh)
+      model.set_loglh(start_loglh);
+      
     /* notify initial likelihood */
     opt_delta = cur_loglh;
     notify();
@@ -419,9 +424,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           }
           opt_delta = cur_loglh;
           notify();
-// printf("PAR:%d SAVE:%.4f CUR:%.4f\n", all_params_done, save_loglh, cur_loglh);
         }
-// printf("ePAR:%d SAVE:%.4f CUR:%.4f\n", all_params_done, save_loglh, cur_loglh);
       }
     }
     else
@@ -469,6 +472,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                            pll_tree->pmatrix_index,
                                            model.get_params_indices(),
                                            NULL);
+
     new_loglh = loglh;
 
     if (optimize_topology)
@@ -508,11 +512,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           NULL, /* cutoff */
                                           0);
 
+        LOG_DBG << "[dbg] SPR cycle: " << old_loglh << " -> " << new_loglh << endl;
+
         bool impr = (new_loglh - old_loglh > epsilon);
         if (impr && thorough_insertion)
         {
           radius_min = 1;
           radius_max = radius_step;
+          LOG_DBG << "[dbg] Reset radius: " << radius_min << "," << radius_max << endl;
         }
         else if (!impr && DO_THOROUGH_ML_SEARCH)
         {
@@ -523,19 +530,26 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             radius_min = 1;
             radius_max = radius_step;
 
+            LOG_DBG << "[dbg] Reset insertion and radius: "
+                    << radius_min << "," << radius_max << ": " << new_loglh << endl;
             new_loglh = optimize_parameters(tree_info->root,
                                             ML_SEARCH_PARAM_EPS,
                                             ML_SEARCH_PARAM_TOL,
                                             opt_per_param,
                                             new_loglh);
+            LOG_DBG << "[dbg] Thorough insertion [" << ML_SEARCH_PARAM_EPS
+                    << "/" << ML_SEARCH_PARAM_TOL << "]: " << new_loglh << endl;
           }
           else
           {
             radius_min += radius_step;
             radius_max += radius_step;
+            LOG_DBG << "[dbg] Update radius: " << radius_min << "," << radius_max << endl;
           }
         }
       } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
+
+      LOG_DBG << "[dbg] SPR done" << endl;
 
       pll_tree = tree_info->root;
       pllmod_treeinfo_destroy(tree_info);
@@ -545,8 +559,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     model.set_loglh(new_loglh);
 
     tolerance = 1e-4;
+    LOG_DBG << "[dbg] final parameter optimization: " << new_loglh << endl;
     loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
-
+    LOG_DBG << "[dbg] model done: [" << epsilon
+            << "/" << tolerance << "]: " << loglh << endl;
     return loglh;
   }
 

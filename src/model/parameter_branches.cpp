@@ -21,6 +21,7 @@
 
 #include "partition.h"
 #include "parameter_branches.h"
+#include "genesis/logging.h"
 
 #define MIN_BL 1e-4
 #define MAX_BL 5
@@ -132,7 +133,13 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
                                           params->params_indices,
                                           1,
                                           1);
+
+      LOG_DBG << "[dbg] Reset branches :( " << cur_loglh << " ~= " << loglh << endl;
       assert(fabs(cur_loglh - loglh) < 1e-6);
+  }
+  else
+  {
+    LOG_DBG << "[dbg] fix branches " << cur_loglh << endl;
   }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

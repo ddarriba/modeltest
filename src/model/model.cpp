@@ -486,6 +486,7 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
                             pll_utree_t * pll_tree,
                             Partition const& partition )
 {
+  assert(pll_partition);
   mt_opt_params_t params;
   params.partition = pll_partition;
   params.tree = pll_tree;
@@ -533,6 +534,8 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
                                    pll_utree_t * tree,
                                    double tolerance )
 {
+  assert(partition && tree);
+
   assert(current_opt_parameter < parameters.size());
   mt_opt_params_t params;
   params.partition = partition;
@@ -540,6 +543,7 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
   params.params_indices = params_indices;
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
+
   loglh = parameter->optimize(&params, loglh, tolerance, true);
   ++current_opt_parameter;
 

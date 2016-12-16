@@ -88,10 +88,26 @@ int main(int argc, char *argv[])
 
         Meta::print_ascii_logo(MT_INFO);
         Meta::print_header(MT_INFO);
-        
+
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
             modeltest::Utils::exit_with_error("Invalid arguments");
+        }
+
+        switch (opts.verbose)
+        {
+          case VERBOSITY_LOW:
+            genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
+            break;
+          case VERBOSITY_DEFAULT:
+          case VERBOSITY_MID:
+            genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
+            break;
+          case VERBOSITY_HIGH:
+            genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
+            break;
+          default:
+            assert(0);
         }
 
         if (opts.output_log_file.compare(""))
