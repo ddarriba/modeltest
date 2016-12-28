@@ -194,11 +194,26 @@ namespace modeltest
       {
         starting_tree = pll_utree_parse_newick (filename.c_str(), &(n_tips));
       }
+      else if (type == tree_random)
+      {
+        starting_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+      }
       else
       {
-          //TODO: WARNING: Temporary use a RANDOM tree
-          cout << "[****WARNING****] Constructing random starting tree! (temporary)" << endl;
-          starting_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+        cout << "Building MP starting tree" << endl;
+        unsigned int * cost = new unsigned int[msa.get_n_patterns()];
+        starting_tree = pllmod_utree_create_parsimony(n_tips,
+                                                      msa.get_n_patterns(),
+                                                      msa.get_headers(),
+                                                      msa.get_sequences(),
+                                                      msa.get_weights(),
+                                                      pll_map_nt,
+                                                      4,
+                                                      0, /* attributes */
+                                                      random_seed,
+                                                      cost /* scores */
+                                                    );
+        delete[] cost;
       }
     }
 
@@ -240,7 +255,7 @@ namespace modeltest
 
     set_indices(starting_tree, msa);
     clone_tree( starting_tree );
-    pll_utree_destroy(starting_tree);
+    pll_utree_destroy(starting_tree, NULL);
   }
 
   TreePll::~TreePll ()
@@ -302,7 +317,7 @@ namespace modeltest
     }
     else
     {
-      pll_utree_destroy(tree);
+      pll_utree_destroy(tree, NULL);
       return true;
     }
   }
@@ -328,7 +343,7 @@ namespace modeltest
   void TreePll::set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number)
   {
     assert(pll_utree_check_integrity(new_tree));
-    pll_utree_destroy(pll_tree[thread_number]);
+    pll_utree_destroy(pll_tree[thread_number], NULL);
     pll_tree[thread_number] = new_tree;
     //pll_start_tree[thread_number] = new_tree;
 
@@ -398,7 +413,7 @@ namespace modeltest
       {
         if (pll_tree[i])
         {
-          pll_utree_destroy(pll_tree[i]);
+          pll_utree_destroy(pll_tree[i], NULL);
         }
         if (pll_tip_nodes[i])
           free(pll_tip_nodes[i]);

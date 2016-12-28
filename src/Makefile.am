@@ -1,6 +1,6 @@
-bin_PROGRAMS = modeltestx 
+bin_PROGRAMS = modeltest-cmd 
 
-modeltestx_SOURCES = \
+modeltest_cmd_SOURCES = \
 	genesis/date_time.cpp \
 	genesis/string.cpp \
 	genesis/logging.cpp \
@@ -28,13 +28,14 @@ modeltestx_SOURCES = \
 	meta.cpp \
 	main.cpp
 
-modeltestx_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
-modeltestx_CPPFLAGS += -DHAVE_PTHREADS
-modeltestx_LDFLAGS =
-modeltestx_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+modeltest_cmd_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
+modeltest_cmd_CPPFLAGS += -DHAVE_PTHREADS
+modeltest_cmd_LDFLAGS =
+#modeltest_cmd_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+modeltest_cmd_LDADD = -l:libpll_algorithm.a -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a -l:libpll_tree.a -l:libpll_util.a -l:libpll.a 
 
 if PLL_PREFIX
-  modeltestx_CPPFLAGS += -DPLL_PREFIX
+  modeltest_cmd_CPPFLAGS += -DPLL_PREFIX
 endif
 
 pkgincludedir=${includedir}/modeltest

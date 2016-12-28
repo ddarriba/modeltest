@@ -155,10 +155,11 @@ int main(int argc, char *argv[])
 
         ofstream * results_stream = 0;
 
-        results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
+        if (ROOT)
+          results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
 
         if (results_stream)
-            Meta::print_options(opts, *results_stream);
+           Meta::print_options(opts, *results_stream);
 
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
@@ -224,6 +225,8 @@ int main(int argc, char *argv[])
         {
           if (results_stream)
           {
+              *results_stream << "Done" << endl;
+              
               results_stream->close();
               delete results_stream;
           }

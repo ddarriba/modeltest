@@ -18,26 +18,25 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_PROG_CPP
 
-
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([pthread], [pthread_create])
 
-AC_CHECK_LIB([pll], [pll_partition_create], [], [
-  AC_MSG_ERROR([PLL library not found])
-])
-AC_CHECK_LIB([pll_optimize], [pllmod_opt_minimize_newton], [], [
-  AC_MSG_ERROR([PLL_Optimize library not found])
-])
-AC_CHECK_LIB([pll_tree], [pllmod_treeinfo_compute_loglh], [], [
-  AC_MSG_ERROR([PLL_Tree library not found])
-])
-AC_CHECK_LIB([pll_binary], [pllmod_binary_create], [], [
-  AC_MSG_ERROR([PLL_Binary library not found])
-])
-AC_CHECK_LIB([pll_algorithm], [pllmod_algo_opt_frequencies], [], [
-  AC_MSG_ERROR([PLL_Algorithm library not found])
-])
+#AC_CHECK_LIB([pll], [pll_partition_create], [], [
+#  AC_MSG_ERROR([PLL library not found])
+#])
+#AC_CHECK_LIB([pll_optimize], [pllmod_opt_minimize_newton], [], [
+#  AC_MSG_ERROR([PLL_Optimize library not found])
+#])
+#AC_CHECK_LIB([pll_tree], [pllmod_treeinfo_compute_loglh], [], [
+#  AC_MSG_ERROR([PLL_Tree library not found])
+#])
+#AC_CHECK_LIB([pll_binary], [pllmod_binary_create], [], [
+#  AC_MSG_ERROR([PLL_Binary library not found])
+#])
+#AC_CHECK_LIB([pll_algorithm], [pllmod_algo_opt_frequencies], [], [
+#  AC_MSG_WARN([PLL_Algorithm library not found])
+#])
 
 AC_CHECK_HEADERS([pll.h], [], [
     AC_CHECK_HEADERS([libpll/pll.h], [

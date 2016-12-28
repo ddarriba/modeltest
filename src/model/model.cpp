@@ -181,7 +181,7 @@ Model::~Model()
     free(params_indices);
   if (tree)
   {
-    pll_utree_destroy(tree->back);
+    pll_utree_destroy(tree->back, NULL);
   }
   for (AbstractParameter * parameter : parameters)
     delete parameter;
@@ -471,7 +471,7 @@ void Model::set_tree( pll_utree_t * _tree, int _n_tips )
 
   if (tree)
   {
-    pll_utree_destroy(tree->back);
+    pll_utree_destroy(tree->back, NULL);
   }
   if (_n_tips > 0) n_tips = _n_tips;
   tree = _tree;

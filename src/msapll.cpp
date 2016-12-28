@@ -203,7 +203,7 @@ namespace modeltest
     return tipnames[index];
   }
 
-  const char * const* MsaPll::get_headers() const
+  char ** MsaPll::get_headers() const
   {
       return tipnames;
   }
@@ -212,6 +212,11 @@ namespace modeltest
   {
     assert(index < n_taxa);
     return sequences[index];
+  }
+
+  char ** MsaPll::get_sequences ( void ) const
+  {
+    return sequences;
   }
 
   const unsigned int * MsaPll::get_weights( void ) const
@@ -242,6 +247,7 @@ namespace modeltest
       long hdr_len;
       long seq_idx;
       bool dt_unknown = true;
+      data_type_t l_datatype;
 
       /* reset error */
       mt_errno = 0;
@@ -282,8 +288,7 @@ namespace modeltest
               return false;
           }
 
-          if (datatype)
-              *datatype = dt_dna;
+          l_datatype = dt_dna;
 
           /* resize sequences vector to hardcoded soft limit */
           if (n_patterns)
@@ -294,14 +299,14 @@ namespace modeltest
           for (cur_seq = 0;
                pll_fasta_getnext (fp, &hdr, &hdr_len, &seq, &n_sites_read, &seq_idx); ++cur_seq)
           {
-              if (datatype && dt_unknown)
+              if (dt_unknown)
               {
                   for (char c : aa_unique_chars)
                   {
                       if (strchr(seq, c))
                       {
                           dt_unknown = false;
-                          *datatype = dt_protein;
+                          l_datatype = dt_protein;
                       }
                   }
               }
@@ -355,8 +360,8 @@ namespace modeltest
 
           if (n_patterns)
           {
-            int i_n_patterns;
-            const unsigned int * char_map = *datatype == dt_dna ?
+            int i_n_patterns = sites;
+            const unsigned int * char_map = l_datatype == dt_dna ?
                                               pll_map_nt :
                                               pll_map_aa;
 
@@ -378,6 +383,8 @@ namespace modeltest
           }
 
           pll_fasta_close (fp);
+
+          if (datatype) *datatype = l_datatype;
       }
       else
       {

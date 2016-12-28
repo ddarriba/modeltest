@@ -35,7 +35,8 @@ modeltest_mpi_SOURCES = \
 modeltest_mpi_CPPFLAGS = -I.. -I../src -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltest_mpi_CPPFLAGS += -DHAVE_PTHREADS
 modeltest_mpi_LDFLAGS =
-modeltest_mpi_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+#modeltest_mpi_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+modeltest_mpi_LDADD = -l:libpll_algorithm.a -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a -l:libpll_tree.a -l:libpll_util.a -l:libpll.a 
 
 modeltest_mpi_CPPFLAGS += -DBUILD_MPI
 

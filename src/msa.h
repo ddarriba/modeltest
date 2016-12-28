@@ -51,7 +51,7 @@ namespace modeltest
      * @brief Gets the list of headers
      * @return an array of headers
      */
-    virtual const char* const* get_headers () const = 0;
+    virtual char ** get_headers ( void ) const = 0;
 
     /**
      * @brief Gets the sequence at a certain position
@@ -59,6 +59,8 @@ namespace modeltest
      * @return the sequence at 'index'
      */
     virtual const char * get_sequence (mt_index_t index) const = 0;
+
+    virtual char ** get_sequences ( void ) const = 0;
 
     /**
      * @brief Gets the pattern weights

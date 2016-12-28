@@ -846,36 +846,47 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
       /* validate output files */
       output_files_ok = true;
-      if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))
-      {
-          LOG_ERR << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " already exists" << endl;
-          output_files_ok = false;
-      }
-      else
-      {
+      // if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_log_file))
+      // {
+      //     LOG_ERR << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " already exists" << endl;
+      //     output_files_ok = false;
+      // }
+      // else
+      // {
           if (!modeltest::Utils::file_writable(exec_opt.output_log_file))
           {
               LOG_ERR << PACKAGE << ": Log file " <<  exec_opt.output_log_file << " cannot be open for writing" << endl;
               output_files_ok = false;
           }
-      }
-      if (!exec_opt.force_override && exec_opt.output_tree_to_file && modeltest::Utils::file_exists(exec_opt.output_tree_file))
-      {
-          LOG_ERR << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " already exists" << endl;
-          output_files_ok = false;
-      }
-      else
-      {
+      // }
+      // if (!exec_opt.force_override && exec_opt.output_tree_to_file && modeltest::Utils::file_exists(exec_opt.output_tree_file))
+      // {
+      //     LOG_ERR << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " already exists" << endl;
+      //     output_files_ok = false;
+      // }
+      // else
+      // {
           if (exec_opt.output_tree_to_file && !modeltest::Utils::file_writable(exec_opt.output_tree_file))
           {
               LOG_ERR << PACKAGE << ": Tree file " <<  exec_opt.output_tree_file << " cannot be open for writing" << endl;
               output_files_ok = false;
           }
-      }
+      // }
       if (!exec_opt.force_override && modeltest::Utils::file_exists(exec_opt.output_results_file))
       {
-          LOG_ERR << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " already exists" << endl;
-          output_files_ok = false;
+        ifstream fin;
+        fin.open(exec_opt.output_results_file);
+        if (fin.is_open())
+        {
+          string line;
+          fin.seekg(-5, ios_base::end);
+          getline(fin, line);
+          if (!line.compare("Done"))
+          {
+            LOG_ERR << PACKAGE << ": Results file " <<  exec_opt.output_results_file << " already exists" << endl;
+            output_files_ok = false;
+          }
+        }
       }
       else
       {
