@@ -16,8 +16,8 @@
 #include <QtConcurrentRun>
 #endif
 
-#define TREE_ML     0
-#define TREE_MP     1
+#define TREE_MP     0
+#define TREE_ML     1
 #define TREE_ML_JC  2
 #define TREE_ML_GTR 3
 #define TREE_USER   4
@@ -60,6 +60,7 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
 
   update_gui();
 
+  set_active_tab("Console");
   Meta::print_ascii_logo();
   Meta::print_header();
 }
@@ -123,6 +124,7 @@ void XModelTestFancy::update_gui()
   ui->btn_loadparts->setEnabled(status & st_msa_loaded);
   ui->actionLoad_Partitions->setEnabled(status & st_msa_loaded);
   ui->btn_run->setEnabled(status & st_msa_loaded);
+  ui->btn_report->setEnabled(status & st_optimized);
   ui->tabResults->setEnabled(status & st_optimized);
 
   ui->frame_settings->setEnabled(!(status & (st_optimizing | st_optimized)));
@@ -499,12 +501,6 @@ void XModelTestFancy::on_btn_run_clicked()
 {
     if (!ui->btn_run->isEnabled())
         return;
-
-    if (ui->cmb_tree->currentIndex() == TREE_MP)
-    {
-        QMessageBox::warning(0, "We are sorry...", "<p>Maximum Parsimony is not available in ModelTest Light so far</p>");
-        return;
-    }
 
     set_active_tab("Console");
 

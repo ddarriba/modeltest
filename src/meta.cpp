@@ -1266,7 +1266,7 @@ void Meta::print_help(std::ostream& out)
         << "fixed maximum likelihood (GTR)" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           fixed-mp"
-        << "fixed maximum parsimony" << endl;
+        << "fixed maximum parsimony (default)" << endl;
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "           random"
         << "random generated tree" << endl;

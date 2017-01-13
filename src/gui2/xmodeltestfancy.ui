@@ -233,12 +233,12 @@
              </property>
              <item>
               <property name="text">
-               <string>Maximum Likelihood</string>
+               <string>Maximum Parsimony</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Maximum Parsimony</string>
+               <string>Maximum Likelihood</string>
               </property>
              </item>
              <item>
@@ -304,6 +304,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btn_report">
+          <property name="text">
+           <string>Save Report</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="btn_reset">
           <property name="text">
            <string>Reset</string>
@@ -333,7 +340,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -642,7 +649,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>746</width>
+                 <width>674</width>
                  <height>606</height>
                 </rect>
                </property>
