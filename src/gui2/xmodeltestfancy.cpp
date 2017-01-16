@@ -6,6 +6,8 @@
 #include "gui/progressdialog.h"
 #include "meta.h"
 
+#include "ui_aboutdialog.h"
+
 #ifdef QT_WIDGETS_LIB
 #include <QtWidgets>
 #else
@@ -14,6 +16,8 @@
 #include <QTableView>
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
+#include <QDesktopServices>
+#include <QUrl>
 #endif
 
 #define TREE_MP     0
@@ -55,11 +59,12 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
     addAction(ui->actionData);
     addAction(ui->actionResults);
     addAction(ui->actionSettings);
+    addAction(ui->actionRun);
+    addAction(ui->actionSave_Report);
+    addAction(ui->actionReset);
     addAction(ui->action_quit);
 #endif
-
   update_gui();
-
   set_active_tab("Console");
   Meta::print_ascii_logo();
   Meta::print_header();
@@ -77,7 +82,7 @@ static void set_oklabel(QLabel * label, oklabel_t ok)
   switch(ok)
   {
   case LABEL_FAIL:
-    label->setText(QString("NO"));
+    label->setText(QString("-"));
     label->setStyleSheet("color: #aa0000;");
     break;
   case LABEL_UNDEF:
@@ -117,14 +122,23 @@ void XModelTestFancy::update_gui()
   compute_size(n_cats, ui->slider_nthreads->value());
 
   /* enabling */
+  ui->btn_loadmsa->setEnabled(!(status & st_optimized));
+  ui->actionLoad_MSA->setEnabled(!(status & st_optimized));
+
   ui->sliderNCat->setEnabled(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked());
-  ui->btn_loadtree->setEnabled(status & st_msa_loaded);
-  ui->actionLoad_Tree->setEnabled(status & st_msa_loaded);
-  ui->cmb_tree->setEnabled(status & st_msa_loaded);
-  ui->btn_loadparts->setEnabled(status & st_msa_loaded);
-  ui->actionLoad_Partitions->setEnabled(status & st_msa_loaded);
-  ui->btn_run->setEnabled(status & st_msa_loaded);
+
+  ui->btn_loadtree->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+  ui->actionLoad_Tree->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+  ui->cmb_tree->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+
+  ui->btn_loadparts->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+  ui->actionLoad_Partitions->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+
+  ui->btn_run->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+  ui->actionRun->setEnabled((status & st_msa_loaded) && !(status & st_optimized));
+
   ui->btn_report->setEnabled(status & st_optimized);
+  ui->actionSave_Report->setEnabled(status & st_optimized);
   ui->tabResults->setEnabled(status & st_optimized);
 
   ui->frame_settings->setEnabled(!(status & (st_optimizing | st_optimized)));
@@ -497,6 +511,11 @@ void XModelTestFancy::reset_xmt( void )
     ModelTestService::instance()->destroy_instance();
 }
 
+void XModelTestFancy::on_actionRun_triggered()
+{
+    on_btn_run_clicked();
+}
+
 void XModelTestFancy::on_btn_run_clicked()
 {
     if (!ui->btn_run->isEnabled())
@@ -514,6 +533,51 @@ void XModelTestFancy::on_btn_run_clicked()
     status &= ~st_optimizing;
 
     update_gui();
+}
+
+void XModelTestFancy::on_actionSave_Report_triggered()
+{
+    on_btn_report_clicked();
+}
+
+void XModelTestFancy::on_btn_report_clicked()
+{
+    ofstream * report_file;
+
+    if (!ui->btn_report->isEnabled())
+        return;
+
+    QString file_name;
+    file_name = QFileDialog::getSaveFileName(this,
+                                             tr("Save File"),
+                                             "",
+                                             0);
+    if ( file_name.compare(""))
+    {
+        report_file = Utils::open_file_for_writing(file_name.toStdString());
+        Meta::print_header(*report_file);
+        Meta::print_options(opts, *report_file);
+        for (mt_index_t i=0; i<model_selection.size(); ++i)
+        {
+            ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_aic], *report_file);
+            ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_aicc], *report_file);
+            ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_bic], *report_file);
+        }
+        report_file->close();
+
+        cout << endl << "Report saved to " << file_name.toStdString() << endl;
+//        QMessageBox msgBox;
+//        msgBox.setText(file_name);
+//        msgBox.setInformativeText("Report saved successfully");
+//        msgBox.setStandardButtons(QMessageBox::Close);
+//        //msgBox.setDefaultButton(QMessageBox::Cancel);
+//        msgBox.exec();
+    }
+}
+
+void XModelTestFancy::on_actionReset_triggered()
+{
+    on_btn_reset_clicked();
 }
 
 void XModelTestFancy::on_btn_reset_clicked()
@@ -904,4 +968,24 @@ void XModelTestFancy::on_action_quit_triggered()
     {
         close();
     }
+}
+
+void XModelTestFancy::on_actionAbout_triggered()
+{
+    QDialog * about = new QDialog(0,0);
+
+    Ui_AboutDialog aboutUi;
+    aboutUi.setupUi(about);
+
+    about->show();
+}
+
+void XModelTestFancy::on_actionProject_Site_triggered()
+{
+    QDesktopServices::openUrl ( QUrl("https://github.com/ddarriba/modeltest") );
+}
+
+void XModelTestFancy::on_actionIndex_triggered()
+{
+    QDesktopServices::openUrl ( QUrl("https://github.com/ddarriba/modeltest/wiki") );
 }

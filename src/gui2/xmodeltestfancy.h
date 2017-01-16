@@ -64,6 +64,20 @@ private slots:
 
     void on_action_quit_triggered();
 
+    void on_btn_report_clicked();
+
+    void on_actionRun_triggered();
+
+    void on_actionSave_Report_triggered();
+
+    void on_actionReset_triggered();
+
+    void on_actionAbout_triggered();
+
+    void on_actionProject_Site_triggered();
+
+    void on_actionIndex_triggered();
+
 private:
     void update_gui( void );
     void set_active_tab(QString text);

@@ -102,7 +102,8 @@ FORMS    += \
     gui/resultsdialog.ui \
     gui/modelsdialog.ui \
     gui/resultsexportdialog.ui \
-    gui2/xmodeltestfancy.ui
+    gui2/xmodeltestfancy.ui \
+    gui2/aboutdialog.ui
 
 RESOURCES = mtgraphics.qrc
 

@@ -732,7 +732,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
 
         pi.gap_aware = false;
         pi.unique_id = ++partition_id;
-        
+
         partitions->push_back(pi);
     }
 
@@ -844,7 +844,7 @@ bool Utils::file_writable(const string & filename)
 ofstream * Utils::open_file_for_writing(const string &filename)
 {
     ofstream * outfile = new ofstream();
-    outfile->open(filename, ios_base::app);
+    outfile->open(filename, ios_base::out);
     return outfile;
 }
 
