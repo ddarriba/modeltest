@@ -49,8 +49,10 @@
 #define st_optimizing     (1<<5)
 #define st_optimized      (1<<6)
 
+#if(0)
 Q_DECLARE_METATYPE( partition_id_t )
 Q_DECLARE_METATYPE( mt_size_t )
+#endif
 
 namespace Ui {
 class xmodeltest;

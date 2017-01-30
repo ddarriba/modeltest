@@ -375,7 +375,7 @@ void xmodeltest::run_modelselection()
     int number_of_threads  = ui->sliderNThreads->value();
 
     QMessageBox msgBox;
-    msgBox.setText("Start models optimizaion");
+    msgBox.setText("Start models optimization");
     msgBox.setInformativeText("Are you sure?");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Ok);

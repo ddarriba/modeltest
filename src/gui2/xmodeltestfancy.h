@@ -1,7 +1,6 @@
 #ifndef XMODELTESTFANCY_H
 #define XMODELTESTFANCY_H
 
-#include <QMainWindow>
 #include "global_defs.h"
 #include "model_selection.h"
 
@@ -9,12 +8,27 @@
 #include "gui/mydebugstream.h"
 #include "gui/xthreadopt.h"
 
+#include <QMainWindow>
+#ifdef QT_WIDGETS_LIB
+#include <QtWidgets>
+#else
+#include <QtGui/QListWidgetItem>
+#include <QtGui/QStandardItemModel>
+#include <QtGui/QTableView>
+#include <QtGui/QLabel>
+#endif
+
 #define st_active         (1<<0)
 #define st_msa_loaded     (1<<1)
 #define st_tree_loaded    (1<<2)
 #define st_parts_loaded   (1<<3)
 #define st_optimizing     (1<<5)
 #define st_optimized      (1<<6)
+
+//#ifdef FANCY_GUI
+Q_DECLARE_METATYPE( partition_id_t )
+Q_DECLARE_METATYPE( mt_size_t )
+//#endif
 
 namespace Ui {
 class XModelTestFancy;
@@ -77,6 +91,10 @@ private slots:
     void on_actionProject_Site_triggered();
 
     void on_actionIndex_triggered();
+
+    void on_actionLoad_Partitions_triggered();
+
+    void on_btn_loadparts_clicked();
 
 private:
     void update_gui( void );

@@ -132,7 +132,7 @@ void xThreadOpt::run()
             vector< future<void> > results;
             map<thread::id, mt_index_t> thread_map = pool->worker_ids;
 
-            cout << "Starting jobs... (output might be unsorted)" << endl;
+            //cout << "Starting jobs... (output might be unsorted)" << endl;
             for (cur_model=0; cur_model < partition.get_number_of_models(); cur_model++)
             {
                 modeltest::Model *model = partition.get_model(cur_model); //ModelTestService::instance()->get_model(part_id, cur_model);

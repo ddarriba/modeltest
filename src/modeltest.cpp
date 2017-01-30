@@ -789,6 +789,8 @@ bool ModelTest::set_models(const vector<Model *> &c_models,
 
 void ModelTest::update(Observable * subject, void * data)
 {
+  UNUSED(subject);
+
   //TODO: Use struct here
   if (!ROOT) return;
   opt_info_t * opt_info = static_cast<opt_info_t *>(data);

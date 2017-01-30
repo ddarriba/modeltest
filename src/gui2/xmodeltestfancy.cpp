@@ -1,3 +1,24 @@
+/*
+  Copyright (C) 2016 Diego Darriba
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  Contact: Diego Darriba <Diego.Darriba@h-its.org>,
+  Heidelberg Institute for Theoretical Studies,
+  Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
 #include "gui2/xmodeltestfancy.h"
 #include "ui_xmodeltestfancy.h"
 #include "gui/xutils.h"
@@ -12,10 +33,10 @@
 #include <QtWidgets>
 #else
 #include <QtGui/QFileDialog>
-#include <QStandardItemModel>
-#include <QTableView>
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
+#include <QStandardItemModel>
+#include <QTableView>
 #include <QDesktopServices>
 #include <QUrl>
 #endif
@@ -478,6 +499,87 @@ void XModelTestFancy::on_actionLoad_Tree_triggered()
     on_btn_loadtree_clicked();
 }
 
+void XModelTestFancy::on_btn_loadparts_clicked()
+{
+    if (!ui->btn_loadparts->isEnabled())
+        return;
+
+    QString filters = tr("All files(*)");
+    QString file_name;
+    if (status & st_optimized)
+    {
+            QMessageBox msgBox;
+            msgBox.setText("Partitioning cannot be set after optimization");
+            msgBox.setInformativeText("You must reset ModelTest before");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+            return;
+    }
+
+    file_name = QFileDialog::getOpenFileName(this,
+                                             tr("Open partitions file"),
+                                             "",
+                                             filters);
+    const std::string loaded_file = file_name.toStdString();
+
+    if ( loaded_file.compare(""))
+    {
+        parts_filename = loaded_file;
+        scheme = modeltest::Utils::parse_partitions_file(parts_filename);
+
+        if (!scheme)
+        {
+            parts_filename = "";
+            ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+            ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+            status &= ~st_parts_loaded;
+        }
+        else
+        {
+            if (!modeltest::ModelTest::test_partitions(*scheme, n_sites))
+            {
+                ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
+                ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                parts_filename = "";
+                delete scheme;
+                scheme = 0;
+                status &= ~st_parts_loaded;
+            }
+            else
+            {
+                ui->consoleRun->append(xutils::to_qstring("Loaded %1 partitions %2", msg_lvl_notify).arg(scheme->size()).arg(parts_filename.c_str()));
+                if (modeltest::mt_errno)
+                {
+                    /* there are warnings */
+                    ui->consoleRun->append("Warning: " + xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
+                }
+                status |= st_parts_loaded;
+            }
+        }
+    }
+
+    if (status & st_tree_loaded)
+    {
+        //ui->lbl_tree_fname->setText(QString(modeltest::Utils::getBaseName(utree_filename).c_str()));
+        ui->lbl_tree_fname->setText(QString(utree_filename.c_str()));
+        set_active_tab("Data");
+    }
+    else
+    {
+        ui->lbl_tree_fname->setText("none");
+        ui->cmb_tree->setCurrentIndex(TREE_DEFAULT);
+        set_active_tab("Console");
+    }
+
+    update_gui();
+}
+
+void XModelTestFancy::on_actionLoad_Partitions_triggered()
+{
+    on_btn_loadparts_clicked();
+}
+
 void XModelTestFancy::reset_xmt( void )
 {
     status = st_active;
@@ -601,7 +703,7 @@ bool XModelTestFancy::run_modelselection()
     int number_of_threads  = ui->slider_nthreads->value();
 
     QMessageBox msgBox;
-    msgBox.setText("Start models optimizaion");
+    msgBox.setText("Start models optimization");
     msgBox.setInformativeText("Are you sure?");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Ok);

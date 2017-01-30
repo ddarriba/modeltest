@@ -225,6 +225,7 @@ namespace modeltest
   }
   #else
   void * PartitionOptimizer::model_scheduler( vector<Model *> const& models ) {
+    UNUSED(models);
     assert(0);
     return 0;
   }

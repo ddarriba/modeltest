@@ -1409,6 +1409,7 @@ void ProtModel::output_log(std::ostream  &out) const
 
 void ProtModel::input_log(std::istream  &in)
 {
+  UNUSED(in);
   //TODO:
 }
 

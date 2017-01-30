@@ -254,6 +254,8 @@ string ModelTestService::get_iqtree_command_line(Model const& model,
 string ModelTestService::get_paup_command_line(Model const& model,
                                                string const& msa_filename) const
 {
+    UNUSED(model);
+
     //TODO:
     stringstream paup_args;
     //mt_index_t matrix_index = model.get_matrix_index();
