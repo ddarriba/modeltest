@@ -118,8 +118,8 @@ public:
     bool evaluate_single_model(Model * model,
                                const partition_id_t &part_id,
                                mt_index_t thread_number = 0,
-                               double tolerance = 0.0001,
-                               double epsilon = 0.001);
+                               double tolerance = DEFAULT_PARAM_EPSILON,
+                               double epsilon = DEFAULT_OPT_EPSILON);
 
     /**
      * @brief Optimizes the whole candidate models set
