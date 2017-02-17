@@ -128,6 +128,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QPushButton" name="btn_loadparts">
+             <property name="toolTip">
+              <string>Load a partitioning scheme description file in RAxML-like format</string>
+             </property>
              <property name="text">
               <string>Load Partitions</string>
              </property>
@@ -145,6 +148,9 @@
            </item>
            <item row="2" column="1">
             <widget class="QPushButton" name="btn_loadtree">
+             <property name="toolTip">
+              <string>Load a starting tree topology in NEWICK format</string>
+             </property>
              <property name="text">
               <string>Load Tree</string>
              </property>
@@ -163,6 +169,9 @@
                <width>16777215</width>
                <height>16777215</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Load a multiple sequence alignment in PHYLIP or FASTA format</string>
              </property>
              <property name="text">
               <string>Load MSA</string>
@@ -203,6 +212,9 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>Number of concurrent threads</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -230,6 +242,9 @@
                <width>16777215</width>
                <height>16777215</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Select tree topology for models optimization</string>
              </property>
              <item>
               <property name="text">
@@ -260,6 +275,9 @@
            </item>
            <item row="5" column="1">
             <widget class="QLabel" name="lbl_memsize">
+             <property name="toolTip">
+              <string>Estimated memory required for the model selection</string>
+             </property>
              <property name="text">
               <string>18.054 MB</string>
              </property>
@@ -298,6 +316,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="btn_run">
+          <property name="toolTip">
+           <string>Start model selection process</string>
+          </property>
           <property name="text">
            <string>Run</string>
           </property>
@@ -305,6 +326,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="btn_report">
+          <property name="toolTip">
+           <string>Save model selection results report</string>
+          </property>
           <property name="text">
            <string>Save Report</string>
           </property>
@@ -312,6 +336,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="btn_reset">
+          <property name="toolTip">
+           <string>Reset current settings</string>
+          </property>
           <property name="text">
            <string>Reset</string>
           </property>
@@ -336,6 +363,9 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QTabWidget" name="tab_view">
+          <property name="toolTip">
+           <string/>
+          </property>
           <property name="statusTip">
            <string extracomment="Main console"/>
           </property>
@@ -352,6 +382,9 @@
            <bool>false</bool>
           </property>
           <widget class="QWidget" name="tabConsole">
+           <property name="toolTip">
+            <string>Main console</string>
+           </property>
            <attribute name="title">
             <string>Console</string>
            </attribute>
@@ -371,6 +404,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tabData">
+           <property name="toolTip">
+            <string>Input data description</string>
+           </property>
            <attribute name="title">
             <string>Data</string>
            </attribute>
@@ -629,6 +665,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tabSettings">
+           <property name="toolTip">
+            <string>Model selection settings</string>
+           </property>
            <attribute name="title">
             <string>Settings</string>
            </attribute>
@@ -764,6 +803,9 @@
                         <property name="cursor">
                          <cursorShape>PointingHandCursor</cursorShape>
                         </property>
+                        <property name="toolTip">
+                         <string>DNA data type (nucleotide sequences)</string>
+                        </property>
                         <property name="text">
                          <string>DNA</string>
                         </property>
@@ -785,6 +827,9 @@
                         </property>
                         <property name="cursor">
                          <cursorShape>PointingHandCursor</cursorShape>
+                        </property>
+                        <property name="toolTip">
+                         <string>Protein data type (amino acid sequences)</string>
                         </property>
                         <property name="text">
                          <string>Protein</string>
@@ -2014,6 +2059,9 @@
                           <bold>true</bold>
                          </font>
                         </property>
+                        <property name="toolTip">
+                         <string>Substitution schemes (DNA) or empirical matrices (protein)</string>
+                        </property>
                         <property name="frameShape">
                          <enum>QFrame::NoFrame</enum>
                         </property>
@@ -2268,6 +2316,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tabResults">
+           <property name="toolTip">
+            <string>Model selection results</string>
+           </property>
            <attribute name="title">
             <string>Results</string>
            </attribute>
@@ -2324,6 +2375,9 @@
                    <family>Courier 10 Pitch</family>
                    <pointsize>10</pointsize>
                   </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>Select partition</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true"/>
@@ -2397,6 +2451,9 @@
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="tab_results_bic">
+               <property name="toolTip">
+                <string>Selection results according to BIC</string>
+               </property>
                <attribute name="title">
                 <string>BIC</string>
                </attribute>
@@ -2498,6 +2555,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string/>
+                     </property>
                      <property name="text">
                       <string>Frequencies:</string>
                      </property>
@@ -2511,6 +2571,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of stationary frequencies free parameters</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2523,6 +2586,9 @@
                        <width>60</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Importance of gamma rate variation</string>
                      </property>
                      <property name="text">
                       <string>N/A</string>
@@ -2550,6 +2616,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2564,6 +2633,9 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="txt_imp_invgamma_bic">
+                     <property name="toolTip">
+                      <string>Importance of gamma rates and proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2575,6 +2647,9 @@
                </layout>
               </widget>
               <widget class="QWidget" name="tab_results_aic">
+               <property name="toolTip">
+                <string>Selection results according to AIC</string>
+               </property>
                <attribute name="title">
                 <string>AIC</string>
                </attribute>
@@ -2689,6 +2764,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of stationary frequencies free parameters</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2701,6 +2779,9 @@
                        <width>60</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Importance of gamma rate variation</string>
                      </property>
                      <property name="text">
                       <string>N/A</string>
@@ -2728,6 +2809,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2742,6 +2826,9 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="txt_imp_invgamma_aic">
+                     <property name="toolTip">
+                      <string>Importance of gamma rates and proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2753,6 +2840,9 @@
                </layout>
               </widget>
               <widget class="QWidget" name="tab_results_aicc">
+               <property name="toolTip">
+                <string>Selection results according to AICc</string>
+               </property>
                <attribute name="title">
                 <string>AICc</string>
                </attribute>
@@ -2867,6 +2957,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of stationary frequencies free parameters</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2879,6 +2972,9 @@
                        <width>60</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Importance of gamma rate variation</string>
                      </property>
                      <property name="text">
                       <string>N/A</string>
@@ -2906,6 +3002,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2920,6 +3019,9 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="txt_imp_invgamma_aicc">
+                     <property name="toolTip">
+                      <string>Importance of gamma rates and proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -2931,6 +3033,9 @@
                </layout>
               </widget>
               <widget class="QWidget" name="tab_results_dt">
+               <property name="toolTip">
+                <string>Selection results according to DT</string>
+               </property>
                <attribute name="title">
                 <string>DT</string>
                </attribute>
@@ -3045,6 +3150,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of stationary frequencies free parameters</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -3057,6 +3165,9 @@
                        <width>60</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Importance of gamma rate variation</string>
                      </property>
                      <property name="text">
                       <string>N/A</string>
@@ -3084,6 +3195,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="toolTip">
+                      <string>Importance of proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>
@@ -3098,6 +3212,9 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="txt_imp_invgamma_dt">
+                     <property name="toolTip">
+                      <string>Importance of gamma rates and proportion of invariable sites</string>
+                     </property>
                      <property name="text">
                       <string>N/A</string>
                      </property>

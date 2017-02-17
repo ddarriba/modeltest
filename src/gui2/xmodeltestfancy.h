@@ -96,6 +96,8 @@ private slots:
 
     void on_btn_loadparts_clicked();
 
+    void on_cmb_results_partition_currentIndexChanged(int index);
+
 private:
     void update_gui( void );
     void set_active_tab(QString text);

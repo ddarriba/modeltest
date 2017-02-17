@@ -85,6 +85,9 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
     addAction(ui->actionReset);
     addAction(ui->action_quit);
 #endif
+
+  on_radDatatypeDna_clicked();
+
   update_gui();
   set_active_tab("Console");
   Meta::print_ascii_logo();
@@ -534,6 +537,7 @@ void XModelTestFancy::on_btn_loadparts_clicked()
             ui->consoleRun->append(xutils::to_qstring("Error loading partitions %1", msg_lvl_error).arg(parts_filename.c_str()));
             ui->consoleRun->append(xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
             status &= ~st_parts_loaded;
+            ui->lbl_parts_fname->setText("none");
         }
         else
         {
@@ -545,6 +549,7 @@ void XModelTestFancy::on_btn_loadparts_clicked()
                 delete scheme;
                 scheme = 0;
                 status &= ~st_parts_loaded;
+                ui->lbl_parts_fname->setText("none");
             }
             else
             {
@@ -555,8 +560,13 @@ void XModelTestFancy::on_btn_loadparts_clicked()
                     ui->consoleRun->append("Warning: " + xutils::to_qstring(modeltest::mt_errmsg, msg_lvl_error));
                 }
                 status |= st_parts_loaded;
+                ui->lbl_parts_fname->setText(parts_filename.c_str());
             }
         }
+    }
+    else
+    {
+        ui->lbl_parts_fname->setText("none");
     }
 
     if (status & st_tree_loaded)
@@ -973,8 +983,6 @@ void XModelTestFancy::optimization_done( )
 
         modeltest::on_run = false;
 
-        update_gui();
-
         cout << setw(80) << setfill('-') << "" << setfill(' ') << endl;
         cout << "optimization done! It took " << time(NULL) - ini_t << " seconds" << endl;
 
@@ -987,10 +995,6 @@ void XModelTestFancy::optimization_done( )
         model_selection.resize(partitioning_scheme.get_size());
         for (mt_index_t i=0; i<partitioning_scheme.get_size(); ++i)
         {
-          //TODO: fix for multiple partition
-          // if (scheme.get_size() > 1)
-          //   ui->cmb_results_partition->addItem(scheme.get_partition(i).get_name().c_str());
-
           model_selection[i][modeltest::ic_aic]  =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_aic);
           model_selection[i][modeltest::ic_aicc] =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_aicc);
           model_selection[i][modeltest::ic_bic]  =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_bic);
@@ -998,48 +1002,11 @@ void XModelTestFancy::optimization_done( )
           //TODO: Allow this only for fixed trees
           if (false)
             model_selection[i][modeltest::ic_dt]   =  ModelTestService::instance()->select_models(partitioning_scheme.get_partition(i).get_id(), modeltest::ic_dt);
+
+          ui->cmb_results_partition->addItem(partitioning_scheme.get_partition(i).get_name().c_str());
         }
 
-        fill_results(ui->table_results_aic, *model_selection[0][modeltest::ic_aic],
-                     ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
-                     ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
-        fill_results(ui->table_results_aicc, *model_selection[0][modeltest::ic_aicc],
-                     ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
-                     ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
-        fill_results(ui->table_results_bic, *model_selection[0][modeltest::ic_bic],
-                     ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
-                     ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-        //TODO: Allow this only for fixed trees
-        bool do_dt = false;
-        if (do_dt)
-          fill_results(ui->table_results_dt, *model_selection[0][modeltest::ic_dt],
-                       ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                       ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
-
-        for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
-        {
-    #ifdef QT_WIDGETS_LIB
-            ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
-                c, QHeaderView::Stretch);
-            ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
-                c, QHeaderView::Stretch);
-            ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
-                c, QHeaderView::Stretch);
-            if (do_dt)
-              ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
-                c, QHeaderView::Stretch);
-    #else
-            ui->table_results_bic->horizontalHeader()->setResizeMode(
-                c, QHeaderView::Stretch);
-            ui->table_results_aic->horizontalHeader()->setResizeMode(
-                c, QHeaderView::Stretch);
-            ui->table_results_aicc->horizontalHeader()->setResizeMode(
-                c, QHeaderView::Stretch);
-            if (do_dt)
-              ui->table_results_dt->horizontalHeader()->setResizeMode(
-                c, QHeaderView::Stretch);
-    #endif
-        }
+        update_gui();
 }
 
 void XModelTestFancy::optimization_interrupted()
@@ -1090,4 +1057,48 @@ void XModelTestFancy::on_actionProject_Site_triggered()
 void XModelTestFancy::on_actionIndex_triggered()
 {
     QDesktopServices::openUrl ( QUrl("https://github.com/ddarriba/modeltest/wiki") );
+}
+
+void XModelTestFancy::on_cmb_results_partition_currentIndexChanged(int index)
+{
+    fill_results(ui->table_results_aic, *model_selection[index][modeltest::ic_aic],
+                 ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
+                 ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
+    fill_results(ui->table_results_aicc, *model_selection[index][modeltest::ic_aicc],
+                 ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
+                 ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
+    fill_results(ui->table_results_bic, *model_selection[index][modeltest::ic_bic],
+                 ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
+                 ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
+    //TODO: Allow this only for fixed trees
+    bool do_dt = false;
+    if (do_dt)
+      fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
+                   ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                   ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+
+    for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
+    {
+#ifdef QT_WIDGETS_LIB
+        ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+        if (do_dt)
+          ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
+            c, QHeaderView::Stretch);
+#else
+        ui->table_results_bic->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aic->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        ui->table_results_aicc->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+        if (do_dt)
+          ui->table_results_dt->horizontalHeader()->setResizeMode(
+            c, QHeaderView::Stretch);
+#endif
+    }
 }
