@@ -771,7 +771,8 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g)
 {
-    mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+    //mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+    mt_mask_t attributes = PLL_ATTRIB_SITES_REPEATS;
     mt_size_t states = n_frequencies;
 
     assert(!n_tips && _n_tips);

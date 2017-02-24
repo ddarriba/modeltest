@@ -1,12 +1,16 @@
+#!/bin/bash
+
 echo "----------------------------------------"
 echo "|       modeltest benchmark suite      |"
 echo "----------------------------------------"
 
+# select whether you want to restore existing checkpoint files
+# warning: execution times might not be valid
+restore_ckp=true
+
 tmp_dir=/tmp
 data_dir=datasets/stamatak
 results_dir=results/stamatak
-
-jmodeltest_bin=~/Repositories/phylogenetics/jmodeltest2/dist/jModelTest.jar
 
 if [ ! -d ${results_dir} ]; then
   echo building results directory: ${results_dir}
@@ -32,18 +36,16 @@ for ((idx=1;idx<=${n_datasets};idx++)); do
   echo evaluating dataset ${idx}/${n_datasets}: ${msa_file} 
 
   # JMODELTEST
-#  echo "java -jar ${jmodeltest_bin} -d ${msa_file} -u ${tree_file} -i -g 4 -f -s 11"
-#  time java -jar ${jmodeltest_bin} -d ${msa_file} -u ${tree_file} -i -g 4 -f -s 11 -BIC -AIC -AICc -DT 2>&1 > ${out_jmt_file}
+  #scripts/eval_jmodeltest.sh $msa_file $out_basedir/jmt $restore_ckp
 
   # MODELTEST
-  echo "${modeltest_bin} -i ${msa_file} $MT_ARGS 2>&1 > ${out_mt_file}"
   mkdir -p ${out_basedir}/mt
-  scripts/eval_modeltest.sh $msa_file $out_basedir/mt
+  scripts/eval_modeltest.sh $msa_file $out_basedir/mt $restore_ckp
 
   mkdir -p ${out_basedir}/iqtree
-  scripts/eval_iqtree.sh $msa_file $out_basedir/iqtree
+  scripts/eval_iqtree.sh $msa_file $out_basedir/iqtree $restore_ckp
 
-  exit
+exit
 done
 
 echo

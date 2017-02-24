@@ -1,0 +1,5 @@
+args = commandArgs(trailingOnly = T)
+values = as.numeric(args)
+delta = values - min(values)
+w = 1/sum(exp(-delta/2))
+cat(w)

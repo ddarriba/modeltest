@@ -15,5 +15,5 @@ for ((idx=1;idx<=${n_datasets};idx++)); do
   out_file=`echo ${msa_file} | sed "s/datasets/results/g"`
   out_basedir=`echo ${out_file} | rev | cut -d'/' -f2- | rev`
 
-  TODO
+  mt_outfile="${out_basedir}/mt/${msa_file}
 done
