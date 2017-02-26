@@ -48,7 +48,11 @@ time_t global_ini_time = time(NULL);
 
 #ifdef HAVE_AVX
 /* subtree repeats are only available with AVX */
+#ifdef PLL_ATTRIB_SITES_REPEATS
 bool disable_repeats = false;
+#else
+bool disable_repeats = true;
+#endif
 #else
 bool disable_repeats = true;
 #endif
