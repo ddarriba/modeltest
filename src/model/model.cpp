@@ -771,9 +771,17 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g)
 {
-    //mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
-    mt_mask_t attributes = PLL_ATTRIB_SITES_REPEATS;
     mt_size_t states = n_frequencies;
+    mt_mask_t attributes;
+
+    if (disable_repeats)
+    {
+      attributes = PLL_ATTRIB_PATTERN_TIP;
+    }
+    else
+    {
+      attributes = PLL_ATTRIB_SITES_REPEATS;
+    }
 
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
@@ -1266,7 +1274,17 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites,
                                             mt_size_t n_cat_g)
 {
-    mt_mask_t attributes = PLL_ATTRIB_PATTERN_TIP;
+    mt_mask_t attributes;
+    mt_size_t n_cats;
+
+    if (disable_repeats)
+    {
+      attributes = PLL_ATTRIB_PATTERN_TIP;
+    }
+    else
+    {
+      attributes = PLL_ATTRIB_SITES_REPEATS;
+    }
 
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
@@ -1282,7 +1300,7 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
 #endif
     attributes |= asc_bias_attribute(asc_bias_corr);
 
-    mt_size_t n_cats = optimize_gamma?n_cat_g:1;
+    n_cats = optimize_gamma?n_cat_g:1;
     if (mixture)
         n_cats = N_MIXTURE_CATS;
 

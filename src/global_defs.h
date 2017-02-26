@@ -99,6 +99,8 @@ namespace modeltest
 
   extern int verbosity;
   extern time_t global_ini_time;
+
+  extern bool disable_repeats;    //! Disable subtree repeats
 }
 
 typedef unsigned int mt_size_t;

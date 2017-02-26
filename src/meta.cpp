@@ -93,11 +93,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "tree", required_argument,         0, 't' },
         { "utree", required_argument,        0, 'u' },
         { "verbose", no_argument,            0, 'v' },
-        { "help", no_argument,               0, 0 },
-        { "usage", no_argument,              0, 1 },
-        { "version", no_argument,            0, 2 },
-        { "psearch", required_argument,      0, 3 },
-        { "smooth-frequencies", no_argument, 0, 4 },
+        { "help", no_argument,               0,  0 },
+        { "usage", no_argument,              0,  1 },
+        { "version", no_argument,            0,  2 },
+        { "psearch", required_argument,      0,  3 },
+        { "smooth-frequencies", no_argument, 0,  4 },
+        { "disable-repeats", no_argument,    0,  5 },
         { "eps", required_argument,          0, 10 },
         { "tol", required_argument,          0, 11 },
         { "force", no_argument,              0, 20 },
@@ -150,6 +151,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         case 4:
             /* force frequencies smoothing */
             exec_opt.smooth_freqs = true;
+            break;
+        case 5:
+            /* disable subtree repeats */
+            modeltest::disable_repeats = true;
             break;
         case 10:
             exec_opt.epsilon_opt = atof(optarg);
@@ -454,6 +459,25 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     }
 
     srand(exec_opt.rnd_seed);
+
+    /* if there are no model specifications, include all */
+    mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
+                           MOD_PARAM_INV |
+                           MOD_PARAM_GAMMA |
+                           MOD_PARAM_INV_GAMMA;
+    if (!(exec_opt.model_params &
+          all_params))
+        exec_opt.model_params |=
+                all_params;
+
+    /* if there are no frequencies specifications, include all */
+    if (!(exec_opt.model_params & MOD_MASK_FREQ_PARAMS))
+    {
+      if (arg_datatype == dt_dna)
+        exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
+      else if (arg_datatype == dt_protein)
+        exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_EMPIRICAL_FREQ);
+    }
 
     /* validate ascertainment bias correction */
     if (exec_opt.asc_bias_corr != asc_none)
@@ -903,25 +927,6 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
           LOG_ERR << PACKAGE << ": - Fore overriding (--force argument)" << endl;
           params_ok = false;
       }
-
-      /* if there are no model specifications, include all */
-      mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
-                             MOD_PARAM_INV |
-                             MOD_PARAM_GAMMA |
-                             MOD_PARAM_INV_GAMMA;
-      if (!(exec_opt.model_params &
-            all_params))
-          exec_opt.model_params |=
-                  all_params;
-
-      /* if there are no frequencies specifications, include all */
-      if (!(exec_opt.model_params & MOD_MASK_FREQ_PARAMS))
-      {
-        if (arg_datatype == dt_dna)
-          exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
-        else if (arg_datatype == dt_protein)
-          exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_EMPIRICAL_FREQ);
-      }
     }
 
     return params_ok;
@@ -962,6 +967,16 @@ void Meta::print_system_info(std::ostream  &out)
     out << "Physical cores: " << modeltest::Utils::count_physical_cores() << endl;
     out << "Logical cores:  " << modeltest::Utils::count_logical_cores() << endl;
     out << "Memory:         " << setprecision(3) << memcount_gb << "GB" << endl;
+    out << "Extensions:     ";
+    #ifdef HAVE_AVX
+      out << "AVX" << endl;
+    #else
+    #ifdef HAVE_SSE
+        out << "SSE3" << endl;
+    #else
+        out << "none [WARNING!]" << endl;
+    #endif
+    #endif
 }
 
 static void print_model_params(mt_mask_t model_params, std::ostream  &out)
@@ -1099,11 +1114,12 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         }
         break;
     }
+
     out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
     out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
 
     out << endl << "Additional options:" << endl;
-    out << "  " << left << setw(14) << "verbosity:";
+    out << "  " << left << setw(18) << "verbosity:";
     switch (opts.verbose)
     {
     case 0:
@@ -1121,11 +1137,13 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     default:
         assert(0);
     }
-    out << "  " << left << setw(14) << "threads:" << opts.n_threads << "/" << num_cores << endl;
-    out << "  " << left << setw(14) << "RNG seed:" << opts.rnd_seed << endl;
+    out << "  " << left << setw(18) << "threads:" << opts.n_threads << "/" << num_cores << endl;
+    out << "  " << left << setw(18) << "RNG seed:" << opts.rnd_seed << endl;
+    out << "  " << left << setw(18) << "subtree repeats:" <<
+           (modeltest::disable_repeats?"disabled":"enabled") << endl;
     if (opts.verbose == VERBOSITY_MID)
     {
-      out << "  " << left << setw(14) << "parameters mask:" << opts.model_params<< endl;
+      out << "  " << left << setw(18) << "parameters mask:" << opts.model_params<< endl;
     }
 
     if (opts.partitions_desc)

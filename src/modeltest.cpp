@@ -46,6 +46,13 @@ double pinv_alpha_guess = 1.0;
 int verbosity = VERBOSITY_DEFAULT;
 time_t global_ini_time = time(NULL);
 
+#ifdef HAVE_AVX
+/* subtree repeats are only available with AVX */
+bool disable_repeats = false;
+#else
+bool disable_repeats = true;
+#endif
+
 using namespace std;
 
 ModelTest::ModelTest(mt_size_t _number_of_threads)
