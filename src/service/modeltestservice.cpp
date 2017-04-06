@@ -190,7 +190,8 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   {
     all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree(),
                                                     n_tips,
-                                                    &n_splits);
+                                                    &n_splits,
+                                                    NULL);
   }
 
   n_topologies = 0;
