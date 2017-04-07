@@ -27,22 +27,7 @@
 
 using namespace std;
 
-/* a callback function for resetting missing branches */
-static int cb_set_missing_branches(pll_utree_t * node, void *data)
-{
-  UNUSED(data);
-
-  /* reset branches */
-  if (!(node->length > 0.))
-  {
-    node->length = 0.1;
-    node->back->length = 0.1;
-  }
-
-  return 1;
-}
-
-static int cb_set_names(pll_utree_t * node, void *data)
+static int cb_set_names(pll_unode_t * node, void *data)
 {
   modeltest::Msa *msa = (modeltest::Msa *) data;
 
@@ -68,10 +53,10 @@ static int cb_set_names(pll_utree_t * node, void *data)
   return 1;
 }
 
-static int cb_set_missing_names(pll_utree_t * node, void *data)
+static int cb_set_missing_names(pll_unode_t * node, void *data)
 {
-  pll_utree_t **tip_nodes = (pll_utree_t **) data;
-  pll_utree_t **tip_nodes_ptr = tip_nodes;
+  pll_unode_t **tip_nodes = (pll_unode_t **) data;
+  pll_unode_t **tip_nodes_ptr = tip_nodes;
 
   if (!node->label)
   {
@@ -99,43 +84,6 @@ static int cb_set_missing_names(pll_utree_t * node, void *data)
   return 1;
 }
 
-/* a callback function for resetting all branches */
-static int cb_set_all_branches(pll_utree_t * node, void *data)
-{
-  double * length = (double *) data;
-
-  /* reset branches */
-  node->length = *length;
-  node->back->length = *length;
-
-  return 1;
-}
-
-static void scale_branch_length_recursive (pll_utree_t * tree,
-                                           double factor)
-{
-  if (tree)
-  {
-    /* set branch length to default if not set */
-    tree->length *= factor;
-    tree->back->length *= factor;
-
-    if (tree->next)
-    {
-      scale_branch_length_recursive (tree->next->back, factor);
-      scale_branch_length_recursive (tree->next->next->back, factor);
-    }
-  }
-}
-
-/* scale all branch lengths */
-static void scale_branch_length (pll_utree_t * tree,
-                                 double factor)
-{
-  scale_branch_length_recursive (tree, factor);
-  scale_branch_length_recursive (tree->back, factor);
-}
-
 namespace modeltest
 {
 
@@ -144,11 +92,9 @@ namespace modeltest
   static void set_indices(pll_utree_t * pll_tree, Msa &msa)
   {
     mt_size_t n_tips = msa.get_n_sequences();
-    pll_utree_t ** tip_nodes;
+    pll_unode_t ** tip_nodes = pll_tree->nodes;
 
-    tip_nodes = (pll_utree_t **) Utils::c_allocate(n_tips,
-                                                   sizeof(pll_utree_t *));
-    pll_utree_query_tipnodes(pll_tree, tip_nodes);
+    assert(n_tips == pll_tree->tip_count);
 
     /* find sequences and link them with the corresponding taxa */
     for (mt_index_t i = 0; i < n_tips; ++i)
@@ -169,8 +115,6 @@ namespace modeltest
             cerr << "ERROR: Cannot find tip \"" << header << "\"" << endl;
         assert(tip_clv_index != MT_SIZE_UNDEF);
     }
-
-    free(tip_nodes);
   }
 
   TreePll::TreePll (tree_type_t type,
@@ -185,14 +129,13 @@ namespace modeltest
     bl_optimized = false;
     pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
     pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_tip_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
-    pll_inner_nodes = (pll_utree_t ***) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t **));
 
     if (ROOT)
     {
       if (filename.compare(""))
       {
-        starting_tree = pll_utree_parse_newick (filename.c_str(), &(n_tips));
+        starting_tree = pll_utree_parse_newick (filename.c_str());
+        n_tips = starting_tree->tip_count;
       }
       else if (type == tree_random)
       {
@@ -220,10 +163,10 @@ namespace modeltest
     #if (MPI_ENABLED)
 
     /* broadcast starting topology */
-    pll_utree_t * serialized_tree;
+    pll_unode_t * serialized_tree;
     if (ROOT)
     {
-      serialized_tree = pllmod_utree_serialize(starting_tree,
+      serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0]->back,
                                                n_tips);
 
       MPI_Bcast(serialized_tree,
@@ -234,7 +177,7 @@ namespace modeltest
     }
     else
     {
-      serialized_tree = (pll_utree_t *) malloc(sizeof(pll_utree_t) * (2*n_tips - 2));
+      serialized_tree = (pll_unode_t *) malloc(sizeof(pll_utree_t) * (2*n_tips - 2));
       MPI_Bcast(serialized_tree,
                 sizeof(pll_utree_t) * (2*n_tips - 2),
                 MPI_BYTE,
@@ -263,32 +206,12 @@ namespace modeltest
     cleanup();
   }
 
-  void TreePll::reroot_random(mt_index_t thread_number)
-  {
-
-    if (!pll_inner_nodes)
-        cerr << "INER NODES FAIL" << endl;
-    assert(pll_inner_nodes);
-
-    /* move to random node */
-    int inner_index = rand () % (int) n_inner;
-
-    if (!pll_inner_nodes[thread_number])
-        cerr << "INER NODES THREAD FAIL " << thread_number << " " << number_of_threads << endl;
-    pll_tree[thread_number] = pll_inner_nodes[thread_number][inner_index];
-
-    assert(pll_tree[thread_number]);
-  }
-
   bool TreePll::set_branches(double length, mt_index_t thread_number)
   {
     assert(thread_number < number_of_threads);
     assert(length > 0);
-    pllmod_utree_traverse_apply(pll_tree[thread_number],
-                                NULL,
-                                NULL,
-                                &cb_set_all_branches,
-                                &length);
+    pllmod_utree_set_length_recursive(pll_tree[thread_number], length, false);
+
     return true;
   }
 
@@ -296,7 +219,8 @@ namespace modeltest
   {
     assert(factor > 0);
     assert(thread_number < number_of_threads);
-    scale_branch_length(pll_tree[thread_number], factor);
+    pllmod_utree_scale_branches(pll_tree[thread_number], factor);
+
     return true;
   }
 
@@ -308,7 +232,8 @@ namespace modeltest
 
   bool TreePll::test_tree(std::string const& tree_filename, mt_size_t *n_tips)
   {
-    pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str(), n_tips);
+    pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str());
+    *n_tips = tree->tip_count;
     if (!tree)
     {
       mt_errno = pll_errno;
@@ -328,13 +253,13 @@ namespace modeltest
     if (index >= n_tips)
         return "";
     else
-        return pll_tip_nodes[thread_number][index]->label;
+        return pll_tree[thread_number]->nodes[index]->label;
   }
 
   string TreePll::newick(mt_index_t thread_number) const
   {
     assert(thread_number < number_of_threads);
-    char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]);
+    char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]->nodes[0]->back);
     string nw = string(nw_cstr);
     free (nw_cstr);
     return (nw);
@@ -346,17 +271,13 @@ namespace modeltest
     pll_utree_destroy(pll_tree[thread_number], NULL);
     pll_tree[thread_number] = new_tree;
     //pll_start_tree[thread_number] = new_tree;
-
-    /* update node arrays */
-    pll_utree_query_tipnodes(new_tree, pll_tip_nodes[thread_number]);
-    pll_utree_query_innernodes(new_tree, pll_inner_nodes[thread_number]);
   }
 
   void TreePll::update_names( pll_utree_t * tree, Msa * msa )
   {
     if (msa)
     {
-      pllmod_utree_traverse_apply(tree,
+      pllmod_utree_traverse_apply(tree->nodes[0]->back,
                                   NULL,
                                   NULL,
                                   &cb_set_names,
@@ -364,23 +285,22 @@ namespace modeltest
     }
     else
     {
-      assert(pll_tip_nodes[0]);
-      pllmod_utree_traverse_apply(tree,
+      pllmod_utree_traverse_apply(tree->nodes[0]->back,
                                   NULL,
                                   NULL,
                                   &cb_set_missing_names,
-                                  pll_tip_nodes[0]);
+                                  pll_start_tree[0]->nodes);
     }
   }
 
   void * TreePll::extract_tree ( mt_index_t thread_number) const
   {
     assert(thread_number < number_of_threads);
-    pll_utree_t * new_tree = pll_utree_clone(pll_tip_nodes[thread_number][0]);
+    pll_utree_t * new_tree = pll_utree_clone(pll_tree[thread_number]);
     return new_tree;
   }
 
-  static double recurse_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2)
+  static double recurse_euclidean_distance(pll_unode_t * tree1, pll_unode_t * tree2)
   {
     double sum_branches = (tree1->length - tree2->length) * (tree1->length - tree2->length);
 
@@ -398,9 +318,12 @@ namespace modeltest
 
   double TreePll::compute_euclidean_distance(pll_utree_t * tree1, pll_utree_t * tree2)
   {
-    assert(!(tree1->next || tree2->next) && tree1->node_index == tree2->node_index);//!strcmp(tree1->label, tree2->label));
+    pll_unode_t *node1 = tree1->nodes[0],
+                *node2 = tree2->nodes[0];
 
-    double sum_branches = recurse_euclidean_distance(tree1, tree2);
+    assert(node1->node_index == node2->node_index);
+
+    double sum_branches = recurse_euclidean_distance(node1, node2);
 
     return sqrt(sum_branches);
   }
@@ -415,39 +338,22 @@ namespace modeltest
         {
           pll_utree_destroy(pll_tree[i], NULL);
         }
-        if (pll_tip_nodes[i])
-          free(pll_tip_nodes[i]);
-        if (pll_inner_nodes[i])
-          free(pll_inner_nodes[i]);
       }
       if(pll_start_tree) free(pll_start_tree);
       free(pll_tree);
-      free(pll_tip_nodes);
-      free(pll_inner_nodes);
     }
     pll_tree        = 0;
     pll_start_tree  = 0;
-    pll_tip_nodes   = 0;
-    pll_inner_nodes = 0;
   }
 
   void TreePll::clone_tree( pll_utree_t * tree )
   {
-    pllmod_utree_traverse_apply(tree,
-                                NULL,
-                                NULL,
-                                &cb_set_missing_branches,
-                                NULL);
+    pllmod_utree_set_length_recursive(tree, 0.1, true);
 
     for (mt_index_t i=0; i<number_of_threads; i++)
     {
       pll_tree[i] = pll_utree_clone (tree);
       pll_start_tree[i] = pll_tree[i];
-
-      pll_tip_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips, sizeof(pll_utree_t *));
-      pll_utree_query_tipnodes(pll_tree[i], pll_tip_nodes[i]);
-      pll_inner_nodes[i] = (pll_utree_t **) Utils::c_allocate(n_tips-2, sizeof(pll_utree_t *));
-      pll_utree_query_innernodes(pll_tree[i], pll_inner_nodes[i]);
     }
   }
 } /* namespace modeltest */

@@ -224,13 +224,15 @@ public:
     void set_loglh( double l );
 
     bool optimize_init ( pll_partition_t * pll_partition,
-                         pll_utree_t * pll_tree,
+                         pll_unode_t * root,
                          Partition const& partition );
+
     bool optimize( pll_partition_t * partition,
-                   pll_utree_t * tree,
+                   pll_unode_t * root,
                    double tolerance );
+
     bool optimize_oneparameter( pll_partition_t * partition,
-                                pll_utree_t * tree,
+                                pll_unode_t * root,
                                 double tolerance );
     /**
      * @brief Prints out the model in a human readable way
@@ -306,7 +308,10 @@ public:
                                                mt_size_t n_sites,
                                                mt_size_t n_cat_g ) = 0;
     pll_utree_t * get_tree( void ) const;
-    void set_tree( pll_utree_t * tree, int n_tips = 0 );
+    pll_unode_t * get_tree_graph( void ) const;
+
+    void set_tree( pll_unode_t * tree, int n_tips = 0 );
+    void set_tree( pll_utree_t * tree );
 
     mt_index_t get_unique_id( void ) const;
 protected:

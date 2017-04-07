@@ -188,7 +188,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
 
   for (mt_index_t tree_id = 0; tree_id < n_models; ++tree_id)
   {
-    all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree(),
+    all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree_graph(),
                                                     n_tips,
                                                     &n_splits,
                                                     NULL);
@@ -219,7 +219,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     if (!topologies[topo_v[tree_id] - 1].id)
     {
       topologies[topo_v[tree_id] - 1].id = topo_v[tree_id];
-      topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree());
+      topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree_graph());
     }
     topologies[topo_v[tree_id] - 1].bic_support += bic_selection.get_weight(c_models[tree_id]);
     topologies[topo_v[tree_id] - 1].aic_support += aic_selection.get_weight(c_models[tree_id]);

@@ -35,7 +35,7 @@ class Partition;
 typedef struct
 {
     pll_partition_t * partition;
-    pll_utree_t * tree;
+    pll_unode_t * tree;
     unsigned int * params_indices;
 } mt_opt_params_t;
 

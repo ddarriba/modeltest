@@ -39,7 +39,6 @@ namespace modeltest
     virtual ~TreePll ();
 
     virtual const std::string get_label(mt_index_t index, mt_index_t thread_number = 0) const;
-    virtual void reroot_random(mt_index_t thread_number = 0);
     virtual bool set_branches(double length, mt_index_t thread_number = 0);
     virtual bool scale_branches(double factor, mt_index_t thread_number = 0);
     virtual bool reset_branches(mt_index_t thread_number = 0);
@@ -102,8 +101,6 @@ namespace modeltest
     void clone_tree( pll_utree_t * tree );
     pll_utree_t **pll_tree;          //! pll tree structures for each thread
     pll_utree_t **pll_start_tree;    //! pll initial tree structures for each thread
-    pll_utree_t ***pll_tip_nodes;    //! list of tip node pointers for each thread
-    pll_utree_t ***pll_inner_nodes;  //! list of inner node pointers for each thread
   };
 
 } /* namespace modeltest */

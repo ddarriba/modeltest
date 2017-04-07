@@ -63,7 +63,7 @@ struct bl_data_t {
     size_t bl_pos;
 };
 
-static int cb_extract_branches(pll_utree_t * node, void *data)
+static int cb_extract_branches(pll_unode_t * node, void *data)
 {
   struct bl_data_t * bl_data = (struct bl_data_t *) data;
   if(bl_data->bl_pos >= bl_data->bl_vector.size())
@@ -75,7 +75,7 @@ static int cb_extract_branches(pll_utree_t * node, void *data)
   return 1;
 }
 
-static int cb_reset_branches(pll_utree_t * node, void *data)
+static int cb_reset_branches(pll_unode_t * node, void *data)
 {
     struct bl_data_t * bl_data = (struct bl_data_t *) data;
     if(bl_data->bl_pos >= bl_data->bl_vector.size())

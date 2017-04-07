@@ -195,9 +195,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     assert(pll_partition);
   }
 
-  pll_tree = tree.get_pll_tree(_thread_number);
-  if (pllmod_utree_is_tip(pll_tree))
-    pll_tree = pll_tree->back;
+  pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
+  // if (pllmod_utree_is_tip(pll_tree))
+  //   pll_tree = pll_tree->back;
 
   model.set_n_categories(pll_partition->rate_cats);
 
@@ -231,7 +231,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       pll_partition_destroy(pll_partition);
   }
 
-  bool ModelOptimizerPll::build_parameters(pll_utree_t * pll_tree)
+  bool ModelOptimizerPll::build_parameters(pll_unode_t * pll_tree)
   {
     UNUSED(pll_tree);
 
@@ -307,7 +307,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         thread_data[i].thread_id = i;
         thread_data[i].num_threads = (long) _num_threads;
         thread_data[i].partition = partition_local[i];
-        thread_data[i].vroot = tree.get_pll_tree();
+        thread_data[i].vroot = pll_tree;
         thread_data[i].barrier_buf = &barrier_buf;
         thread_data[i].trap = 1;
         thread_data[i].result_buf = result_buf;
@@ -390,7 +390,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
   }
 
-  double ModelOptimizerPll::optimize_parameters( pll_utree_t * pll_tree,
+  double ModelOptimizerPll::optimize_parameters( pll_unode_t * pll_tree,
                                                  double epsilon,
                                                  double tolerance,
                                                  bool opt_per_param,
@@ -489,7 +489,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     if (optimize_topology)
     {
       assert(!pll_tree->data);
-      tree_info = pllmod_treeinfo_create(pll_utree_clone(pll_tree),
+      tree_info = pllmod_treeinfo_create(pll_utree_graph_clone(pll_tree),
                                          tree.get_n_tips(),
                                          1,
                                          1);

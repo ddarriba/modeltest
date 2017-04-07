@@ -71,7 +71,7 @@ bool Checkpoint::ckp_save_model(Model const& model)
   pll_binary_header_t input_header;
   const double * subst_rates = model.get_subst_rates();
   const double * frequencies = model.get_frequencies();
-  pll_utree_t * tree = model.get_tree();
+  pll_unode_t * tree = model.get_tree_graph();
   unsigned int unique_id = model.get_unique_id();
   int write_ok;
   FILE * bin_file;
@@ -140,7 +140,7 @@ bool Checkpoint::ckp_load_model(Model & model)
   unsigned int type, attributes;
   int read_ok;
   FILE * bin_file;
-  pll_utree_t * tree;
+  pll_unode_t * tree;
   mt_index_t unique_id = model.get_unique_id();
 
   bin_file = pllmod_binary_open(ckp_filename.c_str(), &input_header);

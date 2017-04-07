@@ -35,7 +35,7 @@ typedef struct
     long thread_id;
     long num_threads;
     pll_partition_t * partition;
-    pll_utree_t * vroot;
+    pll_unode_t * vroot;
     pthread_barrier_t * barrier_buf;
     double * result_buf;
     int trap;
@@ -65,12 +65,12 @@ namespace modeltest
 
   private:
 
-    bool build_parameters( pll_utree_t * pll_tree );
+    bool build_parameters( pll_unode_t * pll_tree );
     double optimize_model( double epsilon,
                            double tolerance,
                            bool opt_per_param );
 
-    double optimize_parameters( pll_utree_t * pll_tree,
+    double optimize_parameters( pll_unode_t * pll_tree,
                                 double epsilon,
                                 double tolerance,
                                 bool opt_per_param,
@@ -79,7 +79,7 @@ namespace modeltest
     TreePll & tree;   //! the tree instance
 
     pll_partition_t * pll_partition; //! partition
-    pll_utree_t * pll_tree;
+    pll_unode_t * pll_tree;
 
     /* pthreads */
     void start_job_sync(int JOB, thread_data_t * td);

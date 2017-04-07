@@ -181,7 +181,7 @@ Model::~Model()
     free(params_indices);
   if (tree)
   {
-    pll_utree_destroy(tree->back, NULL);
+    pll_utree_destroy(tree, NULL);
   }
   for (AbstractParameter * parameter : parameters)
     delete parameter;
@@ -458,7 +458,13 @@ pll_utree_t * Model::get_tree( void ) const
     return tree;
 }
 
-void Model::set_tree( pll_utree_t * _tree, int _n_tips )
+pll_unode_t * Model::get_tree_graph( void ) const
+{
+  assert(is_optimized());
+  return tree->nodes[0];
+}
+
+void Model::set_tree( pll_unode_t * _tree, int _n_tips )
 {
   /* set node zero */
   while (_tree->node_index > 0)
@@ -467,13 +473,28 @@ void Model::set_tree( pll_utree_t * _tree, int _n_tips )
     else
      _tree = _tree->back;
 
+  assert(n_tips || n_tips > 0);
+
+  if (_n_tips > 0)
+    n_tips = _n_tips;
+
   assert(!_tree->next && _tree->back->next);
 
   if (tree)
   {
-    pll_utree_destroy(tree->back, NULL);
+    pll_utree_destroy(tree, NULL);
   }
-  if (_n_tips > 0) n_tips = _n_tips;
+
+  tree = pll_utree_wraptree(_tree, n_tips);
+}
+
+void Model::set_tree( pll_utree_t * _tree )
+{
+  if (n_tips > 0)
+    assert(n_tips == _tree->tip_count);
+  else
+    n_tips = _tree->tip_count;
+
   tree = _tree;
 }
 
@@ -483,13 +504,13 @@ mt_index_t Model::get_unique_id( void ) const
 }
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,
-                            pll_utree_t * pll_tree,
+                            pll_unode_t * root,
                             Partition const& partition )
 {
   assert(pll_partition);
   mt_opt_params_t params;
   params.partition = pll_partition;
-  params.tree = pll_tree;
+  params.tree = root;
   params.params_indices = params_indices;
 
   bool result = true;
@@ -499,11 +520,13 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
   return result;
 }
 
-bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double tolerance )
+bool Model::optimize( pll_partition_t * partition,
+                      pll_unode_t * root,
+                      double tolerance )
 {
     mt_opt_params_t params;
     params.partition = partition;
-    params.tree = tree;
+    params.tree = root;
     params.params_indices = params_indices;
 
     if (optimize_gamma)
@@ -531,15 +554,15 @@ bool Model::optimize( pll_partition_t * partition, pll_utree_t * tree, double to
 }
 
 bool Model::optimize_oneparameter( pll_partition_t * partition,
-                                   pll_utree_t * tree,
+                                   pll_unode_t * root,
                                    double tolerance )
 {
-  assert(partition && tree);
+  assert(partition && root);
 
   assert(current_opt_parameter < parameters.size());
   mt_opt_params_t params;
   params.partition = partition;
-  params.tree = tree;
+  params.tree = root;
   params.params_indices = params_indices;
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
@@ -887,7 +910,7 @@ void DnaModel::output_log(std::ostream  &out) const
         out << subst_rates[i] << " ";
     out << get_prop_inv() << " ";
     out << get_alpha() << " ";
-    char *newick = pll_utree_export_newick(tree);
+    char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3]);
     out << strlen(newick) << " ";
     out << newick << " ";
     free(newick);
@@ -955,11 +978,7 @@ void DnaModel::input_log(std::istream  &in)
     read_word(in, treestr, treelen);
 
     //TODO: USE BINARY MODULE
-    mt_size_t n_tips;
-    tree = pll_utree_parse_newick_string(treestr, &n_tips);
-    pll_utree_t **nodes = (pll_utree_t **) malloc(n_tips * sizeof(pll_utree_t *));
-    pll_utree_query_tipnodes(tree, nodes);
-    tree = nodes[0];
+    tree = pll_utree_parse_newick_string(treestr);
 
     free(treestr);
 }
@@ -1009,7 +1028,11 @@ int DnaModel::output_bin(std::string const& bin_filename) const
                             PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   assert(n_tips > 0);
-  write_ok &= pllmod_binary_utree_dump(bin_file, 2000+unique_id, tree->back, n_tips,
+  assert(tree);
+  write_ok &= pllmod_binary_utree_dump(bin_file,
+                                       2000+unique_id,
+                                       tree->nodes[0]->back,
+                                       n_tips,
                                        PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   pllmod_binary_close(bin_file);
@@ -1074,19 +1097,21 @@ int DnaModel::input_bin(std::string const& bin_filename)
     free(ckp_data);
 
     pll_errno = 0;
-    tree = pllmod_binary_utree_load(bin_file,
-                                 2000+unique_id,
-                                 &attributes,
-                                 PLLMOD_BIN_ACCESS_SEEK);
+    pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
+                                                       2000+unique_id,
+                                                       &attributes,
+                                                       PLLMOD_BIN_ACCESS_SEEK);
 
-    if(!tree)
+    if(!loaded_tree)
     {
       mt_errno = pll_errno;
       snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
       read_ok = false;
     }
     else
-      tree = tree->back;
+    {
+      tree = pll_utree_wraptree(loaded_tree, n_tips);
+    }
   }
   else
   {
@@ -1426,7 +1451,7 @@ void ProtModel::output_log(std::ostream  &out) const
       out << get_alpha() << " ";
   else
       out << "- ";
-  char *newick = pll_utree_export_newick(tree);
+  char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3]);
   out << newick << " ";
   free(newick);
   out << endl;
@@ -1480,7 +1505,10 @@ int ProtModel::output_bin(std::string const& bin_filename) const
                             PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   assert(n_tips > 0);
-  write_ok &= pllmod_binary_utree_dump(bin_file, 2000+unique_id, tree->back, n_tips,
+  write_ok &= pllmod_binary_utree_dump(bin_file,
+                                       2000+unique_id,
+                                       tree->nodes[0],
+                                       n_tips,
                                        PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   pllmod_binary_close(bin_file);
@@ -1544,19 +1572,19 @@ int ProtModel::input_bin(std::string const& bin_filename)
     free(ckp_data);
 
     pll_errno = 0;
-    tree = pllmod_binary_utree_load(bin_file,
-                                 2000+unique_id,
-                                 &attributes,
-                                 PLLMOD_BIN_ACCESS_SEEK);
+    pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
+                                                         2000+unique_id,
+                                                         &attributes,
+                                                         PLLMOD_BIN_ACCESS_SEEK);
 
-    if(!tree)
+    if(!loaded_tree)
     {
       mt_errno = pll_errno;
       snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
       read_ok = false;
     }
     else
-      tree = tree->back;
+      tree = pll_utree_wraptree(loaded_tree->back, n_tips);
   }
   else
   {

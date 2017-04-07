@@ -163,10 +163,10 @@ namespace modeltest
       if (rec_data.model_index >= 0)
       {
         /* update local model information */
-        pll_utree_t * serialized_tree;
+        pll_unode_t * serialized_tree;
         pll_utree_t * expanded_tree;
 
-        serialized_tree = (pll_utree_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_utree_t));
+        serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_utree_t));
 
         /* receive serialized tree */
         MPI_Recv(serialized_tree, sizeof(pll_utree_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
@@ -179,7 +179,7 @@ namespace modeltest
 
         expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
         tree.update_names(expanded_tree);
-        model->set_tree(expanded_tree, tree.get_n_tips());
+        model->set_tree(expanded_tree);
         free(serialized_tree);
 
         if (partition.get_datatype() == dt_dna)
@@ -293,7 +293,7 @@ namespace modeltest
     next_model = -1;
   }
 
-  pll_utree_t * serialized_tree = 0;
+  pll_unode_t * serialized_tree = 0;
   snd_data.model_index = -1;
   while (next_model != -1)
   {
@@ -330,7 +330,7 @@ namespace modeltest
 #if(MPI_ENABLED)
         snd_data.model_index = next_model;
         snd_data.loglh = model->get_loglh();
-        serialized_tree = pllmod_utree_serialize(model->get_tree(),
+        serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
                                                  tree.get_n_tips());
         if (model->is_G()) snd_data.alpha = model->get_alpha();
         if (model->is_I()) snd_data.pinv = model->get_prop_inv();

@@ -82,19 +82,13 @@ namespace modeltest
     virtual const std::string get_label( mt_index_t index, mt_index_t thread_number = 0 ) const = 0;
 
     /**
-     * @brief place the root at a random node
-     * @param thread_number the thread number
-     */
-    virtual void reroot_random(mt_index_t thread_number = 0) = 0;
-
-    /**
      * @brief set all branches to a fixed length
      * @param length the branch length
      * @param thread_number the thread number
      * @return true, if OK
      */
     virtual bool set_branches(double length, mt_index_t thread_number = 0) = 0;
-    
+
     /**
      * @brief scale all branches
      * @param factor the factor
