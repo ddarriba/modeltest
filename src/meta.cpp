@@ -1345,9 +1345,9 @@ void Meta::print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "protein: DAYHOFF LG DCMUT JTT MTREV WAG RTREV CPREV" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "         VT BLOSUM62 MTMAM MTART MTZOA PMB HIBV HIVW" << endl;
+        << "         VT BLOSUM62 MTMAM MTART MTZOA PMB HIVB HIVW" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "         JTTDCMUT FLU SMTREV" << endl;
+        << "         JTTDCMUT FLU STMTREV LG4M LG4X" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -s, --schemes [3|5|7|11|203]"
         << "sets the number of predefined DNA substitution schemes evaluated" << endl;

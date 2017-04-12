@@ -485,7 +485,7 @@ void Model::set_tree( pll_unode_t * _tree, int _n_tips )
     pll_utree_destroy(tree, NULL);
   }
 
-  tree = pll_utree_wraptree(_tree, n_tips);
+  tree = pll_utree_wraptree(_tree->back, n_tips);
 }
 
 void Model::set_tree( pll_utree_t * _tree )
