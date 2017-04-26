@@ -553,7 +553,9 @@ bool ModelTest::build_instance(mt_options_t & options)
         current_instance->tree = new TreePll (options.starting_tree,
                                               options.tree_filename,
                                               *current_instance->msa,
-                                              number_of_threads);
+                                              options.partitions_desc->at(0).datatype,
+                                              number_of_threads,
+                                              options.rnd_seed);
       }
       catch(int e)
       {
@@ -591,7 +593,9 @@ bool ModelTest::build_instance(mt_options_t & options)
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
-                                            number_of_threads);
+                                            options.partitions_desc->at(0).datatype,
+                                            number_of_threads,
+                                            options.rnd_seed);
     }
     catch(int e)
     {
@@ -616,11 +620,12 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml:
     try
     {
-    //TODO: Create MP as starting tree, instead of random
     current_instance->tree = new TreePll (options.starting_tree,
                                           options.tree_filename,
                                           *current_instance->msa,
-                                          number_of_threads);
+                                          options.partitions_desc->at(0).datatype,
+                                          number_of_threads,
+                                          options.rnd_seed);
     }
     catch(int e)
     {

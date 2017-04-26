@@ -45,7 +45,7 @@ fi
 
 log_fname=$output_dir/$input_fname.log
 if [ ! -f $log_fname ]; then
-  echo "Results file missing"
+  echo "MTNG"
 else
   res_fname=$output_dir/$input_fname.results
   rm -f $res_fname
@@ -72,7 +72,7 @@ else
   aicc_score=`echo $outdata | cut -d' ' -f11`
   aicc_w=`echo $outdata | cut -d' ' -f12`
 
-  printf "MT     %10s %10s %15s %15s %10s %10s %15s %15s %10s %10s %15s %15s %10s \n" $t_time \
+  printf "MTNG   %10s %10s %15s %15s %10s %10s %15s %15s %10s %10s %15s %15s %10s \n" $t_time \
                                          $bic_name $bic_lnl $bic_score $bic_w \
                                          $aic_name $aic_lnl $aic_score $aic_w \
                                          $aicc_name $aicc_lnl $aicc_score $aicc_w

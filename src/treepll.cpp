@@ -120,6 +120,7 @@ namespace modeltest
   TreePll::TreePll (tree_type_t type,
                     string const& filename,
                     Msa &msa,
+                    data_type_t datatype,
                     mt_size_t number_of_threads,
                     int random_seed)
     : Tree(type, filename, msa, number_of_threads, random_seed)
@@ -145,13 +146,28 @@ namespace modeltest
       {
         cout << "Building MP starting tree" << endl;
         unsigned int * cost = new unsigned int[msa.get_n_patterns()];
+        unsigned int states;
+        const unsigned int * map;
+        if (datatype == dt_dna)
+        {
+          map = pll_map_nt;
+          states = 4;
+        }
+        else if (datatype == dt_protein)
+        {
+          map = pll_map_aa;
+          states = 20;
+        }
+        else
+            assert(0);
+
         starting_tree = pllmod_utree_create_parsimony(n_tips,
                                                       msa.get_n_patterns(),
                                                       msa.get_headers(),
                                                       msa.get_sequences(),
                                                       msa.get_weights(),
-                                                      pll_map_nt,
-                                                      4,
+                                                      map,
+                                                      states,
                                                       0, /* attributes */
                                                       random_seed,
                                                       cost /* scores */

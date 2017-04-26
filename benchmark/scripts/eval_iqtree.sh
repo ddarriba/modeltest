@@ -48,11 +48,16 @@ log_fname=$output_dir/$input_fname.log
 sum_fname=$output_dir/$input_fname.sum
 
 if [ ! -f $log_fname ]; then
-  echo "Results file missing"
+  echo "IQTREE"
 else
   if [ ! -f $sum_fname ]; then
-    models_start=`fgrep -n "1  JC" $log_fname | cut -d':' -f1`
-    models_end=`echo $((models_start+87))`
+    if [ "$data_type" == "nt" ]; then
+      models_start=`fgrep -n "1  JC" $log_fname | cut -d':' -f1`
+      models_end=`echo $((models_start+87))`
+    else
+      models_start=`fgrep -n "1  Dayhoff" $log_fname | cut -d':' -f1`
+      models_end=`echo $((models_start+143))`
+    fi
 
     # extract scores for computing weights
     aic_scores=`sed -n ${models_start},${models_end}p $log_fname | tr -s ' ' | cut -d' ' -f 6`

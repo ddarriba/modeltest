@@ -46,7 +46,7 @@ fi
 # BUILD RESULTS
 
 if [ ! -f $out_fname ]; then
-  echo "Results file missing"
+  echo "JMT"
 else
   res_fname=$output_dir/$input_fname.results
   rm -f $res_fname

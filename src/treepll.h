@@ -34,6 +34,7 @@ namespace modeltest
     TreePll (tree_type_t _type,
              std::string const& filename,
              Msa &_msa,
+             data_type_t data_type,
              mt_size_t _number_of_threads = 1,
              int _random_seed = 12345);
     virtual ~TreePll ();

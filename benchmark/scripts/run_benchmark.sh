@@ -6,7 +6,7 @@ echo "----------------------------------------"
 
 # select whether you want to restore existing checkpoint files
 # warning: execution times might not be valid
-restore_ckp=true
+restore_ckp=false
 skip_eval=true
 
 testname=$1
@@ -52,10 +52,10 @@ for ((idx=1;idx<=${n_datasets};idx++)); do
   # JMODELTEST
 if [ "$data_type" == "nt" ]; then
   mkdir -p ${out_basedir}/jmt
-  scripts/eval_jmodeltest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval
+  scripts/eval_jmodeltest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval $data_type
 else
   mkdir -p ${out_basedir}/pt
-  scripts/eval_prottest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval
+  scripts/eval_prottest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval $data_type
 fi
 
   # MODELTEST
