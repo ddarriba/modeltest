@@ -639,8 +639,6 @@ bool Partition::compute_empirical_pinv( void )
     double sum_wgt = 0.0;
     mt_size_t gap_state = descriptor.datatype == dt_protein?((1<<20)-1):15;
 
-    cout << "GAP STATE = " << gap_state << endl;
-
     const unsigned int * charmap = descriptor.datatype == dt_protein?pll_map_aa:pll_map_nt;
     for (partition_region_t region : descriptor.regions)
     {
@@ -648,15 +646,14 @@ bool Partition::compute_empirical_pinv( void )
         {
             sum_wgt += weights[j];
             n_inv   += weights[j];
-            char state = gap_state;
+            mt_size_t state = gap_state;
             for (mt_index_t i=0; i<msa.get_n_sequences(); ++i)
             {
               state &= charmap[(mt_index_t) msa.get_sequence(i)[j]];
-              cout << "State = " << charmap[(mt_index_t) msa.get_sequence(i)[j]] << endl;
               if (!state)
                 break;
             }
-            exit(1);
+
             if (__builtin_popcount(state) != 1)
             {
               n_inv -= weights[j];
@@ -664,9 +661,6 @@ bool Partition::compute_empirical_pinv( void )
         }
     }
     emp_pinv = (double)1.0*n_inv/sum_wgt;
-
-    cout << "EMPIRICAL PINV = " << emp_pinv << " " << n_inv << " " << sum_wgt <<endl;
-    exit(1);
 
     return true;
 }
