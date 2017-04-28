@@ -219,7 +219,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     if (!topologies[topo_v[tree_id] - 1].id)
     {
       topologies[topo_v[tree_id] - 1].id = topo_v[tree_id];
-      topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree_graph());
+      topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree_graph(), NULL);
     }
     topologies[topo_v[tree_id] - 1].bic_support += bic_selection.get_weight(c_models[tree_id]);
     topologies[topo_v[tree_id] - 1].aic_support += aic_selection.get_weight(c_models[tree_id]);

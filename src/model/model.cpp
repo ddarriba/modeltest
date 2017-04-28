@@ -910,7 +910,7 @@ void DnaModel::output_log(std::ostream  &out) const
         out << subst_rates[i] << " ";
     out << get_prop_inv() << " ";
     out << get_alpha() << " ";
-    char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3]);
+    char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3], NULL);
     out << strlen(newick) << " ";
     out << newick << " ";
     free(newick);
@@ -1451,7 +1451,7 @@ void ProtModel::output_log(std::ostream  &out) const
       out << get_alpha() << " ";
   else
       out << "- ";
-  char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3]);
+  char *newick = pll_utree_export_newick(tree->nodes[2*n_tips - 3], NULL);
   out << newick << " ";
   free(newick);
   out << endl;

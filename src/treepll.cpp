@@ -275,7 +275,8 @@ namespace modeltest
   string TreePll::newick(mt_index_t thread_number) const
   {
     assert(thread_number < number_of_threads);
-    char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]->nodes[0]->back);
+    char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]->nodes[0]->back,
+                                            NULL);
     string nw = string(nw_cstr);
     free (nw_cstr);
     return (nw);
