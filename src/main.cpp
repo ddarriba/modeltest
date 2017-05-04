@@ -43,6 +43,10 @@ ModelTestService *ModelTestService::s_instance = 0;
 
 using namespace std;
 
+/** extensions **/
+bool have_avx;
+bool have_sse3;
+
 /** number of parallel processes */
 int mpi_rank;
 int mpi_numprocs;
@@ -74,6 +78,15 @@ int main(int argc, char *argv[])
     BARRIER;
 
     int return_val = EXIT_SUCCESS;
+
+    have_avx = modeltest::Utils::have_avx();
+    have_sse3 = modeltest::Utils::have_sse3();
+
+    #ifdef PLL_ATTRIB_SITES_REPEATS
+        modeltest::disable_repeats = !have_avx;
+    #else
+        modeltest::disable_repeats = true;
+    #endif
 
     genesis::utils::Logging::log_to_stream(cout);
     genesis::utils::Logging::err_to_stream(cerr);
@@ -163,19 +176,21 @@ int main(int argc, char *argv[])
 
         for(mt_index_t i=0; i<opts.partitions_eff->size(); i++)
         {
+          bool exec_ok;
+          MT_INFO << endl << "Partition "
+               << i+1 << "/" << opts.partitions_eff->size()
+               << endl << endl;
 
-            MT_INFO << endl << "Partition "
-                 << i+1 << "/" << opts.partitions_eff->size()
-                 << endl << endl;
+          partition_id_t part_id = {i};
+          exec_ok = ModelTestService::instance()->evaluate_models(part_id,
+                                                        n_procs,
+                                                        opts.epsilon_param,
+                                                        opts.epsilon_opt,
+                                                        MT_INFO);
 
-            partition_id_t part_id = {i};
-            ModelTestService::instance()->evaluate_models(part_id,
-                                                          n_procs,
-                                                          opts.epsilon_param,
-                                                          opts.epsilon_opt,
-                                                          MT_INFO);
-
-            if (ROOT)
+          if (ROOT)
+          {
+            if (exec_ok)
             {
               MT_INFO << endl << "Computation of likelihood scores completed. It took " <<
                            modeltest::Utils::format_time(time(NULL) - ini_global_time) << endl;
@@ -219,6 +234,12 @@ int main(int argc, char *argv[])
               delete aic_selection;
               delete aicc_selection;
             }
+            else
+            {
+              LOG_ERR << modeltest::mt_errmsg << endl;
+              return (int)modeltest::mt_errno;
+            }
+          }
         }
 
         if (ROOT)
@@ -226,7 +247,7 @@ int main(int argc, char *argv[])
           if (results_stream)
           {
               *results_stream << "Done" << endl;
-              
+
               results_stream->close();
               delete results_stream;
           }
@@ -240,7 +261,7 @@ int main(int argc, char *argv[])
               modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], MT_INFO);
               modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], MT_INFO);
               if (opts.starting_tree != tree_ml)
-                  modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
+                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
           }
 
           MT_INFO << endl;

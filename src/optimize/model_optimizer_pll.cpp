@@ -191,8 +191,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   if (!pll_partition)
   {
-    LOG_ERR << "Error [PLL:" << pll_errno << "]: " << pll_errmsg << endl;
-    assert(pll_partition);
+    mt_errno = MT_ERROR_LIBPLL;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "[PLL %d] %s",
+             pll_errno, pll_errmsg);
+    throw EXCEPTION_INTERNAL_ERROR;
   }
 
   pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
@@ -216,8 +218,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                c_seq))
       {
           /* data type and tip states should be validated beforehand */
-          LOG_ERR << "Error: Sequence does not match the datatype" << endl;
-          assert(0);
+          mt_errno = MT_ERROR_IO_FORMAT;
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "Data type mismatch");
+          throw EXCEPTION_DATA_MISMATCH;
       }
   }
 

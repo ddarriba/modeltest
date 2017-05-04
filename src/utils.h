@@ -287,7 +287,11 @@ public:
      * @brief Get the available memory
      * @return the amount of memory
      */
-    static unsigned long get_memtotal();
+    static unsigned long get_memtotal( void );
+
+    static bool have_avx( void );
+
+    static bool have_sse3( void );
 };
 
 }

@@ -112,6 +112,9 @@ typedef std::vector<mt_index_t> partition_id_t;
 extern int mpi_rank;
 extern int mpi_numprocs;
 
+extern bool have_avx;
+extern bool have_sse3;
+
 #if(MPI_ENABLED)
 #include <mpi.h>
 #define ROOT (!mpi_rank)

@@ -46,16 +46,7 @@ double pinv_alpha_guess = 1.0;
 int verbosity = VERBOSITY_DEFAULT;
 time_t global_ini_time = time(NULL);
 
-#ifdef HAVE_AVX
-/* subtree repeats are only available with AVX */
-#ifdef PLL_ATTRIB_SITES_REPEATS
 bool disable_repeats = false;
-#else
-bool disable_repeats = true;
-#endif
-#else
-bool disable_repeats = true;
-#endif
 
 using namespace std;
 
@@ -84,6 +75,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      mt_index_t thread_number,
                                      bool force_opt_topo)
 {
+  ModelOptimizer * mopt;
   bool opt_topology;
 
   if( thread_number > number_of_threads)
@@ -96,11 +88,21 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
   TreePll *tree = static_cast<TreePll *>(current_instance->tree);
 
   Partition &partition = partitioning_scheme->get_partition(part_id);
-  return new ModelOptimizerPll(*msa, *tree, *model,
+
+  try
+  {
+    mopt = new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
                                opt_topology,
                                current_instance->n_catg,
                                thread_number);
+   }
+   catch(int e)
+   {
+     mopt = NULL;
+   }
+
+   return mopt;
 }
 
 static void print_execution_header( bool print_elapsed_time,
@@ -133,7 +135,8 @@ bool ModelTest::evaluate_single_model(Model * model,
     ModelOptimizer * mopt = get_model_optimizer(model,
                                                 part_id,
                                                 thread_number);
-    assert(mopt);
+    if(!mopt)
+      return false;
 
     result = mopt->run(epsilon, tolerance);
     delete mopt;
@@ -185,6 +188,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   Partition &partition = partitioning_scheme->get_partition(part_id);
 
   mt_size_t n_models = partition.get_number_of_models();
+  bool exec_ok;
 
   assert(n_procs > 0);
 
@@ -214,9 +218,9 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            epsilon_param,
                            epsilon_opt);
   p_opt.attach(this);
-  p_opt.evaluate(n_procs);
+  exec_ok = p_opt.evaluate(n_procs);
 
-  return true;
+  return exec_ok;
 }
 
 bool ModelTest::test_msa(string const& msa_filename,
@@ -656,6 +660,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     snprintf(mt_errmsg, ERR_MSG_SIZE, "Tips do not agree! %d sequences vs %d tips",
              current_instance->msa->get_n_sequences(),
              current_instance->tree->get_n_tips());
+    free_stuff();
     return false;
   }
   current_instance->n_tips = current_instance->msa->get_n_sequences();
@@ -763,6 +768,12 @@ bool ModelTest::build_instance(mt_options_t & options)
                                            {0},
                                             0,
                                             true);
+
+      if (!start_opt)
+      {
+        free_stuff();
+        return false;
+      }
 
       start_opt->run(options.epsilon_opt, options.epsilon_param, 4);
       assert(start_model->is_optimized());

@@ -815,15 +815,18 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
 
-#ifdef HAVE_AVX
-    attributes |= PLL_ATTRIB_ARCH_AVX;
-#else
-#ifdef HAVE_SSE
-    attributes |= PLL_ATTRIB_ARCH_SSE;
-#else
-    attributes |= PLL_ATTRIB_ARCH_CPU;
-#endif
-#endif
+    if (have_avx)
+    {
+      attributes |= PLL_ATTRIB_ARCH_AVX;
+    }
+    else if (have_sse3)
+    {
+      attributes |= PLL_ATTRIB_ARCH_SSE;
+    }
+    else
+    {
+      attributes |= PLL_ATTRIB_ARCH_CPU;
+    }
 
     attributes |= asc_bias_attribute(asc_bias_corr);
 
@@ -1320,15 +1323,13 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
 
-#ifdef HAVE_AVX
+if (have_avx)
     attributes |= PLL_ATTRIB_ARCH_AVX;
-#else
-#ifdef HAVE_SSE
+else if (have_sse3)
     attributes |= PLL_ATTRIB_ARCH_SSE;
-#else
+else
     attributes |= PLL_ATTRIB_ARCH_CPU;
-#endif
-#endif
+
     attributes |= asc_bias_attribute(asc_bias_corr);
 
     n_cats = optimize_gamma?n_cat_g:1;

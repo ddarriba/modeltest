@@ -92,6 +92,10 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
     ModelOptimizer * mopt = modeltest_instance->get_model_optimizer(model,
         part_id,
         thread_id);
+
+    if (!mopt)
+      return false;
+      
     for (Observer * observer : observers)
         mopt->attach(observer);
     mopt->run(epsilon_param, epsilon_opt);

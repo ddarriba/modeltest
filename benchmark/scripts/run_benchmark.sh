@@ -55,7 +55,7 @@ if [ "$data_type" == "nt" ]; then
   scripts/eval_jmodeltest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval $data_type
 else
   mkdir -p ${out_basedir}/pt
-  scripts/eval_prottest.sh $msa_file $out_basedir/jmt $restore_ckp $skip_eval $data_type
+  scripts/eval_prottest.sh $msa_file $out_basedir/pt $restore_ckp $skip_eval $data_type
 fi
 
   # MODELTEST

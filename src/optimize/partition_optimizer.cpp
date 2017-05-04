@@ -82,7 +82,8 @@ namespace modeltest
 
     MT_INFO << "Step 1/6" << endl;
     /* 1. optimize starting models */
-    evaluate_all_models( candidate_models, n_procs );
+    if (!evaluate_all_models( candidate_models, n_procs ))
+      return false;
 
     for (int k=N_DNA_SUBST_RATES-1; k>0; --k)
     {
@@ -99,7 +100,8 @@ namespace modeltest
       /* 3. merge rates */
       candidate_models = partition.update_model_set(*static_cast<DnaModel *>(best_model));
 
-      evaluate_all_models( candidate_models, n_procs );
+      if (!evaluate_all_models( candidate_models, n_procs ))
+        return false;
     }
     // exec_info.start_time = time(NULL);
     // exec_info.n_models = 0;
@@ -261,6 +263,7 @@ namespace modeltest
             exec_info.start_time = time(NULL);
             exec_info.n_models = n_models;
             thread::id my_id(__gthread_self());
+
             int res = evaluate_single_model(*model, thread_map[my_id]);
 
             exec_info.model_index = cur_model + 1;
@@ -322,6 +325,9 @@ namespace modeltest
 #endif
         exec_info.start_time = time(NULL);
         exec_ok &= evaluate_single_model(*model, 0);
+        if (mt_errno)
+          break;
+
         exec_info.model = model;
 
         exec_info.end_time = time(NULL);
@@ -365,6 +371,7 @@ BARRIER;
                                                  mt_index_t thread_number)
   {
     bool result;
+    mt_errno = 0;
 
     if (model.is_optimized())
     {
@@ -372,15 +379,23 @@ BARRIER;
     }
     else
     {
-      ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
-                                                    partition,
-                                                    optimize_topology,
-                                                    n_categories,
-                                                    thread_number);
-      assert(mopt);
-      result = mopt->run(epsilon_param, epsilon_opt);
+      try
+      {
+        ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
+                                                      partition,
+                                                      optimize_topology,
+                                                      n_categories,
+                                                      thread_number);
+        assert(mopt);
+        result = mopt->run(epsilon_param, epsilon_opt);
 
-      delete mopt;
+        delete mopt;
+      }
+      catch (int e)
+      {
+        assert(mt_errno);
+        result = false;
+      }
     }
 
     return result;

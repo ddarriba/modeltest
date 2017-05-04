@@ -49,7 +49,7 @@ if [ ! -f $log_fname ]; then
 else
   res_fname=$output_dir/$input_fname.results
   rm -f $res_fname
-  outdata=`fgrep "   1 " $out_fname | xargs | cut -d' ' -f2,4,5,7,9,11,12,14,16,18,19,21,23,25,26,28`
+  outdata=`grep -e "^       1  " $out_fname | xargs | cut -d' ' -f2,4,5,7,9,11,12,14,16,18,19,21,23,25,26,28`
 
   t_time=`grep "Computation of likelihood scores completed" $log_fname | rev | cut -d' ' -f1 | rev`
   h_time=`echo $t_time | cut -d'h' -f1`

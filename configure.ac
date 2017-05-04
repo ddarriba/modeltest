@@ -56,44 +56,8 @@ else
   AC_CHECK_HEADERS([pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
 fi
 
-AC_MSG_CHECKING(for SSE in current arch/CFLAGS)
-AC_LINK_IFELSE([
-AC_LANG_PROGRAM([[
-#include <xmmintrin.h>
-__m128 testfunc(float *a, float *b) {
-  return _mm_add_ps(_mm_loadu_ps(a), _mm_loadu_ps(b));
-}
-]])],
-[
-have_sse=yes
-],
-[
-have_sse=no
-]
-)
-AC_MSG_RESULT($have_sse3)
-
-
-AC_ARG_ENABLE(avx, [AC_HELP_STRING([--enable-avx],[enable AVX optimizations])], have_avx=$enableval, have_avx=no)
-if test "$have_avx" = "yes"; then
-        AC_DEFINE(HAVE_AVX,1,[Define to enable AVX optimizations.])
-	if test "$PRECISION" != "d" -a "$PRECISION" != "s"; then
-		AC_MSG_ERROR([AVX requires single or double precision])
-	fi
-fi
-
-have_avx=no
-
-AX_EXT
-
-if test "x${ax_cv_have_avx_ext}" = "xyes"; then
-  have_avx=yes
-fi
-
 AM_CONDITIONAL(PLL_PREFIX, test "x$have_prefix" = "xyes")
-AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
-AM_CONDITIONAL(HAVE_SSE, test "x$have_sse" = "xyes")
 
 # Checks for header files.
 AC_FUNC_ALLOCA
