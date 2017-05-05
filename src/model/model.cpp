@@ -20,6 +20,7 @@
 */
 
 #include "model/model.h"
+#include "genesis/logging.h"
 #include "utils.h"
 
 #include <cmath>
@@ -568,6 +569,7 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
   AbstractParameter * parameter = parameters[current_opt_parameter];
 
   loglh = parameter->optimize(&params, loglh, tolerance, true);
+  LOG_DBG << "[dbg] optimize " << parameter->get_name() << ": " << loglh << endl;
   ++current_opt_parameter;
 
   if (current_opt_parameter >= parameters.size())

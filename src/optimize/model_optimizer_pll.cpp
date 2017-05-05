@@ -471,11 +471,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     int thorough_insertion = false;
     int radius_min = 1;
-    int radius_max = 5;
+    int radius_max = 10;
     int ntopol_keep = 5;
     int spr_round_id = 0;
     int smoothings = 32;
     int radius_limit = 1;
+    double cutoff_thr = 1.0;
     pllmod_treeinfo_t * tree_info;
 
     loglh = pll_compute_edge_loglikelihood (pll_partition,
@@ -509,10 +510,25 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
 
+      cutoff_info_t * cutoff_info = NULL;
+      cutoff_info = (cutoff_info_t *) calloc(1, sizeof(cutoff_info_t));
+      cutoff_info->lh_dec_count = 0;
+      cutoff_info->lh_dec_sum = 0.;
+      cutoff_info->lh_cutoff = loglh / -1000.0;
+
       do
       {
         ++spr_round_id;
         old_loglh = new_loglh;
+
+        LOG_DBG << "[dbg] SPR params:"
+            << " round=" << spr_round_id
+            << " rad=[" << radius_min << "," << radius_max << "]"
+            << " bl=[" << bl_min << "," << bl_max << "]"
+            << " ntopos=" << ntopol_keep
+            << " smooth=" << smoothings
+            << " tol=" << tolerance
+            << endl;
 
         new_loglh = pllmod_algo_spr_round(tree_info,
                                           radius_min,
@@ -523,8 +539,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           bl_max,
                                           smoothings,
                                           tolerance,
-                                          NULL, /* cutoff */
-                                          0);
+                                          cutoff_info, /* cutoff */
+                                          cutoff_thr);
 
         LOG_DBG << "[dbg] SPR cycle: " << old_loglh << " -> " << new_loglh << endl;
 
@@ -564,6 +580,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
 
       LOG_DBG << "[dbg] SPR done" << endl;
+
+      free (cutoff_info);
 
       pll_tree = tree_info->root;
       pllmod_treeinfo_destroy(tree_info);

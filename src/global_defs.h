@@ -158,6 +158,9 @@ extern MPI_Comm master_mpi_comm;
 #define NBIT_PARTITION_INDEX 14
 #define MAX_PARTITION_INDEX (1<<NBIT_PARTITION_INDEX)
 
+const char dna_chars[20] = {'A','C','G','T'};
+const char aa_chars[20] = {'A','R','N','D','C','E','Q','G','H','I','L','K','M','F','P','S','T','W','Y','V'};
+
 typedef enum {
     dt_dna,
     dt_protein

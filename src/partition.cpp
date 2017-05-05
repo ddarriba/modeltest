@@ -493,7 +493,15 @@ bool Partition::compute_empirical_frequencies(bool smooth)
                 if (!ind)
                 {
                     mt_errno = MT_ERROR_FREQUENCIES;
-                    snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA does not match the data type [%s]. State %d", descriptor.partition_name.c_str(), (int) msa.get_sequence(i)[j]);
+                    if (msa.get_sequence(i)[j])
+                    {
+                      snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA for partition [%s] does not match the data type. Unknown state: %c", descriptor.partition_name.c_str(), msa.get_sequence(i)[j]);
+                    }
+                    else
+                    {
+                      LOG_ERR << endl << "MSA parser returned 0. Run with '--no-compress' argument for showing the wrong state." << endl;
+                      snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA for partition [%s] does not match the data type.", descriptor.partition_name.c_str());
+                    }
                     return false;
                 }
                 for (unsigned int k=0; k<states; ++k)
@@ -535,15 +543,25 @@ bool Partition::compute_empirical_frequencies(bool smooth)
     {
         if (smooth)
         {
-            LOG_WARN << "WARNING: Forced freq. smoothing" << endl;
-            for (mt_index_t i=0; i<states; i++)
-                emp_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
+          LOG_WARN << "WARNING: Forced freq. smoothing" << endl;
+          for (mt_index_t i=0; i<states; i++)
+              emp_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
         }
         else
         {
-            mt_errno = MT_ERROR_FREQUENCIES;
-            snprintf(mt_errmsg, ERR_MSG_SIZE, "There are [%d] missing states [%s]", missing_states, descriptor.partition_name.c_str());
-            return false;
+          const char * state_codes = (descriptor.datatype == dt_dna)?dna_chars:aa_chars;
+          mt_errno = MT_ERROR_FREQUENCIES;
+          LOG_ERR << "The following states are missing:" << endl << "   ";
+          for (mt_index_t i=0; i<states; ++i, existing_states >>= 1)
+          {
+            if (!(existing_states & 1))
+            {
+              LOG_ERR << state_codes[i] << " ";
+            }
+          }
+          LOG_ERR << endl;
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "There are %d missing states [%s]", missing_states, descriptor.partition_name.c_str());
+          return false;
         }
     }
 
