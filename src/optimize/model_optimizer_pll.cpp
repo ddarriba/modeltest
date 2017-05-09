@@ -466,17 +466,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double loglh;
     double old_loglh,
            new_loglh;
-    double bl_min = 1e-6,
-           bl_max = 1e2;
+    double bl_min = 1e-4,
+           bl_max = 1e3;
 
     int thorough_insertion = false;
-    int radius_min = 1;
-    int radius_max = 10;
-    int ntopol_keep = 5;
+    int radius_min = 2;
+    int radius_max = 5;
+    int radius_limit;
+    int ntopol_keep = 15;
     int spr_round_id = 0;
     int smoothings = 32;
-    int radius_limit = 1;
-    double cutoff_thr = 1.0;
+    double cutoff_thr = 10;
     pllmod_treeinfo_t * tree_info;
 
     loglh = pll_compute_edge_loglikelihood (pll_partition,
@@ -543,6 +543,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           cutoff_thr);
 
         LOG_DBG << "[dbg] SPR cycle: " << old_loglh << " -> " << new_loglh << endl;
+
+        new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
 
         bool impr = (new_loglh - old_loglh > epsilon);
         if (impr && thorough_insertion)

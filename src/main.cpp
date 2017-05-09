@@ -51,6 +51,8 @@ bool have_sse3;
 int mpi_rank;
 int mpi_numprocs;
 
+mt_size_t num_cores;
+
 static mt_size_t n_procs = 1;
 #if(MPI_ENABLED)
 MPI_Comm master_mpi_comm;
@@ -79,6 +81,8 @@ int main(int argc, char *argv[])
 
     int return_val = EXIT_SUCCESS;
 
+    num_cores = modeltest::Utils::count_physical_cores();
+
     have_avx = modeltest::Utils::have_avx();
     have_sse3 = modeltest::Utils::have_sse3();
 
@@ -96,11 +100,12 @@ int main(int argc, char *argv[])
     {
         /* command line */
         mt_options_t opts;
-        mt_size_t num_cores = modeltest::Utils::count_physical_cores();
         time_t ini_global_time = time(NULL);
 
         Meta::print_ascii_logo(MT_INFO);
         Meta::print_header(MT_INFO);
+
+        /* initialization */
 
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
@@ -136,6 +141,8 @@ int main(int argc, char *argv[])
         for (int i=0; i<argc; i++)
             MT_INFO << argv[i] << " ";
         MT_INFO << endl << endl;
+
+        /* start processing */
 
         if (!ModelTestService::instance()->create_instance(opts))
         {

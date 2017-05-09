@@ -112,6 +112,8 @@ typedef std::vector<mt_index_t> partition_id_t;
 extern int mpi_rank;
 extern int mpi_numprocs;
 
+extern mt_size_t num_cores;  //! Number of physical cores
+
 extern bool have_avx;
 extern bool have_sse3;
 
@@ -254,6 +256,7 @@ typedef struct {
     bool compress_patterns;  //! Compress site patterns
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
+    mt_size_t n_patterns;    //! Number of unique patterns
 
     /* configuration */
     tree_type_t starting_tree;                    //! Starting tree type

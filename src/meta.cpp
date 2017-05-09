@@ -470,9 +470,23 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         exec_opt.model_params |=
                 all_params;
 
-    /* if there are no frequencies specifications, include all */
-    if (!(exec_opt.model_params & MOD_MASK_FREQ_PARAMS))
+    if (freqs_mask)
     {
+      if (freqs_mask & MOD_PARAM_ESTIMATED_FREQ)
+      {
+        if (arg_datatype == dt_dna)
+          exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
+        else if (arg_datatype == dt_protein)
+          exec_opt.model_params  |= MOD_PARAM_EMPIRICAL_FREQ;
+      }
+      if (freqs_mask & MOD_PARAM_FIXED_FREQ)
+      {
+        exec_opt.model_params  |= MOD_PARAM_FIXED_FREQ;
+      }
+    }
+    else
+    {
+      /* if there are no frequencies specifications, include all */
       if (arg_datatype == dt_dna)
         exec_opt.model_params |= (MOD_PARAM_FIXED_FREQ | MOD_PARAM_ESTIMATED_FREQ);
       else if (arg_datatype == dt_protein)
@@ -505,10 +519,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         params_ok = false;
       }
       else if (!modeltest::MsaPll::test(exec_opt.msa_filename,
-                                  &exec_opt.n_taxa,
-                                  &exec_opt.n_sites,
-                                  0,
-                                  &exec_opt.msa_format))
+                                        &exec_opt.n_taxa,
+                                        &exec_opt.n_sites,
+                                        &exec_opt.n_patterns,
+                                        &exec_opt.msa_format))
       {
           LOG_ERR << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
           LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
@@ -545,18 +559,6 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         ": Fixed-user starting tree (-t user) requires a tree file (-u)" <<
         endl;
       params_ok = false;
-    }
-
-    if (freqs_mask & MOD_PARAM_ESTIMATED_FREQ)
-    {
-      if (arg_datatype == dt_dna)
-        exec_opt.model_params  |= MOD_PARAM_ESTIMATED_FREQ;
-      else if (arg_datatype == dt_protein)
-        exec_opt.model_params  |= MOD_PARAM_EMPIRICAL_FREQ;
-    }
-    if (freqs_mask & MOD_PARAM_FIXED_FREQ)
-    {
-      exec_opt.model_params  |= MOD_PARAM_FIXED_FREQ;
     }
 
     /* validate partitions file */
@@ -993,8 +995,8 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
 
     out << "Input data:" << endl;
-    out << "  " << left << setw(10) << "MSA:" << opts.msa_filename << endl;
-    out << "  " << left << setw(10) << "Tree:";
+    out << "  " << left << setw(12) << "MSA:" << opts.msa_filename << endl;
+    out << "  " << left << setw(12) << "Tree:";
     switch(opts.starting_tree)
     {
     case tree_user_fixed:
@@ -1017,7 +1019,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         out << "Random" << endl;
         break;
     }
-    out << "  " << left << setw(10) << "  file:";
+    out << "  " << left << setw(12) << "  file:";
     if (opts.tree_filename.compare(""))
     {
       out << opts.tree_filename << endl;
@@ -1027,8 +1029,9 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
       out << "-" << endl;
     }
 
-    out << "  " << left << setw(10) << "#taxa:" << opts.n_taxa << endl;
-    out << "  " << left << setw(10) << "#sites:" << opts.n_sites << endl;
+    out << "  " << left << setw(12) << "#taxa:" << opts.n_taxa << endl;
+    out << "  " << left << setw(12) << "#sites:" << opts.n_sites << endl;
+    out << "  " << left << setw(12) << "#patterns:" << opts.n_patterns << endl;
 
     out << endl << "Output:" << endl;
     out << "  " << left << setw(15) << "Log:" << opts.output_log_file << endl;

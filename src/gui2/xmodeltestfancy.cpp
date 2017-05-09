@@ -63,7 +63,7 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
   ui->setupUi(this);
 
   ui->slider_nthreads->setRange(1, QThread::idealThreadCount());
-  ui->slider_nthreads->setValue(modeltest::Utils::count_physical_cores());
+  ui->slider_nthreads->setValue(num_cores);
 
   scheme = 0;
   status = st_active;
@@ -820,6 +820,7 @@ bool XModelTestFancy::run_modelselection()
     opts.asc_bias_corr = asc_bias;
     opts.n_taxa = n_taxa;
     opts.n_sites = n_sites;
+    opts.n_patterns = n_patterns;
     opts.compress_patterns = true;
     opts.rnd_seed = 12345;
     opts.model_params = model_params;
