@@ -504,6 +504,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                      0,                 /* partition index */
                                      pll_partition,     /* partition */
                                      0,                 /* params to optimize */
+                                     PLL_GAMMA_RATES_MEAN,
                                      1.0,               /* alpha */
                                      {0},               /* param_indices */
                                      0);                /* subst matrix symmetries */

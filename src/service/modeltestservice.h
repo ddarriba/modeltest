@@ -94,6 +94,10 @@ public:
   bool print_selection(modeltest::ModelSelection const& selection,
                        std::ostream  &out = std::cout) const;
 
+  void print_command_lines(modeltest::ModelSelection const& selection,
+                           std::string const& msa_filename = "MSA_FILENAME",
+                           std::ostream  &out = std::cout) const;
+
   mt_size_t get_number_of_models(partition_id_t const& part_id) const;
 
   modeltest::PartitioningScheme & get_partitioning_scheme( void ) const;

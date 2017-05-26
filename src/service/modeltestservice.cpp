@@ -95,7 +95,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 
     if (!mopt)
       return false;
-      
+
     for (Observer * observer : observers)
         mopt->attach(observer);
     mopt->run(epsilon_param, epsilon_opt);
@@ -141,13 +141,19 @@ bool ModelTestService::print_selection(ModelSelection const& selection,
     out << "---------------------------" << endl;
     selection.print_averages(out);
     out << endl;
-    out << "Commands:" << endl;
-    out << "  > phyml " << get_phyml_command_line(*(selection.get_model(0).model)) << endl;
-    out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection.get_model(0).model)) << endl;
-    out << "  > paup " << get_paup_command_line(*(selection.get_model(0).model)) << endl;
-    out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model)) << endl;
 
     return true;
+}
+
+void ModelTestService::print_command_lines(modeltest::ModelSelection const& selection,
+                                           std::string const& msa_filename,
+                                           std::ostream  &out) const
+{
+  out << "Commands:" << endl;
+  out << "  > phyml " << get_phyml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
+  out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
+  out << "  > paup " << get_paup_command_line(*(selection.get_model(0).model), msa_filename) << endl;
+  out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model), msa_filename) << endl;                           
 }
 
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const

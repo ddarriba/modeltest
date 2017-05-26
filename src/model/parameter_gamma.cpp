@@ -52,11 +52,12 @@ bool ParameterGamma::initialize(mt_opt_params_t * params,
                                 Partition const& partition)
 {
   UNUSED(partition);
-  
+
   assert(n_cats == params->partition->rate_cats);
   if (!pll_compute_gamma_cats (alpha,
                           n_cats,
-                          rates))
+                          rates,
+                          PLL_GAMMA_RATES_MEAN))
     assert(0);
   pll_set_category_rates(params->partition,
                          rates);

@@ -73,9 +73,11 @@ void StaticAnalyzer::print_info(const string msa_filename, msa_format_t format)
   else
   {
     cout << ". . . parsing PHYLIP file" << endl;
-    pll_msa_t * msa_data = pll_phylip_parse_msa(msa_filename.c_str(),
-                                                &n_taxa);
+    pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
+                                                 pll_map_phylip);
+    pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
     assert(msa_data);
+    n_taxa  = msa_data->count;
     n_sites = msa_data->length;
     cout << ". . . size: " << n_taxa << " x " << n_sites << endl;
     sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));

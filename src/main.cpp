@@ -204,20 +204,44 @@ int main(int argc, char *argv[])
 
               modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
               ModelTestService::instance()->print_selection(*bic_selection, MT_INFO);
+              ModelTestService::instance()->print_command_lines(*bic_selection,
+                                                                opts.msa_filename,
+                                                                MT_INFO);
               if (results_stream)
+              {
                   ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
+                  ModelTestService::instance()->print_command_lines(*bic_selection,
+                                                                    opts.msa_filename,
+                                                                    *results_stream);
+              }
               best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
 
               modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
               ModelTestService::instance()->print_selection(*aic_selection, MT_INFO);
+              ModelTestService::instance()->print_command_lines(*aic_selection,
+                                                                opts.msa_filename,
+                                                                MT_INFO);
               if (results_stream)
+              {
                   ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
+                  ModelTestService::instance()->print_command_lines(*aic_selection,
+                                                                    opts.msa_filename,
+                                                                    *results_stream);
+              }
               best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
 
               modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
               ModelTestService::instance()->print_selection(*aicc_selection, MT_INFO);
+              ModelTestService::instance()->print_command_lines(*aicc_selection,
+                                                                opts.msa_filename,
+                                                                MT_INFO);
               if (results_stream)
-                  ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
+                  {
+                    ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
+                    ModelTestService::instance()->print_command_lines(*aicc_selection,
+                                                                      opts.msa_filename,
+                                                                      *results_stream);
+                  }
               best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
 
               /* ignore DT if topology is not fixed */
@@ -225,8 +249,16 @@ int main(int argc, char *argv[])
               {
                   modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
                   ModelTestService::instance()->print_selection(*dt_selection, MT_INFO);
+                  ModelTestService::instance()->print_command_lines(*dt_selection,
+                                                                    opts.msa_filename,
+                                                                    MT_INFO);
                   if (results_stream)
+                  {
                       ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
+                      ModelTestService::instance()->print_command_lines(*dt_selection,
+                                                                        opts.msa_filename,
+                                                                        *results_stream);
+                  }
                   best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
                   delete dt_selection;
               }

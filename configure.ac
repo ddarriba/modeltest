@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.50])
 AC_INIT(modeltest, 0.1.0, diego.darriba@h-its.org)
-AM_INIT_AUTOMAKE([subdir-objects]) 
+AM_INIT_AUTOMAKE([subdir-objects])
 
 CXXFLAGS="-g -O3 -Wall"
 
@@ -22,28 +22,12 @@ AC_PROG_CPP
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([pthread], [pthread_create])
 
-#AC_CHECK_LIB([pll], [pll_partition_create], [], [
-#  AC_MSG_ERROR([PLL library not found])
-#])
-#AC_CHECK_LIB([pll_optimize], [pllmod_opt_minimize_newton], [], [
-#  AC_MSG_ERROR([PLL_Optimize library not found])
-#])
-#AC_CHECK_LIB([pll_tree], [pllmod_treeinfo_compute_loglh], [], [
-#  AC_MSG_ERROR([PLL_Tree library not found])
-#])
-#AC_CHECK_LIB([pll_binary], [pllmod_binary_create], [], [
-#  AC_MSG_ERROR([PLL_Binary library not found])
-#])
-#AC_CHECK_LIB([pll_algorithm], [pllmod_algo_opt_frequencies], [], [
-#  AC_MSG_WARN([PLL_Algorithm library not found])
-#])
-
-AC_CHECK_HEADERS([pll.h], [], [
-    AC_CHECK_HEADERS([libpll/pll.h], [
-      have_prefix=yes
-    ], [
-      AC_MSG_ERROR([pll.h not found])
-    ])])
+#AC_CHECK_HEADERS([pll.h], [], [
+#    AC_CHECK_HEADERS([libpll/pll.h], [
+#      have_prefix=yes
+#    ], [
+#      AC_MSG_ERROR([pll.h not found])
+#    ])])
 if test "x$have_prefix" = "xyes"; then
   AC_CHECK_HEADERS([libpll/pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
   AC_CHECK_HEADERS([libpll/pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
@@ -56,12 +40,14 @@ else
   AC_CHECK_HEADERS([pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
 fi
 
+AC_ARG_ENABLE(static, AS_HELP_STRING([--enable-static], [Build static binary]), [build_static=yes])
+
 AM_CONDITIONAL(PLL_PREFIX, test "x$have_prefix" = "xyes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
+AM_CONDITIONAL(BUILD_STATIC, test "x$build_static" = "xyes")
 
 # Checks for header files.
-AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h iostream.h fstream.h iomanip math.h assert.h pll.h])
+AC_CHECK_HEADERS([cassert climits cstdin fstream iomanip iostream map string vector])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -88,4 +74,5 @@ AM_CONDITIONAL(BUILD_MPI, test "x$have_mpi" = "xyes")
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  mpi/Makefile])
+
 AC_OUTPUT

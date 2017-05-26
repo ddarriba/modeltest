@@ -89,12 +89,18 @@ namespace modeltest
 
   Tree::~Tree() {}
 
-  static void set_indices(pll_utree_t * pll_tree, Msa &msa)
+  static bool set_indices(pll_utree_t * pll_tree, Msa &msa)
   {
     mt_size_t n_tips = msa.get_n_sequences();
     pll_unode_t ** tip_nodes = pll_tree->nodes;
 
-    assert(n_tips == pll_tree->tip_count);
+    if(n_tips != pll_tree->tip_count)
+    {
+      mt_errno = MT_ERROR_IO_FORMAT;
+      snprintf(mt_errmsg, 400,
+               "Error: Number of tips in tree and MSA do not agree");
+      return false;
+    }
 
     /* find sequences and link them with the corresponding taxa */
     for (mt_index_t i = 0; i < n_tips; ++i)
@@ -112,9 +118,15 @@ namespace modeltest
         }
 
         if (tip_clv_index == MT_SIZE_UNDEF)
-            cerr << "ERROR: Cannot find tip \"" << header << "\"" << endl;
-        assert(tip_clv_index != MT_SIZE_UNDEF);
+        {
+          mt_errno = MT_ERROR_IO_FORMAT;
+          snprintf(mt_errmsg, 400,
+                   "Error: Cannot find tip \"%s\"", header);
+          return false;
+        }
     }
+
+    return true;
   }
 
   TreePll::TreePll (tree_type_t type,
@@ -125,7 +137,7 @@ namespace modeltest
                     int random_seed)
     : Tree(type, filename, msa, number_of_threads, random_seed)
   {
-    pll_utree_t * starting_tree;
+    pll_utree_t * starting_tree = NULL;
 
     bl_optimized = false;
     pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
@@ -136,6 +148,11 @@ namespace modeltest
       if (filename.compare(""))
       {
         starting_tree = pll_utree_parse_newick (filename.c_str());
+        if (!starting_tree)
+        {
+          snprintf(mt_errmsg, 400, "Error %d parsing user tree: %s", pll_errno, pll_errmsg);
+          throw EXCEPTION_TREE_USER;
+        }
         n_tips = starting_tree->tip_count;
       }
       else if (type == tree_random)
@@ -144,7 +161,6 @@ namespace modeltest
       }
       else
       {
-        cout << "Building MP starting tree" << endl;
         unsigned int * cost = new unsigned int[msa.get_n_patterns()];
         unsigned int states;
         const unsigned int * map;
@@ -176,6 +192,13 @@ namespace modeltest
       }
     }
 
+    if (!starting_tree)
+    {
+      cleanup();
+      snprintf(mt_errmsg, 400, "Error %d creating starting tree: %s", pll_errno, pll_errmsg);
+      throw EXCEPTION_TREE_MP;
+    }
+
     #if (MPI_ENABLED)
 
     /* broadcast starting topology */
@@ -205,14 +228,12 @@ namespace modeltest
     }
     #endif
 
-    if (!starting_tree)
+    if (!set_indices(starting_tree, msa))
     {
       cleanup();
-      snprintf(mt_errmsg, 400, "Error %d creating starting tree: %s", pll_errno, pll_errmsg);
-      throw EXCEPTION_TREE_MP;
+      throw EXCEPTION_TREE_FORMAT;
     }
 
-    set_indices(starting_tree, msa);
     clone_tree( starting_tree );
     pll_utree_destroy(starting_tree, NULL);
   }

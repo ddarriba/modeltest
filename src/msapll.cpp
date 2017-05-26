@@ -109,9 +109,11 @@ namespace modeltest
     {
       case mf_phylip:
         {
-          pll_msa_t * msa_data = pll_phylip_parse_msa(msa_filename.c_str(),
-                                                      &n_taxa);
+          pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
+                                                       pll_map_phylip);
+          pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
           assert(msa_data);
+          n_taxa  = msa_data->count;
           n_sites = msa_data->length;
           tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
           sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
@@ -124,6 +126,8 @@ namespace modeltest
           free(msa_data->label);
           free(msa_data->sequence);
           free(msa_data);
+
+          pll_phylip_close(phylip_data);
         }
         break;
       case mf_fasta:
@@ -263,19 +267,21 @@ namespace modeltest
 
       if (format == mf_phylip)
       {
-        pll_msa_t * msa_data = pll_phylip_parse_msa(
-                                         msa_filename.c_str(),
-                                         &cur_seq);
-        if (!msa_data || !cur_seq)
+        pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
+                                                     pll_map_phylip);
+        pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
+        if (!msa_data)
         {
           mt_errno = MT_ERROR_IO_FORMAT;
           strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
         }
         else
         {
-          sites = msa_data->length;
+          sites  = msa_data->length;
+          cur_seq = msa_data->count;
         }
         pll_msa_destroy(msa_data);
+        pll_phylip_close(phylip_data);
       }
       else if (format == mf_fasta)
       {

@@ -4,7 +4,44 @@ if BUILD_MPI
 
 bin_PROGRAMS = modeltest-mpi
 
+modeltestmpi_headers = \
+	../src/static_analyzer.h \
+	../src/genesis/date_time.h \
+	../src/genesis/std.h \
+	../src/genesis/string.h \
+	../src/genesis/logging.h \
+	../src/service/modeltestservice.h \
+	../src/service/checkpoint.h \
+	../src/thread/observer.h \
+	../src/thread/threadpool.h \
+	../src/model/abstract_parameter.h \
+	../src/model/parameter_branches.h \
+	../src/model/parameter_ratecats.h \
+	../src/model/parameter_gamma.h \
+	../src/model/parameter_pinv.h \
+	../src/model/parameter_substrates.h \
+	../src/model/parameter_frequencies.h \
+	../src/model/model.h \
+	../src/optimize/model_optimizer_pll.h \
+	../src/optimize/model_optimizer.h \
+	../src/optimize/partition_optimizer.h \
+	../src/loggable.h \
+	../src/meta.h \
+	../src/utils.h \
+	../src/tree.h \
+	../src/plldefs.h \
+	../src/model_selection.h \
+	../src/model_defs.h \
+	../src/partition.h \
+	../src/treepll.h \
+	../src/partitioning_scheme.h \
+	../src/msa.h \
+	../src/msapll.h \
+	../src/global_defs.h \
+	../src/modeltest.h
+
 modeltest_mpi_SOURCES = \
+  $(modeltestmpi_headers) \
 	../src/genesis/date_time.cpp \
 	../src/genesis/string.cpp \
 	../src/genesis/logging.cpp \
@@ -33,50 +70,17 @@ modeltest_mpi_SOURCES = \
 	../src/main.cpp
 
 modeltest_mpi_CPPFLAGS = -I.. -I../src -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
-modeltest_mpi_CPPFLAGS += -DHAVE_PTHREADS
+modeltest_mpi_CPPFLAGS += -DHAVE_PTHREADS -DBUILD_MPI
 modeltest_mpi_LDFLAGS =
-#modeltest_mpi_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
-modeltest_mpi_LDADD = -l:libpll_algorithm.a -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a -l:libpll_tree.a -l:libpll_util.a -l:libpll.a 
 
-modeltest_mpi_CPPFLAGS += -DBUILD_MPI
+if BUILD_STATIC
+  modeltest_mpi_LDADD = -l:libpll_algorithm.a -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a -l:libpll_tree.a -l:libpll_util.a -l:libpll.a
+else
+  modeltest_mpi_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+endif
 
 if PLL_PREFIX
   modeltest_mpi_CPPFLAGS += -DPLL_PREFIX
 endif
-
-pkgincludedir=${includedir}/modeltest
-pkginclude_HEADERS= \
-	../src/static_analyzer.h \
-	../src/genesis/date_time.h \
-	../src/genesis/string.h \
-	../src/genesis/logging.h \
-	../src/service/modeltestservice.h \
-	../src/service/checkpoint.h \
-	../src/thread/observer.h \
-	../src/thread/threadpool.h \
-	../src/model/abstract_parameter.h \
-	../src/model/parameter_ratecats.h \
-	../src/model/parameter_gamma.h \
-	../src/model/parameter_pinv.h \
-	../src/model/parameter_substrates.h \
-	../src/model/parameter_frequencies.h \
-	../src/model/model.h \
-	../src/optimize/model_optimizer_pll.h \
-	../src/optimize/model_optimizer.h \
-	../src/optimize/partition_optimizer.h \
-	../src/loggable.h \
-	../src/meta.h \
-	../src/utils.h \
-	../src/tree.h \
-	../src/plldefs.h \
-	../src/model_selection.h \
-	../src/model_defs.h \
-	../src/partition.h \
-	../src/treepll.h \
-	../src/partitioning_scheme.h \
-	../src/msa.h \
-	../src/msapll.h \
-	../src/global_defs.h \
-	../src/modeltest.h
 
 endif

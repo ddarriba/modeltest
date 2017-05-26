@@ -33,6 +33,7 @@
 #define EXCEPTION_TREE_MISSING 102
 #define EXCEPTION_TREE_USER    103
 #define EXCEPTION_TREE_MP      104
+#define EXCEPTION_TREE_FORMAT  105
 
 namespace modeltest
 {

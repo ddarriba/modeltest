@@ -1,1 +1,2 @@
-autoreconf -i
+#!.bin.sh
+autoreconf --force --install

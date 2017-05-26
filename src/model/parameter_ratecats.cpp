@@ -41,7 +41,8 @@ ParameterRateCats::ParameterRateCats(mt_size_t n_cats)
 
   pll_compute_gamma_cats (1.0,
                           n_cats,
-                          rates);
+                          rates,
+                          PLL_GAMMA_RATES_MEAN);
   for (mt_index_t i=0; i<n_cats; ++i)
     weights[i] = 1.0/n_cats;
 

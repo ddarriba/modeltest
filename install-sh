@@ -1,0 +1,124 @@
+#!/bin/sh
+
+build_pll=yes
+build_modules=yes
+
+# output directory for modeltest
+dir_base=${PWD}
+prefix=${PWD}/build
+
+# output directory for pll and modules
+dir_build=${prefix}
+
+# variables for building pll and modules
+dir_modules=${PWD}/libs/pll-modules
+dir_pll=${dir_modules}/libs/libpll
+
+dir_pll_include=${dir_build}/include/libpll
+dir_pll_lib=${dir_build}/lib
+
+actions=$*
+test -z ${actions} && actions="build"
+
+for action in ${actions}; do
+  case "$action" in
+  "build")
+    echo "...configuration:"
+    echo "   prefix:       ${prefix}"
+    echo "   build:        ${dir_build}"
+    echo "   pll:          [${build_pll}] ${dir_pll}"
+    echo "   modules:      [${build_modules}] ${dir_modules}"
+    echo "      include:   ${dir_pll_include}"
+    echo "      lib:       ${dir_pll_lib}"
+    echo ""
+
+    # variables for building modeltest
+
+    file_log=${PWD}/build.log
+
+    test -d ${dir_build} || { echo "creating ${dir_build}"; mkdir -p ${dir_build} || exit 1; }
+    test -d ${prefix} || { echo "creating ${prefix}"; mkdir -p ${prefix} || exit 1; }
+
+    echo "...writing log to ${file_log}"
+    test -f ${file_log} && rm ${file_log}
+
+    fn_build() 
+    {
+      args=
+      pref_dir=$1
+      inc_dir=$2
+      lib_dir=$3
+      test "x${inc_dir}" = "x-" || args="${args} CPPFLAGS=-I${inc_dir}"
+      test "x${lib_dir}" = "x-" || args="${args} LDFLAGS=-I${lib_dir}"
+      test "x${pref_dir}" = "x-" || args="${args} --prefix=-I${pref_dir}"
+
+      shift; shift; shift;
+      extra_args=$*
+      test -f ./configure || autoreconf -i || return 1
+      test -f ./Makefile || \
+        ./configure CPPFLAGS=-I${dir_pll_include} LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args} || \
+        return 1
+      make \
+        && make install || return 1
+    }
+
+    returnval=0
+
+    if test x${build_pll} = xyes; then
+      echo "...build pll"
+      libpll_tarball=libpll-*.tar.gz
+      libpll_files=`ls ${dir_pll}/* 2> /dev/null`
+      if test -f ${libpll_tarball} && test -z "${libpll_files}"; then
+        echo "   ...extracting pll tarball"
+        libpll_dir=`echo ${libpll_tarball} | rev | cut -d'.' -f3- | rev`
+        tar zxf ${libpll_tarball}
+        test -d ${libpll_dir} || { echo "PLL extraction fail"; exit; }
+        mkdir -p ${dir_pll}
+        mv ${libpll_dir}/* ${dir_pll}/
+        rm -rf ${libpll_dir}
+      fi
+      test -d ${dir_pll} || { echo "PLL directory missing"; exit; }
+      cd $dir_pll
+      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...pll OK!" || { echo "...pll FAIL!"; exit 1; }
+      cd -
+    else
+      echo "...skip pll"
+    fi
+
+    if test "x${build_modules}" = "xyes" ; then
+      echo "...build modules"
+      modules_tarball=pll-modules-*.tar.gz
+      modules_files=`ls ${dir_modules}/config* 2> /dev/null`
+      if test -f ${modules_tarball} && test -z "${modules_files}"; then
+        echo "   ...extracting modules tarball"
+        modules_dir=`echo ${modules_tarball} | rev | cut -d'.' -f3- | rev`
+        tar zxf ${modules_tarball}
+        test -d ${modules_dir} || { echo "Modules extraction fail"; exit; }
+        mkdir -p ${dir_modules}
+        mv ${modules_dir}/* ${dir_modules}/
+        rm -rf ${modules_dir}
+      fi
+      test -d ${dir_modules} || { echo "PLL modules directory missing"; exit; }
+      cd $dir_modules
+      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...modules OK!" || { echo "...modules FAIL!"; exit 1; }
+      cd -
+    else
+      echo "...skip modules"
+    fi
+
+    echo "...build modeltest"
+    fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} --enable-static >> ${file_log} && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
+  ;;
+  "dist")
+    echo "...build distribution"
+    cd $dir_pll
+    make dist
+    mv *gz ${dir_base}
+    cd $dir_modules
+    make dist
+    mv *gz ${dir_base}
+    cd ${dir_base}
+    make dist
+  ;;
+  esac
+done
