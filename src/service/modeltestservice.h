@@ -113,7 +113,9 @@ public:
   void topological_summary(partition_id_t const& part_id,
                            modeltest::ModelSelection const& bic_selection,
                            modeltest::ModelSelection const& aic_selection,
-                           modeltest::ModelSelection const& aicc_selection);
+                           modeltest::ModelSelection const& aicc_selection,
+                           std::string const& topologies_filename = "",
+                           std::ostream  &out = std::cout);
 
   std::string get_iqtree_command_line(modeltest::Model const& model,
                       std::string const& msa_filename = "MSA_FILENAME") const;

@@ -1,43 +1,6 @@
 bin_PROGRAMS = modeltest-cmd
 
-modeltest_headers = \
-	static_analyzer.h \
-	genesis/date_time.h \
-	genesis/std.h \
-	genesis/string.h \
-	genesis/logging.h \
-	service/modeltestservice.h \
-	service/checkpoint.h \
-	thread/observer.h \
-	thread/threadpool.h \
-	model/abstract_parameter.h \
-	model/parameter_branches.h \
-	model/parameter_ratecats.h \
-	model/parameter_gamma.h \
-	model/parameter_pinv.h \
-	model/parameter_substrates.h \
-	model/parameter_frequencies.h \
-	model/model.h \
-	optimize/model_optimizer_pll.h \
-	optimize/model_optimizer.h \
-	optimize/partition_optimizer.h \
-	loggable.h \
-	meta.h \
-	utils.h \
-	tree.h \
-	plldefs.h \
-	model_selection.h \
-	model_defs.h \
-	partition.h \
-	treepll.h \
-	partitioning_scheme.h \
-	msa.h \
-	msapll.h \
-	global_defs.h \
-	modeltest.h
-
 modeltest_cmd_SOURCES = \
-  $(modeltest_headers) \
 	genesis/date_time.cpp \
 	genesis/string.cpp \
 	genesis/logging.cpp \

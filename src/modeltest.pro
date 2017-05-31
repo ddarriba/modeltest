@@ -40,7 +40,6 @@ SOURCES += main.cpp\
     gui/datainfodialog.cpp \
     gui/xutils.cpp \
     gui/resultsdialog.cpp \
-    partition_selection.cpp \
     service/modeltestservice.cpp \
     gui/modelsdialog.cpp \
     gui/resultsexportdialog.cpp \
@@ -87,7 +86,6 @@ HEADERS  += \
     gui/datainfodialog.h \
     gui/xutils.h \
     gui/resultsdialog.h \
-    partition_selection.h \
     service/modeltestservice.h \
     gui/modelsdialog.h \
     loggable.h \
@@ -112,18 +110,34 @@ UI_DIR = build
 OBJECTS_DIR = build
 RCC_DIR = build
 
-CONFIG += c++11 static -g pll_prefix
+CONFIG += c++11 static -g release pll_prefix
 QMAKE_CXXFLAGS += -std=c++11 -g -DHAVE_CONFIG_H
 #QMAKE_LFLAGS = -Xlinker -Bstatic $$QMAKE_LFLAGS
 
-pll_prefix {
-    QMAKE_CXXFLAGS += -DPLL_PREFIX
-    message(pll headers expected to be in 'libpll' subdirectory)
+pll_local {
+  message(link to pll local)
+  INCPATH += build/include/libpll
+  LIBS += -Lbuild/lib
+  CONFIG += pll_static
 } else {
-    message(pll headers expected to be directly in the include path)
+  message(link to pll global)
+  pll_prefix {
+      QMAKE_CXXFLAGS += -DPLL_PREFIX
+      message(pll headers expected to be in 'libpll' subdirectory)
+  } else {
+      message(pll headers expected to be directly in the include path)
+  }
+  CONFIG += pll_dyn
 }
 
-#unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree -lpll_util
-unix|win32: LIBS += -l:libpll_algorithm.a \
-                    -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a \
-                    -l:libpll_tree.a -l:libpll_util.a -l:libpll.a 
+pll_dyn {
+  message(pll dynamic link)
+  unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+}
+
+pll_static {
+  message(pll static link)
+  unix|win32: LIBS += -l:libpll_algorithm.a \
+                      -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a \
+                      -l:libpll_tree.a -l:libpll_util.a -l:libpll.a
+}

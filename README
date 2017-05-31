@@ -1,30 +1,46 @@
+0. Automatic build
+
+  If you have downloaded a complete distribution, check the following files exist:
+    - libpll-x.y.z.tar.gz
+    - pll-modules-x.y.z.tar.gz
+    - install-sh
+
+  Run the installer script:
+  $ install-sh
+
+  This should extract and compile the required libraries and link them statically
+  in the modeltest binaries for console (modeltest-cmd) and GUI (modeltest-gui) if
+  `qmake` is available.
+
+  The resulting binaries and libraries will be placed in `build/` directory
+  
 1. Graphical User Interface
 
-To install ModelTest-Light GUI type the following commands:
-$ qmake -o Makefile.qmake src/modeltest.pro
-$ make -f Makefile.qmake
-$ make install -f Makefile.qmake
+  To install ModelTest-Light GUI type the following commands:
+  $ qmake -o Makefile.qmake src/modeltest.pro
+  $ make -f Makefile.qmake
+  $ make install -f Makefile.qmake
 
 2. Command Console Interface
 
-To install ModelTest-Light type the following commands:
-$ ./configure [--prefix=INSTALL_DIR]
-$ make
-$ make install
+  To install ModelTest-Light type the following commands:
+  $ ./configure [--prefix=INSTALL_DIR]
+  $ make
+  $ make install
 
-Set a custom install directory if you don't have root access or you prefer a
-different location.
+  Set a custom install directory if you don't have root access or you prefer a
+  different location.
 
-This will compile pthreads version
-Run 'modeltest' without arguments for loading the GUI
-Run 'modeltest --help' for help about the console interface.
+  This will compile pthreads version
+  Run 'modeltest' without arguments for loading the GUI
+  Run 'modeltest --help' for help about the console interface.
 
-To compile a Windows executable, install MinGW and run:
-$ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
-$ make
+  To compile a Windows executable, install MinGW and run:
+  $ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
+  $ make
 
-In case the configure script does not exist, it must be generated using autotools:
-$ autoreconf -i
+  In case the configure script does not exist, it must be generated using autotools:
+  $ autoreconf -i
 
 Phylogenetic Likelihood Library is available at http://github.com/xflouris/libpll
 ModelTest requires at least version x.y.z

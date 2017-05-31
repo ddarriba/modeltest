@@ -153,7 +153,7 @@ void ModelTestService::print_command_lines(modeltest::ModelSelection const& sele
   out << "  > phyml " << get_phyml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
   out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
   out << "  > paup " << get_paup_command_line(*(selection.get_model(0).model), msa_filename) << endl;
-  out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model), msa_filename) << endl;                           
+  out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model), msa_filename) << endl;
 }
 
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const
@@ -184,7 +184,9 @@ typedef struct
 void ModelTestService::topological_summary(partition_id_t const& part_id,
                                            ModelSelection const& bic_selection,
                                            ModelSelection const& aic_selection,
-                                           ModelSelection const& aicc_selection)
+                                           ModelSelection const& aicc_selection,
+                                           std::string const& topologies_filename,
+                                           std::ostream  &out)
 {
   const vector<Model *> &c_models = modeltest_instance->get_models(part_id);
   Partition &partition = modeltest_instance->get_partition(part_id);
@@ -220,7 +222,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     }
   }
 
-  cout << endl << "There are " << n_topologies << " different topologies\n";
+  out << endl << "There are " << n_topologies << " different topologies\n";
   topologies.resize(n_topologies);
 
   for (mt_index_t tree_id = 0; tree_id < c_models.size(); ++tree_id)
@@ -239,13 +241,26 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   delete[] topo_v;
   free(all_splits);
 
-  for (mt_index_t i = 0; i < n_topologies; ++i)
+  if (topologies_filename.compare(""))
   {
-    cout << topologies[i].id << " " << topologies[i].bic_support << " " << topologies[i].aic_support << " " << topologies[i].aicc_support << " " << topologies[i].tree_str << endl;
-    free(topologies[i].tree_str);
+    out << "Topologies written to " << topologies_filename << endl << endl;
+    ofstream * topo_stream = modeltest::Utils::open_file_for_writing(topologies_filename);
+    for (mt_index_t i = 0; i < n_topologies; ++i)
+    {
+        *topo_stream << topologies[i].id << " " << topologies[i].bic_support << " " << topologies[i].aic_support << " " << topologies[i].aicc_support << " " << topologies[i].tree_str << endl;
+        free(topologies[i].tree_str);
+    }
+    topo_stream->close();
   }
-  cout << endl;
-
+  else
+  {
+    for (mt_index_t i = 0; i < n_topologies; ++i)
+    {
+        out << topologies[i].id << " " << topologies[i].bic_support << " " << topologies[i].aic_support << " " << topologies[i].aicc_support << " " << topologies[i].tree_str << endl;
+        free(topologies[i].tree_str);
+    }
+    out << endl;
+  }
 }
 
 string ModelTestService::get_iqtree_command_line(Model const& model,

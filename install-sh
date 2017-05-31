@@ -1,11 +1,32 @@
 #!/bin/sh
 
-build_pll=yes
-build_modules=yes
+# script for building modeltest distribution locally.
+#
+# Syntax:
+#   $ ./install.sh [actions]
+#
+#   actions:
+#     `build` - Build modeltest-cmd and modeltest-gui
+#     `clean` - Clean all object and target files
+#     `dist`  - Pack libraries for distribution
+#
+# Notes:
+#   - Actions are run in the given order
+#   - If no action is given, `build` is set automatically
+#   - Everything will be built in `$prefix` (build/ by default)
+#   - PLL and modules are statically linked
 
-# output directory for modeltest
-dir_base=${PWD}
-prefix=${PWD}/build
+# Static configuration
+build_pll=yes            # build PLL
+build_modules=yes        # build PLL modules library
+build_gui=yes            # build modeltest-gui
+dir_base=${PWD}          # base directory
+prefix=${dir_base}/build # output directory for modeltest
+
+# check if `qmake` is available
+if test "x`which qmake`" = "x" ; then
+  build_gui=no
+fi
 
 # output directory for pll and modules
 dir_build=${prefix}
@@ -17,12 +38,18 @@ dir_pll=${dir_modules}/libs/libpll
 dir_pll_include=${dir_build}/include/libpll
 dir_pll_lib=${dir_build}/lib
 
+makefile_qt=Makefile.qmake
+
 actions=$*
 test -z ${actions} && actions="build"
 
 for action in ${actions}; do
   case "$action" in
   "build")
+
+    test -f ${dir_pll_lib}/libpll.a && build_pll=no
+    test -f ${dir_pll_lib}/libpll_algorithm.a && build_modules=no
+
     echo "...configuration:"
     echo "   prefix:       ${prefix}"
     echo "   build:        ${dir_build}"
@@ -42,7 +69,7 @@ for action in ${actions}; do
     echo "...writing log to ${file_log}"
     test -f ${file_log} && rm ${file_log}
 
-    fn_build() 
+    fn_build()
     {
       args=
       pref_dir=$1
@@ -62,6 +89,23 @@ for action in ${actions}; do
         && make install || return 1
     }
 
+    fn_qt()
+    {
+      args=
+      in_file=$1
+      out_file=$2
+      pref_dir=$3
+      test "x${pref_dir}" = "x-" || args="${args} --prefix=-I${pref_dir}"
+
+      shift; shift; shift;
+      extra_args=$*
+
+      qmake CONFIG+=pll_local -o ${out_file} ${in_file}
+      test -f ${out_file} || return 1
+      make -f ${out_file} \
+        && make install -f ${out_file} || return 1
+    }
+
     returnval=0
 
     if test x${build_pll} = xyes; then
@@ -79,6 +123,7 @@ for action in ${actions}; do
       fi
       test -d ${dir_pll} || { echo "PLL directory missing"; exit; }
       cd $dir_pll
+      echo "   ...building pll"
       fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...pll OK!" || { echo "...pll FAIL!"; exit 1; }
       cd -
     else
@@ -100,6 +145,7 @@ for action in ${actions}; do
       fi
       test -d ${dir_modules} || { echo "PLL modules directory missing"; exit; }
       cd $dir_modules
+      echo "   ...building modules"
       fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...modules OK!" || { echo "...modules FAIL!"; exit 1; }
       cd -
     else
@@ -108,6 +154,29 @@ for action in ${actions}; do
 
     echo "...build modeltest"
     fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} --enable-static >> ${file_log} && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
+
+    if test "x${build_gui}" = "xyes" ; then
+      echo "...build modeltest GUI"
+      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} >> ${file_log} && echo "...modeltest GUI OK!" || { echo "...modeltest GUI FAIL!"; exit 1; }
+    else
+      echo "...cannot find qmake. Skip modeltest GUI"
+    fi
+  ;;
+  "clean")
+    echo "...cleaning distribution"
+    if test "x${build_pll}" = "xyes" ; then
+      cd $dir_pll
+      make clean
+    fi
+    if test "x${build_modules}" = "xyes" ; then
+      cd $dir_modules
+      make clean
+    fi
+    cd ${dir_base}
+    make clean
+    if test "x${build_gui}" = "xyes" ; then
+      make clean -f ${makefile_qt}
+    fi
   ;;
   "dist")
     echo "...build distribution"

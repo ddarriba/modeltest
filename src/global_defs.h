@@ -85,6 +85,8 @@
 #define OUTPUT_LOG_SUFFIX         ".log"
 #define OUTPUT_TREE_SUFFIX        ".tree"
 #define OUTPUT_RESULTS_SUFFIX     ".out"
+#define OUTPUT_MODELS_SUFFIX      ".models"
+#define OUTPUT_TOPOS_SUFFIX       ".topos"
 #define CHECKPOINT_SUFFIX         ".ckp"
 
 namespace modeltest
@@ -246,6 +248,7 @@ typedef struct {
     std::string output_tree_file;     //! Output tree filename
     std::string output_results_file;  //! Output results filename
     std::string output_models_file;   //! Output models filename
+    std::string output_topos_file;    //! Output topologies filename
     bool redirect_output;             //! Redirect standard output to a file
     bool force_override;              //! Force overriding existing files
     bool output_tree_to_file;         //! Whether the starting tree is printed

@@ -236,12 +236,12 @@ int main(int argc, char *argv[])
                                                                 opts.msa_filename,
                                                                 MT_INFO);
               if (results_stream)
-                  {
-                    ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
-                    ModelTestService::instance()->print_command_lines(*aicc_selection,
-                                                                      opts.msa_filename,
-                                                                      *results_stream);
-                  }
+              {
+                ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
+                ModelTestService::instance()->print_command_lines(*aicc_selection,
+                                                                  opts.msa_filename,
+                                                                  *results_stream);
+              }
               best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
 
               /* ignore DT if topology is not fixed */
@@ -267,7 +267,9 @@ int main(int argc, char *argv[])
               ModelTestService::instance()->topological_summary(part_id,
                                                                 *bic_selection,
                                                                 *aic_selection,
-                                                                *aicc_selection);
+                                                                *aicc_selection,
+                                                                opts.output_topos_file,
+                                                                MT_INFO);
 
               delete bic_selection;
               delete aic_selection;
