@@ -1,0 +1,337 @@
+\section{Command Line Arguments}
+\label{sec:arguments}
+
+\subsection{Overview}
+
+\subsubsection{Main Arguments}
+
+\begin{tabular}{rllp{.6\textwidth}}
+  \hline
+  \texttt{-d} & \texttt{--datatype}   & \bf{nt},\bf{aa} & Data type is `nt' for nucleotide (default), `aa' for amino-acid sequences. \\
+  \texttt{-i} & \texttt{--input}      & {\em filename} & Input MSA file in FASTA or sequential PHYLIP format. Check section~\ref{sec:arg:input} \\
+  \texttt{-t} & \texttt{--topology}   & {\em topology\_type}. & Check section~\ref{sec:arg:topo} \\
+               && \bf{ml}             & maximum likelihood \\
+               && \bf{mp}             & maximum parsimony (default)\\
+               && \bf{fixed-ml-jc}    & fixed maximum likelihood (JC) \\
+               && \bf{fixed-ml-gtr}   & fixed maximum likelihood (GTR) \\
+               && \bf{random}         & random generated tree \\
+               && \bf{user}           & fixed user defined (requires -u argument) \\
+  \texttt{-u} & \texttt{--utree}      & {\em filename} & User-defined tree in NEWICK format. Check section~\ref{sec:arg:topo}\\
+  \texttt{-q} & \texttt{--partitions} & {\em filename} & Partitions filename in RAxML format. Check section~\ref{sec:arg:parts} \\
+  \texttt{-o} & \texttt{--output}     & {\em filename} & Pipes the output into a file \\
+  \texttt{-p} & \texttt{--processes}  & {\em number\_of\_threads} & Number of concurrent threads \\
+  \texttt{-r} & \texttt{--rngseed}    & {\em seed} & Sets the seed for the random number generator \\
+  \hline
+\end{tabular}
+
+\subsubsection{Candidate Models}
+
+  \begin{tabular}{rllp{.6\textwidth}}
+    \hline
+    \texttt{-a} & \texttt{--asc-bias} & algorithm[:values] & Includes ascertainment bias correction. Check section~\ref{sec:ascbias} for more details \\
+                                     &&&  {\bf lewis}: Lewis (2001) \\
+                                     &&&  {\bf felsenstein}: Felsenstein (requires number of invariant sites) \\
+                                     &&&  {\bf stamatakis}: Leaché et al. (2015) (requires invariant sites composition) \\
+     \texttt{-f} & \texttt{--frequencies} & [ef]           & Sets the candidate models frequencies \\
+                                     &&& {\bf e}: Estimated - maximum likelihood (DNA) / empirical (AA) \\
+                                     &&& {\bf f}: Fixed - equal (DNA) / model defined (AA) \\
+     \texttt{-h} & \texttt{--model-het} & [uigf] & Sets the candidate models rate heterogeneity \\
+                                     &&& {\bf u}: Uniform \\
+                                     &&& {\bf i}: Proportion of invariant sites (+I) \\
+                                     &&& {\bf g}: Discrite Gamma rate categories (+G) \\
+                                     &&& {\bf f}: Both +I and +G (+I+G) \\
+     \texttt{-m} & \texttt{--models}  & {\em list} & Sets the candidate model matrices separated by commas \\
+                                      && dna: & JC HKY TrN TPM1 TPM2 TPM3 TIM1 TIM2 TIM3 TVM GTR \\
+                                      && protein: & DAYHOFF LG DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU STMTREV \\
+    \texttt{-s} & \texttt{--schemes}  & {\em number\_of\_schemes} & Number of DNA substitution schemes. \\
+                                      &&& {\bf 3}: JC, HKY, GTR \\
+                                      &&& {\bf 5}: JC, HKY, TrN, TPM1, GTR \\
+                                      &&& {\bf 7}: JC, HKY, TrN, TPM1, TIM1, TVM, GTR \\
+                                      &&& {\bf 11}: All models defined in Table~\ref{table-models} \\
+                                      &&& {\bf 203}: All possible GTR submatrices \\
+    \texttt{-T} & \texttt{--template} & {\em tool} & Sets candidate models according to a specified tool \\
+                  && {\bf raxml}      & RAxML (DNA 3 schemes / AA full search) \\
+                  && {\bf phyml}      & PhyML (DNA full search / 14 AA matrices) \\
+                  && {\bf mrbayes}    & MrBayes (DNA 3 schemes / 8 AA matrices) \\
+                  && {\bf paup}       & PAUP* (DNA full search / AA full search) \\
+    \hline
+  \end{tabular}
+
+\subsubsection{Other options}
+
+  \begin{tabular}{rllp{.6\textwidth}}
+    \hline
+      & \texttt{--eps} & {\em epsilon\_value}    & Sets the model optimization epsilon \\
+      & \texttt{--tol} & {\em tolerance\_value}  & Sets the parameter optimization tolerance \\
+      & \texttt{--smooth-frequencies}   & Forces frequencies smoothing \\
+   \texttt{-H} & \texttt{--no-compress} & Disables pattern compression. \modeltest ignores if there are missing states \\
+   \texttt{-v} & \texttt{--verbose} & Run in verbose mode \\
+      & \texttt{--help}    & Display this help message and exit \\
+      & \texttt{--version} & Output version information and exit \\
+  \end{tabular}
+
+\section{Model Optimization Settings}
+\label{sec:optsettings}
+
+\subsection{Input data}
+\label{sec:arg:input}
+
+The main and only required argument is the multiple sequence alignment file ($-i$ argument).
+\modeltest supports PHYLIP and FASTA format.
+All sequences must be alignned and have thus have the same sequence length.
+
+PHYLIP format starts with a header line containing 2 integer values corresponding to the number of sequences and the sequence length.
+The following lines are the individual taxa followed by the corresponding sequence.
+Taxon names and sequences must \emph{not} contain whitespaces.
+If that is the case in your alignment, please remove or replace every white space with any arbitrary character, such for example an underscore.
+
+Please note that at this moment \modeltest does not support interleaved PHYLIP format.
+
+{
+\begin{verbatim}
+TAXA_COUNT SEQ_LENGTH
+TAXON_NAME_1 SEQUENCE_1
+TAXON_NAME_2 SEQUENCE_2
+TAXON_NAME_3 SEQUENCE_3
+...
+TAXON_NAME_N SEQUENCE_N
+\end{verbatim}
+}
+
+Example:
+
+{
+\begin{verbatim}
+5 20
+taxon1 acgctatcgcgatcgatagc
+taxon2 aaactagggcgatcgatagg
+taxon3 acactatcg---tcgatagg
+taxon4 acgctatcg---ccgatagg
+taxon5 acgctaacgcgaacgttatc
+\end{verbatim}
+}
+
+FASTA format does not contain any header, and it is formatted as a list of the sequences,
+each of them covering 2 lines: the taxon name, and the sequence.
+
+{
+\begin{verbatim}
+>TAXON_NAME_1
+SEQUENCE_1
+>TAXON_NAME_2
+SEQUENCE_2
+>TAXON_NAME_3
+SEQUENCE_3
+...
+>TAXON_NAME_N
+SEQUENCE_N
+\end{verbatim}
+}
+
+The example below is analogous to the previous example in PHYLIP format:
+
+{
+\begin{verbatim}
+>taxon1
+acgctatcgcgatcgatagc
+>taxon2
+aaactagggcgatcgatagg
+>taxon3
+acactatcg---tcgatagg
+>taxon4
+acgctatcg---ccgatagg
+>taxon5
+acgctaacgcgaacgttatc
+\end{verbatim}
+}
+
+\subsection{Topology type}
+\label{sec:arg:topo}
+
+By default, \modeltest optimizes each single model using a fixed Maximum-Parsimony topology
+with Maximum-Likelihood optimized branch lengths.
+However, it allows other tree optimization techniques.
+The topology type can be selected with $-t$ argument and it accepts the following values:
+
+\begin{itemize}
+  \item {\bf ml:} Optimize topology and branch lengths for each model
+  \item {\bf fixed-ml-jc:} Build a ML topology with Jukes-Cantor model and fixes it for every other.
+  \item {\bf fixed-ml-gtr:} Build a ML topology with GTR model and fixes it for every other.
+  \item {\bf random:} Use a fixed randomly generated tree.
+  \item {\bf user:} Use fixed user-defined topology
+\end{itemize}
+
+In addition to that, you can set a custom tree topology using $-u$ argument, followed by a file containing the tree in NEWICK format.
+This argument is mandatory if the tree type was set to {\emph user}, and optional for ML trees.
+In the latter case, the custom-defined tree is used as starting point for the ML optimization, while otherwise \modeltest uses a MP tree.
+
+A {\emph random} tree topology can be interesting if one wants to measure how sensitive is the model selection process to the tree topology.
+If you want to test several different random trees, do not forget to use different RNG seeds ($-r$ argument).
+
+
+\subsection{Partitioning scheme}
+\label{sec:arg:parts}
+
+\modeltest is able to select individual models of evolution for each partition defined on the data set ($-q$ argument).
+The partitioning scheme used may be defined in a file using RAxML-like format, where each partition is defined by one line in the file as follows:
+
+{
+\begin{verbatim}
+DATA_TYPE, PARTITION_NAME = PARTITION_SITES
+\end{verbatim}
+}
+
+Where:
+
+\begin{itemize}
+  \item {\bf DATA\_TYPE} can be {\emph DNA} or {\emph PROTEIN}
+  \item {\bf PARTITION\_NAME} is an arbitrary name for each partition
+  \item {\bf PARTITION\_SITES} is the subset of sites that belong to the partition.
+        They can be contiguous (e.g.,1-1000), or defined in several sections (e.g., $1-1000,2500-3000$).
+        Additionally, one can specify a stride.
+        For example, a partition covering all first codon positions in the first 1,000 sites is defined as $1-1000\\3$,
+        second codon position is $2-1000\\3$, and third $3-1000\\3$.
+        Second and third codon positions together would be $2-1000\\3,3-1000\\3$.
+\end{itemize}
+
+For example:
+
+{
+\begin{verbatim}
+  DNA, GENE1 = 1-800
+  DNA, GENE2 = 801-1700
+  DNA, GENE3_1 = 1701-2400\3
+  DNA, GENE3_2 = 1702-2400\3
+  DNA, GENE3_3 = 1703-2400\3
+\end{verbatim}
+}
+
+Partitions do not need to cover all sites in the MSA.
+Every site which does not belong to any partition is just ignored.
+Also, there must not be overlapping partitions (i.e., it is not allowed a site to belong to more than one partition).
+
+\subsection{Ascertainment Bias Correction}
+\label{sec:ascbias}
+
+{\modeltest} incorporates 3 algorithms for including ascertainment bias correction in the candidate models.
+
+Let $c$ be the sum of likelihoods ({\bf not} log-likelihoods) of the {\emph `dummy'}, or virtual invariant sites containing each of the states (eq.~\ref{eq:sumdummy}):,
+$n$ is the number of sites,
+$s$ is the number of states,
+$\omega$ is the number of invariant sites,
+and $\omega_i$ is the number of invariant sites for state $i$.
+
+\begin{equation}
+  \label{eq:sumdummy}
+  c = \sum\limits_{i}^{s}L(s)
+\end{equation}
+
+\begin{itemize}
+  \item Lewis (Lewis, 2001)
+    \begin{equation}
+      ln(L) = \sum\limits_{i}^{n}ln(L_i) - n \cdot ln(1-c)
+    \end{equation}
+  \item Felsenstein (Felsenstein, xx)
+    \begin{equation}
+      ln(L) = \sum\limits_{i}^{n}ln(L_i) + \omega \cdot ln(c)
+    \end{equation}
+  \item Stamatakis (Leach\'e et al. 2015)
+    \begin{equation}
+      ln(L) = \sum\limits_{i}^{n}ln(L_i) + \sum\limits_{j}^{s} \omega_j \cdot ln(L(j))
+    \end{equation}
+\end{itemize}
+
+You can set ascertainment bias correction in {\modeltest} using the {\it -a} argument: {\emph -a algorithm[:values]},
+where {\emph algorithm} must be {\emph lewis}, {\emph felsenstein} or {\emph stamatakis}.
+Additionally, the weights of the dummy sites for Felsenstein's and Stamatakis' algorithms can be set using the {\emph value} optional argument.
+For example:
+
+\begin{itemize}
+  \item Lewis' algorithm (no weights required)
+
+  \texttt{\$ modeltest -i example-data/dna/aP6.fas -a lewis}
+
+  \item Felsenstein's algorithm (sum of dummy sites weights required, values=${w_a + ... + w_t}$)
+
+  \texttt{\$ modeltest -i example-data/dna/aP6.fas -a felsenstein:20}
+
+  \item Stamatakis' algorithm (dummy sites weights required, values=$"w_a,w_c,w_g,w_t"$)
+
+  \texttt{\$ modeltest -i example-data/dna/aP6.fas -a stamatakis:10,5,7,15}
+\end{itemize}
+
+The weights can also be set in the partitions file in a RAxML-like manner,
+because if the analysis involves several partitions, the dummy sites weights are likely unequal.
+
+There are 2 important conditions for using ascertainment bias correction:
+
+\begin{enumerate}
+\item The input alignment must {\emph not} contain invariant sites.
+\item Models with a proportion of invariant sites (i.e., {\emph +I} and {\emph +I+G} must be excluded.
+      If {\emph -h} argument for selecting the rate variation is present and it includes {\emph `g'} or {\emph `f'}, {\modeltest} will complain and stop.
+\end{enumerate}
+
+\subsection{Frequencies}
+\label{sec:arg:freqs}
+
+Nucleotide or amino acid stationary frequencies in a model of evolution can be either (i) defined {\em a-priori},
+using fixed equal or empirical frequencies, or (ii) estimated from the data set at hand,
+computing the empirical frequencies or estimating ML ones.
+The latter involve $S-1$ additional degrees of freedom, where $S$ is the number of states (4 for DNA, 20 for protein data).
+
+For nucleotide substitution models, \modeltest supports equal (no additional degrees of freedom) and ML frequencies (3 additional degrees of freedom).
+
+For amino acid replacement models, \modeltest supports model-defined (no additional degrees of freedom) and empirical frequencies (19 additional degrees of freedom).
+
+With $-f$ argument you can choose whether you want to include models with fixed and/or estimated frequencies using one of both options below.
+By default, \modeltest behaves as including the argument $-f$ $ef$.
+
+\vspace{1em}
+\begin{tabular}{cll}
+  {\bf Arg} & {\bf Nucleotide} & {\bf Amino acid} \\
+  \hline
+    $f$     & fixed equal      & fixed model \\
+    $e$     & ML estimated     & empirical \\
+\end{tabular}
+
+% Fixed / Empirical / ML frequencies
+% Frequency smoothing
+
+\subsection{Per-site rate heterogeneity}
+\label{sec:arg:ratehet}
+
+With $-h$ argument you can choose whether you want to include models with per-site rate heterogeneity using one or more options below.
+By default, \modeltest behaves as including the argument $-h$ $uigf$.
+
+\vspace{1em}
+\begin{tabular}{cl}
+  {\bf Arg} & {\bf Rate heterogeneity model} \\
+  \hline
+    $u$     & No rate heterogeneity \\
+    $i$     & proportion of invariant sites (+I) \\
+    $g$     & discrete Gamma rates (+G) \\
+    $f$     & both +I and +G together \\
+\end{tabular}
+
+
+\subsection{Substitution schemes}
+\label{sec:arg:subschemes}
+
+\subsection{Settings templates}
+\label{sec:arg:templates}
+
+In order to use the model of evolution selected by \modeltest in other phylogenetic inference tool,
+you can select one of the settings templates such that you can make sure that the
+candidate models set contains only models available in specific tools:
+
+\begin{itemize}
+  \item RAxML: JC/F81, K80/HKY and SYM/GTR models, with 4 gamma rate categories and a proportion of invariable sites.
+  \item MrBayes: JC/F81, K80/HKY and SYM/GTR models, with 4 gamma rate categories and a proportion of invariable sites.
+\end{itemize}
+
+\subsection{Custom optimization thoroughness}
+\label{sec:arg:thorough}
+
+Thoroughness of the optimization process can be fine-tuned using 2 parameters:
+a local tolerance parameter controls the convergence criteria for optimizing individual parameters,
+and a global tolerance parameter decides whether to finish individual model optimization based on the log-likelihood score.

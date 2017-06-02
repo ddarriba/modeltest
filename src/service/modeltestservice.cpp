@@ -241,6 +241,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   delete[] topo_v;
   free(all_splits);
 
+  /* print topologies */
   if (topologies_filename.compare(""))
   {
     out << "Topologies written to " << topologies_filename << endl << endl;
@@ -261,6 +262,19 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     }
     out << endl;
   }
+
+  /* print topological support */
+  out << "topo_id   bic_support   aic_support   aicc_support" << endl;
+  out << "--------------------------------------------------" << endl;
+  for (mt_index_t i = 0; i < n_topologies; ++i)
+  {
+      out << setw(7) << topologies[i].id
+          << setw(14) << fixed << setprecision(5) << topologies[i].bic_support
+          << setw(14) << fixed << setprecision(5) << topologies[i].aic_support
+          << setw(14) << fixed << setprecision(5) << topologies[i].aicc_support
+          << endl;
+  }
+  out << endl;
 }
 
 string ModelTestService::get_iqtree_command_line(Model const& model,

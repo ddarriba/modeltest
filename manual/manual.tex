@@ -1,0 +1,268 @@
+\documentclass[10pt,twoside,a4paper]{article}
+\usepackage{pslatex,palatino,avant,graphicx}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[margin=2cm]{geometry}
+\usepackage{url}
+\usepackage[square,sort]{natbib}
+
+\usepackage{listings}
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{LimeGreen},  % comment style
+  % deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{BlueGreen},  % keyword style
+  % language=Java,                   % the language of the code
+  % numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  % numbersep=5pt,                   % how far the line-numbers are from the code
+  % numberstyle=\tiny\color{Gray},   % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{RubineRed},   % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname,                  % show the filename of files included with \lstinputlisting; also try caption instead of title
+  aboveskip=1em,
+  belowcaptionskip=0em,
+  belowskip=0em
+}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=Violet,
+    filecolor=black,
+    linkcolor=MidnightBlue,
+    urlcolor=MidnightBlue
+}
+
+% Definition of \maketitle
+\makeatletter
+\def\@maketitle{
+\begin{center}
+\includegraphics[width = 30mm]{images/logo.png}\\[2ex]
+{\Huge \bfseries \sffamily \@title }\\[2ex]
+{\Large  \@author}\\[4ex]
+\@date\\%[8ex]
+%\includegraphics[width = 40mm]{images/logo.png}
+\end{center}}
+\makeatother
+
+\begin{document}
+\providecommand{\versionnumber}{0.1.10}
+\title{ModelTest Manual v\versionnumber}
+\author{Diego Darriba, David Posada, Tomas Flouris, Alexandros Stamatakis}
+\date{\today}
+\maketitle
+
+\newcommand{\modeltest}{\emph{ModelTest} }
+\newcommand{\modeltestguibin}{\emph{modeltest-gui} }
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\clearpage
+
+\section{Overview}
+
+{\modeltest} is a tool to carry out statistical selection of best-fit models of nucleotide substitution or amino acid replacement.
+It implements five different model selection strategies: hierarchical and dynamical likelihood ratio tests (hLRT and dLRT), Akaike and Bayesian information criteria (AIC and BIC), and a decision theory method (DT).
+It also provides estimates of model selection uncertainty, parameter importances and model-averaged parameter estimates, including model-averaged tree topologies.
+{\modeltest} gathers features of {\em jModelTest 2}, {\em ProtTest 3}, and {\em PartitionTest}.
+
+\subsection{Download}
+
+The main project webpage is located at GitHub: \url{https://github.com/ddarriba/modeltest}.
+
+New distributions of ModelTest-Light will be hosted in GitHub releases.
+\begin{itemize}
+  \item \url{https://github.com/ddarriba/modeltest/releases}
+\end{itemize}
+
+Please use the jModelTest discussion group for any question:
+\begin{itemize}
+  \item \url{http://groups.google.com/group/jmodeltest}.
+\end{itemize}
+
+%\subsection{Citation}
+
+%When using {\modeltest} you should cite all these:
+
+%\begin{itemize}
+%\item xxx
+%\end{itemize}
+
+\subsection{Disclaimer}
+
+{\footnotesize
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation;
+either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\footnotesize
+\include{changelog}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{sec-quickstart}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Graphical User Interface}
+\label{sec:gui}
+
+\subsection{Launching the Graphical User Interface}
+
+Running {\modeltestguibin} with no arguments launches the graphical interface.
+The following window will show on the screen:
+
+\begin{center}
+\includegraphics[width=.9\textwidth]{images/main-window}
+\end{center}
+
+\begin{tabular}{l p{.7\textwidth}}
+  \color{ForestGreen}1 & Load an MSA file in PHYLIP or FASTA format \\
+  \color{ForestGreen}2 & Select the phylogenetic tree for each model \\
+  \color{ForestGreen}3 & Load a fixed or starting tree in NEWICK format (optional) \\
+  \color{ForestGreen}4 & Load a partitioning scheme file in RAxML format (optional) \\
+  \color{ForestGreen}5 & Select the number of concurrent threads to use \\
+  \color{ForestGreen}6 & Displays the estimated amount of memory needed as a function of the MSA size and the number of threads \\
+  \hline
+  \color{ForestGreen}7 & Start model selection process \\
+  \color{ForestGreen}8 & Save the results report in a file \\
+  \color{ForestGreen}9 & Reset the interface \\
+  \hline
+  \color{RedOrange}10 & Pane containing the main output console \\
+  \color{RedOrange}11 & Pane containing data description \\
+  \color{RedOrange}12 & Pane containing the model selection configuration \\
+  \color{RedOrange}13 & Pane containing the model selection results \\
+\end{tabular}
+\subsection{Quick Start}
+
+If you want to start running a small example, press {\emph Ctrl+O} in the main window.
+Select a MSA file from `example-data/nucleic' or `example-data/proteic' in the dialog, either in FASTA or PHYLIP format.
+Press {\emph Ctrl+T} and select the corresponding tree file in the dialog, in NEWICK format.
+Press {\emph Ctrl+R} and enjoy the execution.
+
+\subsection{Custom settings}
+
+The settings tab ({\color{RedOrange}12}) allows to change the model optimization settings.
+Although the default settings are the most commonly used, you might want to use different ones for your own purposes.
+
+\begin{center}
+\includegraphics[width=.9\textwidth]{images/lkl-settings}
+\end{center}
+
+\begin{tabular}{l p{.7\textwidth}}
+  \color{Blue}1  & Data type (DNA or amino acids) \\
+  \color{Blue}2  & Use only models available in a particular phylogenetic inference tool \\
+  \color{Blue}3  & Use \emph{a priori} defined subset of substitution schemes \\
+  \color{Blue}4  & Correct models for ascertainment bias \\
+  \color{Blue}5  & Include models of rate variation among sites \\
+  \color{Blue}6  & Select the number of discrete rate categories for Gamma model of rate variation \\
+  \color{Blue}7  & Include equal/model-defined or ML/empirical frequencies \\
+  \color{Blue}8  & Select individual candidate models \\
+  \hline
+  \color{Blue}9  & Tolerance for single parameter optimization \\
+  \color{Blue}10 & Global tolerance for model optimization \\
+\end{tabular}
+
+\subsection{Quick Start}
+
+\subsection{Menu description}
+
+\begin{minipage}{1\textwidth}
+\small
+\begin{tabular}{l l l l}
+\hline
+{\bf Menu} & {\bf Submenu} & {\bf Description} & {\bf Enabled} \\
+\hline
+File \\
+& Load alignment & Load an input alignment & \\
+& Load checkpoint file & Load a previous snapshot \footnote{See Section~\ref{sec:ckp}} & (i) \\
+& Quit & Exit the program & \\
+\hline
+Analysis \\
+& Compute likelihood scores & Optimize the set of candidate models & (i) \\
+& Do AIC calculations & Calculate Akaike Information Criterion & (ii) \\
+& Do BIC calculations & Calculate Bayesian Information Criterion & (ii) \\
+& Do DT calculations & Calculate Decision Theory & (ii) \\
+& Do hLRT calculations & Calculate hierarchical likelihood ratio test & (ii) \footnote{This test is only available for 3,5,7 and 11 substitution schemes and for fixed topologies (fixed BIONJ-JC tree or user-defined topology)} \\
+& Model-averaged phylogeny & Calculate the consensus tree & (iii \& iv)  \\
+\hline
+Results \\
+& Show results table & Show a table with the selection results & (ii) \\
+& Build HTML log & Create an html webpage with the results & (ii) \\
+\hline
+Tools \\
+& LRT calculator & Likelihood Ratio Test for nexted models & \\
+\hline
+\end{tabular}
+
+\vspace{1em}
+(i) After loading an alignment (ii) After computing the likelihood scores (iii) If the base tree is not fixed (iv) After calculating an Information Criterion
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{sec-arguments}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Common Use Cases}
+
+\subsection{Basic Model Selection}
+
+Although {\modeltest} has many options, most of the users would like to perform a model selection among the 11 substitution schemes,
+including models with unequal frequencies, gamma rate variation and/or a proportion of invariable sites.
+This is already the default option.
+
+\begin{verbatim}
+$ modeltest -i example-data/dna/aP6.fas
+\end{verbatim}
+
+Note that, by default, {\modeltest} uses a fast stepwise addition Maximum-Parsimony topology as the base tree for the models optimization.
+
+\subsection{Loading Checkpointing Files}
+\label{sec:ckp}
+
+\modeltest saves a ``.ckp'' checkpointing files in the log directory. In case of an error occurs,
+the user can start again the process minimizing the loss of computation.
+If a checkpoint file exists for the input MSA, \modeltest will ensure that the current arguments
+are the same (or compatible) with the saved search.
+If not, it will return an error, because that means that the stored models were evaluated under
+different conditions and the results would be inconsistent.
+You should then either restart the search with the previous arguments,
+or remove the ``.ckp'' file.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Reproducibility}
+
+
+\include{sec-theory}
+
+
+\bibliographystyle{natbib}
+%\bibliographystyle{achemnat}
+%\bibliographystyle{plainnat}
+%\bibliographystyle{abbrv}
+%\bibliographystyle{bioinformatics}
+%\bibliographystyle{plain}
+\bibliography{biblio}
+
+\end{document}
