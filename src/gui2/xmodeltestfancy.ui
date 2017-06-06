@@ -378,9 +378,6 @@
           <property name="movable">
            <bool>true</bool>
           </property>
-          <property name="tabBarAutoHide">
-           <bool>false</bool>
-          </property>
           <widget class="QWidget" name="tabConsole">
            <property name="toolTip">
             <string>Main console</string>

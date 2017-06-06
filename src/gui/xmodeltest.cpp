@@ -96,8 +96,11 @@ xmodeltest::xmodeltest(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::xmodeltest)
 {
+
+#ifdef QT_WIDGETS_LIB
     qRegisterMetaType<partition_id_t>();
     qRegisterMetaType<mt_size_t>();
+#endif
 
     ui->setupUi(this);
 
