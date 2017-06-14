@@ -99,6 +99,7 @@ Model::Model(mt_mask_t model_params,
       gap_aware(partition.gap_aware),
       asc_bias_corr(asc_bias_corr)
 {
+    restored_from_ckp = false;
     matrix_index = 0;
     current_opt_parameter = 0;
     unique_id = 0;
@@ -994,6 +995,9 @@ int DnaModel::output_bin(std::string const& bin_filename) const
 {
   assert(ROOT);
 
+  if (restored_from_ckp)
+    return true;
+
   ckpdata_t ckp_data;
   pll_binary_header_t input_header;
   const double * subst_rates = get_subst_rates();
@@ -1126,6 +1130,7 @@ int DnaModel::input_bin(std::string const& bin_filename)
 
   pllmod_binary_close(bin_file);
 
+  restored_from_ckp = read_ok;
   return read_ok;
 }
 
@@ -1470,6 +1475,9 @@ int ProtModel::output_bin(std::string const& bin_filename) const
 {
   assert(ROOT);
 
+  if (restored_from_ckp)
+    return true;
+
   ckpdata_t ckp_data;
   pll_binary_header_t input_header;
   const double * frequencies = get_frequencies();
@@ -1597,6 +1605,7 @@ int ProtModel::input_bin(std::string const& bin_filename)
 
   pllmod_binary_close(bin_file);
 
+  restored_from_ckp = read_ok;
   return read_ok;
 }
 

@@ -315,6 +315,8 @@ public:
 
     mt_index_t get_unique_id( void ) const;
 protected:
+    bool restored_from_ckp;
+
     mt_index_t matrix_index;
     mt_index_t current_opt_parameter;
     mt_index_t unique_id;
