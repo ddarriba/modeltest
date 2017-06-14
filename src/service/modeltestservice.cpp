@@ -172,14 +172,66 @@ PartitioningScheme & ModelTestService::get_partitioning_scheme( void ) const
     return modeltest_instance->get_partitioning_scheme();
 }
 
+static void print_newick_recurse(pll_unode_t * node, std::ostream  &out)
+{
+  pll_unode_t * child;
+
+  if (pllmod_utree_is_tip(node))
+  {
+    out <<  node->label;
+    return;
+  }
+
+  out << "(";
+  child = node->next;
+  while(child != node)
+  {
+    print_newick_recurse(child->back, out);
+
+    if (child->next != node)
+      out << ",";
+
+    child = child->next;
+  }
+  out << ")";
+  if (node->data)
+  {
+    pll_consensus_data_t * cdata = (pll_consensus_data_t *) node->data;
+    out << "[" << cdata->support << "]";
+  }
+}
+
+static void print_newick(pll_unode_t * tree, std::ostream  &out)
+{
+  out << "(";
+  print_newick_recurse(tree->back, out);
+  pll_unode_t * child = tree->next;
+  while(child != tree)
+  {
+    out << ",";
+    print_newick_recurse(child->back, out);
+    child = child->next;
+  }
+  out << ");";
+}
+
 typedef struct
 {
   mt_index_t id;
+  unsigned int models_count;
   double aic_support;
   double aicc_support;
   double bic_support;
   char * tree_str;
+  pll_utree_t * tree_topo; /* sample of tree structure */
 } topo_info_t;
+
+
+static bool sort_topos_bic(topo_info_t & t1, topo_info_t & t2)
+{
+    /* sort by bic */
+    return t1.bic_support > t2.bic_support;
+}
 
 void ModelTestService::topological_summary(partition_id_t const& part_id,
                                            ModelSelection const& bic_selection,
@@ -232,12 +284,21 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     {
       topologies[topo_v[tree_id] - 1].id = topo_v[tree_id];
       topologies[topo_v[tree_id] - 1].tree_str = pll_utree_export_newick(c_models[tree_id]->get_tree_graph(), NULL);
+      topologies[topo_v[tree_id] - 1].tree_topo = c_models[tree_id]->get_tree();
+      topologies[topo_v[tree_id] - 1].models_count = 0;
+      topologies[topo_v[tree_id] - 1].bic_support  = 0.0;
+      topologies[topo_v[tree_id] - 1].aic_support  = 0.0;
+      topologies[topo_v[tree_id] - 1].aicc_support = 0.0;
     }
+    ++topologies[topo_v[tree_id] - 1].models_count;
     topologies[topo_v[tree_id] - 1].bic_support += bic_selection.get_weight(c_models[tree_id]);
     topologies[topo_v[tree_id] - 1].aic_support += aic_selection.get_weight(c_models[tree_id]);
     topologies[topo_v[tree_id] - 1].aicc_support += aicc_selection.get_weight(c_models[tree_id]);
   }
 
+  sort(topologies.begin(),
+       topologies.end(),
+       sort_topos_bic);
   delete[] topo_v;
   free(all_splits);
 
@@ -264,17 +325,60 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   }
 
   /* print topological support */
-  out << "topo_id   bic_support   aic_support   aicc_support" << endl;
-  out << "--------------------------------------------------" << endl;
+  out << "topo_id   models_count   bic_support   aic_support   aicc_support" << endl;
+  out << "-----------------------------------------------------------------" << endl;
   for (mt_index_t i = 0; i < n_topologies; ++i)
   {
       out << setw(7) << topologies[i].id
+          << setw(15) << topologies[i].models_count
           << setw(14) << fixed << setprecision(5) << topologies[i].bic_support
           << setw(14) << fixed << setprecision(5) << topologies[i].aic_support
           << setw(14) << fixed << setprecision(5) << topologies[i].aicc_support
           << endl;
   }
   out << endl;
+
+  /* build weighted consensus tree */
+  pll_utree_t ** trees; /* set of tree structures */
+  double * weights;
+
+  trees = (pll_utree_t **) malloc(n_topologies * sizeof(pll_utree_t *));
+  weights = (double *) malloc(n_topologies * sizeof(double));
+  for (mt_index_t i = 0; i < n_topologies; ++i)
+  {
+    trees[i] = topologies[i].tree_topo;
+    weights[i] = topologies[i].bic_support;
+    /* set node indices consistent with each other */
+    if (i)
+      assert(pllmod_utree_consistency_check(trees[0], trees[i]));
+  }
+
+  double sumw = 0.0;
+  for (mt_index_t i = 0; i < n_topologies; ++i)
+  {
+    sumw += weights[i];
+  }
+
+  pll_consensus_utree_t * constree = pllmod_utree_weight_consensus(trees,
+                                                         weights,
+                                                         0.0,
+                                                         n_topologies);
+  out << "extended majority-rule consensus: ";
+  print_newick(constree->tree, out);
+  out << endl;
+  pllmod_utree_consensus_destroy(constree);
+
+  constree = pllmod_utree_weight_consensus(trees,
+                                           weights,
+                                           sumw,
+                                           n_topologies);
+  out << "strict consensus: ";
+  print_newick(constree->tree, out);
+  out << endl;
+  pllmod_utree_consensus_destroy(constree);
+
+  free(weights);
+  free(trees);
 }
 
 string ModelTestService::get_iqtree_command_line(Model const& model,
