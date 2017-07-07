@@ -262,7 +262,7 @@ public:
 
     /**
      * @brief Appends a text to a file
-     * @param filename the file to write to
+     * @param outfile the output file stream
      * @param text the text to append
      * @return true, if text was written
      */

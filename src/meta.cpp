@@ -959,7 +959,6 @@ void Meta::print_system_info(std::ostream  &out)
 {
 //    double memcount_gb = (double)(get_memtotal() >> 30);
     double memcount_gb = ((double) modeltest::Utils::get_memtotal() / BYTE_TO_GB);
-    out << "Arch:           xxx" << endl;
     out << "Physical cores: " << modeltest::Utils::count_physical_cores() << endl;
     out << "Logical cores:  " << modeltest::Utils::count_logical_cores() << endl;
     out << "Memory:         " << setprecision(3) << memcount_gb << "GB" << endl;

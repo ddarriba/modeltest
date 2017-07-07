@@ -359,6 +359,12 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
     sumw += weights[i];
   }
 
+  if (sumw > 1.0)
+  {
+    /* rounding error */
+    assert( sumw - 1.0 < 1e-12 );
+    sumw = 1.0;
+  }
   pll_consensus_utree_t * constree = pllmod_utree_weight_consensus(trees,
                                                          weights,
                                                          0.0,
@@ -372,10 +378,17 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
                                            weights,
                                            sumw,
                                            n_topologies);
-  out << "strict consensus: ";
-  print_newick(constree->tree, out);
-  out << endl;
-  pllmod_utree_consensus_destroy(constree);
+  if (constree)
+  {
+    out << "strict consensus: ";
+    print_newick(constree->tree, out);
+    out << endl;
+    pllmod_utree_consensus_destroy(constree);
+  }
+  else
+  {
+    out << "error computing strict consensus " << pll_errmsg << endl;
+  }
 
   free(weights);
   free(trees);

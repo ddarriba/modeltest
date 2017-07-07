@@ -24,7 +24,7 @@ data_type=$5
 input_fname=`echo $input_msa | rev | cut -d'/' -f1 | rev`
 input_dir=`echo $input_msa | rev | cut -d'/' -f2- | rev`
 
-out_fname=`ls $output_dir/$input_fname.iqtree`
+out_fname=`ls $output_dir/$input_fname.iqtree` 2> /dev/null
 
 if [ "$skip_eval" == "false" ]; then
   if [ "`echo $out_fname | wc -w`" -eq "1" ]; then
@@ -40,6 +40,11 @@ if [ "$skip_eval" == "false" ]; then
     $iqtree_bin $iqtree_args
 
     mv $iqtree_outfiles $output_dir
+  fi
+else
+  if [ ! -f $out_fname ]; then
+    echo "IQTREE"
+    exit
   fi
 fi
 

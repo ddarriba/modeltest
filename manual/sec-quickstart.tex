@@ -85,11 +85,11 @@ See Section~\ref{sec:arguments} for information about supported arguments.
 \item Header:
 
 \begin{lstlisting}
-                                    _      _ _            _   
-                                    | |    | | |          | |  
-                 _ __ ___   ___   __| | ___| | |_ ___  ___| |_ 
+                                    _      _ _            _
+                                    | |    | | |          | |
+                 _ __ ___   ___   __| | ___| | |_ ___  ___| |_
                 | '_ ` _ \ / _ \ / _` |/ _ \ | __/ _ \/ __| __|
-                | | | | | | (_) | (_| |  __/ | ||  __/\__ \ |_ 
+                | | | | | | (_) | (_| |  __/ | ||  __/\__ \ |_
                 |_| |_| |_|\___/ \__,_|\___|_|\__\___||___/\__|
 --------------------------------------------------------------------------------
 modeltest 0.1.0
@@ -102,10 +102,9 @@ Written by Diego Darriba.
 --------------------------------------------------------------------------------
 \end{lstlisting}
 
-\item Architecture options:
+\item System and compilation details:
 
 \begin{lstlisting}
-Arch:           xxx
 Physical cores: 2
 Logical cores:  4
 Memory:         3.57GB
@@ -151,8 +150,8 @@ Additional options:
   RNG seed:         12345
   subtree repeats:  enabled
 --------------------------------------------------------------------------------
-modeltest was called as follows: 
->> src/modeltest-cmd -i example-data/dna/aP6.fas -h uifg -f fe -o test 
+modeltest was called as follows:
+>> src/modeltest-cmd -i example-data/dna/aP6.fas -h uifg -f fe -o test
 \end{lstlisting}
 
 \item Real time optimization results (progress):
@@ -201,8 +200,8 @@ Best model according to BIC
 ---------------------------
 Model:              F81+I
 lnL:                -1053.6319
-Frequencies:        0.4253 0.1506 0.2010 0.2232 
-Subst. Rates:       1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 
+Frequencies:        0.4253 0.1506 0.2010 0.2232
+Subst. Rates:       1.0000 1.0000 1.0000 1.0000 1.0000 1.0000
 Inv. sites prop:    0.9032
 Gamma shape:        -
 Score:              2191.0788
@@ -221,7 +220,7 @@ P.Inv:              0.9031
 Alpha:              0.0200
 Alpha-P.Inv:        1.1502
 P.Inv-Alpha:        0.8459
-Frequencies:        0.4253 0.1506 0.2010 0.2232 
+Frequencies:        0.4253 0.1506 0.2010 0.2232
 
 Commands:
   > phyml  -i example-data/dna/aP6.fas -m 000000 -f m -v e -a 0 -c 1 -o tlr

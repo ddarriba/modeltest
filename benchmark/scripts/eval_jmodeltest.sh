@@ -55,6 +55,7 @@ else
   aicc_line=`fgrep -n "AICc MODEL SELECTION : Selection uncertainty" $out_fname | cut -d':' -f1`
   bic_line=`fgrep -n "BIC MODEL SELECTION : Selection uncertainty" $out_fname | cut -d':' -f1`
 
+  if [ ! -z $aicc_line ]; then
   bic_data=`sed "$((bic_line+4))q;d" $out_fname`
   aic_data=`sed "$((aic_line+4))q;d" $out_fname`
   aicc_data=`sed "$((aicc_line+4))q;d" $out_fname`
@@ -79,7 +80,9 @@ else
   aicc_lnl=`echo $aicc_data | cut -d' ' -f2`
   aicc_score=`echo $aicc_data | cut -d' ' -f4`
   aicc_w=`echo $aicc_data | cut -d' ' -f6`
-
+  else
+    echo "JMT"
+  fi
   printf "JMT    %10s %10s %15s %15s %10s %10s %15s %15s %10s %10s %15s %15s %10s \n" $t_time \
                                          $bic_name $bic_lnl $bic_score $bic_w \
                                          $aic_name $aic_lnl $aic_score $aic_w \
