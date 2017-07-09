@@ -245,7 +245,6 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   pll_split_t **all_splits = (pll_split_t**) calloc(c_models.size(), sizeof(pll_split_t*));
   mt_size_t n_models = c_models.size();
   mt_size_t n_tips = partition.get_n_sequences();
-  mt_size_t n_splits;
   mt_index_t *topo_v = new mt_index_t[n_models]();
   mt_size_t n_topologies;
   vector<topo_info_t> topologies;
@@ -254,7 +253,6 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   {
     all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree_graph(),
                                                     n_tips,
-                                                    &n_splits,
                                                     NULL);
   }
 
