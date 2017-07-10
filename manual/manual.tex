@@ -60,11 +60,12 @@
 \begin{document}
 \providecommand{\versionnumber}{0.1.10}
 \title{ModelTest Manual v\versionnumber}
-\author{Diego Darriba, David Posada, Tomas Flouris, Alexandros Stamatakis}
+\author{Diego Darriba, David Posada, Alexandros Stamatakis, Tomas Flouris}
 \date{\today}
 \maketitle
 
-\newcommand{\modeltest}{\emph{ModelTest} }
+\newcommand{\modeltest}{\emph{ModelTest-NG} }
+\newcommand{\modeltestbin}{\emph{modeltest-cmd} }
 \newcommand{\modeltestguibin}{\emph{modeltest-gui} }
 
 \setcounter{tocdepth}{2}
@@ -77,7 +78,7 @@
 {\modeltest} is a tool to carry out statistical selection of best-fit models of nucleotide substitution or amino acid replacement.
 It implements five different model selection strategies: hierarchical and dynamical likelihood ratio tests (hLRT and dLRT), Akaike and Bayesian information criteria (AIC and BIC), and a decision theory method (DT).
 It also provides estimates of model selection uncertainty, parameter importances and model-averaged parameter estimates, including model-averaged tree topologies.
-{\modeltest} gathers features of {\em jModelTest 2}, {\em ProtTest 3}, and {\em PartitionTest}.
+{\modeltest} gathers features of {\em jModelTest 2} \citep{Darriba2013} and {\em ProtTest 3} \citep{Darriba2011}.
 
 \subsection{Download}
 
@@ -151,12 +152,6 @@ The following window will show on the screen:
   \color{RedOrange}12 & Pane containing the model selection configuration \\
   \color{RedOrange}13 & Pane containing the model selection results \\
 \end{tabular}
-\subsection{Quick Start}
-
-If you want to start running a small example, press {\emph Ctrl+O} in the main window.
-Select a MSA file from `example-data/nucleic' or `example-data/proteic' in the dialog, either in FASTA or PHYLIP format.
-Press {\emph Ctrl+T} and select the corresponding tree file in the dialog, in NEWICK format.
-Press {\emph Ctrl+R} and enjoy the execution.
 
 \subsection{Custom settings}
 
@@ -181,41 +176,12 @@ Although the default settings are the most commonly used, you might want to use 
   \color{Blue}10 & Global tolerance for model optimization \\
 \end{tabular}
 
-\subsection{Quick Start}
+\subsection{Example}
 
-\subsection{Menu description}
-
-\begin{minipage}{1\textwidth}
-\small
-\begin{tabular}{l l l l}
-\hline
-{\bf Menu} & {\bf Submenu} & {\bf Description} & {\bf Enabled} \\
-\hline
-File \\
-& Load alignment & Load an input alignment & \\
-& Load checkpoint file & Load a previous snapshot \footnote{See Section~\ref{sec:ckp}} & (i) \\
-& Quit & Exit the program & \\
-\hline
-Analysis \\
-& Compute likelihood scores & Optimize the set of candidate models & (i) \\
-& Do AIC calculations & Calculate Akaike Information Criterion & (ii) \\
-& Do BIC calculations & Calculate Bayesian Information Criterion & (ii) \\
-& Do DT calculations & Calculate Decision Theory & (ii) \\
-& Do hLRT calculations & Calculate hierarchical likelihood ratio test & (ii) \footnote{This test is only available for 3,5,7 and 11 substitution schemes and for fixed topologies (fixed BIONJ-JC tree or user-defined topology)} \\
-& Model-averaged phylogeny & Calculate the consensus tree & (iii \& iv)  \\
-\hline
-Results \\
-& Show results table & Show a table with the selection results & (ii) \\
-& Build HTML log & Create an html webpage with the results & (ii) \\
-\hline
-Tools \\
-& LRT calculator & Likelihood Ratio Test for nexted models & \\
-\hline
-\end{tabular}
-
-\vspace{1em}
-(i) After loading an alignment (ii) After computing the likelihood scores (iii) If the base tree is not fixed (iv) After calculating an Information Criterion
-\end{minipage}
+If you want to start running a small example, press {\emph Ctrl+O} in the main window.
+Select a MSA file from `example-data/nucleic' or `example-data/proteic' in the dialog, either in FASTA or PHYLIP format.
+Press {\emph Ctrl+T} and select the corresponding tree file in the dialog, in NEWICK format.
+Press {\emph Ctrl+R} and enjoy the execution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -232,7 +198,7 @@ including models with unequal frequencies, gamma rate variation and/or a proport
 This is already the default option.
 
 \begin{verbatim}
-$ modeltest -i example-data/dna/aP6.fas
+$ modeltest-cmd -i example-data/dna/aP6.fas
 \end{verbatim}
 
 Note that, by default, {\modeltest} uses a fast stepwise addition Maximum-Parsimony topology as the base tree for the models optimization.
@@ -251,7 +217,7 @@ or remove the ``.ckp'' file.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Reproducibility}
+%\section{Reproducibility}
 
 
 \include{sec-theory}

@@ -270,15 +270,16 @@ namespace modeltest
   bool TreePll::test_tree(std::string const& tree_filename, mt_size_t *n_tips)
   {
     pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str());
-    *n_tips = tree->tip_count;
     if (!tree)
     {
+      *n_tips = 0;
       mt_errno = pll_errno;
       snprintf(mt_errmsg, 400, "PLL Error %d testing tree: %s", pll_errno, pll_errmsg);
       return false;
     }
     else
     {
+      *n_tips = tree->tip_count;
       pll_utree_destroy(tree, NULL);
       return true;
     }

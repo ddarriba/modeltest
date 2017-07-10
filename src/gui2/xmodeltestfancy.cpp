@@ -166,6 +166,9 @@ void XModelTestFancy::update_gui()
   ui->tabResults->setEnabled(status & st_optimized);
 
   ui->frame_settings->setEnabled(!(status & (st_optimizing | st_optimized)));
+
+  /* temporary disable export button */
+  ui->tool_results_export->setVisible(false);
 }
 
 static void fill_results(QTableView * result_table,
@@ -885,7 +888,6 @@ bool XModelTestFancy::run_modelselection()
 
    modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
 
-   //TODO: FIX
    mt_size_t n_models;
    if (partitioning_scheme.get_size() == 1)
    {
@@ -903,6 +905,18 @@ bool XModelTestFancy::run_modelselection()
                                  opts.epsilon_opt);
    }
     n_models = mythread->get_number_of_models();
+
+    if (n_models == 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The number of candidate models must be greater than zero");
+        msgBox.setInformativeText("Check again the frequencies and model parameters");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+        return false;
+    }
 
     QObject::connect(mythread,
                      SIGNAL(optimization_done()),
@@ -993,6 +1007,8 @@ void XModelTestFancy::optimization_done( )
         modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
 
         ui->cmb_results_partition->setVisible(partitioning_scheme.get_size() > 1);
+        ui->cmb_results_partition->clear();
+
         model_selection.resize(partitioning_scheme.get_size());
         for (mt_index_t i=0; i<partitioning_scheme.get_size(); ++i)
         {
@@ -1062,44 +1078,47 @@ void XModelTestFancy::on_actionIndex_triggered()
 
 void XModelTestFancy::on_cmb_results_partition_currentIndexChanged(int index)
 {
-    fill_results(ui->table_results_aic, *model_selection[index][modeltest::ic_aic],
-                 ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
-                 ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
-    fill_results(ui->table_results_aicc, *model_selection[index][modeltest::ic_aicc],
-                 ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
-                 ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
-    fill_results(ui->table_results_bic, *model_selection[index][modeltest::ic_bic],
-                 ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
-                 ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
-    //TODO: Allow this only for fixed trees
-    bool do_dt = false;
-    if (do_dt)
-      fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
-                   ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                   ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
-
-    for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
+    if (index >= 0 && (mt_index_t)index < model_selection.size())
     {
-#ifdef QT_WIDGETS_LIB
-        ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
-            c, QHeaderView::Stretch);
-        ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
-            c, QHeaderView::Stretch);
-        ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
-            c, QHeaderView::Stretch);
-        if (do_dt)
-          ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
-            c, QHeaderView::Stretch);
-#else
-        ui->table_results_bic->horizontalHeader()->setResizeMode(
-            c, QHeaderView::Stretch);
-        ui->table_results_aic->horizontalHeader()->setResizeMode(
-            c, QHeaderView::Stretch);
-        ui->table_results_aicc->horizontalHeader()->setResizeMode(
-            c, QHeaderView::Stretch);
-        if (do_dt)
-          ui->table_results_dt->horizontalHeader()->setResizeMode(
-            c, QHeaderView::Stretch);
-#endif
+      fill_results(ui->table_results_aic, *model_selection[index][modeltest::ic_aic],
+                   ui->txt_imp_inv_aic, ui->txt_imp_gamma_aic,
+                   ui->txt_imp_invgamma_aic, ui->txt_imp_freqs_aic);
+      fill_results(ui->table_results_aicc, *model_selection[index][modeltest::ic_aicc],
+                   ui->txt_imp_inv_aicc, ui->txt_imp_gamma_aicc,
+                   ui->txt_imp_invgamma_aicc, ui->txt_imp_freqs_aicc);
+      fill_results(ui->table_results_bic, *model_selection[index][modeltest::ic_bic],
+                   ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
+                   ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
+      //TODO: Allow this only for fixed trees
+      bool do_dt = false;
+      if (do_dt)
+        fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
+                     ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+                     ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+
+      for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
+      {
+  #ifdef QT_WIDGETS_LIB
+          ui->table_results_bic->horizontalHeader()->setSectionResizeMode(
+              c, QHeaderView::Stretch);
+          ui->table_results_aic->horizontalHeader()->setSectionResizeMode(
+              c, QHeaderView::Stretch);
+          ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
+              c, QHeaderView::Stretch);
+          if (do_dt)
+            ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
+              c, QHeaderView::Stretch);
+  #else
+          ui->table_results_bic->horizontalHeader()->setResizeMode(
+              c, QHeaderView::Stretch);
+          ui->table_results_aic->horizontalHeader()->setResizeMode(
+              c, QHeaderView::Stretch);
+          ui->table_results_aicc->horizontalHeader()->setResizeMode(
+              c, QHeaderView::Stretch);
+          if (do_dt)
+            ui->table_results_dt->horizontalHeader()->setResizeMode(
+              c, QHeaderView::Stretch);
+  #endif
+      }
     }
 }

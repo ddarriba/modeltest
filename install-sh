@@ -157,13 +157,15 @@ for action in ${actions}; do
 
     if test "x${build_gui}" = "xyes" ; then
       echo "...build modeltest GUI"
-      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} >> ${file_log} && echo "...modeltest GUI OK!" || { echo "...modeltest GUI FAIL!"; exit 1; }
+      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} >> ${file_log} && \
+        { echo "...modeltest GUI OK!"; mv modeltest-gui ${prefix}/bin; } || \
+        { echo "...modeltest GUI FAIL!"; exit 1; }
     else
       echo "...cannot find qmake. Skip modeltest GUI"
     fi
   ;;
   "clean")
-    echo "...cleaning distribution"
+    echo "...cleaning object files"
     if test "x${build_pll}" = "xyes" ; then
       cd $dir_pll
       make clean
@@ -177,6 +179,8 @@ for action in ${actions}; do
     if test "x${build_gui}" = "xyes" ; then
       make clean -f ${makefile_qt}
     fi
+    echo "...cleaning output files"
+    rm -f ${dir_pll_lib}/libpll*
   ;;
   "dist")
     echo "...build distribution"
@@ -188,6 +192,16 @@ for action in ${actions}; do
     mv *gz ${dir_base}
     cd ${dir_base}
     make dist
+  ;;
+  "test")
+   if test -f ${prefix}/bin/modeltest-cmd; then
+     ${prefix}/bin/modeltest-cmd -i example-data/dna/tiny.fas -o tmptest -t ml > /dev/null \
+       && echo "test OK!" || echo "test ERROR!"
+     rm -f tmptest.*
+   else
+     echo "...modeltest binary does not exist"
+     exit 1
+  fi
   ;;
   esac
 done

@@ -9,69 +9,17 @@ Nonetheless, it might happen that for certain distributions only some of theme a
 
 \subsection{Working with the repository}
 
-This tool is distributed under GPL v3 license. The source code is freely available at github repository. You can clone the repository at \url{https://github.com/ddarriba/modeltest}.
+This tool is distributed under GPL v3 license. The source code is freely
+available at github repository. You can clone the repository at
+\url{https://github.com/ddarriba/modeltest}.
 
-\subsection{User interfaces}
-
-\modeltest can be executed from two different user interfaces, GUI or Console.
-The Graphical User Interface (GUI) is intended for execution on common desktop computers with multicore processors --most users will probably use this.
-On the other hand, HPC environments, like multicore clusters, require a non-interactive processing (batch processes),
-so jModelTest has to be executed from the Command Console Interface.
-
-\subsubsection{Graphical User Interface}
-
-\begin{enumerate}
-\item Execute \modeltestguibin or \modeltestguibin.exe. The main \modeltest frame should pop up on the screen:
-
-\begin{center}
-\includegraphics[width=.9\textwidth]{images/main-window}
-\end{center}
-
-\item Load an input alignment file using the {\bf File/Load Alignment} option.
-
-\item Go to {\bf Analysis/Compute Likelihood Scores} and select the candidate models and the options for model optimization (optionally you can set a base topology from a file). Press Enter or the {\bf Compute Likelihoods} button.
-
-\begin{center}
-\includegraphics[width=.6\textwidth]{images/lkl-settings}
-\end{center}
-
-\item Perform statistical selection among the optimized models. For example, we can calculate the Bayesian Information Criterion using {\bf Analysis/Do BIC calculations...} option, or any other. You can find a Criteria comparison in terms of accuracy in the \href{http://www.nature.com/nmeth/journal/v9/n8/extref/nmeth.2109-S1.pdf}{supplementary material} of the \href{http://www.nature.com/nmeth/journal/v9/n8/full/nmeth.2109.html}{jModelTest publication}.
-
-\begin{center}
-\includegraphics[width=.6\textwidth]{images/bic}
-\end{center}
-
-The results will be shown in the main console.
-
-\item Take a look at the results table in {\bf Results/Show results table}. Best model is the one with the lowest criterion value (BIC column in the example) and therefore delta = 0.
-
-\begin{center}
-\includegraphics[width=.9\textwidth]{images/results}
-\end{center}
-
-\item Build a consensus tree from a given selection criteria using {\bf Analysis/Model-averaged phylogeny}:
-
-\begin{center}
-\includegraphics[width=.6\textwidth]{images/consensus}
-\end{center}
-
-\item Finally, you can save the results displayed in the main console using {\bf Edit/Save console}. Alternatively, you can get a formatted HTML document using {\bf Results/Build HTML log}:
-
-\begin{center}
-\includegraphics[width=.9\textwidth]{images/html-log}
-\end{center}
-
-Take a look at Section \ref{sec:gui} for further information.
-
-\end{enumerate}
-
-\subsubsection{Command Console Interface}
+\subsection{Example run}
 
 \begin{enumerate}
 \item Execute the following command line:
 
 \begin{lstlisting}
-$ ./modeltest-cmd -i example-data/dna/aP6.fas -h uigf -f ef
+$ ./modeltest-cmd -i example-data/dna/tiny.fas -h uigf -f ef
 \end{lstlisting}
 
 This will test all 88 models (gamma models with 4 rate categories), and then perform the model selection using Akaike (AIC) and Bayesian (BIC) criteria.
@@ -150,7 +98,7 @@ Additional options:
   RNG seed:         12345
   subtree repeats:  enabled
 --------------------------------------------------------------------------------
-modeltest was called as follows:
+modeltest-ng was called as follows:
 >> src/modeltest-cmd -i example-data/dna/aP6.fas -h uifg -f fe -o test
 \end{lstlisting}
 
@@ -229,94 +177,20 @@ Commands:
   > iqtree -s example-data/dna/aP6.fas -m F81+I
 \end{lstlisting}
 
-\item Consensus tree of the optimized phylogenies using the criterion weights:
+\item Consensus tree of the optimized phylogenies using the criterion weights (only for {\bf ML topologies}):
 
 \begin{lstlisting}
----------------------------------------------------------------
-*                                                             *
-*                    MODEL AVERAGED PHYLOGENY                 *
-*                                                             *
----------------------------------------------------------------
+  There are 2 different topologies
+  Topologies written to output.topos
 
-Selection criterion: . . . . AIC
-Confidence interval: . . . . 1.00
-Consensus type:. . . . . . . 50% majority rule
+  topo_id   models_count   bic_support   aic_support   aicc_support
+  -----------------------------------------------------------------
+        1             37       0.95897       0.66064       0.66964
+        2             51       0.04103       0.33936       0.33036
 
-
-Using 24 models in the 1.00 confidence interval = F81+I HKY+I F81+I+G HKY+I+G F81+G GTR+I HKY+G GTR+I+G GTR+G F81 HKY GTR JC+I K80+I JC+I+G K80+I+G JC+G K80+G SYM+I SYM+I+G SYM+G JC K80 SYM
-
-Bipartitions included in the consensus tree
-
-    123456
-    ****** ( 1.0 )
-    ****-- ( 1.0 )
-    **---- ( 0.94244 )
-    --**-- ( 1.0 )
-
-
-                        +-----------6 P4
-                      +-8
-                      | +----------------5 P5
-+---------------------9
-|                     |  +-4 P1
-|                     +--7
-|                        +----------3 P6
-|
-+------2 P2
-|
-+---------------------------1 P3
-
-
-(P3:0.016613,P2:0.004598,((P6:0.006790,P1:0.000000)1.00:0.002046,(P5:0.010191,P4:0.007198)0.94:0.001510)1.00:0.012665);
-
-Note: this tree is unrooted. Branch lengths are the expected number of substitutions per site. Labels next to parentheses represent phylogenetic uncertainty due to model selection (see documentation)
+  extended majority-rule consensus: ((P4,(P6,P1)[1.00000])[0.95897],P5,(P2,P3)[1.00000]);
+  strict consensus: ((P6,P1)[1.00000],P4,P5,(P2,P3)[1.00000]);
 \end{lstlisting}
-
-\item Also a HTML log is automatically stored in the ``log'' directory.
 
 \end{enumerate}
-\end{enumerate}
-
-\subsection{High Performance Environments}
-
-\subsubsection{Shared memory architectures (multicore systems)}
-
-Both the GUI and Console interfaces can be used for shared memory architectures. See Graphical User Interface or Command Console Interface. In some dedicated HPC environments you can only use the console interface, for example when using a bath-queuing system like Oracle Grid Engine. Additionally, in the console version you can specify the number of threads you want to use using the -tr'' option. By default, the total number of cores in the machine is used.
-
-\subsubsection{Distributed memory architectures (HPC clusters)}
-
-\begin{enumerate}
-\item Besides the multithreading support, it is possible to run jModelTest in a cluster. This feature has been implemented using a Java message-passing (MPJ) library, MPJ Express (http://mpj-express.org/). To execute jModelTest in a cluster environment you have to:
-
-\begin{lstlisting}
-$ export $JMODELTEST_HOME=[path_to_jModelTest]
-$ cd $JMODELTEST_HOME
-$ tar zvxf mpj.tar.gz
-$ export MPJ_HOME=$JMODELTEST_HOME/mpj
-$ export PATH=$MPJ_HOME/bin:$PATH
-$ cp $JMODELTEST_HOME/extra/machines $JMODELTEST_HOME
-\end{lstlisting}
-
-You can also add the last two lines to ~/.bashrc to automatically set these variables at console startup.
-
-\item \$JMODELTEST\_HOME/machines file contains the set of computing nodes where the mpj processes will be executed. By default it points to the localhost machine, so you should change it if you want to run a parallel execution over a cluster machine, just writing on each line the particular computing nodes (e.g. see filecluster8.conf.template).
-
-\item Start the MPJ Express daemons:
-
-\begin{lstlisting}
-$ mpjboot machines
-\end{lstlisting}
-
-The application ``mpjboot'' should be in the execution path (it is located at \$MPJ\_HOME/bin). A ssh service must be running in the machines listed in the machines file. Moreover, port 10000 should be free. For more details refer to the MPJ Express documentation.
-
-\item Run jModelTest. For this, the jModelTest distribution provides a bash script: 'runjmodeltest-cluster.sh'
-
-The basic syntax is:
-
-./runjmodeltest-cluster.sh \$NUMBER\_OF\_PROCESSORS \$APPLICATION\_PARAMETERS
-
-\begin{lstlisting}
-$ ./runjmodeltest-cluster.sh 2 -d example-data/aP6.fas -s 11 -i -g 4 -f -AIC -a
-\end{lstlisting}
-
 \end{enumerate}
