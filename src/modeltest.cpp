@@ -367,6 +367,137 @@ typedef struct {
   double epsilon_opt;
 } bin_desc_t;
 
+static bool eval_ckp(mt_options_t & options,
+                     selection_instance * current_instance)
+{
+  pll_binary_header_t bin_header;
+  bin_desc_t bin_desc;
+  bin_desc.h_msa_filename = hash<string>{}(options.msa_filename);
+  bin_desc.h_tree_filename = hash<string>{}(options.tree_filename);
+  bin_desc.h_parts_filename = hash<string>{}(options.partitions_filename);
+  bin_desc.n_taxa = options.n_taxa;
+  bin_desc.n_sites = options.n_sites;
+  bin_desc.starting_tree = options.starting_tree;
+  bin_desc.smooth_freqs = options.smooth_freqs;
+  bin_desc.rnd_seed = options.rnd_seed;
+  bin_desc.epsilon_param = options.epsilon_param;
+  bin_desc.epsilon_opt = options.epsilon_opt;
+
+  LOG_DBG << ". Ealuating checkpoint files" << endl;
+
+  if (!Utils::file_exists(current_instance->ckp_filename))
+  {
+    LOG_INFO << "Creating new checkpoint file: "
+             << current_instance->ckp_filename << endl;
+
+    FILE * bin_file = pllmod_binary_create(
+                         current_instance->ckp_filename.c_str(),
+                         &bin_header,
+                         PLLMOD_BIN_ACCESS_RANDOM,
+                         2048);
+    if (!bin_file)
+    {
+      LOG_ERR << "Cannot create ckp binary file: "
+              << current_instance->ckp_filename << endl;
+      return false;
+    }
+
+    /* dump options */
+    pllmod_binary_custom_dump(bin_file, CKP_HEAD_ID,
+                              &bin_desc,
+                              sizeof(bin_desc_t),
+                              PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+    LOG_DBG << ". New checkpoint file created" << endl;
+
+    pllmod_binary_close(bin_file);
+  }
+  else
+  {
+    LOG_DBG << ". Loading checkpoint" << endl;
+
+    /* validate binary file */
+    bin_desc_t * rec_bin_desc;
+    size_t size;
+    unsigned int type, attributes;
+    bool ckp_valid = true;
+    FILE * bin_file = pllmod_binary_open(
+                         current_instance->ckp_filename.c_str(),
+                         &bin_header);
+     if (!bin_file)
+     {
+       mt_errno = pll_errno;
+       snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
+                pll_errno, pll_errmsg);
+       return false;
+     }
+
+     pll_errno = 0;
+     rec_bin_desc = (bin_desc_t *) pllmod_binary_custom_load(bin_file,
+                                               CKP_HEAD_ID,
+                                               &size,
+                                               &type,
+                                               &attributes,
+                                               PLLMOD_BIN_ACCESS_SEEK);
+    if (!rec_bin_desc)
+    {
+      mt_errno = pll_errno;
+      snprintf(mt_errmsg, ERR_MSG_SIZE,
+               "Cannot retrieve checkpoint header: %d %s",
+               pll_errno, pll_errmsg);
+      return false;
+    }
+
+    LOG_INFO << "Validating binary checkpoint" << endl;
+    if (rec_bin_desc->h_msa_filename != bin_desc.h_msa_filename)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  MSA filename differs" << endl;
+    }
+    if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Tree filename differs" << endl;
+    }
+    if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Partitions filename differs" << endl;
+    }
+    if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Starting tree differs" << endl;
+    }
+    if (rec_bin_desc->rnd_seed != bin_desc.rnd_seed)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  RNG seed differs" << endl;
+    }
+    if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
+        fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Optimization epsilons differ" << endl;
+    }
+    if (ckp_valid)
+    {
+      LOG_INFO << "OK!" << endl;
+    }
+    else
+    {
+      LOG_ERR << "Binary checkpoint mismatch!" << endl <<
+      "Run modeltest with the saved configuration or delete the checkpoint file: " <<
+      current_instance->ckp_filename << endl;
+
+      return false;
+    }
+    free(rec_bin_desc);
+  }
+
+  return true;
+}
+
 bool ModelTest::build_instance(mt_options_t & options)
 {
   free_stuff ();
@@ -379,124 +510,9 @@ bool ModelTest::build_instance(mt_options_t & options)
 
     if (ROOT)
     {
-      pll_binary_header_t bin_header;
-      bin_desc_t bin_desc;
-      bin_desc.h_msa_filename = hash<string>{}(options.msa_filename);
-      bin_desc.h_tree_filename = hash<string>{}(options.tree_filename);
-      bin_desc.h_parts_filename = hash<string>{}(options.partitions_filename);
-      bin_desc.n_taxa = options.n_taxa;
-      bin_desc.n_sites = options.n_sites;
-      bin_desc.starting_tree = options.starting_tree;
-      bin_desc.smooth_freqs = options.smooth_freqs;
-      bin_desc.rnd_seed = options.rnd_seed;
-      bin_desc.epsilon_param = options.epsilon_param;
-      bin_desc.epsilon_opt = options.epsilon_opt;
-
-      if (!Utils::file_exists(current_instance->ckp_filename))
-      {
-        LOG_INFO << "Creating checkpoint file: "
-                 << current_instance->ckp_filename << endl;
-
-        FILE * bin_file = pllmod_binary_create(
-                             current_instance->ckp_filename.c_str(),
-                             &bin_header,
-                             PLLMOD_BIN_ACCESS_RANDOM,
-                             2048);
-        if (!bin_file)
-        {
-          LOG_ERR << "Cannot create ckp binary file: "
-                  << current_instance->ckp_filename << endl;
-          return false;
-        }
-
-        /* dump options */
-        pllmod_binary_custom_dump(bin_file, CKP_HEAD_ID,
-                                  &bin_desc,
-                                  sizeof(bin_desc_t),
-                                  PLLMOD_BIN_ATTRIB_UPDATE_MAP);
-
-        pllmod_binary_close(bin_file);
-      }
-      else
-      {
-        /* validate binary file */
-        bin_desc_t * rec_bin_desc;
-        size_t size;
-        unsigned int type, attributes;
-        bool ckp_valid = true;
-        FILE * bin_file = pllmod_binary_open(
-                             current_instance->ckp_filename.c_str(),
-                             &bin_header);
-         if (!bin_file)
-         {
-           mt_errno = pll_errno;
-           snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
-                    pll_errno, pll_errmsg);
-           return false;
-         }
-
-         pll_errno = 0;
-         rec_bin_desc = (bin_desc_t *) pllmod_binary_custom_load(bin_file,
-                                                   CKP_HEAD_ID,
-                                                   &size,
-                                                   &type,
-                                                   &attributes,
-                                                   PLLMOD_BIN_ACCESS_SEEK);
-        if (!rec_bin_desc)
-        {
-          mt_errno = pll_errno;
-          snprintf(mt_errmsg, ERR_MSG_SIZE,
-                   "Cannot retrieve checkpoint header: %d %s",
-                   pll_errno, pll_errmsg);
-          return false;
-        }
-
-        LOG_INFO << "Validating binary checkpoint" << endl;
-        if (rec_bin_desc->h_msa_filename != bin_desc.h_msa_filename)
-        {
-          ckp_valid = false;
-          LOG_ERR << "  MSA filename differs" << endl;
-        }
-        if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
-        {
-          ckp_valid = false;
-          LOG_ERR << "  Tree filename differs" << endl;
-        }
-        if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
-        {
-          ckp_valid = false;
-          LOG_ERR << "  Partitions filename differs" << endl;
-        }
-        if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
-        {
-          ckp_valid = false;
-          LOG_ERR << "  Starting tree differs" << endl;
-        }
-        if (rec_bin_desc->rnd_seed != bin_desc.rnd_seed)
-        {
-          ckp_valid = false;
-          LOG_ERR << "  RNG seed differs" << endl;
-        }
-        if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
-            fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
-        {
-          ckp_valid = false;
-          LOG_ERR << "  Optimization epsilons differ" << endl;
-        }
-        if (ckp_valid)
-        {
-          LOG_INFO << "OK!" << endl;
-        }
-        else
-        {
-          LOG_ERR << "Binary checkpoint mismatch!" << endl <<
-          "Run modeltest with the saved configuration or delete the checkpoint file: " <<
-          current_instance->ckp_filename << endl;
-
-          return false;
-        }
-        free(rec_bin_desc);
-      }
+      //TODO: Synchronize MPI
+      if (!eval_ckp(options, current_instance))
+        return false;
     }
   }
 
@@ -524,26 +540,6 @@ bool ModelTest::build_instance(mt_options_t & options)
   }
 
   verbosity = options.verbose;
-//    /* evaluate partitions */
-//    for (partition_descriptor_t & partition : *options.partitions_eff)
-//    {
-//        /* compute empirical frequencies */
-//        if (!current_instance->msa->compute_empirical_frequencies(partition, options.smooth_freqs))
-//        {
-//            cerr << "Error computing frequencies in " << partition.partition_name << endl;
-//            return false;
-//        }
-//        if (!current_instance->msa->compute_empirical_pinv(partition))
-//        {
-//            cerr << "Error computing invariant sites in " << partition.partition_name << endl;
-//            return false;
-//        }
-//        if (partition.datatype == dt_dna && !current_instance->msa->compute_empirical_subst_rates(partition))
-//        {
-//            cerr << "Error computing invariant sites in " << partition.partition_name << endl;
-//            return false;
-//        }
-//    }
 
   /* create starting tree */
   switch (options.starting_tree)
@@ -564,14 +560,11 @@ bool ModelTest::build_instance(mt_options_t & options)
       catch(int e)
       {
         UNUSED(e);
-        LOG_DBG << ". Exception caught!" << endl;
         free_stuff();
         return false;
       }
       if (!test_link(current_instance->msa, current_instance->tree))
       {
-        LOG_DBG << ". Error linking tree and MSA!" << endl;
-
         /* clean memory */
         delete current_instance->msa;
         current_instance->msa = 0;
@@ -594,6 +587,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
+      LOG_DBG << "Creating starting tree" << endl;
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
@@ -612,6 +606,8 @@ bool ModelTest::build_instance(mt_options_t & options)
           mt_errno = MT_ERROR_IO;
           break;
       case EXCEPTION_TREE_USER:
+      case EXCEPTION_TREE_MP:
+      case EXCEPTION_TREE_FORMAT:
           mt_errno = MT_ERROR_TREE;
           break;
       default:

@@ -190,13 +190,13 @@ namespace modeltest
                                                     );
         delete[] cost;
       }
-    }
 
-    if (!starting_tree)
-    {
-      cleanup();
-      snprintf(mt_errmsg, 400, "Error %d creating starting tree: %s", pll_errno, pll_errmsg);
-      throw EXCEPTION_TREE_MP;
+      if (!starting_tree)
+      {
+        cleanup();
+        snprintf(mt_errmsg, 400, "Error %d creating starting tree: %s", pll_errno, pll_errmsg);
+        throw EXCEPTION_TREE_MP;
+      }
     }
 
     #if (MPI_ENABLED)
@@ -205,24 +205,29 @@ namespace modeltest
     pll_unode_t * serialized_tree;
     if (ROOT)
     {
-      serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0]->back,
+      serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0],
                                                n_tips);
+      if (!serialized_tree)
+      {
+        MPI_Abort(MPI_COMM_WORLD, MT_ERROR_IO);
+      }
 
       MPI_Bcast(serialized_tree,
-                sizeof(pll_utree_t) * (2*n_tips - 2),
+                sizeof(pll_unode_t) * (2*n_tips - 2),
                 MPI_BYTE,
                 0,
                 master_mpi_comm );
     }
     else
     {
-      serialized_tree = (pll_unode_t *) malloc(sizeof(pll_utree_t) * (2*n_tips - 2));
+      serialized_tree = (pll_unode_t *) malloc(sizeof(pll_unode_t) * (2*n_tips - 2));
       MPI_Bcast(serialized_tree,
-                sizeof(pll_utree_t) * (2*n_tips - 2),
+                sizeof(pll_unode_t) * (2*n_tips - 2),
                 MPI_BYTE,
                 0,
                 master_mpi_comm );
       starting_tree = pllmod_utree_expand(serialized_tree, n_tips);
+
       update_names(starting_tree, &msa);
       free(serialized_tree);
     }
@@ -231,6 +236,7 @@ namespace modeltest
     if (!set_indices(starting_tree, msa))
     {
       cleanup();
+      snprintf(mt_errmsg, 400, "Error %d setting indices: %s", pll_errno, pll_errmsg);
       throw EXCEPTION_TREE_FORMAT;
     }
 

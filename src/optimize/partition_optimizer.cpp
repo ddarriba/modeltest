@@ -168,10 +168,10 @@ namespace modeltest
         pll_unode_t * serialized_tree;
         pll_utree_t * expanded_tree;
 
-        serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_utree_t));
+        serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_unode_t));
 
         /* receive serialized tree */
-        MPI_Recv(serialized_tree, sizeof(pll_utree_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
+        MPI_Recv(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
 
         /* update model */
         Model *model = models[rec_data.model_index];
@@ -309,7 +309,7 @@ namespace modeltest
     if (snd_data.model_index >= 0)
     {
       assert(serialized_tree);
-      MPI_Send(serialized_tree, sizeof(pll_utree_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
+      MPI_Send(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
       free(serialized_tree);
     }
     MPI_Recv(&next_model, 1, MPI_INT, 0, 202, master_mpi_comm, &status);
