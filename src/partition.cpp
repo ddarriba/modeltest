@@ -139,12 +139,12 @@ static bool build_models(const partition_descriptor_t &descriptor,
 
   if (ckp_filename.compare(""))
   {
-    LOG_DBG << "[DBG] Attempting to load partition from checkpoint " << ckp_filename << endl;
+    LOG_DBG << "[dbg] Attempting to load partition from checkpoint " << ckp_filename << endl;
     for (Model * model : c_models)
     {
       if (model->input_bin(ckp_filename))
       {
-        LOG_DBG << "[DBG] Loaded model from checkpoint: " << model->get_name() << endl;
+        LOG_DBG << "[dbg] Loaded model from checkpoint: " << model->get_name() << endl;
       }
     }
   }

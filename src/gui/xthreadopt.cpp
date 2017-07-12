@@ -143,9 +143,8 @@ void xThreadOpt::run()
                 mt_size_t n_models_par = n_models;
                 results.emplace_back(
                   pool->enqueue([cur_model, model, n_models_par, p_id, eps_par, eps_opt, this, &thread_map] {
-                      thread::id my_id(__gthread_self());
-                      emit next_model( model, thread_map[my_id] );
-                      optimize_single(p_id, n_models_par, model, thread_map[my_id], epsilon_param, epsilon_opt);
+                      emit next_model( model, thread_map[this_thread::get_id()] );
+                      optimize_single(p_id, n_models_par, model, thread_map[this_thread::get_id()], epsilon_param, epsilon_opt);
                   })
                 );
             }

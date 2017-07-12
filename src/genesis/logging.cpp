@@ -44,6 +44,9 @@
 #include "genesis/string.h"
 #include "genesis/date_time.h"
 
+/* if LOG_ALL_PROCS = false, output is handled only for root process */
+#define LOG_ALL_PROCS false
+
 namespace genesis {
 namespace utils {
 
@@ -86,7 +89,7 @@ std::string                Logging::debug_indent       = "    ";
  */
 void Logging::max_level (const LoggingLevel level)
 {
-    if (ROOT && level > LOG_LEVEL_MAX) {
+    if ((LOG_ALL_PROCS || ROOT) && level > LOG_LEVEL_MAX) {
         LOG_WARN << "Logging max level set to " << level << ", but compile "
                  << "time max level is " << LOG_LEVEL_MAX << ", so that "
                  << "everything above that will not be logged.";
@@ -130,7 +133,7 @@ std::string Logging::level_to_string(const LoggingLevel level)
  */
 void Logging::log_to_stdout ()
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // check whether stdout was already added.
   for (std::ostream* os : ostreams_) {
@@ -148,7 +151,7 @@ void Logging::log_to_stdout ()
  */
 void Logging::log_to_stderr ()
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // check whether stdout was already added.
   for (std::ostream* os : ostreams_) {
@@ -166,7 +169,7 @@ void Logging::log_to_stderr ()
  */
 void Logging::log_to_stream (std::ostream& os)
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
   ostreams_.push_back (&os);
 }
 
@@ -177,7 +180,7 @@ void Logging::log_to_stream (std::ostream& os)
  */
 void Logging::log_to_file (const std::string& fn)
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // TODO the log file stream is never deleted. this is not a big leak,
   // as commonly only one file is used for logging, but still is a smell.
@@ -195,7 +198,7 @@ void Logging::log_to_file (const std::string& fn)
  */
 void Logging::err_to_stdout ()
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // check whether stdout was already added.
   for (std::ostream* os : ostreams_) {
@@ -213,7 +216,7 @@ void Logging::err_to_stdout ()
  */
 void Logging::err_to_stderr ()
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // check whether stdout was already added.
   for (std::ostream* os : ostreams_) {
@@ -231,7 +234,7 @@ void Logging::err_to_stderr ()
  */
 void Logging::err_to_stream (std::ostream& os)
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   estreams_.push_back (&os);
 }
@@ -243,7 +246,7 @@ void Logging::err_to_stream (std::ostream& os)
  */
 void Logging::err_to_file (const std::string& fn)
 {
-  if(!ROOT) return;
+  if(!(LOG_ALL_PROCS || ROOT)) return;
 
   // TODO the log file stream is never deleted. this is not a big leak,
   // as commonly only one file is used for logging, but still is a smell.

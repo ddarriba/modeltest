@@ -28,18 +28,6 @@
 #include "optimize/model_optimizer.h"
 
 #include <vector>
-#include <pthread.h>
-
-typedef struct
-{
-    long thread_id;
-    long num_threads;
-    pll_partition_t * partition;
-    pll_unode_t * vroot;
-    pthread_barrier_t * barrier_buf;
-    double * result_buf;
-    int trap;
-} thread_data_t;
 
 namespace modeltest
 {
@@ -81,12 +69,6 @@ namespace modeltest
     pll_partition_t * pll_partition; //! partition
     pll_unode_t * pll_tree;
 
-    /* pthreads */
-    void start_job_sync(int JOB, thread_data_t * td);
-
-    thread_data_t * thread_data = NULL;
-    volatile int thread_job;
-    volatile double global_loglh;
   };
 
 } /* namespace modeltest */

@@ -964,9 +964,9 @@ void Meta::print_system_info(std::ostream  &out)
     out << "Logical cores:  " << modeltest::Utils::count_logical_cores() << endl;
     out << "Memory:         " << setprecision(3) << memcount_gb << "GB" << endl;
     out << "Extensions:     ";
-    if (modeltest::Utils::have_avx())
+    if (have_avx)
       out << "AVX" << endl;
-    else if (modeltest::Utils::have_sse3())
+    else if (have_sse3)
       out << "SSE3" << endl;
     else
       out << "none [WARNING!]" << endl;

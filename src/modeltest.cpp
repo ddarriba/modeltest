@@ -383,7 +383,7 @@ static bool eval_ckp(mt_options_t & options,
   bin_desc.epsilon_param = options.epsilon_param;
   bin_desc.epsilon_opt = options.epsilon_opt;
 
-  LOG_DBG << ". Ealuating checkpoint files" << endl;
+  LOG_DBG << "[dbg] Ealuating checkpoint files" << endl;
 
   if (!Utils::file_exists(current_instance->ckp_filename))
   {
@@ -408,13 +408,13 @@ static bool eval_ckp(mt_options_t & options,
                               sizeof(bin_desc_t),
                               PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
-    LOG_DBG << ". New checkpoint file created" << endl;
+    LOG_DBG << "[dbg] New checkpoint file created" << endl;
 
     pllmod_binary_close(bin_file);
   }
   else
   {
-    LOG_DBG << ". Loading checkpoint" << endl;
+    LOG_DBG << "[dbg] Loading checkpoint" << endl;
 
     /* validate binary file */
     bin_desc_t * rec_bin_desc;
@@ -547,7 +547,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_user_fixed:
     if( options.tree_filename.compare ("") )
     {
-      LOG_DBG << "Loading fixed tree from " << options.tree_filename << endl;
+      LOG_DBG << "[dbg] Loading fixed tree from " << options.tree_filename << endl;
       try
       {
         current_instance->tree = new TreePll (options.starting_tree,
@@ -587,7 +587,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
-      LOG_DBG << "Creating starting tree" << endl;
+      LOG_DBG << "[dbg] Creating starting tree" << endl;
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
@@ -752,7 +752,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     start_matrix_index = (options.starting_tree == tree_ml_jc_fixed?
       DNA_JC_INDEX : DNA_GTR_INDEX);
 
-    Model * start_model = partitioning_scheme->get_partition({0}).get_model_by_matrix(start_matrix_index, start_model_params);
+    Model * start_model = partitioning_scheme->get_partition(0).get_model_by_matrix(start_matrix_index, start_model_params);
     assert (start_model);
 
     LOG_INFO << endl << "Optimizing tree for " << start_model->get_name() << endl;

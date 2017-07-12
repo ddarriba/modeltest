@@ -262,9 +262,8 @@ namespace modeltest
             opt_info_t exec_info;
             exec_info.start_time = time(NULL);
             exec_info.n_models = n_models;
-            thread::id my_id(__gthread_self());
 
-            int res = evaluate_single_model(*model, thread_map[my_id]);
+            int res = evaluate_single_model(*model, thread_map[std::this_thread::get_id()]);
 
             exec_info.model_index = cur_model + 1;
             exec_info.model = model;

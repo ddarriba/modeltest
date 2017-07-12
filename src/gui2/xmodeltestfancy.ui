@@ -370,7 +370,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -2447,6 +2447,9 @@
               <property name="movable">
                <bool>false</bool>
               </property>
+              <property name="tabBarAutoHide">
+               <bool>false</bool>
+              </property>
               <widget class="QWidget" name="tab_results_bic">
                <property name="toolTip">
                 <string>Selection results according to BIC</string>
@@ -3016,199 +3019,6 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="txt_imp_invgamma_aicc">
-                     <property name="toolTip">
-                      <string>Importance of gamma rates and proportion of invariable sites</string>
-                     </property>
-                     <property name="text">
-                      <string>N/A</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="tab_results_dt">
-               <property name="toolTip">
-                <string>Selection results according to DT</string>
-               </property>
-               <attribute name="title">
-                <string>DT</string>
-               </attribute>
-               <layout class="QVBoxLayout" name="verticalLayout_15">
-                <item>
-                 <widget class="QTableView" name="table_results_dt">
-                  <property name="font">
-                   <font>
-                    <family>Courier 10 Pitch</family>
-                    <pointsize>10</pointsize>
-                   </font>
-                  </property>
-                  <property name="alternatingRowColors">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sortingEnabled">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFrame" name="frame_imp_dt">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                  <property name="frameShape">
-                   <enum>QFrame::StyledPanel</enum>
-                  </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_9">
-                   <property name="verticalSpacing">
-                    <number>6</number>
-                   </property>
-                   <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
-                    <widget class="QLabel" name="lbl_imp_dt">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <weight>75</weight>
-                       <bold>true</bold>
-                       <underline>false</underline>
-                      </font>
-                     </property>
-                     <property name="lineWidth">
-                      <number>1</number>
-                     </property>
-                     <property name="text">
-                      <string>Importances</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="lbl_imp_gamma_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>100</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>Gamma:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="2">
-                    <spacer name="spacer_imp_dt">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="lbl_imp_freqs_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>100</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>Frequencies:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLabel" name="txt_imp_freqs_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>60</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>Importance of stationary frequencies free parameters</string>
-                     </property>
-                     <property name="text">
-                      <string>N/A</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLabel" name="txt_imp_gamma_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>60</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>Importance of gamma rate variation</string>
-                     </property>
-                     <property name="text">
-                      <string>N/A</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="lbl_imp_inv_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>100</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>Prop.Inv:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLabel" name="txt_imp_inv_dt">
-                     <property name="minimumSize">
-                      <size>
-                       <width>60</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="toolTip">
-                      <string>Importance of proportion of invariable sites</string>
-                     </property>
-                     <property name="text">
-                      <string>N/A</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="lbl_imp_invgamma_dt">
-                     <property name="text">
-                      <string>Inv+Gamma</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLabel" name="txt_imp_invgamma_dt">
                      <property name="toolTip">
                       <string>Importance of gamma rates and proportion of invariable sites</string>
                      </property>

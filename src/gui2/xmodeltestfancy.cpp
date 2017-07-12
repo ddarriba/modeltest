@@ -1090,11 +1090,11 @@ void XModelTestFancy::on_cmb_results_partition_currentIndexChanged(int index)
                    ui->txt_imp_inv_bic, ui->txt_imp_gamma_bic,
                    ui->txt_imp_invgamma_bic, ui->txt_imp_freqs_bic);
       //TODO: Allow this only for fixed trees
-      bool do_dt = false;
-      if (do_dt)
-        fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
-                     ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
-                     ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
+      // bool do_dt = false;
+      // if (do_dt)
+      //   fill_results(ui->table_results_dt, *model_selection[index][modeltest::ic_dt],
+      //                ui->txt_imp_inv_dt, ui->txt_imp_gamma_dt,
+      //                ui->txt_imp_invgamma_dt, ui->txt_imp_freqs_dt);
 
       for (int c = 0; c < ui->table_results_bic->horizontalHeader()->count(); ++c)
       {
@@ -1105,9 +1105,9 @@ void XModelTestFancy::on_cmb_results_partition_currentIndexChanged(int index)
               c, QHeaderView::Stretch);
           ui->table_results_aicc->horizontalHeader()->setSectionResizeMode(
               c, QHeaderView::Stretch);
-          if (do_dt)
-            ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
-              c, QHeaderView::Stretch);
+          // if (do_dt)
+          //   ui->table_results_dt->horizontalHeader()->setSectionResizeMode(
+          //     c, QHeaderView::Stretch);
   #else
           ui->table_results_bic->horizontalHeader()->setResizeMode(
               c, QHeaderView::Stretch);
@@ -1115,9 +1115,9 @@ void XModelTestFancy::on_cmb_results_partition_currentIndexChanged(int index)
               c, QHeaderView::Stretch);
           ui->table_results_aicc->horizontalHeader()->setResizeMode(
               c, QHeaderView::Stretch);
-          if (do_dt)
-            ui->table_results_dt->horizontalHeader()->setResizeMode(
-              c, QHeaderView::Stretch);
+          // if (do_dt)
+          //   ui->table_results_dt->horizontalHeader()->setResizeMode(
+          //     c, QHeaderView::Stretch);
   #endif
       }
     }

@@ -70,8 +70,15 @@ int main(int argc, char *argv[])
     /* so far, allow only for single-process tasks */
     master_mpi_comm = MPI_COMM_WORLD;
 
-    cout << "MPI Start: Size: " << mpi_numprocs
-             << " Rank: " << mpi_rank << endl;
+    if (mpi_numprocs == 1)
+    {
+      modeltest::Utils::exit_with_error("MPI version requires at least 2 processors");
+    }
+    else
+    {
+      cout << "MPI Start: Size: " << mpi_numprocs
+               << " Rank: " << mpi_rank << endl;
+    }
 #else
     mpi_rank = 0;
     mpi_numprocs = 1;
@@ -83,8 +90,9 @@ int main(int argc, char *argv[])
 
     num_cores = modeltest::Utils::count_physical_cores();
 
-    have_avx = modeltest::Utils::have_avx();
-    have_sse3 = modeltest::Utils::have_sse3();
+    pll_hardware_probe();
+    have_avx = pll_hardware.avx_present;
+    have_sse3 = pll_hardware.sse3_present;
 
     #ifdef PLL_ATTRIB_SITES_REPEATS
         modeltest::disable_repeats = !have_avx;

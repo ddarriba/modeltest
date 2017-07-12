@@ -80,9 +80,8 @@ ParameterFrequenciesOpt::ParameterFrequenciesOpt( mt_size_t states )
 }
 
 ParameterFrequenciesOpt::ParameterFrequenciesOpt( ParameterFrequenciesOpt const& other )
-  : ParameterFrequencies(states)
+  : ParameterFrequencies(other.states)
 {
-  states = other.states;
   frequencies = new double[states];
   memcpy(frequencies,
          other.frequencies,
@@ -143,9 +142,8 @@ ParameterFrequenciesFixed::ParameterFrequenciesFixed( mt_size_t states,
 }
 
 ParameterFrequenciesFixed::ParameterFrequenciesFixed( ParameterFrequenciesFixed const& other )
-  : ParameterFrequencies(states)
+  : ParameterFrequencies(other.states)
 {
-  states = other.states;
   equal_frequencies = other.equal_frequencies;
   frequencies = new double[states];
   memcpy(frequencies,
@@ -180,7 +178,7 @@ double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
   UNUSED(params);
   UNUSED(tolerance);
   UNUSED(first_guess);
-  
+
   /* do not optimize */
   return loglh;
 }

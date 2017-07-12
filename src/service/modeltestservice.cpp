@@ -33,23 +33,6 @@ ModelTestService::~ModelTestService()
     destroy_instance();
 }
 
-bool ModelTestService::test_msa( string const& msa_filename,
-                                 mt_size_t * n_seqs,
-                                 mt_size_t * n_sites,
-                                 msa_format_t * msa_format,
-                                 data_type_t * datatype)
-{
-    return test_msa(msa_filename,
-                               n_seqs, n_sites,
-                               msa_format, datatype);
-}
-
-bool ModelTestService::test_tree( string const& tree_filename,
-                                  mt_size_t * n_tips )
-{
-    return test_tree(tree_filename, n_tips);
-}
-
 bool ModelTestService::create_instance( mt_options_t & options )
 {
     bool build_ok;
@@ -380,7 +363,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   {
     out << "strict consensus: ";
     print_newick(constree->tree, out);
-    out << endl;
+    out << endl << endl;
     pllmod_utree_consensus_destroy(constree);
   }
   else
