@@ -210,7 +210,7 @@ typedef struct
 } topo_info_t;
 
 
-static bool sort_topos_bic(topo_info_t & t1, topo_info_t & t2)
+static bool sort_topos_bic(const topo_info_t & t1, const topo_info_t & t2)
 {
     /* sort by bic */
     return t1.bic_support > t2.bic_support;
