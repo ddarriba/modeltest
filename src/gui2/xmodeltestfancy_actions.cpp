@@ -77,14 +77,58 @@ void XModelTestFancy::on_radDatatypeProt_clicked()
     update_gui();
 }
 
+void XModelTestFancy::on_cbNoRateVarModels_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbGModels_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbIGModels_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbIModels_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbEqualFreq_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbMlFreq_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
 void XModelTestFancy::on_radSchemes3_clicked() { set_substitution_schemes(3); }
 void XModelTestFancy::on_radSchemes5_clicked() { set_substitution_schemes(5); }
 void XModelTestFancy::on_radSchemes7_clicked() { set_substitution_schemes(7); }
 void XModelTestFancy::on_radSchemes11_clicked() { set_substitution_schemes(11); }
 void XModelTestFancy::on_radSchemes203_clicked() { set_substitution_schemes(203); }
+void XModelTestFancy::on_radSchemesUser_clicked() { update_gui(); }
 
-void XModelTestFancy::on_radSchemesUser_clicked()
+void XModelTestFancy::on_modelsListView_itemPressed(QListWidgetItem *item)
 {
+    on_modelsListView_itemClicked(item);
+}
+void XModelTestFancy::on_modelsListView_itemClicked(QListWidgetItem *item)
+{
+    UNUSED(item);
+    ui->radSchemesUser->setChecked(true);
+    update_gui();
 }
 
 void XModelTestFancy::autoSelectSchemes(const int schemes[], int n)
@@ -137,4 +181,76 @@ void XModelTestFancy::set_substitution_schemes(mt_index_t n_schemes)
 
         autoSelectSchemes(schemes, n_schemes);
     }
+}
+
+void XModelTestFancy::on_sliderNCat_sliderMoved(int position)
+{
+    char txt[30];
+    sprintf(txt, "%d categories", position);
+    ui->lblNCat->setText(QString(txt));
+
+    compute_size(position, ui->slider_nthreads->value());
+}
+
+void XModelTestFancy::on_sliderNCat_valueChanged(int value)
+{
+    on_sliderNCat_sliderMoved(value);
+}
+
+void XModelTestFancy::on_radSetMrbayes_toggled(bool checked)
+{
+    if (!checked)
+        return;
+    on_radSchemes3_clicked();
+    ui->cbMlFreq->setChecked(true);
+    ui->cbEqualFreq->setChecked(true);
+    ui->cbNoRateVarModels->setChecked(true);
+    ui->cbGModels->setChecked(true);
+    ui->cbIModels->setChecked(true);
+    ui->cbIGModels->setChecked(true);
+    update_gui();
+}
+
+void XModelTestFancy::on_radSetRaxml_toggled(bool checked)
+{
+    if (!checked)
+        return;
+    on_radSchemes3_clicked();
+    ui->cbMlFreq->setChecked(true);
+    ui->cbEqualFreq->setChecked(true);
+    ui->cbNoRateVarModels->setChecked(false);
+    ui->cbGModels->setChecked(true);
+    ui->cbIModels->setChecked(false);
+    ui->cbIGModels->setChecked(false);
+    ui->sliderNCat->setValue(4);
+    on_sliderNCat_sliderMoved(4);
+    update_gui();
+}
+
+void XModelTestFancy::on_radSetPhyml_toggled(bool checked)
+{
+    if (!checked)
+        return;
+    on_radSchemes11_clicked();
+    ui->cbMlFreq->setChecked(true);
+    ui->cbEqualFreq->setChecked(true);
+    ui->cbNoRateVarModels->setChecked(true);
+    ui->cbIModels->setChecked(true);
+    ui->cbGModels->setChecked(true);
+    ui->cbIGModels->setChecked(true);
+    update_gui();
+}
+
+void XModelTestFancy::on_radSetModelTest_toggled(bool checked)
+{
+    if (!checked)
+        return;
+    on_radSchemes11_clicked();
+    ui->cbMlFreq->setChecked(true);
+    ui->cbEqualFreq->setChecked(true);
+    ui->cbNoRateVarModels->setChecked(true);
+    ui->cbIModels->setChecked(true);
+    ui->cbGModels->setChecked(true);
+    ui->cbIGModels->setChecked(true);
+    update_gui();
 }

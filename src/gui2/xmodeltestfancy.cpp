@@ -122,6 +122,9 @@ static void set_oklabel(QLabel * label, oklabel_t ok)
 
 void XModelTestFancy::update_gui()
 {
+  char txt[30];
+  int n_model_sets, n_matrices, n_models;
+
   /* get values */
   tree_type = ui->cmb_tree->currentIndex();
   n_threads = ui->slider_nthreads->value();
@@ -144,6 +147,25 @@ void XModelTestFancy::update_gui()
   if (!(ui->cbGModels->isChecked() || ui->cbIGModels->isChecked()))
       n_cats = 1;
   compute_size(n_cats, ui->slider_nthreads->value());
+
+  /* number of models */
+  n_model_sets = ui->cbNoRateVarModels->isChecked() +
+          ui->cbIModels->isChecked() +
+          ui->cbGModels->isChecked() +
+          ui->cbIGModels->isChecked();
+
+  n_matrices = 0;
+  if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
+      n_matrices = N_DNA_ALLMATRIX_COUNT;
+  else
+      for (int i=0; i < ui->modelsListView->count(); i++)
+          if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
+              n_matrices++;
+
+  n_models = n_matrices * n_model_sets *
+          (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
+  sprintf(txt, "%d", n_models);
+  ui->lblNumModels->setText(QString(txt));
 
   /* enabling */
   ui->btn_loadmsa->setEnabled(!(status & st_optimized));
@@ -714,6 +736,55 @@ bool XModelTestFancy::run_modelselection()
 {
     partition_id_t part_id;
     int number_of_threads  = ui->slider_nthreads->value();
+    mt_size_t n_models, n_matrices, n_model_sets;
+
+    /* validate */
+    n_model_sets = ui->cbNoRateVarModels->isChecked() +
+            ui->cbIModels->isChecked() +
+            ui->cbGModels->isChecked() +
+            ui->cbIGModels->isChecked();
+
+    n_matrices = 0;
+    if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
+        n_matrices = N_DNA_ALLMATRIX_COUNT;
+    else
+        for (int i=0; i < ui->modelsListView->count(); i++)
+            if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
+                n_matrices++;
+
+    n_models = n_matrices * n_model_sets *
+            (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
+
+    if (n_models == 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The number of candidate models should be greater than 0");
+        msgBox.setInformativeText("Check again frequencies and model parameters");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+        return false;
+    }
+
+    if (ui->radAscbiasFelsenstein->isChecked() || ui->radAscbiasStamatakis->isChecked())
+    {
+        bool ascbias_file_ok = false;
+
+        /* TODO: validate asc bias file */
+
+        if (!ascbias_file_ok)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Invalid composition file for ascertainment bias correction");
+            msgBox.setInformativeText("Set a good one or select None or Lewis");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+
+            return false;
+        }
+    }
 
     QMessageBox msgBox;
     msgBox.setText("Start models optimization");
@@ -755,26 +826,6 @@ bool XModelTestFancy::run_modelselection()
         asc_bias = asc_stamatakis;
     else
         assert(0);
-
-    /* validate */
-    if (ui->radAscbiasFelsenstein->isChecked() || ui->radAscbiasStamatakis->isChecked())
-    {
-        bool ascbias_file_ok = false;
-
-        /* TODO: validate asc bias file */
-
-        if (!ascbias_file_ok)
-        {
-            QMessageBox msgBox;
-            msgBox.setText("Invalid composition file for ascertainment bias correction");
-            msgBox.setInformativeText("Set a good one or select None or Lewis");
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            msgBox.exec();
-
-            return false;
-        }
-    }
 
     int model_params = 0;
     if (ui->cbEqualFreq->isChecked())
@@ -888,7 +939,6 @@ bool XModelTestFancy::run_modelselection()
 
    modeltest::PartitioningScheme & partitioning_scheme = ModelTestService::instance()->get_partitioning_scheme();
 
-   mt_size_t n_models;
    if (partitioning_scheme.get_size() == 1)
    {
        part_id = {0};
@@ -904,13 +954,12 @@ bool XModelTestFancy::run_modelselection()
                                  opts.epsilon_param,
                                  opts.epsilon_opt);
    }
-    n_models = mythread->get_number_of_models();
 
-    if (n_models == 0)
+    if (n_models != mythread->get_number_of_models())
     {
         QMessageBox msgBox;
-        msgBox.setText("The number of candidate models must be greater than zero");
-        msgBox.setInformativeText("Check again the frequencies and model parameters");
+        msgBox.setText("Internal error. There are 0 models to optimize!");
+        msgBox.setInformativeText("Please report this issue together with the current settings");
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();

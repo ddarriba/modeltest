@@ -98,6 +98,25 @@ private slots:
 
     void on_cmb_results_partition_currentIndexChanged(int index);
 
+    void on_cbNoRateVarModels_toggled(bool checked);
+    void on_cbGModels_toggled(bool checked);
+    void on_cbIGModels_toggled(bool checked);
+    void on_cbIModels_toggled(bool checked);
+    void on_cbEqualFreq_toggled(bool checked);
+    void on_cbMlFreq_toggled(bool checked);
+
+    void on_modelsListView_itemClicked(QListWidgetItem *item);
+
+    void on_sliderNCat_sliderMoved(int position);
+    void on_sliderNCat_valueChanged(int value);
+
+    void on_radSetMrbayes_toggled(bool checked);
+    void on_radSetRaxml_toggled(bool checked);
+    void on_radSetPhyml_toggled(bool checked);
+    void on_radSetModelTest_toggled(bool checked);
+
+    void on_modelsListView_itemPressed(QListWidgetItem *item);
+
 private:
     void update_gui( void );
     void set_active_tab(QString text);

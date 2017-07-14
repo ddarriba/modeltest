@@ -370,7 +370,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -1854,7 +1854,7 @@
                                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Include models with equal (DNA) or model defined (amino acid) frequencies&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
-                               <string>Equal frequencies</string>
+                               <string>Equal</string>
                               </property>
                               <property name="checked">
                                <bool>true</bool>
