@@ -1,10 +1,12 @@
-![ModelTest](https://github.com/ddlsandbox/assets/blob/master/modeltest/img/header.png?raw=true)
+![ModelTest-NG](https://github.com/ddlsandbox/assets/blob/master/modeltest/img/header.png?raw=true)
 
-ModelTest is a tool for selecting the best-fit model and partitioning scheme. ModelTest integrates jModelTest, ProtTest and PartitionTest in one single tool, with graphical and command console interfaces.
+ModelTest-NG is a tool for selecting the best-fit model and partitioning scheme. 
+ModelTest integrates jModelTest, ProtTest and PartitionTest in one single tool, 
+with graphical and command console interfaces.
 
 ## Documentation
 
-If you want to read about using ModelTest, a PDF manual is attached to each [release](https://github.com/ddarriba/pll-modules/releases). You can also browse the [wiki](https://github.com/ddarriba/pll-modules/wiki) for online documentation.
+If you want to read about using ModelTest-NG, a PDF manual is attached to each [release](https://github.com/ddarriba/pll-modules/releases). You can also browse the [wiki](https://github.com/ddarriba/pll-modules/wiki) for online documentation.
 
 The API reference for developing packages is also documented on Atom.io.
 
@@ -19,9 +21,36 @@ This step is not necessary if you downloaded the released tarball.
 
 ## Install
 
+0. Automatic Build
+
+  If you have downloaded a complete distribution, check the following files exist:
+    - libpll-x.y.z.tar.gz
+    - pll-modules-x.y.z.tar.gz
+    - install-sh
+
+  Note that, qmake might be available in some linux 
+  distributions, but NOT a functional QT framework. Try running `qmake`, and if you
+  observe and error, install `qt5-defaults` from apt repositories:
+
+  ```bash
+  $ sudo apt-get install qt5-defaults
+  ```
+
+  Run the installer script:
+
+  ```bash
+  $ install-sh
+  ```
+
+  This should extract and compile the required libraries and link them statically
+  in the ModelTest-NG binaries for console (modeltest-cmd, modeltest-mpi) and GUI (modeltest-gui) if
+  a valid `qmake` is available.
+
+  The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
+
 1. Graphical User Interface
 
-  To install ModelTest GUI type the following commands:
+  To install ModelTest-NG GUI type the following commands:
   
   ```bash
   $ ./build_qmake-sh
@@ -29,9 +58,11 @@ This step is not necessary if you downloaded the released tarball.
   $ make install -f Makefile.qmake
   ```
 
+  Run 'modeltest-gui' without arguments for loading the GUI
+
 2. Command Console Interface
 
-  To install ModelTest type the following commands:
+  To install ModelTest-NG type the following commands:
   
   ```bash
   $ ./configure [--prefix=INSTALL_DIR]
@@ -42,9 +73,8 @@ This step is not necessary if you downloaded the released tarball.
 Set a custom install directory if you don't have root access or you prefer a
 different location.
 
-This will compile pthreads version
-Run 'modeltest' without arguments for loading the GUI
-Run 'modeltest --help' for help about the console interface.
+This will compile pthreads and MPI versions
+Run 'modeltest-cmd --help' for help about the console interface.
 
 To compile a Windows executable, install MinGW and run:
 

@@ -1,4 +1,13 @@
-0. Automatic build
+0. Dependencies
+
+ModelTest-NG comes in 3 flavors: command-line, MPI, and GUI. For all versions,
+compiling the sources requires `flex` and `bison`.
+
+MPI version requires an MPI C++ compiler, e.g., `mpich2`
+
+GUI version requires QT4 or QT5. If you have none of them, install `qt5-default` package.
+
+1. Automatic build
 
   If you have downloaded a complete distribution, check the following files exist:
     - libpll-x.y.z.tar.gz
@@ -10,18 +19,26 @@
 
   This should extract and compile the required libraries and link them statically
   in the modeltest binaries for console (modeltest-cmd) and GUI (modeltest-gui) if
-  `qmake` is available.
+  `qmake` is available. Note that, qmake might be available in some linux 
+  distributions, but NOT a functional QT framework. Try running `qmake`, and if you
+  observe and error, install `qt5-defaults` from apt repositories:
 
-  The resulting binaries and libraries will be placed in `build/` directory
+  $ sudo apt-get install qt5-defaults
+
+  The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
   
-1. Graphical User Interface
+2. Graphical User Interface
 
-  To install ModelTest-Light GUI type the following commands:
+  To install ModelTest-NG GUI, make sure you have a working QT installation.
+  Otherwise, run:
+   $ sudo apt-get install qt5-default
+
+ Then type the following commands:
   $ qmake -o Makefile.qmake src/modeltest.pro
   $ make -f Makefile.qmake
   $ make install -f Makefile.qmake
 
-2. Command Console Interface
+3. Command Console Interface
 
   To install ModelTest-Light type the following commands:
   $ ./configure [--prefix=INSTALL_DIR]
@@ -41,6 +58,3 @@
 
   In case the configure script does not exist, it must be generated using autotools:
   $ autoreconf -i
-
-Phylogenetic Likelihood Library is available at http://github.com/xflouris/libpll
-ModelTest requires at least version x.y.z
