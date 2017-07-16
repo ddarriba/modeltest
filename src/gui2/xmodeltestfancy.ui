@@ -2031,7 +2031,6 @@
                         <zorder>frame_settings_freqs</zorder>
                         <zorder>label_settings_ratevar</zorder>
                         <zorder>frame_ascbias</zorder>
-                        <zorder>spacer_models</zorder>
                        </widget>
                       </item>
                       <item>
@@ -2445,9 +2444,6 @@
                <bool>false</bool>
               </property>
               <property name="movable">
-               <bool>false</bool>
-              </property>
-              <property name="tabBarAutoHide">
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="tab_results_bic">
