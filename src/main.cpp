@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 
         if (!ModelTestService::instance()->create_instance(opts))
         {
-            LOG_ERR << modeltest::mt_errmsg << endl;
+            LOG_ERR << PACKAGE << ": " << modeltest::mt_errmsg << endl;
             return (int)modeltest::mt_errno;
         }
 

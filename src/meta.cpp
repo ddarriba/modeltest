@@ -1248,7 +1248,7 @@ void Meta::print_help(std::ostream& out)
         << "amino acid" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -i, --input input_msa"
-        << "sets the input alignment file (FASTA format, required)" << endl;
+        << "sets the input alignment file (FASTA or PHYLIP format, required)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -o, --output output_file"
         << "pipes the output into a file" << endl;

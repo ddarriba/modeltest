@@ -99,6 +99,7 @@ bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
   memcpy(frequencies,
          &partition.get_empirical_frequencies()[0],
          sizeof(double) * states);
+
   pll_set_frequencies(params->partition, 0, frequencies);
   return true;
 }

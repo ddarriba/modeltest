@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "msapll.h"
 #include "plldefs.h"
+#include "genesis/logging.h"
 
 #include <cerrno>
 #include <vector>
@@ -186,7 +187,7 @@ namespace modeltest
       FILE * msa_file;
       char first_char = ' ';
       msa_file = fopen(msa_filename.c_str(), "r");
-      while(first_char == ' ')
+      while(first_char == ' ' || first_char == '\n')
           if (fread(&first_char, 1, 1, msa_file) != 1) first_char='\0';
       fclose(msa_file);
 
@@ -415,6 +416,14 @@ namespace modeltest
             *msa_format = format;
       }
 
+      if (*n_tips < 3)
+      {
+        mt_errno = MT_ERROR_IO_FORMAT;
+        snprintf(mt_errmsg, ERR_MSG_SIZE,
+                 "There are %d sequences, and there must be at least 3",
+                 *n_tips);
+        return false;
+      }
       return true;
   }
 
@@ -521,7 +530,98 @@ namespace modeltest
         sequences[i] = (char *)realloc(sequences[i], compressed_sum+1);
 
       }
+    return true;
+  }
 
+  bool MsaPll::check_missing_seqs(partitioning_scheme_t const& scheme) const
+  {
+    int cur_part = 1;
+    for (partition_descriptor_t const& partition : scheme)
+    {
+      /* partition must have been reordered */
+      assert(partition.regions.size() == 1);
+      assert(partition.regions[0].stride == 1);
+
+      partition_region_t const& region = partition.regions[0];
+        for (mt_index_t i=0; i<n_taxa; ++i)
+        {
+          bool missing_seq = true;
+          char * curseq = sequences[i];
+
+          for (mt_index_t j=(region.start-1); j<region.end; ++j, ++curseq)
+          {
+            if (*curseq != 'x')
+            {
+              missing_seq = false;
+              break;
+            }
+          }
+          if (missing_seq)
+          {
+            mt_errno = MT_ERROR_IO;
+            snprintf(mt_errmsg, ERR_MSG_SIZE,
+                     "missing sequence %d (%s) at partition %d\n",
+                     i+1, tipnames[i], cur_part);
+            return false;
+          }
+      }
+      cur_part++;
+    }
+    return true;
+  }
+
+  bool MsaPll::check_duplicated_seqs(partitioning_scheme_t const& scheme) const
+  {
+    //TODO: Check duplicates for each partition instead of whole seq
+    UNUSED(scheme);
+    
+    mt_size_t * seqs_hash = new mt_size_t[n_taxa];
+    bool dups_found = false;
+    // seqs_hash = (mt_size_t *) malloc(n_taxa * sizeof(mt_size_t));
+    for (mt_index_t i=0; i<n_taxa; ++i)
+    {
+      seqs_hash[i] = std::hash<std::string>{}(sequences[i]);
+      for (mt_index_t j=0; j<i; ++j)
+      {
+        if (seqs_hash[i] == seqs_hash[j])
+        {
+          /* duplicate candidate */
+          if (!strcmp(sequences[i], sequences[j]))
+          {
+            LOG_WARN << "WARNING: Sequences " << tipnames[i] << " and " << tipnames[j] << " are identical" << endl;
+            dups_found = true;
+          }
+        }
+      }
+    }
+    delete[] seqs_hash;
+
+    return !dups_found;
+  }
+
+  bool MsaPll::check_taxa_names() const
+  {
+    for (mt_index_t i=0; i<n_taxa; ++i)
+    {
+      if (!(tipnames[i] && strlen(tipnames[i])))
+      {
+        mt_errno = MT_ERROR_IO;
+        snprintf(mt_errmsg, ERR_MSG_SIZE,
+                 "name for tip %d is undefined\n", i);
+        return false;
+      }
+
+      for (mt_index_t j=i+1; j<n_taxa; ++j)
+      {
+        if (!strcmp(tipnames[i], tipnames[j]))
+        {
+          mt_errno = MT_ERROR_IO;
+          snprintf(mt_errmsg, ERR_MSG_SIZE,
+                   "duplicated taxon name %s\n", tipnames[i]);
+          return false;
+        }
+      }
+    }
     return true;
   }
 

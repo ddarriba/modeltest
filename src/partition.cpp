@@ -515,6 +515,7 @@ bool Partition::compute_empirical_frequencies(bool smooth)
             }
         }
     }
+
     // return false;
 
     for (mt_index_t i=0; i<states; i++)
@@ -598,7 +599,11 @@ bool Partition::compute_empirical_subst_rates( void )
     }
 
     mt_size_t undef_state = (unsigned int) (1<<states) - 1;
-    for (mt_index_t n = 0; n < n_patterns; ++n)
+    mt_index_t start = descriptor.regions[0].start-1;
+    mt_index_t end = descriptor.regions[0].end;
+    assert(end - start == n_patterns);
+    
+    for (mt_index_t n = start; n < end; ++n)
     {
         memset (state_freq, 0, sizeof(mt_index_t) * states);
         for (mt_index_t i = 0; i < msa.get_n_sequences(); ++i)

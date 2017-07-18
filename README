@@ -23,7 +23,7 @@ GUI version requires QT4 or QT5. If you have none of them, install `qt5-default`
   distributions, but NOT a functional QT framework. Try running `qmake`, and if you
   observe and error, install `qt5-defaults` from apt repositories:
 
-  $ sudo apt-get install qt5-defaults
+  $ sudo apt-get install qt5-default
 
   The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
   

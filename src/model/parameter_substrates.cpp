@@ -127,10 +127,17 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
         assert(count);
         sum_rate /= count;
 
+        /* validate boundaries */
+        if (sum_rate < MIN_RATE)
+          sum_rate = MIN_RATE;
+        else if (sum_rate > MAX_RATE)
+          sum_rate = MAX_RATE;
+
         for (mt_index_t j=0; j<n_subst_params; ++j)
             if ((mt_index_t)symmetries[j] == i)
                 subst_rates[j] = sum_rate;
     }
+
     for (mt_index_t j=0; j<n_subst_params; ++j)
         subst_rates[j] /= subst_rates[n_subst_params-1];
     pll_set_subst_params(params->partition, 0, subst_rates);

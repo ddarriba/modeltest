@@ -43,6 +43,9 @@ namespace modeltest
     virtual const unsigned int * get_weights( void ) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme,
                                bool compress_patterns = true);
+    virtual bool check_missing_seqs(partitioning_scheme_t const& scheme) const;
+    virtual bool check_duplicated_seqs(partitioning_scheme_t const& scheme) const;
+    virtual bool check_taxa_names() const;
 
     virtual void print() const;
 

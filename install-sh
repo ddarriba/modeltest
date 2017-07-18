@@ -22,10 +22,24 @@ build_modules=yes        # build PLL modules library
 build_gui=yes            # build modeltest-gui
 dir_base=${PWD}          # base directory
 prefix=${dir_base}/build # output directory for modeltest
+qmake_bin=qmake
+
+unameOut="$(uname -s)"
+case "${unameOut}" in
+  Linux*)     machine=Linux;;
+  Darwin*)    machine=Mac;;
+  CYGWIN*)    machine=Cygwin;;
+  MINGW*)     machine=MinGw;;
+  *)          machine="UNKNOWN:${unameOut}"
+esac
+
+echo "Running install script for ${machine}"
 
 # check if `qmake` is available
-if test "x`which qmake`" = "x" ; then
+if test "x`which ${qmake_bin}`" = "x" ; then
   build_gui=no
+else
+  ${qmake_bin} -v 2> /dev/null || build_gui=no
 fi
 
 # output directory for pll and modules
@@ -100,7 +114,7 @@ for action in ${actions}; do
       shift; shift; shift;
       extra_args=$*
 
-      qmake CONFIG+=pll_local -o ${out_file} ${in_file}
+      ${qmake_bin} CONFIG+=pll_local ${extra_args} -o ${out_file} ${in_file}
       test -f ${out_file} || return 1
       make -f ${out_file} \
         && make install -f ${out_file} || return 1
@@ -153,11 +167,17 @@ for action in ${actions}; do
     fi
 
     echo "...build modeltest"
-    fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} --enable-static >> ${file_log} && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
+    mt_extra_conf=
+    mt_qt_extra_conf=
+    if test "x${machine}" = "xLinux" ; then
+      mt_extra_conf=--enable-static
+      mt_qt_extra_conf=build_static
+    fi
+    fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} ${mt_extra_conf} >> ${file_log} && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
 
     if test "x${build_gui}" = "xyes" ; then
       echo "...build modeltest GUI"
-      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} >> ${file_log} && \
+      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} ${mt_qt_extra_conf} >> ${file_log} && \
         { echo "...modeltest GUI OK!"; mv modeltest-gui ${prefix}/bin; } || \
         { echo "...modeltest GUI FAIL!"; exit 1; }
     else

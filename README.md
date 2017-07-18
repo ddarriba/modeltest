@@ -33,7 +33,7 @@ This step is not necessary if you downloaded the released tarball.
   observe and error, install `qt5-defaults` from apt repositories:
 
   ```bash
-  $ sudo apt-get install qt5-defaults
+  $ sudo apt-get install qt5-default
   ```
 
   Run the installer script:

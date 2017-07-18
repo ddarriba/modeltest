@@ -677,7 +677,11 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     assert(partition.unique_id > 0 && partition.unique_id < MAX_PARTITION_INDEX);
 
     unique_id = (partition.unique_id << (31-NBIT_PARTITION_INDEX)) +
-                matrix_index * 8 + optimize_freqs + 2 * optimize_pinv + 4 * optimize_gamma;
+                16 * matrix_index +
+                8 * optimize_freqs +
+                4 * optimize_pinv +
+                2 * optimize_gamma;
+                /* reserve id+1 for tree */
 }
 
 DnaModel::DnaModel(const Model & other)
@@ -1039,7 +1043,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
   assert(n_tips > 0);
   assert(tree);
   write_ok &= pllmod_binary_utree_dump(bin_file,
-                                       2000+unique_id,
+                                       unique_id + 1,
                                        tree->nodes[0]->back,
                                        n_tips,
                                        PLLMOD_BIN_ATTRIB_UPDATE_MAP);
@@ -1107,7 +1111,7 @@ int DnaModel::input_bin(std::string const& bin_filename)
 
     pll_errno = 0;
     pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
-                                                       2000+unique_id,
+                                                       unique_id + 1,
                                                        &attributes,
                                                        PLLMOD_BIN_ACCESS_SEEK);
 
@@ -1224,10 +1228,10 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
   assert(partition.unique_id > 0 && partition.unique_id < MAX_PARTITION_INDEX);
 
   unique_id = (partition.unique_id << (31-NBIT_PARTITION_INDEX)) +
-               8 * matrix_index +
-               4 * optimize_gamma +
-               2 * optimize_pinv +
-               (optimize_freqs || empirical_freqs);
+               16 * matrix_index +
+               8 * optimize_gamma +
+               4 * optimize_pinv +
+               2 * (optimize_freqs || empirical_freqs);
 }
 
 ProtModel::ProtModel(const Model & other)
@@ -1517,7 +1521,7 @@ int ProtModel::output_bin(std::string const& bin_filename) const
 
   assert(n_tips > 0);
   write_ok &= pllmod_binary_utree_dump(bin_file,
-                                       2000+unique_id,
+                                       unique_id + 1,
                                        tree->nodes[0],
                                        n_tips,
                                        PLLMOD_BIN_ATTRIB_UPDATE_MAP);
@@ -1584,7 +1588,7 @@ int ProtModel::input_bin(std::string const& bin_filename)
 
     pll_errno = 0;
     pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
-                                                         2000+unique_id,
+                                                         unique_id + 1,
                                                          &attributes,
                                                          PLLMOD_BIN_ACCESS_SEEK);
 

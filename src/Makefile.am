@@ -33,11 +33,9 @@ modeltest_cmd_CPPFLAGS += -DHAVE_PTHREADS
 
 if BUILD_STATIC
   modeltest_cmd_LDFLAGS = -static -static-libstdc++
-  modeltest_cmd_LDADD = -l:libpll_algorithm.a -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a -l:libpll_tree.a -l:libpll_util.a -l:libpll.a
-else
-  modeltest_cmd_LDFLAGS =
-  modeltest_cmd_LDADD = -lpll -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util
 endif
+
+modeltest_cmd_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
 
 if PLL_PREFIX
   modeltest_cmd_CPPFLAGS += -DPLL_PREFIX

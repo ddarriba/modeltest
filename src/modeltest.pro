@@ -110,15 +110,20 @@ UI_DIR = build
 OBJECTS_DIR = build
 RCC_DIR = build
 
-CONFIG += c++11 static -g release pll_prefix
+CONFIG += c++11 -g release pll_prefix
 QMAKE_CXXFLAGS += -std=c++11 -g -DHAVE_CONFIG_H
 #QMAKE_LFLAGS = -Xlinker -Bstatic $$QMAKE_LFLAGS
+
+build_static {
+  CONFIG += static pll_static
+} else {
+  CONFIG += pll_dyn
+}
 
 pll_local {
   message(link to pll local)
   INCPATH += build/include/libpll
   LIBS += -Lbuild/lib
-  CONFIG += pll_static
 } else {
   message(link to pll global)
   pll_prefix {
@@ -127,17 +132,16 @@ pll_local {
   } else {
       message(pll headers expected to be directly in the include path)
   }
-  CONFIG += pll_dyn
 }
 
 pll_dyn {
   message(pll dynamic link)
-  unix|win32: LIBS += -lpll -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree -lpll_util
+  unix|win32: LIBS += -lpll_algorithm -lpll_binary -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
 }
 
 pll_static {
   message(pll static link)
-  unix|win32: LIBS += -l:libpll_algorithm.a \
-                      -l:libpll_binary.a -l:libpll_optimize.a -l:libpll_msa.a \
-                      -l:libpll_tree.a -l:libpll_util.a -l:libpll.a
+  unix|win32: LIBS += -static -lpll_algorithm \
+                      -lpll_binary -lpll_optimize -lpll_msa \
+                      -lpll_tree -lpll_util -lpll -Wl,-Bdynamic
 }

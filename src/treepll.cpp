@@ -121,7 +121,7 @@ namespace modeltest
         {
           mt_errno = MT_ERROR_IO_FORMAT;
           snprintf(mt_errmsg, 400,
-                   "Error: Cannot find tip \"%s\"", header);
+                   "Error: Cannot find tip \"%s\" in the tree", header);
           return false;
         }
     }
@@ -150,9 +150,25 @@ namespace modeltest
         starting_tree = pll_utree_parse_newick (filename.c_str());
         if (!starting_tree)
         {
+          /* save error from the unrooted tree parsing */
           snprintf(mt_errmsg, 400, "Error %d parsing user tree: %s", pll_errno, pll_errmsg);
-          throw EXCEPTION_TREE_USER;
+          mt_errno = pll_errno;
+
+          /* try rooted tree */
+          pll_rtree_t * rtree = pll_rtree_parse_newick (filename.c_str());
+          if (!rtree)
+          {
+            throw EXCEPTION_TREE_USER;
+          }
+          else
+          {
+            starting_tree = pll_rtree_unroot(rtree);
+            pll_utree_reset_template_indices(starting_tree->nodes[0]->back, starting_tree->tip_count);
+            pll_rtree_destroy(rtree, NULL);
+          }
         }
+        pllmod_utree_set_length_recursive(starting_tree, 0.1, false);
+        
         n_tips = starting_tree->tip_count;
       }
       else if (type == tree_random)
@@ -236,7 +252,6 @@ namespace modeltest
     if (!set_indices(starting_tree, msa))
     {
       cleanup();
-      snprintf(mt_errmsg, 400, "Error %d setting indices: %s", pll_errno, pll_errmsg);
       throw EXCEPTION_TREE_FORMAT;
     }
 
@@ -278,6 +293,14 @@ namespace modeltest
     pll_utree_t * tree = pll_utree_parse_newick (tree_filename.c_str());
     if (!tree)
     {
+      /* try rooted tree */
+      pll_rtree_t * rtree = pll_rtree_parse_newick (tree_filename.c_str());
+      if (rtree)
+      {
+        *n_tips = tree->tip_count;
+        pll_rtree_destroy(rtree, NULL);
+        return true;
+      }
       *n_tips = 0;
       mt_errno = pll_errno;
       snprintf(mt_errmsg, 400, "PLL Error %d testing tree: %s", pll_errno, pll_errmsg);

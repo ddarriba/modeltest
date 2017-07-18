@@ -539,6 +539,16 @@ bool ModelTest::build_instance(mt_options_t & options)
     current_instance->partitions_eff = options.partitions_eff;
   }
 
+  if (!current_instance->msa->check_taxa_names())
+  {
+    return false;
+  }
+
+  if (!current_instance->msa->check_missing_seqs(*options.partitions_eff))
+  {
+    return false;
+  }
+
   verbosity = options.verbose;
 
   /* create starting tree */

@@ -78,6 +78,24 @@ namespace modeltest
                                bool compress_patterns = true) = 0;
 
     /**
+     * Check if there are missing sequences in the alignment
+     * @return true, if there are no missing sequences
+     */
+    virtual bool check_missing_seqs(partitioning_scheme_t const& scheme) const = 0;
+
+    /**
+     * Check if there are duplicated sequences in the alignment
+     * @return true, if there are no duplicated sequences
+     */
+    virtual bool check_duplicated_seqs(partitioning_scheme_t const& scheme) const = 0;
+
+    /**
+     * Check if there are wrong taxa names
+     * @return true, if taxa names are OK
+     */
+    virtual bool check_taxa_names() const = 0;
+
+    /**
      * @brief Prints the sequence
      */
     virtual void print() const = 0;
