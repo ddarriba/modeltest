@@ -117,7 +117,15 @@ int main(int argc, char *argv[])
 
         if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
         {
+          if (modeltest::mt_errno == MT_ERROR_IGNORE)
+          {
+            ModelTestService::finalize();
+            return EXIT_SUCCESS;
+          }
+          else
+          {
             modeltest::Utils::exit_with_error("Invalid arguments");
+          }
         }
 
         switch (opts.verbose)
@@ -352,10 +360,6 @@ int main(int argc, char *argv[])
 BARRIER;
 
     ModelTestService::finalize();
-
-#if(MPI_ENABLED)
-    MPI_Finalize();
-#endif
 
     return return_val;
 }

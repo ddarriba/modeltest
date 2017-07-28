@@ -497,3 +497,14 @@ string ModelTestService::get_phyml_command_line(Model const& model,
 
     return phyml_args.str();
 }
+
+void ModelTestService::finalize()
+{
+    if (s_instance)
+        delete s_instance;
+    s_instance = 0;
+
+    #if(MPI_ENABLED)
+        MPI_Finalize();
+    #endif
+}

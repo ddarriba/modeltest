@@ -27,6 +27,8 @@
 #include <iostream>
 #include <iomanip>
 
+#define MT_ERROR_IGNORE (-1)
+
 class Meta
 {
 public:

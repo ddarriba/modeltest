@@ -275,12 +275,50 @@ namespace modeltest
         {
           mt_errno = MT_ERROR_IO_FORMAT;
           strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
+          return false;
         }
         else
         {
           sites  = msa_data->length;
           cur_seq = msa_data->count;
         }
+
+        l_datatype = dt_dna;
+        if (dt_unknown)
+        {
+          for (int i=0; i<msa_data->count && dt_unknown; ++i)
+          {
+            for (char c : aa_unique_chars)
+            {
+                if (strchr(msa_data->sequence[i], c))
+                {
+                    dt_unknown = false;
+                    l_datatype = dt_protein;
+                }
+            }
+          }
+        }
+
+        if (n_patterns)
+        {
+          int i_n_patterns = sites;
+          const unsigned int * char_map = l_datatype == dt_dna ?
+                                            pll_map_nt :
+                                            pll_map_aa;
+
+          unsigned int * pw = pll_compress_site_patterns(msa_data->sequence,
+                                                         char_map,
+                                                         msa_data->count,
+                                                         &i_n_patterns);
+
+          if (!pw)
+            return false;
+
+          *n_patterns = i_n_patterns;
+
+          free(pw);
+        }
+
         pll_msa_destroy(msa_data);
         pll_phylip_close(phylip_data);
       }
@@ -528,8 +566,13 @@ namespace modeltest
       for (mt_index_t i=0; i<n_taxa; ++i)
       {
         sequences[i] = (char *)realloc(sequences[i], compressed_sum+1);
-
       }
+
+      if (!check_duplicated_seqs(scheme))
+      {
+        /* ignore (function warns on duplicates) */
+      }
+
     return true;
   }
 
@@ -574,7 +617,7 @@ namespace modeltest
   {
     //TODO: Check duplicates for each partition instead of whole seq
     UNUSED(scheme);
-    
+
     mt_size_t * seqs_hash = new mt_size_t[n_taxa];
     bool dups_found = false;
     // seqs_hash = (mt_size_t *) malloc(n_taxa * sizeof(mt_size_t));

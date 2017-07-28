@@ -115,12 +115,15 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             print_usage(cout);
             cout << endl;
             print_help(cout);
+            modeltest::mt_errno = MT_ERROR_IGNORE;
             return false;
         case 1:
             print_usage(cout);
+            modeltest::mt_errno = MT_ERROR_IGNORE;
             return false;
         case 2:
             print_version();
+            modeltest::mt_errno = MT_ERROR_IGNORE;
             return false;
         case 3:
             /* partitioning search */
@@ -460,6 +463,21 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     srand(exec_opt.rnd_seed);
 
+    /* test MSA */
+    if (!modeltest::MsaPll::test(exec_opt.msa_filename,
+                                      &exec_opt.n_taxa,
+                                      &exec_opt.n_sites,
+                                      exec_opt.compress_patterns?(&exec_opt.n_patterns):0,
+                                      &exec_opt.msa_format))
+    {
+        LOG_ERR << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
+        LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
+        params_ok = false;
+    }
+
+    if (!exec_opt.compress_patterns)
+      exec_opt.n_patterns = exec_opt.n_sites;
+
     /* if there are no model specifications, include all */
     mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
                            MOD_PARAM_INV |
@@ -517,16 +535,6 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       {
         LOG_ERR << PACKAGE << ": msa file does not exist: " << exec_opt.msa_filename << endl;
         params_ok = false;
-      }
-      else if (!modeltest::MsaPll::test(exec_opt.msa_filename,
-                                        &exec_opt.n_taxa,
-                                        &exec_opt.n_sites,
-                                        &exec_opt.n_patterns,
-                                        &exec_opt.msa_format))
-      {
-          LOG_ERR << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
-          LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "[" << modeltest::mt_errno << "]: " << modeltest::mt_errmsg << endl;
-          params_ok = false;
       }
     }
     else
@@ -596,7 +604,6 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
           params_ok = false;
         }
       }
-
       if (params_ok)
       {
         if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,

@@ -297,6 +297,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     new_loglh = loglh;
 
+    LOG_DBG << "[dbg] Initial log likelihood: " << loglh << endl;
+
     if (optimize_topology)
     {
       assert(!pll_tree->data);

@@ -139,7 +139,9 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
     }
 
     for (mt_index_t j=0; j<n_subst_params; ++j)
+    {
         subst_rates[j] /= subst_rates[n_subst_params-1];
+    }
     pll_set_subst_params(params->partition, 0, subst_rates);
 
   return true;

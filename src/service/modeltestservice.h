@@ -51,16 +51,10 @@ public:
       return s_instance;
   }
 
-  static void finalize()
-  {
-      if (s_instance)
-          delete s_instance;
-      s_instance = 0;
-  }
-
   ~ModelTestService();
 
   static bool initialized( void ) { return s_instance != NULL; }
+  static void finalize( void );
 
   bool create_instance( mt_options_t & options );
   bool destroy_instance( void );

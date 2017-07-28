@@ -110,7 +110,7 @@ UI_DIR = build
 OBJECTS_DIR = build
 RCC_DIR = build
 
-CONFIG += c++11 -g release pll_prefix
+CONFIG += c++11 -g debug pll_prefix
 QMAKE_CXXFLAGS += -std=c++11 -g -DHAVE_CONFIG_H
 #QMAKE_LFLAGS = -Xlinker -Bstatic $$QMAKE_LFLAGS
 
