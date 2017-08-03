@@ -294,6 +294,7 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
         free(topologies[i].tree_str);
     }
     topo_stream->close();
+    delete topo_stream;
   }
   else
   {
@@ -501,7 +502,7 @@ string ModelTestService::get_phyml_command_line(Model const& model,
 void ModelTestService::finalize()
 {
     if (s_instance)
-        delete s_instance;
+      delete s_instance;
     s_instance = 0;
 
     #if(MPI_ENABLED)

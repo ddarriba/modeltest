@@ -516,38 +516,85 @@ bool ModelTest::build_instance(mt_options_t & options)
     }
   }
 
+  assert (options.partitions_desc);
+
   if (options.msa_format == mf_fasta)
-    current_instance->msa = new MsaPll (options.msa_filename, options.n_taxa);
+  {
+    current_instance->msa = new MsaPll (options.msa_filename,
+                                        options.n_taxa,
+                                        *options.partitions_desc,
+                                        options.compress_patterns);
+  }
   else if (options.msa_format == mf_phylip)
-    current_instance->msa = new MsaPll (options.msa_filename, options.msa_format);
+  {
+    current_instance->msa = new MsaPll (options.msa_filename,
+                                        options.msa_format,
+                                        *options.partitions_desc,
+                                        options.compress_patterns);
+  }
   else
     return false;
 
   current_instance->start_tree = options.starting_tree;
   current_instance->rate_clustering = options.rate_clustering;
 
-  if (options.partitions_desc)
+  options.partitions_eff = current_instance->msa->get_scheme();
+  current_instance->partitions_eff = options.partitions_eff;
+
+  /* validate MSA */
+  for (mt_index_t i=0; i<options.partitions_eff->size(); ++i)
   {
-    if (options.partitions_eff)
-      delete options.partitions_eff;
-    options.partitions_eff = new vector<partition_descriptor_t>(*options.partitions_desc);
-    if (!current_instance->msa->reorder_sites(*options.partitions_eff,
-                                              options.compress_patterns))
+    msa_stats_t const& stats = current_instance->msa->get_stats(i);
+
+    if (stats.dup_taxa_pairs_count > 0)
     {
+      for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
+        LOG_ERR << "[ERROR] sequences " << stats.dup_seqs_pairs[2*j] << " and "
+                << stats.dup_seqs_pairs[2*j+1] << " have the same header" << endl;
+      mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
+      snprintf(mt_errmsg, ERR_MSG_SIZE, "There are duplicated taxa in the alignment");
       return false;
     }
-    current_instance->partitions_eff = options.partitions_eff;
+
+    if (stats.dup_seqs_pairs_count > 0)
+    {
+      for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
+        LOG_WARN << "WARNING: Sequences "
+          << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j])
+          << " and "
+          << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j+1])
+          << " are identical" << endl;
+    }
+
+    if (stats.gap_seqs_count > 0)
+    {
+      for (mt_index_t j=0; j<stats.gap_seqs_count; ++j)
+        LOG_WARN << "WARNING: Sequence "
+                 << current_instance->msa->get_header(stats.gap_seqs[j])
+                 << " contains only gaps"
+                 << endl;
+    }
+
+    if (stats.gap_cols_count > 0)
+    {
+      if (options.compress_patterns)
+        LOG_WARN << "WARNING: There are undetermined columns in the alignment (only gaps)" << endl;
+      else
+        LOG_WARN << "WARNING: There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+    }
   }
 
-  if (!current_instance->msa->check_taxa_names())
-  {
-    return false;
-  }
-
-  if (!current_instance->msa->check_missing_seqs(*options.partitions_eff))
-  {
-    return false;
-  }
+  // {
+  //   if (options.partitions_eff)
+  //     delete options.partitions_eff;
+  //   options.partitions_eff = new vector<partition_descriptor_t>(*options.partitions_desc);
+  //   if (!current_instance->msa->reorder_sites(*options.partitions_eff,
+  //                                             options.compress_patterns))
+  //   {
+  //     return false;
+  //   }
+  //   current_instance->partitions_eff = options.partitions_eff;
+  // }
 
   verbosity = options.verbose;
 
@@ -685,7 +732,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   assert(!partitioning_scheme);
   partitioning_scheme = new PartitioningScheme();
   mt_index_t cur_part_id = 0;
-  for (partition_descriptor_t & partition : (*current_instance->partitions_eff))
+  for (partition_descriptor_t const& partition : (*current_instance->partitions_eff))
   {
     partition_id_t part_id(1);
     part_id[0] = cur_part_id;

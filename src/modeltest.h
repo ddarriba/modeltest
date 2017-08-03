@@ -39,7 +39,7 @@ typedef struct
 {
   modeltest::Msa * msa;                       //! input MSA
   modeltest::Tree * tree;                     //! user defined tree (optional)
-  std::vector<partition_descriptor_t> * partitions_eff;  //! partitioning
+  std::vector<partition_descriptor_t> const* partitions_eff;  //! partitioning
 
   bool rate_clustering;           //! DNA rate clustering
   tree_type_t start_tree;         //! starting tree type

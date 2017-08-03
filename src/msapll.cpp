@@ -34,10 +34,15 @@ using namespace std;
 namespace modeltest
 {
 
-  Msa::~Msa (){}
+  Msa::~Msa ()
+  {
+  }
 
-  MsaPll::MsaPll (string msa_filename, pll_msa_t * msa_data)
-      : Msa(msa_filename, mf_phylip)
+  MsaPll::MsaPll (string msa_filename,
+                  pll_msa_t * msa_data,
+                  partitioning_scheme_t & scheme,
+                  bool compress_patterns)
+      : Msa(msa_filename, mf_phylip, scheme), pll_msa(0)
   {
     assert(msa_data);
 
@@ -57,10 +62,15 @@ namespace modeltest
 
     /* reset pll errno */
     pll_errno = 0;
+
+    initialize(compress_patterns);
   }
 
-  MsaPll::MsaPll (string msa_filename, mt_size_t _n_taxa)
-      : Msa(msa_filename, mf_phylip)
+  MsaPll::MsaPll (string msa_filename,
+                  mt_size_t _n_taxa,
+                  partitioning_scheme_t & scheme,
+                  bool compress_patterns)
+      : Msa(msa_filename, mf_phylip, scheme), pll_msa(0)
   {
     char *hdr = NULL;
     char *seq = NULL;
@@ -94,10 +104,15 @@ namespace modeltest
 
     /* reset pll errno */
     pll_errno = 0;
+
+    initialize(compress_patterns);
   }
 
-  MsaPll::MsaPll (string msa_filename, msa_format_t msa_format)
-      : Msa(msa_filename, msa_format)
+  MsaPll::MsaPll (string msa_filename,
+                  msa_format_t msa_format,
+                  partitioning_scheme_t & scheme,
+                  bool compress_patterns)
+      : Msa(msa_filename, msa_format, scheme), pll_msa(0)
   {
     char *hdr = NULL;
     char *seq = NULL;
@@ -162,6 +177,8 @@ namespace modeltest
 
     /* reset pll errno */
     pll_errno = 0;
+
+    initialize(compress_patterns);
   }
 
   MsaPll::~MsaPll ()
@@ -179,7 +196,58 @@ namespace modeltest
 
     for (pll_partition_t *pll_part : pll_partitions)
         if (pll_part)
-            pll_partition_destroy(pll_part);
+        {
+          pll_partition_destroy(pll_part);
+        }
+
+    for (mt_index_t i = 0; i < scheme.size(); ++i)
+    {
+      delete[] pll_msa[i]->sequence;
+      delete pll_msa[i];
+      free(stats[i].freqs);
+      free(stats[i].subst_rates);
+      free(stats[i].inv_cols);
+    }
+    delete[] pll_msa;
+  }
+
+  bool MsaPll::initialize( bool compress_patterns )
+  {
+    //TODO: reorder only if necessary, otherwise initialize weights
+    reorder_sites(scheme, compress_patterns);
+
+    assert(!pll_msa);
+    pll_msa = new pll_msa_t *[scheme.size()];
+    mt_size_t partition_start = 0;
+    for (mt_index_t i = 0; i < scheme.size(); ++i)
+    {
+      pll_msa[i] = new pll_msa_t;
+      pll_msa[i]->count = n_taxa;
+      pll_msa[i]->length = scheme[i].regions[0].end - scheme[i].regions[0].start + 1;
+      pll_msa[i]->sequence = new char *[n_taxa];
+      for (mt_index_t j = 0; j < n_taxa; ++j)
+        pll_msa[i]->sequence[j] = sequences[j] + partition_start;
+
+      pll_msa[i]->label = tipnames;
+
+      unsigned int states = 4; /* TODO FIX! */
+      pllmod_msa_stats_t * statsv = pllmod_msa_compute_stats(pll_msa[i],
+                                                            states,
+                                                            pll_map_nt,
+                                                            weights + partition_start,
+                                                            PLLMOD_MSA_STATS_DUP_TAXA |
+                                                            PLLMOD_MSA_STATS_DUP_SEQS |
+                                                            PLLMOD_MSA_STATS_GAP_COLS |
+                                                            PLLMOD_MSA_STATS_GAP_SEQS |
+                                                            PLLMOD_MSA_STATS_FREQS |
+                                                            PLLMOD_MSA_STATS_SUBST_RATES |
+                                                            PLLMOD_MSA_STATS_INV_PROP);
+      stats.push_back(*((msa_stats_t *)statsv));
+      free(statsv);
+      partition_start += pll_msa[i]->length;
+    }
+
+    return true;
   }
 
   msa_format_t Msa::guess_msa_format(string const& msa_filename)
@@ -568,104 +636,12 @@ namespace modeltest
         sequences[i] = (char *)realloc(sequences[i], compressed_sum+1);
       }
 
-      if (!check_duplicated_seqs(scheme))
-      {
-        /* ignore (function warns on duplicates) */
-      }
-
     return true;
   }
 
-  bool MsaPll::check_missing_seqs(partitioning_scheme_t const& scheme) const
+  msa_stats_t const& MsaPll::get_stats( mt_index_t partition ) const
   {
-    int cur_part = 1;
-    for (partition_descriptor_t const& partition : scheme)
-    {
-      /* partition must have been reordered */
-      assert(partition.regions.size() == 1);
-      assert(partition.regions[0].stride == 1);
-
-      partition_region_t const& region = partition.regions[0];
-        for (mt_index_t i=0; i<n_taxa; ++i)
-        {
-          bool missing_seq = true;
-          char * curseq = sequences[i];
-
-          for (mt_index_t j=(region.start-1); j<region.end; ++j, ++curseq)
-          {
-            if (*curseq != 'x')
-            {
-              missing_seq = false;
-              break;
-            }
-          }
-          if (missing_seq)
-          {
-            mt_errno = MT_ERROR_IO;
-            snprintf(mt_errmsg, ERR_MSG_SIZE,
-                     "missing sequence %d (%s) at partition %d\n",
-                     i+1, tipnames[i], cur_part);
-            return false;
-          }
-      }
-      cur_part++;
-    }
-    return true;
-  }
-
-  bool MsaPll::check_duplicated_seqs(partitioning_scheme_t const& scheme) const
-  {
-    //TODO: Check duplicates for each partition instead of whole seq
-    UNUSED(scheme);
-
-    mt_size_t * seqs_hash = new mt_size_t[n_taxa];
-    bool dups_found = false;
-    // seqs_hash = (mt_size_t *) malloc(n_taxa * sizeof(mt_size_t));
-    for (mt_index_t i=0; i<n_taxa; ++i)
-    {
-      seqs_hash[i] = std::hash<std::string>{}(sequences[i]);
-      for (mt_index_t j=0; j<i; ++j)
-      {
-        if (seqs_hash[i] == seqs_hash[j])
-        {
-          /* duplicate candidate */
-          if (!strcmp(sequences[i], sequences[j]))
-          {
-            LOG_WARN << "WARNING: Sequences " << tipnames[i] << " and " << tipnames[j] << " are identical" << endl;
-            dups_found = true;
-          }
-        }
-      }
-    }
-    delete[] seqs_hash;
-
-    return !dups_found;
-  }
-
-  bool MsaPll::check_taxa_names() const
-  {
-    for (mt_index_t i=0; i<n_taxa; ++i)
-    {
-      if (!(tipnames[i] && strlen(tipnames[i])))
-      {
-        mt_errno = MT_ERROR_IO;
-        snprintf(mt_errmsg, ERR_MSG_SIZE,
-                 "name for tip %d is undefined\n", i);
-        return false;
-      }
-
-      for (mt_index_t j=i+1; j<n_taxa; ++j)
-      {
-        if (!strcmp(tipnames[i], tipnames[j]))
-        {
-          mt_errno = MT_ERROR_IO;
-          snprintf(mt_errmsg, ERR_MSG_SIZE,
-                   "duplicated taxon name %s\n", tipnames[i]);
-          return false;
-        }
-      }
-    }
-    return true;
+    return stats[partition];
   }
 
   void MsaPll::print() const

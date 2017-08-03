@@ -29,11 +29,41 @@
 namespace modeltest
 {
 
+  typedef struct msa_stats
+  {
+    unsigned int states;
+
+    unsigned long dup_taxa_pairs_count;
+    unsigned long * dup_taxa_pairs;
+
+    unsigned long dup_seqs_pairs_count;
+    unsigned long * dup_seqs_pairs;
+
+    double gap_prop;
+    unsigned long gap_seqs_count;
+    unsigned long * gap_seqs;
+    unsigned long gap_cols_count;
+    unsigned long * gap_cols;
+
+    double inv_prop;
+    unsigned long inv_cols_count;
+    unsigned long * inv_cols;
+
+    double * freqs;
+    double * subst_rates;
+  } msa_stats_t;
+
   class Msa
   {
   public:
-    Msa (std::string _msa_filename, msa_format_t _msa_format) :
-    msa_filename (_msa_filename), msa_format(_msa_format), n_taxa (0), n_sites (0)
+    Msa (std::string _msa_filename,
+         msa_format_t _msa_format,
+         partitioning_scheme_t & scheme) :
+      msa_filename (_msa_filename),
+      msa_format(_msa_format),
+      n_taxa (0),
+      n_sites (0),
+      scheme (scheme)
     {
     }
     virtual ~Msa ();
@@ -77,28 +107,17 @@ namespace modeltest
     virtual bool reorder_sites(partitioning_scheme_t & scheme,
                                bool compress_patterns = true) = 0;
 
-    /**
-     * Check if there are missing sequences in the alignment
-     * @return true, if there are no missing sequences
-     */
-    virtual bool check_missing_seqs(partitioning_scheme_t const& scheme) const = 0;
-
-    /**
-     * Check if there are duplicated sequences in the alignment
-     * @return true, if there are no duplicated sequences
-     */
-    virtual bool check_duplicated_seqs(partitioning_scheme_t const& scheme) const = 0;
-
-    /**
-     * Check if there are wrong taxa names
-     * @return true, if taxa names are OK
-     */
-    virtual bool check_taxa_names() const = 0;
+    virtual msa_stats_t const& get_stats( mt_index_t partition ) const = 0;
 
     /**
      * @brief Prints the sequence
      */
     virtual void print() const = 0;
+
+    partitioning_scheme_t const* get_scheme( void ) const
+    {
+      return & scheme;
+    }
 
     mt_size_t get_n_sequences (void) const
     {
@@ -121,6 +140,8 @@ namespace modeltest
     mt_size_t n_taxa;
     mt_size_t n_sites;
     mt_size_t n_patterns;
+    partitioning_scheme_t scheme;
+    std::vector<msa_stats_t> stats;
   };
 
 } /* namespace modeltest */

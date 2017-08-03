@@ -272,7 +272,7 @@ typedef struct {
     asc_bias_t asc_bias_corr;                     //! ascertainment bias correction
     mt_size_t asc_weights[MT_MAX_STATES];         //! dummy weights
     std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning
-    std::vector<partition_descriptor_t> * partitions_eff;  //! Effective partitioning
+    std::vector<partition_descriptor_t> const* partitions_eff;  //! Effective partitioning
     template_models_t template_models; //! template for different tools
     double epsilon_param;    //! Parameter optimization epsilon
     double epsilon_opt;      //! Global optimization epsilon

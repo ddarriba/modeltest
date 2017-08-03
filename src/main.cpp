@@ -160,6 +160,9 @@ int main(int argc, char *argv[])
 
         /* start processing */
 
+        MT_INFO << flush;
+        LOG_INFO << flush;
+
         if (!ModelTestService::instance()->create_instance(opts))
         {
             LOG_ERR << PACKAGE << ": " << modeltest::mt_errmsg << endl;
@@ -330,8 +333,6 @@ int main(int argc, char *argv[])
           /* clean */
           if (opts.partitions_desc)
               delete opts.partitions_desc;
-          if (opts.partitions_eff)
-              delete opts.partitions_eff;
         }
     }
     else

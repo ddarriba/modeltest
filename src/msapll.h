@@ -31,9 +31,18 @@ namespace modeltest
   class MsaPll : public Msa
   {
   public:
-    MsaPll (std::string msa_filename, mt_size_t n_taxa);        /* fasta   */
-    MsaPll (std::string msa_filename, pll_msa_t * msa_data);    /* phylip  */
-    MsaPll (std::string msa_filename, msa_format_t msa_format); /* generic */
+    MsaPll (std::string msa_filename,
+            mt_size_t n_taxa,
+            partitioning_scheme_t & scheme,
+            bool compress_patterns); /* fasta   */
+    MsaPll (std::string msa_filename,
+            pll_msa_t * msa_data,
+            partitioning_scheme_t & scheme,
+            bool compress_patterns); /* phylip  */
+    MsaPll (std::string msa_filename,
+            msa_format_t msa_format,
+            partitioning_scheme_t & scheme,
+            bool compress_patterns); /* generic */
     virtual ~MsaPll ();
 
     virtual const char * get_header (mt_index_t index) const;
@@ -43,9 +52,8 @@ namespace modeltest
     virtual const unsigned int * get_weights( void ) const;
     virtual bool reorder_sites(partitioning_scheme_t & scheme,
                                bool compress_patterns = true);
-    virtual bool check_missing_seqs(partitioning_scheme_t const& scheme) const;
-    virtual bool check_duplicated_seqs(partitioning_scheme_t const& scheme) const;
-    virtual bool check_taxa_names() const;
+
+    virtual msa_stats_t const& get_stats( mt_index_t partition ) const;
 
     virtual void print() const;
 
@@ -56,7 +64,10 @@ namespace modeltest
                msa_format_t *msa_format = 0,
                data_type_t *datatype = 0);
   private:
+    bool initialize( bool compress_patterns );
+
     std::vector <pll_partition_t *> pll_partitions;
+    pll_msa_t ** pll_msa;
     char **sequences;
     char **tipnames;
     unsigned int * weights;
