@@ -60,10 +60,8 @@ namespace modeltest
     }
     weights = 0;
 
-    /* reset pll errno */
-    pll_errno = 0;
-
     initialize(compress_patterns);
+
   }
 
   MsaPll::MsaPll (string msa_filename,
@@ -101,9 +99,6 @@ namespace modeltest
 
     n_patterns = n_sites;
     weights = 0;
-
-    /* reset pll errno */
-    pll_errno = 0;
 
     initialize(compress_patterns);
   }
@@ -175,9 +170,6 @@ namespace modeltest
     n_patterns = n_sites;
     weights = 0;
 
-    /* reset pll errno */
-    pll_errno = 0;
-
     initialize(compress_patterns);
   }
 
@@ -213,8 +205,15 @@ namespace modeltest
 
   bool MsaPll::initialize( bool compress_patterns )
   {
+    /* reset pll errno */
+    pll_errno = 0;
+    mt_errno  = 0;
+
     //TODO: reorder only if necessary, otherwise initialize weights
-    reorder_sites(scheme, compress_patterns);
+    if (!reorder_sites(scheme, compress_patterns))
+    {
+      return false;
+    }
 
     assert(!pll_msa);
     pll_msa = new pll_msa_t *[scheme.size()];
@@ -225,15 +224,30 @@ namespace modeltest
       pll_msa[i]->count = n_taxa;
       pll_msa[i]->length = scheme[i].regions[0].end - scheme[i].regions[0].start + 1;
       pll_msa[i]->sequence = new char *[n_taxa];
+
       for (mt_index_t j = 0; j < n_taxa; ++j)
+      {
         pll_msa[i]->sequence[j] = sequences[j] + partition_start;
+      }
 
       pll_msa[i]->label = tipnames;
 
-      unsigned int states = 4; /* TODO FIX! */
+      unsigned int states;
+      const unsigned int * char_map;
+      if (scheme[i].datatype == dt_dna)
+      {
+        states = 4;
+        char_map = pll_map_nt;
+      }
+      else
+      {
+        states = 20;
+        char_map = pll_map_aa;
+      }
+
       pllmod_msa_stats_t * statsv = pllmod_msa_compute_stats(pll_msa[i],
                                                             states,
-                                                            pll_map_nt,
+                                                            char_map,
                                                             weights + partition_start,
                                                             PLLMOD_MSA_STATS_DUP_TAXA |
                                                             PLLMOD_MSA_STATS_DUP_SEQS |
@@ -242,6 +256,14 @@ namespace modeltest
                                                             PLLMOD_MSA_STATS_FREQS |
                                                             PLLMOD_MSA_STATS_SUBST_RATES |
                                                             PLLMOD_MSA_STATS_INV_PROP);
+      if (!statsv)
+      {
+        stats.clear();
+        mt_errno = pll_errno;
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "%s", pll_errmsg);
+        return false;
+      }
+
       stats.push_back(*((msa_stats_t *)statsv));
       free(statsv);
       partition_start += pll_msa[i]->length;
@@ -601,6 +623,14 @@ namespace modeltest
           if (compress_patterns)
           {
             pw = pll_compress_site_patterns(partition_sequences, char_map, n_taxa, &compressed_length);
+            if (!pw)
+            {
+              mt_errno = pll_errno;
+              snprintf(mt_errmsg, ERR_MSG_SIZE,
+                       "%s",
+                       pll_errmsg);
+              return false;
+            }
           }
           else
           {
@@ -641,6 +671,7 @@ namespace modeltest
 
   msa_stats_t const& MsaPll::get_stats( mt_index_t partition ) const
   {
+    assert(stats.size() > partition);
     return stats[partition];
   }
 

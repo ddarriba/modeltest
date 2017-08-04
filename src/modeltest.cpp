@@ -535,6 +535,17 @@ bool ModelTest::build_instance(mt_options_t & options)
   else
     return false;
 
+  if (mt_errno)
+  {
+    LOG_ERR << "ERROR " << mt_errno << ": " << mt_errmsg << endl;
+    if (options.compress_patterns)
+    {
+      LOG_ERR << "      Run with --no-compress for more information" << endl;
+    }
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot build MSA");
+    return false;
+  }
+
   current_instance->start_tree = options.starting_tree;
   current_instance->rate_clustering = options.rate_clustering;
 
@@ -549,7 +560,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     if (stats.dup_taxa_pairs_count > 0)
     {
       for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
-        LOG_ERR << "[ERROR] sequences " << stats.dup_seqs_pairs[2*j] << " and "
+        LOG_ERR << "ERROR: sequences " << stats.dup_seqs_pairs[2*j] << " and "
                 << stats.dup_seqs_pairs[2*j+1] << " have the same header" << endl;
       mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
       snprintf(mt_errmsg, ERR_MSG_SIZE, "There are duplicated taxa in the alignment");

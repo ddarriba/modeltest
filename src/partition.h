@@ -96,26 +96,6 @@ private:
     std::string const& ckp_filename;
 
     std::vector<Model *> c_models;       //! candidate models
-
-    /**
-     * @brief Compute the empirical frequencies
-     * @param[in] smooth if true, assign a minimum frequency
-     *                   if false, fail with zero frequencies
-     * @return true, if success
-     */
-    bool compute_empirical_frequencies(bool smooth);
-
-    /**
-     * @brief Compute the empirical substitution rates
-     * @return true, if success
-     */
-    bool compute_empirical_subst_rates( void );
-
-    /**
-     * @brief Compute the empirical proportion of invariant sites
-     * @return true, if success
-     */
-    bool compute_empirical_pinv( void );
 };
 
 } /* modeltest */

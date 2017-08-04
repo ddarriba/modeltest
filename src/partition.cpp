@@ -194,18 +194,19 @@ Partition::Partition(partition_id_t _id,
   assert(n_patterns > 0);
   assert(n_sites >= n_patterns);
 
-  if (!compute_empirical_frequencies( false ))
-      throw EXCEPTION_PARTITION_EMP_FREQS;
+  for (mt_index_t i=0; i<_descriptor.states; i++)
+     emp_freqs[i] = msa.get_stats(_descriptor.unique_id-1).freqs[i];
 
   if (descriptor.datatype == dt_dna)
   {
-      if (!compute_empirical_subst_rates())
-          throw EXCEPTION_PARTITION_EMP_RATES;
+    for (mt_index_t i=0; i<emp_subst_rates.size(); i++)
+       emp_subst_rates[i] = msa.get_stats(_descriptor.unique_id-1).subst_rates[i];
   }
 
   if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
-      if (!compute_empirical_pinv())
-          throw EXCEPTION_PARTITION_EMP_PINV;
+  {
+    emp_pinv = msa.get_stats(_descriptor.unique_id-1).inv_prop;
+  }
 
   build_models(descriptor,
                candidate_models,
@@ -464,228 +465,6 @@ int Partition::input_bin(string const& bin_filename)
   //TODO
   UNUSED(bin_filename);
   return false;
-}
-
-/* private methods */
-
-bool Partition::compute_empirical_frequencies(bool smooth)
-{
-    const mt_size_t * weights = msa.get_weights();
-    mt_size_t states = descriptor.states;
-    assert (states);
-
-    for (mt_index_t i=0; i<states; i++)
-        emp_freqs[i] = 0;
-
-    mt_size_t cum_weights = n_sites;
-    mt_size_t cum_abs_freq = 0;
-
-    uint32_t existing_states = 0;
-    const unsigned int * states_map = (descriptor.datatype == dt_dna)?pll_map_nt:pll_map_aa;
-    for (mt_index_t i=0; i<msa.get_n_sequences(); ++i)
-    {
-        for (partition_region_t region : descriptor.regions)
-        {
-            for (mt_index_t j = region.start - 1; j < region.end; ++j)
-            {
-                mt_size_t sum_site = 0;
-                mt_size_t ind = states_map[(int)msa.get_sequence(i)[j]];
-                if (!ind)
-                {
-                    mt_errno = MT_ERROR_FREQUENCIES;
-                    if (msa.get_sequence(i)[j])
-                    {
-                      snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA for partition [%s] does not match the data type. Unknown state: %c", descriptor.partition_name.c_str(), msa.get_sequence(i)[j]);
-                    }
-                    else
-                    {
-                      LOG_ERR << endl << "MSA parser returned 0. Run with '--no-compress' argument for showing the wrong state." << endl;
-                      snprintf(mt_errmsg, ERR_MSG_SIZE, "MSA for partition [%s] does not match the data type.", descriptor.partition_name.c_str());
-                    }
-                    return false;
-                }
-                for (unsigned int k=0; k<states; ++k)
-                {
-                    sum_site += ((ind & (1<<k)) > 0);
-                }
-                for (unsigned int k=0; k<states; ++k)
-                    emp_freqs[k] += 1.0 * weights[j] * ((ind & (1<<k))>0) / sum_site;
-                if (sum_site == 1)
-                    existing_states |= ind;
-            }
-        }
-    }
-
-    // return false;
-
-    for (mt_index_t i=0; i<states; i++)
-    {
-        cum_abs_freq += emp_freqs[i];
-        emp_freqs[i] /= msa.get_n_sequences() * cum_weights;
-    }
-
-    /* validate */
-    double checksum = 0.0;
-    for (mt_index_t i=0; i<states; ++i)
-    {
-        checksum += emp_freqs[i];
-    }
-
-    if( (checksum != checksum) || (fabs(1-checksum) > 1e-10 ))
-    {
-        mt_errno = MT_ERROR_FREQUENCIES;
-        snprintf(mt_errmsg, ERR_MSG_SIZE, "Empirical frequencies sum to %.4f instead of 1 [%s]", checksum, descriptor.partition_name.c_str());
-        return false;
-    }
-
-    /* check missing states */
-    mt_size_t missing_states = states - Utils::count_bits(existing_states);
-    if (missing_states)
-    {
-        if (smooth)
-        {
-          LOG_WARN << "WARNING: Forced freq. smoothing" << endl;
-          for (mt_index_t i=0; i<states; i++)
-              emp_freqs[i] /= checksum + MT_MIN_SMOOTH_FREQ * missing_states;
-        }
-        else
-        {
-          const char * state_codes = (descriptor.datatype == dt_dna)?dna_chars:aa_chars;
-          mt_errno = MT_ERROR_FREQUENCIES;
-          LOG_ERR << "The following states are missing:" << endl << "   ";
-          for (mt_index_t i=0; i<states; ++i, existing_states >>= 1)
-          {
-            if (!(existing_states & 1))
-            {
-              LOG_ERR << state_codes[i] << " ";
-            }
-          }
-          LOG_ERR << endl;
-          snprintf(mt_errmsg, ERR_MSG_SIZE, "There are %d missing states [%s]", missing_states, descriptor.partition_name.c_str());
-          return false;
-        }
-    }
-
-    mt_errno = 0;
-    return true;
-}
-
-bool Partition::compute_empirical_subst_rates( void )
-{
-    mt_size_t states = descriptor.states;
-    assert (states);
-
-    const unsigned int * states_map = (descriptor.datatype == dt_dna)?pll_map_nt:pll_map_aa;
-    const mt_size_t * weights = msa.get_weights();
-
-    for (mt_index_t i=0; i<N_DNA_SUBST_RATES; ++i)
-        emp_subst_rates[i] = 0;
-
-    mt_index_t * pair_rates = new mt_index_t[states * states];
-    mt_index_t * state_freq = new mt_index_t[states];
-
-    memset (pair_rates , 0, sizeof(mt_index_t) * states * states);
-
-    if (!(pair_rates && state_freq))
-    {
-        pll_errno = PLL_ERROR_MEM_ALLOC;
-        snprintf (pll_errmsg, 200,
-                  "Cannot allocate memory for empirical subst rates");
-        if (pair_rates)
-            delete[] pair_rates;
-        if (state_freq)
-            delete[] state_freq;
-        return false;
-    }
-
-    mt_size_t undef_state = (unsigned int) (1<<states) - 1;
-    mt_index_t start = descriptor.regions[0].start-1;
-    mt_index_t end = descriptor.regions[0].end;
-    assert(end - start == n_patterns);
-    
-    for (mt_index_t n = start; n < end; ++n)
-    {
-        memset (state_freq, 0, sizeof(mt_index_t) * states);
-        for (mt_index_t i = 0; i < msa.get_n_sequences(); ++i)
-        {
-            mt_index_t state = states_map[(int)msa.get_sequence(i)[n]];
-            if (state == undef_state)
-                continue;
-            for (mt_index_t k = 0; k < states; ++k)
-            {
-                if (state & 1)
-                    state_freq[k]++;
-                state >>= 1;
-            }
-        }
-
-        for (mt_index_t i = 0; i < states; ++i)
-        {
-            if (state_freq[i] == 0)
-                continue;
-            for (mt_index_t j = i + 1; j < states; ++j)
-            {
-                pair_rates[i * states + j] += state_freq[i] * state_freq[j] * weights[n];
-            }
-        }
-    }
-
-    mt_index_t k = 0;
-    double last_rate = pair_rates[(states - 2) * states + states - 1];
-    if (last_rate < 1e-7)
-        last_rate = 1;
-    for (mt_index_t i = 0; i < states - 1; ++i)
-    {
-        for (mt_index_t j = i + 1; j < states; ++j)
-        {
-            emp_subst_rates[k] = pair_rates[i * states + j] / last_rate;
-            if (emp_subst_rates[k] < 0.01)
-                emp_subst_rates[k] = 0.01;
-            if (emp_subst_rates[k] > 50.0)
-                emp_subst_rates[k] = 50.0;
-            ++k;
-        }
-    }
-
-    emp_subst_rates[k - 1] = 1.0;
-
-    delete[] pair_rates;
-    delete[] state_freq;
-
-    return true;
-}
-
-bool Partition::compute_empirical_pinv( void )
-{
-    const mt_size_t * weights = msa.get_weights();
-    mt_size_t n_inv = 0;
-    double sum_wgt = 0.0;
-    mt_size_t gap_state = descriptor.datatype == dt_protein?((1<<20)-1):15;
-
-    const unsigned int * charmap = descriptor.datatype == dt_protein?pll_map_aa:pll_map_nt;
-    for (partition_region_t region : descriptor.regions)
-    {
-        for (mt_index_t j = region.start - 1; j < region.end; j += region.stride)
-        {
-            sum_wgt += weights[j];
-            n_inv   += weights[j];
-            mt_size_t state = gap_state;
-            for (mt_index_t i=0; i<msa.get_n_sequences(); ++i)
-            {
-              state &= charmap[(mt_index_t) msa.get_sequence(i)[j]];
-              if (!state)
-                break;
-            }
-
-            if (__builtin_popcount(state) != 1)
-            {
-              n_inv -= weights[j];
-            }
-        }
-    }
-    emp_pinv = (double)1.0*n_inv/sum_wgt;
-
-    return true;
 }
 
 } /* modeltest */

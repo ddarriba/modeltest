@@ -43,6 +43,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     bool exist_dna_models = false;
     bool exist_protein_models = false;
 
+    int exclusion_modelset = 0;
+
     template_models_t template_models = template_none;
     dna_subst_schemes_t dna_ss = ss_undef;
     string user_candidate_models = "";
@@ -344,6 +346,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         case 'm':
         {
             user_candidate_models = optarg;
+            exclusion_modelset |= 1;
             break;
         }
         case 'o':
@@ -392,6 +395,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {3,5,7,11,203}" << endl;
                 params_ok = false;
             }
+            exclusion_modelset |= 2;
             break;
         case 't':
             if (!strcasecmp(optarg, "user"))
@@ -449,6 +453,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {raxml,phyml,mrbayes,paup}" << endl;
                 params_ok = false;
             }
+            exclusion_modelset |= 4;
             break;
         case 'u':
             exec_opt.tree_filename = optarg;
@@ -459,6 +464,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         default:
             return false;
         }
+    }
+
+    if (__builtin_popcount(exclusion_modelset) > 1)
+    {
+      LOG_ERR << PACKAGE << ": Options 'm' (--models), 's' (--schemes), and 'T' (--template) are mutually exclusive" << endl;
+      return false;
     }
 
     srand(exec_opt.rnd_seed);
@@ -1380,6 +1391,9 @@ void Meta::print_help(std::ostream& out)
 
     /************************************************************/
 
+    /*
+    // NOT YET AVAILABLE
+
     out << endl << " Partitioning scheme search:" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --psearch algorithm"
         << "sets the partitioning scheme search algorithm" << endl;
@@ -1395,6 +1409,7 @@ void Meta::print_help(std::ostream& out)
     out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
         << "          kmeans"
         << "additive kmeans algorithm (unavailable)" << endl;
+    */
 
     /************************************************************/
 
