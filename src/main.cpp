@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     have_avx = pll_hardware.avx_present;
     have_sse3 = pll_hardware.sse3_present;
 
-    #ifdef PLL_ATTRIB_SITES_REPEATS
+    #ifdef PLL_ATTRIB_SITE_REPEATS
         modeltest::disable_repeats = !have_avx;
     #else
         modeltest::disable_repeats = true;

@@ -6,7 +6,7 @@
 #   $ ./install.sh [actions]
 #
 #   actions:
-#     `build` - Build modeltest-cmd and modeltest-gui
+#     `build` - Build modeltest-ng and modeltest-gui
 #     `clean` - Clean all object and target files
 #     `dist`  - Pack libraries for distribution
 #
@@ -214,8 +214,8 @@ for action in ${actions}; do
     make dist
   ;;
   "test")
-   if test -f ${prefix}/bin/modeltest-cmd; then
-     ${prefix}/bin/modeltest-cmd -i example-data/dna/tiny.fas -o tmptest -t ml > /dev/null \
+   if test -f ${prefix}/bin/modeltest-ng; then
+     ${prefix}/bin/modeltest-ng -i example-data/dna/tiny.fas -o tmptest -t ml > /dev/null \
        && echo "test OK!" || echo "test ERROR!"
      rm -f tmptest.*
    else

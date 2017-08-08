@@ -18,7 +18,7 @@ GUI version requires QT4 or QT5. If you have none of them, install `qt5-default`
   $ install-sh
 
   This should extract and compile the required libraries and link them statically
-  in the modeltest binaries for console (modeltest-cmd) and GUI (modeltest-gui) if
+  in the modeltest binaries for console (modeltest-ng) and GUI (modeltest-gui) if
   `qmake` is available. Note that, qmake might be available in some linux 
   distributions, but NOT a functional QT framework. Try running `qmake`, and if you
   observe and error, install `qt5-defaults` from apt repositories:

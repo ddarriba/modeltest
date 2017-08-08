@@ -21,6 +21,7 @@
 
 #include "treepll.h"
 #include "utils.h"
+#include "genesis/logging.h"
 
 #include <cerrno>
 #include <iostream>
@@ -93,13 +94,14 @@ namespace modeltest
   {
     mt_size_t n_tips = msa.get_n_sequences();
     pll_unode_t ** tip_nodes = pll_tree->nodes;
+    bool * tips_found = new bool[pll_tree->tip_count] {false};
+    bool return_val = true;
 
     if(n_tips != pll_tree->tip_count)
     {
-      mt_errno = MT_ERROR_IO_FORMAT;
-      snprintf(mt_errmsg, 400,
-               "Error: Number of tips in tree and MSA do not agree");
-      return false;
+      LOG_ERR << "Error: Number of tips in tree (" << n_tips << ") and MSA ("
+              << pll_tree->tip_count << ") are different" << endl;
+      return_val = false;
     }
 
     /* find sequences and link them with the corresponding taxa */
@@ -108,25 +110,48 @@ namespace modeltest
         mt_index_t tip_clv_index = MT_SIZE_UNDEF;
         const char * header = msa.get_header (i);
 
-        for (mt_index_t j = 0; j < n_tips; ++j)
+        bool cur_tip_found = false;
+        for (mt_index_t j = 0; j < pll_tree->tip_count; ++j)
         {
             if (!strcmp (tip_nodes[j]->label, header))
             {
+                tips_found[j] = true;
                 tip_nodes[j]->clv_index = tip_clv_index = i;
-                break;
+
+                if (cur_tip_found)
+                {
+                  LOG_ERR << "Error: Duplicated tip " << header << " in the tree" << endl;
+                }
+                cur_tip_found = true;
+                //break;
             }
         }
 
         if (tip_clv_index == MT_SIZE_UNDEF)
         {
-          mt_errno = MT_ERROR_IO_FORMAT;
-          snprintf(mt_errmsg, 400,
-                   "Error: Cannot find tip \"%s\" in the tree", header);
-          return false;
+          LOG_ERR << "Error: Tip " << header << " not found in the tree" << endl;
+          // LOG_ERR << "Error: Cannot find tip \"%s\" in the tree" << end;;
+          return_val = false;
         }
     }
+    for (mt_index_t j = 0; j < pll_tree->tip_count; ++j)
+    {
+      if (!tips_found[j])
+      {
+        return_val = false;
+        LOG_ERR << "Error: Sequence " << tip_nodes[j]->label << " not found in the MSA" << endl;
+      }
+    }
+    delete[] tips_found;
 
-    return true;
+    if (!return_val)
+    {
+      mt_errno = MT_ERROR_IO_FORMAT;
+      snprintf(mt_errmsg, 400,
+               "Error: Tips in tree and MSA headers do not agree");
+    }
+
+    return return_val;
   }
 
   TreePll::TreePll (tree_type_t type,
@@ -140,8 +165,8 @@ namespace modeltest
     pll_utree_t * starting_tree = NULL;
 
     bl_optimized = false;
-    pll_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_start_tree = (pll_utree_t **) Utils::allocate(number_of_threads, sizeof(pll_utree_t *));
+    pll_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
+    pll_start_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
 
     if (ROOT)
     {
@@ -162,13 +187,17 @@ namespace modeltest
           }
           else
           {
+            LOG_WARN << "WARNING: Input tree is a rooted topology. It will be unrooted" << endl;
+
             starting_tree = pll_rtree_unroot(rtree);
             pll_utree_reset_template_indices(starting_tree->nodes[0]->back, starting_tree->tip_count);
             pll_rtree_destroy(rtree, NULL);
+
           }
         }
-        pllmod_utree_set_length_recursive(starting_tree, 0.1, false);
-        
+        assert(starting_tree);
+        pllmod_utree_set_length_recursive(starting_tree, 0.1, true);
+
         n_tips = starting_tree->tip_count;
       }
       else if (type == tree_random)

@@ -1,6 +1,6 @@
-bin_PROGRAMS = modeltest-cmd
+bin_PROGRAMS = modeltest-ng
 
-modeltest_cmd_SOURCES = \
+modeltest_ng_SOURCES = \
 	genesis/date_time.cpp \
 	genesis/string.cpp \
 	genesis/logging.cpp \
@@ -28,15 +28,15 @@ modeltest_cmd_SOURCES = \
 	meta.cpp \
 	main.cpp
 
-modeltest_cmd_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
-modeltest_cmd_CPPFLAGS += -DHAVE_PTHREADS
+modeltest_ng_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
+modeltest_ng_CPPFLAGS += -DHAVE_PTHREADS
 
 if BUILD_STATIC
-  modeltest_cmd_LDFLAGS = -static -static-libstdc++
+  modeltest_ng_LDFLAGS = -static -static-libstdc++
 endif
 
-modeltest_cmd_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
+modeltest_ng_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
 
 if PLL_PREFIX
-  modeltest_cmd_CPPFLAGS += -DPLL_PREFIX
+  modeltest_ng_CPPFLAGS += -DPLL_PREFIX
 endif

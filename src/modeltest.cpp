@@ -504,17 +504,6 @@ bool ModelTest::build_instance(mt_options_t & options)
   create_instance ();
 
   current_instance->ckp_enabled = options.write_checkpoint;
-  if (current_instance->ckp_enabled)
-  {
-    current_instance->ckp_filename = options.checkpoint_file;
-
-    if (ROOT)
-    {
-      //TODO: Synchronize MPI
-      if (!eval_ckp(options, current_instance))
-        return false;
-    }
-  }
 
   assert (options.partitions_desc);
 
@@ -538,10 +527,6 @@ bool ModelTest::build_instance(mt_options_t & options)
   if (mt_errno)
   {
     LOG_ERR << "ERROR " << mt_errno << ": " << mt_errmsg << endl;
-    if (options.compress_patterns)
-    {
-      LOG_ERR << "      Run with --no-compress for more information" << endl;
-    }
     snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot build MSA");
     return false;
   }
@@ -559,9 +544,12 @@ bool ModelTest::build_instance(mt_options_t & options)
 
     if (stats.dup_taxa_pairs_count > 0)
     {
-      for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
-        LOG_ERR << "ERROR: sequences " << stats.dup_seqs_pairs[2*j] << " and "
-                << stats.dup_seqs_pairs[2*j+1] << " have the same header" << endl;
+      LOG_ERR << stats.dup_taxa_pairs_count << endl;
+      for (mt_index_t j=0; j<stats.dup_taxa_pairs_count; ++j)
+        LOG_ERR << "Error: sequences " << stats.dup_taxa_pairs[2*j] + 1 << " and "
+                << stats.dup_taxa_pairs[2*j+1] + 1 << " have the same header: "
+                << current_instance->msa->get_header(stats.dup_taxa_pairs[2*j])
+                << endl;
       mt_errno = MT_ERROR_ALIGNMENT_DUPLICATED;
       snprintf(mt_errmsg, ERR_MSG_SIZE, "There are duplicated taxa in the alignment");
       return false;
@@ -862,6 +850,18 @@ bool ModelTest::build_instance(mt_options_t & options)
                    options.output_tree_file.c_str());
           return false;
       }
+  }
+
+  if (current_instance->ckp_enabled)
+  {
+    current_instance->ckp_filename = options.checkpoint_file;
+
+    if (ROOT)
+    {
+      //TODO: Synchronize MPI
+      if (!eval_ckp(options, current_instance))
+        return false;
+    }
   }
 
   return true;

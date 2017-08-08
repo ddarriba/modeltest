@@ -43,7 +43,7 @@ This step is not necessary if you downloaded the released tarball.
   ```
 
   This should extract and compile the required libraries and link them statically
-  in the ModelTest-NG binaries for console (modeltest-cmd, modeltest-mpi) and GUI (modeltest-gui) if
+  in the ModelTest-NG binaries for console (modeltest-ng, modeltest-mpi) and GUI (modeltest-gui) if
   a valid `qmake` is available.
 
   The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
@@ -74,7 +74,7 @@ Set a custom install directory if you don't have root access or you prefer a
 different location.
 
 This will compile pthreads and MPI versions
-Run 'modeltest-cmd --help' for help about the console interface.
+Run 'modeltest-ng --help' for help about the console interface.
 
 To compile a Windows executable, install MinGW and run:
 

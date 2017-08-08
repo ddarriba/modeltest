@@ -804,10 +804,10 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
     mt_size_t states = n_frequencies;
     mt_mask_t attributes;
 
-#ifndef PLL_ATTRIB_SITES_REPEATS
+#ifndef PLL_ATTRIB_SITE_REPEATS
     /* safety check */
     assert(disable_repeats);
-    #define PLL_ATTRIB_SITES_REPEATS 0
+    #define PLL_ATTRIB_SITE_REPEATS 0
 #endif
 
     if (disable_repeats)
@@ -816,7 +816,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
     }
     else
     {
-      attributes = PLL_ATTRIB_SITES_REPEATS;
+      attributes = PLL_ATTRIB_SITE_REPEATS;
     }
 
     assert(!n_tips && _n_tips);
@@ -1328,7 +1328,7 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
     }
     else
     {
-      attributes = PLL_ATTRIB_SITES_REPEATS;
+      attributes = PLL_ATTRIB_SITE_REPEATS;
     }
 
     assert(!n_tips && _n_tips);

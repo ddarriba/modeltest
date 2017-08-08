@@ -6,7 +6,7 @@
 #       skip_eval   = {true, false}
 #       data_type   = {nt, aa}
 
-modeltest_bin=modeltest-cmd
+modeltest_bin=modeltest-ng
 MT_ARGS="-t mp -f ef -h uigf"
 
 input_msa=$1

@@ -36,6 +36,7 @@
 #include <QtGui/QMessageBox>
 #include <QtConcurrentRun>
 #include <QStandardItemModel>
+#include <QMetaType>
 #include <QTableView>
 #include <QDesktopServices>
 #include <QUrl>
@@ -979,22 +980,34 @@ bool XModelTestFancy::run_modelselection()
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      this,
                      SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
-    QObject::connect(mythread,
-                     SIGNAL(optimized_partition_done(partition_id_t)),
-                     this,
-                     SLOT(optimized_partition(partition_id_t)));
+    // QObject::connect(mythread,
+    //                  SIGNAL(optimized_partition_done(partition_id_t)),
+    //                  this,
+    //                  SLOT(optimized_partition(partition_id_t)));
 
     ProgressDialog dialog( n_models,
                            number_of_threads );
 
-    QObject::connect(mythread, SIGNAL(optimization_done( void )), &dialog, SLOT(reset( void )));
+    QObject::connect(mythread,
+                     SIGNAL(optimization_done( void )),
+                     &dialog,
+                     SLOT(reset( void )));
     QObject::connect(mythread,
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      &dialog,
                      SLOT(optimized_single_model( void )));
-    QObject::connect(mythread, SIGNAL(next_model(modeltest::Model*,uint)), &dialog, SLOT(set_model_running(modeltest::Model*,uint)));
-    QObject::connect(mythread, SIGNAL(next_parameter(uint,double,uint)), &dialog, SLOT(set_delta_running(uint,double,uint)));
-    QObject::connect(&dialog, SIGNAL(canceled()), mythread, SLOT(kill_threads()));
+    QObject::connect(mythread,
+                     SIGNAL(next_model(modeltest::Model*,uint)),
+                     &dialog,
+                     SLOT(set_model_running(modeltest::Model*,uint)));
+    QObject::connect(mythread,
+                     SIGNAL(next_parameter(uint,double,uint)),
+                     &dialog,
+                     SLOT(set_delta_running(uint,double,uint)));
+    QObject::connect(&dialog,
+                     SIGNAL(canceled()),
+                     mythread,
+                     SLOT(kill_threads()));
 
     modeltest::on_run = true;
 
