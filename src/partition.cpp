@@ -85,6 +85,14 @@ static bool build_models(const partition_descriptor_t &descriptor,
                                     asc_bias_corr,
                                     asc_weights)
                                   );
+                  if (freq_params & MOD_PARAM_EMPIRICAL_FREQ)
+                      c_models.push_back(
+                                  new DnaModel(model_matrix,
+                                    cur_rate_param | MOD_PARAM_EMPIRICAL_FREQ,
+                                    descriptor,
+                                    asc_bias_corr,
+                                    asc_weights)
+                                  );
               }
               else if (datatype == dt_protein)
               {

@@ -101,6 +101,7 @@ bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
          sizeof(double) * states);
 
   pll_set_frequencies(params->partition, 0, frequencies);
+
   return true;
 }
 
@@ -120,6 +121,10 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
                                          tolerance);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
+
+  memcpy(frequencies,
+         params->partition->frequencies[0],
+         sizeof(double) * states);
 
   return cur_loglh;
 }
@@ -168,6 +173,7 @@ bool ParameterFrequenciesFixed::initialize(mt_opt_params_t * params,
   }
 
   pll_set_frequencies(params->partition, 0, frequencies);
+
   return true;
 }
 
