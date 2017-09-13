@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1178</width>
+    <width>1150</width>
     <height>737</height>
    </rect>
   </property>
@@ -370,7 +370,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -388,13 +388,28 @@
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QTextBrowser" name="consoleRun">
+              <property name="minimumSize">
+               <size>
+                <width>736</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="font">
                <font>
-                <family>FreeMono</family>
+                <family>Courier 10 Pitch</family>
+                <weight>50</weight>
+                <bold>false</bold>
                </font>
               </property>
               <property name="cursor" stdset="0">
                <cursorShape>IBeamCursor</cursorShape>
+              </property>
+              <property name="html">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Courier 10 Pitch'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -685,7 +700,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>746</width>
+                 <width>718</width>
                  <height>606</height>
                 </rect>
                </property>
@@ -3045,7 +3060,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1178</width>
+     <width>1150</width>
      <height>25</height>
     </rect>
    </property>

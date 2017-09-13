@@ -980,10 +980,10 @@ bool XModelTestFancy::run_modelselection()
                      SIGNAL(optimized_single_done(modeltest::Model *, unsigned int)),
                      this,
                      SLOT(optimized_single_model(modeltest::Model *, unsigned int)));
-    // QObject::connect(mythread,
-    //                  SIGNAL(optimized_partition_done(partition_id_t)),
-    //                  this,
-    //                  SLOT(optimized_partition(partition_id_t)));
+    QObject::connect(mythread,
+                     SIGNAL(optimized_partition_done(partition_id_t)),
+                     this,
+                     SLOT(optimized_partition(partition_id_t)));
 
     ProgressDialog dialog( n_models,
                            number_of_threads );

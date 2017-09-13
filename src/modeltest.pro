@@ -33,8 +33,6 @@ SOURCES += main.cpp\
     partition.cpp \
     partitioning_scheme.cpp \
     static_analyzer.cpp \
-    gui/xmodeltest.cpp \
-    gui/xmodeltest_actions.cpp \
     gui/xthreadopt.cpp \
     gui/progressdialog.cpp \
     gui/datainfodialog.cpp \
@@ -78,7 +76,6 @@ HEADERS  += \
     static_analyzer.h \
     thread/threadpool.h \
     gui/qdebugstream.h \
-    gui/xmodeltest.h \
     gui/mydebugstream.h \
     gui/xthreadopt.h \
     gui/progressdialog.h \
@@ -94,7 +91,6 @@ HEADERS  += \
     gui2/xmodeltestfancy.h
 
 FORMS    += \
-    gui/xmodeltest.ui \
     gui/progressdialog.ui \
     gui/datainfodialog.ui \
     gui/resultsdialog.ui \
