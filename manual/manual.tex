@@ -49,7 +49,7 @@
 \makeatletter
 \def\@maketitle{
 \begin{center}
-\includegraphics[width = 30mm]{images/logo.png}\\[2ex]
+\includegraphics[width = 50mm]{images/logo.png}\\[2ex]
 {\Huge \bfseries \sffamily \@title }\\[2ex]
 {\Large  \@author}\\[4ex]
 \@date\\%[8ex]
@@ -58,14 +58,14 @@
 \makeatother
 
 \begin{document}
-\providecommand{\versionnumber}{0.1.10}
-\title{ModelTest Manual v\versionnumber}
+\providecommand{\versionnumber}{1.0.0}
+\title{\normalsize manual v\versionnumber}
 \author{Diego Darriba, David Posada, Alexandros Stamatakis, Tomas Flouris}
 \date{\today}
 \maketitle
 
 \newcommand{\modeltest}{\emph{ModelTest-NG} }
-\newcommand{\modeltestbin}{\emph{modeltest-cmd} }
+\newcommand{\modeltestbin}{\emph{modeltest-ng} }
 \newcommand{\modeltestguibin}{\emph{modeltest-gui} }
 
 \setcounter{tocdepth}{2}
@@ -80,28 +80,6 @@ It implements five different model selection strategies: hierarchical and dynami
 It also provides estimates of model selection uncertainty, parameter importances and model-averaged parameter estimates, including model-averaged tree topologies.
 {\modeltest} gathers features of {\em jModelTest 2} \citep{Darriba2013} and {\em ProtTest 3} \citep{Darriba2011}.
 
-\subsection{Download}
-
-The main project webpage is located at GitHub: \url{https://github.com/ddarriba/modeltest}.
-
-New distributions of ModelTest-Light will be hosted in GitHub releases.
-\begin{itemize}
-  \item \url{https://github.com/ddarriba/modeltest/releases}
-\end{itemize}
-
-Please use the jModelTest discussion group for any question:
-\begin{itemize}
-  \item \url{http://groups.google.com/group/jmodeltest}.
-\end{itemize}
-
-%\subsection{Citation}
-
-%When using {\modeltest} you should cite all these:
-
-%\begin{itemize}
-%\item xxx
-%\end{itemize}
-
 \subsection{Disclaimer}
 
 {\footnotesize
@@ -110,6 +88,29 @@ either version 3 of the License, or (at your option) any later version. This pro
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 }
+
+\subsection{Download}
+
+\modeltest is open source under GNU GPL. 
+It is distributed via github repository:
+\url{https://github.com/ddarriba/modeltest} where you can always download the most up to date version. 
+Make sure to watch the github repository to remain up to date regarding code changes.
+Version numbers follow the notation {\bf x.y.z} where {\bf x} changes with major code reorganizations, {\bf y}
+changes when new features are added and {\bf z} changes with bug fixes.
+
+Also note that unreleased commits in the trunk may be in testing status.
+
+\subsection{Getting help}
+
+\modeltest support is provided via the jModelTest discussion group at: \url{http://groups.google.com/group/jmodeltest}.  Note that Google groups have a search function! The answer might also be in this manual.
+
+%\subsection{Citation}
+
+%When using {\modeltest} you should cite all these:
+
+%\begin{itemize}
+%\item xxx
+%\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -191,25 +192,13 @@ Press {\emph Ctrl+R} and enjoy the execution.
 
 \section{Common Use Cases}
 
-\subsection{Basic Model Selection}
-
-Although {\modeltest} has many options, most of the users would like to perform a model selection among the 11 substitution schemes,
-including models with unequal frequencies, gamma rate variation and/or a proportion of invariable sites.
-This is already the default option.
-
-\begin{verbatim}
-$ modeltest-cmd -i example-data/dna/aP6.fas
-\end{verbatim}
-
-Note that, by default, {\modeltest} uses a fast stepwise addition Maximum-Parsimony topology as the base tree for the models optimization.
-
 \subsection{Loading Checkpointing Files}
 \label{sec:ckp}
 
 \modeltest saves a ``.ckp'' checkpointing files in the log directory. In case of an error occurs,
 the user can start again the process minimizing the loss of computation.
-If a checkpoint file exists for the input MSA, \modeltest will ensure that the current arguments
-are the same (or compatible) with the saved search.
+If a checkpoint file exists for the input MSA, \modeltest will check if the current arguments
+are the same (or compatible) as in the saved search.
 If not, it will return an error, because that means that the stored models were evaluated under
 different conditions and the results would be inconsistent.
 You should then either restart the search with the previous arguments,

@@ -22,7 +22,7 @@ build_modules=yes        # build PLL modules library
 build_gui=yes            # build modeltest-gui
 dir_base=${PWD}          # base directory
 prefix=${dir_base}/build # output directory for modeltest
-qmake_bin=qmake
+qmake_bin=qmake          # qmake binary (for GUI)
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
