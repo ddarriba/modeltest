@@ -12,10 +12,16 @@ The source code is freely available at github repository: \url{https://github.co
 
 If you clone the repository, make sure to clone also libpll and pll-modules submodules with `--recursive` flag, or call `git submodule init --recursive` afterwards.
 
-For most users, download the latest release and call the install script, {\em install-sh}. 
+For most users, download the latest release and call the build script, {\em build.sh}. 
 It should work correctly and (by default) compile all dependencies and place the final binaries under `build` directory.
 
-You can change the behaviour and the target directories in the static configuration section, at the beggining of the install script.
+\begin{itemize}
+\item Run {\em build.sh} with no arguments for compiling all dependencies and modeltest in 3 flavors: {\em modeltest-ng} (command console execution), {\em modeltest-mpi} (MPI version), and {\em modeltest-gui} (graphical user interface). Note that you need QT 4 or 5 for compiling the GUI version.
+\item Run {\em build.sh clean} for removing all object and output files.
+\item Run {\em build.sh dist} for building a distribution package.
+\end{itemize}
+
+You can change the behaviour and the target directories in the static configuration section, at the beggining of the build script.
 
 \begin{lstlisting}
 # Static configuration                                                          
@@ -37,6 +43,14 @@ qmake_bin=qmake          # qmake binary (for GUI)
   prefix & {\em dir\_base}/build & Target directory \\
   qmake\_bin & qmake & qmake binary \\
 \end{tabular}
+\vspace{1em}
+
+Note: QT utility, {\em qmake} can be also an absolute/relative path, e.g., {\em qmake\_bin=/usr/local/bin/qmake}.
+For example, I used a custom distribution for OSX and the configuration line looks like this:
+
+\begin{lstlisting}
+qmake_bin=/usr/local/Cellar/qt/5.9.1/bin/qmake
+\end{lstlisting}
 
 \subsection{Example run}
 
