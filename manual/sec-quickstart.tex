@@ -52,6 +52,37 @@ For example, I used a custom distribution for OSX and the configuration line loo
 qmake_bin=/usr/local/Cellar/qt/5.9.1/bin/qmake
 \end{lstlisting}
 
+If everything went fine, the output should look like this:
+
+\begin{lstlisting}
+Running install script for Linux
+QMake version 3.0
+Using Qt version 5.5.1 in /usr/lib/x86_64-linux-gnu
+...configuration:
+   prefix:       /home/diego/Repositories/phylogenetics/modeltest-dev/build
+   build:        /home/diego/Repositories/phylogenetics/modeltest-dev/build
+   pll:          [yes] /home/diego/Repositories/phylogenetics/modeltest-dev/libs/pll-modules/libs/libpll
+   modules:      [yes] /home/diego/Repositories/phylogenetics/modeltest-dev/libs/pll-modules
+      include:   /home/diego/Repositories/phylogenetics/modeltest-dev/build/include/libpll
+      lib:       /home/diego/Repositories/phylogenetics/modeltest-dev/build/lib
+
+...writing log to /home/diego/Repositories/phylogenetics/modeltest-dev/build.log
+...build pll
+   ...building pll
+...pll OK!
+/home/diego/Repositories/phylogenetics/modeltest-dev
+...build modules
+   ...building modules
+...modules OK!
+/home/diego/Repositories/phylogenetics/modeltest-dev
+...build modeltest
+Project MESSAGE: link to pll local
+Project MESSAGE: pll dynamic link
+...modeltest GUI OK!
+\end{lstlisting}
+
+The console output contains only trace messages.
+The full output is redirected to {\em build.log}, so please check it if there are errors building \modeltest.
 \subsection{Example run}
 
 \begin{enumerate}

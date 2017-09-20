@@ -118,7 +118,7 @@ for action in ${actions}; do
       shift; shift; shift;
       extra_args=$*
 
-      ${qmake_bin} CONFIG+=pll_local ${extra_args} -o ${out_file} ${in_file}
+      ${qmake_bin} CONFIG+="pll_local ${extra_args}" -o ${out_file} ${in_file}
       test -f ${out_file} || return 1
       make -f ${out_file} \
         && make install -f ${out_file} || return 1
@@ -142,7 +142,7 @@ for action in ${actions}; do
       test -d ${dir_pll} || { echo "PLL directory missing"; exit; }
       cd $dir_pll
       echo "   ...building pll"
-      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...pll OK!" || { echo "...pll FAIL!"; exit 1; }
+      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} 2>&1 && echo "...pll OK!" || { echo "...pll FAIL!"; exit 1; }
       cd -
     else
       echo "...skip pll"
@@ -164,7 +164,7 @@ for action in ${actions}; do
       test -d ${dir_modules} || { echo "PLL modules directory missing"; exit; }
       cd $dir_modules
       echo "   ...building modules"
-      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} && echo "...modules OK!" || { echo "...modules FAIL!"; exit 1; }
+      fn_build ${dir_build} ${dir_pll_include} ${dir_pll_lib} >> ${file_log} 2>&1 && echo "...modules OK!" || { echo "...modules FAIL!"; exit 1; }
       cd -
     else
       echo "...skip modules"
@@ -174,14 +174,14 @@ for action in ${actions}; do
     mt_extra_conf=
     mt_qt_extra_conf=
     if test "x${machine}" = "xLinux" ; then
-      mt_extra_conf=--enable-static
-      mt_qt_extra_conf=build_static
+      mt_extra_conf="--enable-static"
+      mt_qt_extra_conf="build_static"
     fi
-    fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} ${mt_extra_conf} >> ${file_log} && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
+    fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} ${mt_extra_conf} >> ${file_log} 2>&1 && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
 
     if test "x${build_gui}" = "xyes" ; then
       echo "...build modeltest GUI"
-      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} ${mt_qt_extra_conf} >> ${file_log} && \
+      fn_qt src/modeltest.pro ${makefile_qt} ${prefix} ${mt_qt_extra_conf} >> ${file_log} 2>&1 && \
         { echo "...modeltest GUI OK!"
           if test "x${machine}" = "xMac" ; then
             mv modeltest-gui.app ${prefix}/bin                                                                                                                                                                                                                                                                                                                                        
