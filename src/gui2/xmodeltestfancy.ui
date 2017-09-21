@@ -396,7 +396,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Courier 10 Pitch</family>
+                <family>Courier</family>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -408,7 +408,7 @@
                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Courier 10 Pitch'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Courier'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
@@ -721,7 +721,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
@@ -790,7 +790,7 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <bold>false</bold>
@@ -805,7 +805,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radDatatypeDna">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -830,7 +830,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radDatatypeProt">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -901,7 +901,7 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <bold>false</bold>
@@ -919,7 +919,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radSetModelTest">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -944,7 +944,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radSetMrbayes">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -966,7 +966,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radSetRaxml">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -988,7 +988,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radSetPhyml">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -1010,7 +1010,7 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="radSetPAUP">
                         <property name="font">
                          <font>
-                          <family>Courier 10 Pitch</family>
+                          <family>Courier</family>
                           <pointsize>10</pointsize>
                           <weight>50</weight>
                           <italic>false</italic>
@@ -1082,7 +1082,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>11</pointsize>
                     <weight>75</weight>
                     <italic>true</italic>
@@ -1219,7 +1219,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemes3">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1238,7 +1238,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemes5">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1257,7 +1257,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemes7">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1276,7 +1276,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemes11">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1298,7 +1298,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemes203">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1320,7 +1320,7 @@ p, li { white-space: pre-wrap; }
                              <widget class="QRadioButton" name="radSchemesUser">
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1358,7 +1358,7 @@ p, li { white-space: pre-wrap; }
                           <widget class="QLabel" name="label_8">
                            <property name="font">
                             <font>
-                             <family>Courier 10 Pitch</family>
+                             <family>Courier</family>
                              <pointsize>10</pointsize>
                              <weight>50</weight>
                              <italic>true</italic>
@@ -1438,7 +1438,7 @@ p, li { white-space: pre-wrap; }
                                  </property>
                                  <property name="font">
                                   <font>
-                                   <family>Courier 10 Pitch</family>
+                                   <family>Courier</family>
                                    <pointsize>10</pointsize>
                                   </font>
                                  </property>
@@ -1457,7 +1457,7 @@ p, li { white-space: pre-wrap; }
                                 <widget class="QRadioButton" name="radAscbiasLewis">
                                  <property name="font">
                                   <font>
-                                   <family>Courier 10 Pitch</family>
+                                   <family>Courier</family>
                                    <pointsize>10</pointsize>
                                   </font>
                                  </property>
@@ -1473,7 +1473,7 @@ p, li { white-space: pre-wrap; }
                                 <widget class="QRadioButton" name="radAscbiasFelsenstein">
                                  <property name="font">
                                   <font>
-                                   <family>Courier 10 Pitch</family>
+                                   <family>Courier</family>
                                    <pointsize>10</pointsize>
                                   </font>
                                  </property>
@@ -1489,7 +1489,7 @@ p, li { white-space: pre-wrap; }
                                 <widget class="QRadioButton" name="radAscbiasStamatakis">
                                  <property name="font">
                                   <font>
-                                   <family>Courier 10 Pitch</family>
+                                   <family>Courier</family>
                                    <pointsize>10</pointsize>
                                   </font>
                                  </property>
@@ -1523,7 +1523,7 @@ p, li { white-space: pre-wrap; }
                            </property>
                            <property name="font">
                             <font>
-                             <family>Courier 10 Pitch</family>
+                             <family>Courier</family>
                              <pointsize>10</pointsize>
                              <weight>50</weight>
                              <italic>true</italic>
@@ -1582,7 +1582,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1610,7 +1610,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1644,7 +1644,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1691,7 +1691,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1719,7 +1719,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1753,7 +1753,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1829,7 +1829,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>true</italic>
@@ -1858,7 +1858,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1892,7 +1892,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1966,7 +1966,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -1994,7 +1994,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="font">
                                <font>
-                                <family>Courier 10 Pitch</family>
+                                <family>Courier</family>
                                 <pointsize>10</pointsize>
                                 <weight>50</weight>
                                 <italic>false</italic>
@@ -2110,7 +2110,7 @@ p, li { white-space: pre-wrap; }
                  <widget class="QLabel" name="label">
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>11</pointsize>
                     <weight>75</weight>
                     <bold>true</bold>
@@ -2383,7 +2383,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="font">
                   <font>
-                   <family>Courier 10 Pitch</family>
+                   <family>Courier</family>
                    <pointsize>10</pointsize>
                   </font>
                  </property>
@@ -2412,7 +2412,7 @@ p, li { white-space: pre-wrap; }
                 <widget class="QPushButton" name="tool_results_export">
                  <property name="font">
                   <font>
-                   <family>Courier 10 Pitch</family>
+                   <family>Courier</family>
                    <pointsize>10</pointsize>
                    <weight>75</weight>
                    <bold>true</bold>
@@ -2433,7 +2433,7 @@ p, li { white-space: pre-wrap; }
              <widget class="QTabWidget" name="results_content">
               <property name="font">
                <font>
-                <family>Courier 10 Pitch</family>
+                <family>Courier</family>
                 <pointsize>10</pointsize>
                </font>
               </property>
@@ -2473,7 +2473,7 @@ p, li { white-space: pre-wrap; }
                  <widget class="QTableView" name="table_results_bic">
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
@@ -2669,7 +2669,7 @@ p, li { white-space: pre-wrap; }
                  <widget class="QTableView" name="table_results_aic">
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>10</pointsize>
                    </font>
                   </property>
@@ -2862,7 +2862,7 @@ p, li { white-space: pre-wrap; }
                  <widget class="QTableView" name="table_results_aicc">
                   <property name="font">
                    <font>
-                    <family>Courier 10 Pitch</family>
+                    <family>Courier</family>
                     <pointsize>10</pointsize>
                    </font>
                   </property>

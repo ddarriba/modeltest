@@ -61,7 +61,7 @@ QToolTip { color: #000s; border: none; }</string>
         </property>
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -87,7 +87,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QLabel" name="label">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>12</pointsize>
           <weight>75</weight>
           <bold>true</bold>
@@ -118,7 +118,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QToolButton" name="toolButton">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -137,7 +137,7 @@ QToolTip { color: #000s; border: none; }</string>
     <widget class="QTableView" name="table_models">
      <property name="font">
       <font>
-       <family>Courier 10 Pitch</family>
+       <family>Courier</family>
        <pointsize>9</pointsize>
        <weight>50</weight>
        <bold>false</bold>

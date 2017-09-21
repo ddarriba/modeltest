@@ -92,7 +92,7 @@ QToolTip { color: #000s; border: none; }</string>
            </property>
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
             </font>
            </property>
@@ -118,7 +118,7 @@ QToolTip { color: #000s; border: none; }</string>
           <widget class="QLabel" name="label">
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>12</pointsize>
              <weight>75</weight>
              <bold>true</bold>
@@ -149,7 +149,7 @@ QToolTip { color: #000s; border: none; }</string>
           <widget class="QPushButton" name="tool_results_export">
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
              <weight>75</weight>
              <bold>true</bold>
@@ -170,7 +170,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QTabWidget" name="results_content">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -207,7 +207,7 @@ QToolTip { color: #000s; border: none; }</string>
            <widget class="QTableView" name="table_results_bic">
             <property name="font">
              <font>
-              <family>Courier 10 Pitch</family>
+              <family>Courier</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -385,7 +385,7 @@ QToolTip { color: #000s; border: none; }</string>
            <widget class="QTableView" name="table_results_aic">
             <property name="font">
              <font>
-              <family>Courier 10 Pitch</family>
+              <family>Courier</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -563,7 +563,7 @@ QToolTip { color: #000s; border: none; }</string>
            <widget class="QTableView" name="table_results_aicc">
             <property name="font">
              <font>
-              <family>Courier 10 Pitch</family>
+              <family>Courier</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -741,7 +741,7 @@ QToolTip { color: #000s; border: none; }</string>
            <widget class="QTableView" name="table_results_dt">
             <property name="font">
              <font>
-              <family>Courier 10 Pitch</family>
+              <family>Courier</family>
               <pointsize>10</pointsize>
              </font>
             </property>

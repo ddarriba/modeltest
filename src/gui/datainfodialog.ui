@@ -24,7 +24,7 @@
     <widget class="QTextBrowser" name="text">
      <property name="font">
       <font>
-       <family>Courier 10 Pitch</family>
+       <family>Courier</family>
       </font>
      </property>
      <property name="lineWrapMode">

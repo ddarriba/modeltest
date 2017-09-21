@@ -55,7 +55,7 @@ QToolTip { color: #000s; border: none; }</string>
         </property>
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -68,7 +68,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QFrame" name="frame_criteria">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -156,7 +156,7 @@ QToolTip { color: #000s; border: none; }</string>
         </property>
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -169,7 +169,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QFrame" name="frame_nmodels">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -268,7 +268,7 @@ QToolTip { color: #000s; border: none; }</string>
            </property>
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
             </font>
            </property>
@@ -284,7 +284,7 @@ QToolTip { color: #000s; border: none; }</string>
           <widget class="QRadioButton" name="rad_xml">
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
             </font>
            </property>
@@ -316,7 +316,7 @@ QToolTip { color: #000s; border: none; }</string>
        <widget class="QLabel" name="lbl_outfile">
         <property name="font">
          <font>
-          <family>Courier 10 Pitch</family>
+          <family>Courier</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -403,7 +403,7 @@ QToolTip { color: #000s; border: none; }</string>
            </property>
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
             </font>
            </property>
@@ -431,7 +431,7 @@ QToolTip { color: #000s; border: none; }</string>
            </property>
            <property name="font">
             <font>
-             <family>Courier 10 Pitch</family>
+             <family>Courier</family>
              <pointsize>10</pointsize>
             </font>
            </property>
