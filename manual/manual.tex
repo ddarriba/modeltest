@@ -45,6 +45,8 @@
     urlcolor=MidnightBlue
 }
 
+\setlength\parindent{0pt}
+
 % Definition of \maketitle
 \makeatletter
 \def\@maketitle{
@@ -72,13 +74,14 @@
 \tableofcontents
 
 \clearpage
+\setlength{\parskip}{1em}
 
 \section{Overview}
 
 {\modeltest} is a tool to carry out statistical selection of best-fit models of nucleotide substitution or amino acid replacement.
 It implements five different model selection strategies: hierarchical and dynamical likelihood ratio tests (hLRT and dLRT), Akaike and Bayesian information criteria (AIC and BIC), and a decision theory method (DT).
 It also provides estimates of model selection uncertainty, parameter importances and model-averaged parameter estimates, including model-averaged tree topologies.
-{\modeltest} gathers features of {\em jModelTest 2} \citep{Darriba2013} and {\em ProtTest 3} \citep{Darriba2011}.
+{\modeltest} gathers features of {\em jModelTest 2} \citep{darriba2012} and {\em ProtTest 3} \citep{darriba2011}.
 
 \subsection{Disclaimer}
 
@@ -98,25 +101,17 @@ Make sure to watch the github repository to remain up to date regarding code cha
 Version numbers follow the notation {\bf x.y.z} where {\bf x} changes with major code reorganizations, {\bf y}
 changes when new features are added and {\bf z} changes with bug fixes.
 
-Also note that unreleased commits in the trunk may be in testing status.
+Please note that unreleased commits in the trunk may be in testing status.
 
 \subsection{Getting help}
 
 \modeltest support is provided via the jModelTest discussion group at: \url{http://groups.google.com/group/jmodeltest}.  Note that Google groups have a search function! The answer might also be in this manual.
 
-%\subsection{Citation}
+Also, check the wiki page for up-to-date Frequently Asked Questions: \url{https://github.com/ddarriba/modeltest/wiki}.
 
-%When using {\modeltest} you should cite all these:
-
-%\begin{itemize}
-%\item xxx
-%\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-{\footnotesize
-\include{changelog}
-}
+If you believe that you found a bug, or you would like to make a suggestion, feel free to open a ticket at \url{https://github.com/ddarriba/modeltest/issues}. 
+For bug reports, please provide as many details as possible in order to make it reproducible easily.
+Please do not open tickets for questions, use the discussion group instead.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -206,10 +201,7 @@ or remove the ``.ckp'' file.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\section{Reproducibility}
-
-
-\include{sec-theory}
+%\include{sec-theory}
 
 
 \bibliographystyle{natbib}

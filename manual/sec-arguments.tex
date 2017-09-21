@@ -47,7 +47,7 @@
                                       &&& {\bf 3}: JC, HKY, GTR \\
                                       &&& {\bf 5}: JC, HKY, TrN, TPM1, GTR \\
                                       &&& {\bf 7}: JC, HKY, TrN, TPM1, TIM1, TVM, GTR \\
-                                      &&& {\bf 11}: All models defined in Table~\ref{table-models} \\
+                                      &&& {\bf 11}: All models defined in Sec~\ref{subsec:models} \\
                                       &&& {\bf 203}: All possible GTR submatrices \\
     \texttt{-T} & \texttt{--template} & {\em tool} & Sets candidate models according to a specified tool \\
                   && {\bf raxml}      & RAxML (DNA 3 schemes / AA full search) \\
@@ -63,11 +63,11 @@
     \hline
       & \texttt{--eps} & {\em epsilon\_value}    & Sets the model optimization epsilon \\
       & \texttt{--tol} & {\em tolerance\_value}  & Sets the parameter optimization tolerance \\
-      & \texttt{--smooth-frequencies}   & Forces frequencies smoothing \\
-   \texttt{-H} & \texttt{--no-compress} & Disables pattern compression. \modeltest ignores if there are missing states \\
-   \texttt{-v} & \texttt{--verbose} & Run in verbose mode \\
-      & \texttt{--help}    & Display this help message and exit \\
-      & \texttt{--version} & Output version information and exit \\
+      & \texttt{--smooth-frequencies}   & & Forces frequencies smoothing \\
+   \texttt{-H} & \texttt{--no-compress} & & Disables pattern compression. \modeltest ignores if there are missing states \\
+   \texttt{-v} & \texttt{--verbose} & & Run in verbose mode \\
+      & \texttt{--help}    & & Display this help message and exit \\
+      & \texttt{--version} & & Output version information and exit \\
   \end{tabular}
 
 \section{Model Optimization Settings}
@@ -145,6 +145,118 @@ acgctaacgcgaacgttatc
 \end{verbatim}
 }
 
+\subsection{Models of evolution}
+\label{subsec:models}
+
+\modeltest implementes all 203 types of time-reversible substitution matrices,
+with when combined with unequal/equal base frequencies,
+gamma-distributed among-site rate variation and a proportion of invariable sites
+makes a total of 1624 models.
+Some of the models have received names:
+
+\vspace{1em}
+\begin{tabular}{l l l l l l}
+\hline
+{\bf Model} & {\bf Reference} & {\bf Free}   & {\bf Base}  & {\bf Substitution rates} & {\bf Substitution} \\
+            &                 & {\bf param.} & {\bf freq.} &                          & {\bf code} \\
+\hline
+JC & \citep{Jukes-1969} & 0 & equal & AC=AG=AT=CG=CT=GT & 000000 \\
+\hline
+F81 & \citep{Felsenstein-1981} & 3 & unequal & AC=AG=AT=CG=CT=GT & 000000 \\
+\hline
+K80 & \citep{Kimura-1980} & 1 & equal & AC=AT=CG=GT;AG=GT & 010010 \\
+\hline
+HKY & \citep{Hasegawa-1985} & 4 & unequal & AC=AT=CG=GT;AG=GT & 010010 \\
+\hline
+TrNef & \citep{Tamura-1993} & 2 & equal & AC=AT=CG=GT;AG;GT & 010020 \\
+\hline
+TrN & \citep{Tamura-1993} & 5 & unequal & AC=AT=CG=GT;AG;GT & 010020 \\
+\hline
+TPM1 & =K81 \citep{Kimura-1981} & 2 & equal & AC=GT;AG=CT;AT=CG & 012210 \\
+\hline
+TPM1uf & \citep{Kimura-1981} & 5 & unequal & AC=GT;AG=CT;AT=CG & 012210 \\
+\hline
+TPM2 & & 2 & equal & AC=AT;CG=GT;AG=CT & 010212 \\
+\hline
+TPM2uf & & 5 & unequal & AC=AT;CG=GT;AG=CT & 010212 \\
+\hline
+TPM3 & & 2 & equal & AC=AT;AG=GT;AG=CT & 012012 \\
+\hline
+TPM3uf & & 5 & unequal & AC=CG;AT=GT;AG=CT & 012012 \\
+\hline
+TIM1 & \citep{Posada-2003} & 3 & equal & AC=GT;AT=CG;AG;CT & 012230 \\
+\hline
+TIM1uf & \citep{Posada-2003} & 6 & unequal & AC=GT;AT=CG;AG;CT & 012230 \\
+\hline
+TIM2 & & 3 & equal & AC=AT;CG=GT;AG;CT & 010232 \\
+\hline
+TIM2uf & & 6 & unequal & AC=AT;CG=GT;AG;CT & 010232 \\
+\hline
+TIM3 & & 3 & equal & AC=CG;AT=GT;AG;CT & 012032 \\
+\hline
+TIM3uf & & 6 & unequal & AC=CG;AT=GT;AG;CT & 012032 \\
+\hline
+TVMef & \citep{Posada-2003} & 4 & equal & AC;CG;AT;GT;AG=CT & 012314 \\
+\hline
+TVM & \citep{Posada-2003} & 7 & unequal & AC;CG;AT;GT;AG=CT & 012314 \\
+\hline
+SYM & \citep{Zharkikh-1994} & 5 & equal & AC;CG;AT;GT;AG;CT & 012345 \\
+\hline
+GTR & =REV \citep{Tavare-1986} & 8 & unequal & AC;CG;AT;GT;AG;CT & 012345 \\
+\hline
+\end{tabular}
+\vspace{1em}
+
+\modeltest includes the empirical amino acid matrices described in the table below.
+If you expect a very long runtime according to the size of your data,
+it is recommended to select {\em a priori} a sensible set of candidate matrices instead of evaluating all the available ones
+(e.g., discarding those matrices estimated from different data).
+
+\vspace{1em}
+\begin{tabular}{ll}
+  \hline
+  {\bf Model} & {\bf Description} \\
+  \hline
+  Dayhoff &	General matrix~\citep{dayhoff1978} \\
+  \hline
+  JTT &	General matrix~\citep{jones1992} \\
+  \hline
+  DCMut/JTT-DCMut & Revised Dayhoff and JTT matrices~\citep{kosiol2005} \\
+  \hline
+  WAG & General matrix~\citep{whelan2001} \\
+  \hline
+  VT & General matrix~\citep{muller2000}  \\
+  \hline
+  cpREV & Chloroplast matrix~\citep{adachi2000} \\
+  \hline
+  rtREV & Retrovirus~\citep{dimmic2002} \\
+  \hline
+  stmtREV & Streptophyte mitochondrial land plants~\citep{liu2014} \\
+  \hline
+  mtArt & Mitochondrial Arthropoda~\citep{abascal2007} \\
+  \hline
+  mtMam & Mitochondrial Mammals~\citep{yang1998} \\
+  \hline
+  mtREV & Mitochondrial Verterbrate~\citep{adachi1996} \\
+  \hline
+  mtZoa & Mitochondrial Metazoa (Animals)~\citep{rota2009} \\
+  \hline
+  HIVb/HIVw & HIV matrices ~\citep{nickle2007} \\
+  \hline
+  LG & General matrix~\citep{le2008} \\
+  \hline
+  Blosum62 & BLOcks SUbstitution Matrix~\citep{henikoff1992} \\
+  \hline
+  PMB & Revised Blosum matrix~\citep{veerassamy2003} \\
+  \hline
+  FLU & Influenza virus~\citep{dang2010} \\
+  \hline
+  LG4M & 4-matrix mixture model with discrete $\Gamma$ rates ~\citep{le2012} \\
+  \hline
+  LG4X & 4-matrix mixture model with free rates~\citep{le2012} \\
+  \hline
+\end{tabular}
+
 \subsection{Topology type}
 \label{sec:arg:topo}
 
@@ -162,6 +274,7 @@ The topology type can be selected with $-t$ argument and it accepts the followin
 \end{itemize}
 
 In addition to that, you can set a custom tree topology using $-u$ argument, followed by a file containing the tree in NEWICK format.
+\modeltest works only with unrooted topologies, so if the user-defined tree is rooted, it will be automatically unrooted.
 This argument is mandatory if the tree type was set to {\emph user}, and optional for ML trees.
 In the latter case, the custom-defined tree is used as starting point for the ML optimization, while otherwise \modeltest uses a MP tree.
 
@@ -189,9 +302,9 @@ Where:
   \item {\bf PARTITION\_SITES} is the subset of sites that belong to the partition.
         They can be contiguous (e.g.,1-1000), or defined in several sections (e.g., $1-1000,2500-3000$).
         Additionally, one can specify a stride.
-        For example, a partition covering all first codon positions in the first 1,000 sites is defined as $1-1000\\3$,
-        second codon position is $2-1000\\3$, and third $3-1000\\3$.
-        Second and third codon positions together would be $2-1000\\3,3-1000\\3$.
+        For example, a partition covering all first codon positions in the first 1,000 sites is defined as $1-1000 \backslash 3$,
+        second codon position is $2-1000 \backslash 3$, and third $3-1000 \backslash 3$.
+        Second and third codon positions together would be $2-1000 \backslash 3,3-1000 \backslash 3$.
 \end{itemize}
 
 For example:
@@ -199,10 +312,10 @@ For example:
 {
 \begin{verbatim}
   DNA, GENE1 = 1-800
-  DNA, GENE2 = 801-1700
-  DNA, GENE3_1 = 1701-2400\3
-  DNA, GENE3_2 = 1702-2400\3
-  DNA, GENE3_3 = 1703-2400\3
+  DNA, GENE2_1 = 1701-2400\3
+  DNA, GENE2_2 = 1702-2400\3
+  DNA, GENE2_3 = 1703-2400\3
+  DNA, GENE3 = 801-1700,2401-2500
 \end{verbatim}
 }
 
