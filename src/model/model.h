@@ -301,6 +301,9 @@ public:
     double get_alpha( void ) const;
     void set_alpha(double value);
 
+    const mt_size_t * get_asc_weights( void ) const;
+    asc_bias_t get_asc_bias_corr( void ) const;
+
     time_t get_exec_time() const;
     void set_exec_time( time_t t);
 

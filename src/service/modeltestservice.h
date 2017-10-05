@@ -79,7 +79,7 @@ public:
   bool print_selection(modeltest::ModelSelection const& selection,
                        std::ostream  &out = std::cout) const;
 
-  void print_command_lines(modeltest::ModelSelection const& selection,
+  void print_command_lines(modeltest::Model const& model,
                            std::string const& msa_filename = "MSA_FILENAME",
                            std::ostream  &out = std::cout) const;
 
@@ -108,7 +108,10 @@ public:
   std::string get_paup_command_line(modeltest::Model const& model,
                       std::string const& msa_filename = "MSA_FILENAME") const;
 
-  std::string get_raxml_command_line(modeltest::Model const& model,
+  std::string get_raxml8_command_line(modeltest::Model const& model,
+                      std::string const& msa_filename = "MSA_FILENAME") const;
+
+  std::string get_raxmlng_command_line(modeltest::Model const& model,
                       std::string const& msa_filename = "MSA_FILENAME") const;
 
   std::string get_phyml_command_line(modeltest::Model const& model,

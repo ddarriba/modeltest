@@ -308,6 +308,16 @@ void Model::set_alpha(double value)
   param_gamma->set_alpha(value);
 }
 
+const mt_size_t * Model::get_asc_weights( void ) const
+{
+  return asc_weights;
+}
+
+asc_bias_t Model::get_asc_bias_corr( void ) const
+{
+  return asc_bias_corr;
+}
+
 mt_size_t Model::get_n_states( void ) const
 {
   return n_frequencies;
@@ -646,13 +656,20 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     {
         ss_name << dna_model_matrices[matrix_index];
         if (is_F())
-            ss_name << "[F]";
+        {
+          ss_name << "[F]";
+        }
     }
 
     if (optimize_pinv)
-        ss_name << "+I";
+    {
+      ss_name << "+I";
+    }
     if (optimize_gamma)
-        ss_name << "+G";
+    {
+      ss_name << "+G";
+    }
+
     name = ss_name.str();
 
     n_free_variables = param_substrates->get_n_free_parameters();

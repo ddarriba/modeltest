@@ -128,15 +128,16 @@ bool ModelTestService::print_selection(ModelSelection const& selection,
     return true;
 }
 
-void ModelTestService::print_command_lines(modeltest::ModelSelection const& selection,
+void ModelTestService::print_command_lines(modeltest::Model const& model,
                                            std::string const& msa_filename,
                                            std::ostream  &out) const
 {
   out << "Commands:" << endl;
-  out << "  > phyml " << get_phyml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
-  out << "  > raxmlHPC-SSE3 " << get_raxml_command_line(*(selection.get_model(0).model), msa_filename) << endl;
-  out << "  > paup " << get_paup_command_line(*(selection.get_model(0).model), msa_filename) << endl;
-  out << "  > iqtree " << get_iqtree_command_line(*(selection.get_model(0).model), msa_filename) << endl;
+  out << "  > phyml " << get_phyml_command_line(model, msa_filename) << endl;
+  out << "  > raxmlHPC-SSE3 " << get_raxml8_command_line(model, msa_filename) << endl;
+  out << "  > raxml-ng " << get_raxmlng_command_line(model, msa_filename) << endl;
+  out << "  > paup " << get_paup_command_line(model, msa_filename) << endl;
+  out << "  > iqtree " << get_iqtree_command_line(model, msa_filename) << endl;
 }
 
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const
@@ -404,7 +405,7 @@ string ModelTestService::get_paup_command_line(Model const& model,
     return paup_args.str();
 }
 
-string ModelTestService::get_raxml_command_line(Model const& model,
+string ModelTestService::get_raxml8_command_line(Model const& model,
                                                 string const& msa_filename) const
 {
     stringstream raxml_args;
@@ -453,6 +454,76 @@ string ModelTestService::get_raxml_command_line(Model const& model,
     }
     raxml_args << " -n EXEC_NAME";
     raxml_args << " -p PARSIMONY_SEED";
+
+    return raxml_args.str();
+}
+
+string ModelTestService::get_raxmlng_command_line(Model const& model,
+                                                string const& msa_filename) const
+{
+    stringstream raxml_args;
+
+    mt_index_t matrix_index = model.get_matrix_index();
+
+    raxml_args << "--msa " << msa_filename;
+
+    raxml_args << " --model ";
+    if (model.get_datatype() == dt_dna)
+    {
+       /* matrix name */
+       mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
+                                        dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
+                                        matrix_index) - dna_model_matrices_indices);
+       if (standard_matrix_index < N_DNA_MODEL_MATRICES)
+       {
+           raxml_args << dna_model_names[2 * standard_matrix_index + (model.is_F()?1:0)];
+       }
+       else
+       {
+           raxml_args << dna_model_matrices[matrix_index];
+           if (model.is_F())
+           {
+             raxml_args << "+F0";
+           }
+       }
+
+       if (model.is_I())
+          raxml_args << "+I";
+
+       if (model.is_G())
+          raxml_args << "+G" << model.get_n_categories();
+    }
+    else
+    {
+        raxml_args << prot_model_names[matrix_index];;
+        if (model.is_I())
+            raxml_args << "I";
+        if (model.is_G())
+           raxml_args << "+G" << model.get_n_categories();
+        if (model.is_F())
+            raxml_args << "+F";
+    }
+
+    if (model.get_asc_bias_corr() == asc_lewis)
+    {
+      raxml_args << "+ASC_LEWIS";
+    }
+    else if (model.get_asc_bias_corr() == asc_felsenstein)
+    {
+      const mt_size_t * asc_weights = model.get_asc_weights();
+      raxml_args << "+ASC_FELS{" << asc_weights[0] << "}";
+    }
+    else if (model.get_asc_bias_corr() == asc_stamatakis)
+    {
+      const mt_size_t * asc_weights = model.get_asc_weights();
+      raxml_args << "+ASC_STAM{";
+      raxml_args << asc_weights[0];
+      for (mt_index_t i=1; i<model.get_n_states(); ++i)
+      {
+        raxml_args << "/" << asc_weights[i];
+      }
+      raxml_args << "}";
+    }
 
     return raxml_args.str();
 }

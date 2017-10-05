@@ -555,6 +555,26 @@ bool ModelTest::build_instance(mt_options_t & options)
       return false;
     }
 
+    /* check frequencies */
+    for (mt_index_t j=0; j<stats.states; ++j)
+    {
+      if (stats.freqs[j] == 0.0)
+      {
+        LOG_ERR << "Error: State " << j << " is missing in the alignment" << endl;
+        mt_errno = MT_ERROR_FREQUENCIES;
+        snprintf(mt_errmsg, ERR_MSG_SIZE, "There are missing states in the alignment");
+        return false;
+      }
+    }
+
+    if (stats.gap_cols_count > 0)
+    {
+      if (options.compress_patterns)
+        LOG_WARN << "WARNING: There are undetermined columns in the alignment (only gaps)" << endl;
+      else
+        LOG_WARN << "WARNING: There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+    }
+
     if (stats.dup_seqs_pairs_count > 0)
     {
       for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)

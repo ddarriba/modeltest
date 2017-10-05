@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.50])
-AC_INIT(modeltest-ng, 0.1.1, diego.darriba@h-its.org)
+AC_INIT(modeltest-ng, 0.1.2, diego.darriba@h-its.org)
 AM_INIT_AUTOMAKE([subdir-objects])
 
 CXXFLAGS="-g -O3 -Wall"
@@ -41,6 +41,7 @@ else
 fi
 
 AC_ARG_ENABLE(static, AS_HELP_STRING([--enable-static], [Build static binary]), [build_static=yes])
+AC_ARG_ENABLE(subdir, AS_HELP_STRING([--enable-subdir], [Locate pll in include/libpll directory]), [have_prefix=yes])
 
 AM_CONDITIONAL(PLL_PREFIX, test "x$have_prefix" = "xyes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
