@@ -173,6 +173,16 @@ void Logging::log_to_stream (std::ostream& os)
   ostreams_.push_back (&os);
 }
 
+void Logging::disable_stdout ()
+{
+  std::vector<std::ostream*>::iterator it = ostreams_.begin();
+  for( ; it != ostreams_.end(); it++)
+  {
+      ostreams_.erase(it);
+      return;
+  }
+}
+
 /**
  * @brief Add an output file to which log messages are written.
  *

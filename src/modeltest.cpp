@@ -34,6 +34,7 @@
 #include <algorithm>
 
 #define CKP_HEAD_ID 0xFFFFFF42 /* arbirary id */
+#define MAX_DISPLAY_WARNINGS 40
 
 namespace modeltest {
 
@@ -501,6 +502,9 @@ static bool eval_ckp(mt_options_t & options,
 
 bool ModelTest::build_instance(mt_options_t & options)
 {
+  mt_size_t warning_count = 0;
+  bool warning_enable_stdout = true;
+
   free_stuff ();
   create_instance ();
 
@@ -538,16 +542,17 @@ bool ModelTest::build_instance(mt_options_t & options)
   options.partitions_eff = current_instance->msa->get_scheme();
   current_instance->partitions_eff = options.partitions_eff;
 
-  /* validate MSA */
+  /* validate MSA [1] check for errors and count warnings */
   for (mt_index_t i=0; i<options.partitions_eff->size(); ++i)
   {
     msa_stats_t const& stats = current_instance->msa->get_stats(i);
+    string part_header("Partition " + options.partitions_eff->at(i).partition_name + ": ");
 
     if (stats.dup_taxa_pairs_count > 0)
     {
       LOG_ERR << stats.dup_taxa_pairs_count << endl;
       for (mt_index_t j=0; j<stats.dup_taxa_pairs_count; ++j)
-        LOG_ERR << "Error: sequences " << stats.dup_taxa_pairs[2*j] + 1 << " and "
+        LOG_ERR << "Error: " << part_header << "sequences " << stats.dup_taxa_pairs[2*j] + 1 << " and "
                 << stats.dup_taxa_pairs[2*j+1] + 1 << " have the same header: "
                 << current_instance->msa->get_header(stats.dup_taxa_pairs[2*j])
                 << endl;
@@ -561,7 +566,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     {
       if (stats.freqs[j] == 0.0)
       {
-        LOG_ERR << "Error: State " << j << " is missing in the alignment" << endl;
+        LOG_ERR << "Error: " << part_header << "State " << j << " is missing in the alignment" << endl;
         mt_errno = MT_ERROR_FREQUENCIES;
         snprintf(mt_errmsg, ERR_MSG_SIZE, "There are missing states in the alignment");
         return false;
@@ -570,38 +575,64 @@ bool ModelTest::build_instance(mt_options_t & options)
 
     if (stats.gap_cols_count > 0)
     {
+      ++warning_count;
       if (options.compress_patterns)
-        LOG_WARN << "WARNING: There are undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << "WARNING: " << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
       else
-        LOG_WARN << "WARNING: There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << "WARNING: " << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+      if (warning_enable_stdout && warning_count > MAX_DISPLAY_WARNINGS)
+      {
+        genesis::utils::Logging::disable_stdout();
+        warning_enable_stdout = false;
+      }
     }
 
-    if (stats.dup_seqs_pairs_count > 0)
+    warning_count += stats.dup_seqs_pairs_count;
+    if (warning_enable_stdout && warning_count > MAX_DISPLAY_WARNINGS)
     {
-      for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
-        LOG_WARN << "WARNING: Sequences "
-          << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j])
-          << " and "
-          << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j+1])
-          << " are identical" << endl;
+      genesis::utils::Logging::disable_stdout();
+      warning_enable_stdout = false;
     }
+    for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
+      LOG_WARN << "WARNING: " << part_header << "Sequences "
+        << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j])
+        << " and "
+        << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j+1])
+        << " are identical" << endl;
 
-    if (stats.gap_seqs_count > 0)
+    warning_count += stats.gap_seqs_count;
+    if (warning_enable_stdout && warning_count > MAX_DISPLAY_WARNINGS)
     {
-      for (mt_index_t j=0; j<stats.gap_seqs_count; ++j)
-        LOG_WARN << "WARNING: Sequence "
-                 << current_instance->msa->get_header(stats.gap_seqs[j])
-                 << " contains only gaps"
-                 << endl;
+      genesis::utils::Logging::disable_stdout();
+      warning_enable_stdout = false;
     }
+    for (mt_index_t j=0; j<stats.gap_seqs_count; ++j)
+      LOG_WARN << "WARNING: " << part_header << "Sequence "
+               << current_instance->msa->get_header(stats.gap_seqs[j])
+               << " contains only gaps"
+               << endl;
 
     if (stats.gap_cols_count > 0)
     {
+      ++warning_count;
+      if (warning_enable_stdout && warning_count > MAX_DISPLAY_WARNINGS)
+      {
+        genesis::utils::Logging::disable_stdout();
+        warning_enable_stdout = false;
+      }
       if (options.compress_patterns)
-        LOG_WARN << "WARNING: There are undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << "WARNING: " << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
       else
-        LOG_WARN << "WARNING: There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << "WARNING: " << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
     }
+  }
+
+  if (!warning_enable_stdout)
+  {
+    genesis::utils::Logging::log_to_stream(cout);
+    cout << "WARNING: ... There are "
+        << warning_count - MAX_DISPLAY_WARNINGS << " more warnings. "
+        << "Check the log file for details" << endl;
   }
 
   // {

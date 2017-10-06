@@ -443,6 +443,8 @@ public:
     static void log_to_stream (std::ostream& os);
     static void log_to_file   (const std::string& fn);
 
+    static void disable_stdout ();
+
     static void err_to_stdout ();
     static void err_to_stderr ();
     static void err_to_stream (std::ostream& os);
