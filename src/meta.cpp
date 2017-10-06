@@ -888,7 +888,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       exec_opt.output_models_file.append(OUTPUT_MODELS_SUFFIX);
       exec_opt.output_topos_file.append(OUTPUT_TOPOS_SUFFIX);
       exec_opt.output_raxml_part_file.append(OUTPUT_RAXML_PART_SUFFIX);
-      
+
       exec_opt.output_tree_to_file = (exec_opt.starting_tree != tree_user_fixed);
 
       //TODO: Temporary checkpoint enabled by default
@@ -942,7 +942,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       {
           LOG_ERR << PACKAGE << ": - Remove the existing files, or" << endl;
           LOG_ERR << PACKAGE << ": - Select a different output basename (-o argument), or" << endl;
-          LOG_ERR << PACKAGE << ": - Fore overriding (--force argument)" << endl;
+          LOG_ERR << PACKAGE << ": - Force overriding (--force argument)" << endl;
+
+          modeltest::mt_errno = MT_ERROR_IGNORE;
           params_ok = false;
       }
     }

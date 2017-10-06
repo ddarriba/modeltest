@@ -37,6 +37,3 @@ endif
 
 modeltest_ng_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
 
-if PLL_PREFIX
-  modeltest_ng_CPPFLAGS += -DPLL_PREFIX
-endif

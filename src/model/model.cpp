@@ -1026,6 +1026,8 @@ int DnaModel::output_bin(std::string const& bin_filename) const
   int write_ok;
   FILE * bin_file;
 
+  std::unique_lock<std::mutex> lock(model_mutex);
+
   bin_file = pllmod_binary_append_open(bin_filename.c_str(), &input_header);
   if (!bin_file)
     return false;
@@ -1504,6 +1506,8 @@ int ProtModel::output_bin(std::string const& bin_filename) const
   const double * frequencies = get_frequencies();
   int write_ok;
   FILE * bin_file;
+
+  std::unique_lock<std::mutex> lock(model_mutex);
 
   bin_file = pllmod_binary_append_open(bin_filename.c_str(), &input_header);
   if (!bin_file)

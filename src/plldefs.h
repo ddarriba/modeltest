@@ -23,21 +23,12 @@
 #define PLLDEFS_H_
 
 extern "C" {
-#ifndef PLL_PREFIX
-#include <pll_tree.h>
-#include <pll_msa.h>
-#include <pllmod_util.h>
-#include <pll_optimize.h>
-#include <pll_binary.h>
-#include <pllmod_algorithm.h>
-#else
 #include <libpll/pll_tree.h>
 #include <libpll/pll_msa.h>
 #include <libpll/pllmod_util.h>
 #include <libpll/pll_optimize.h>
 #include <libpll/pll_binary.h>
 #include <libpll/pllmod_algorithm.h>
-#endif
 
 typedef unsigned int pll_index_t;
 }

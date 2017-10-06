@@ -1,0 +1,8 @@
+* release 0.1.2
+
+  - Added RAxML-NG compatibility
+    - Output RAxML-NG command line
+    - Output RAxML-NG partition files with assigned models
+  - Removed option for PLL header files without "libpll" prefix
+  - Fixed typos
+  - Fixed race condition writing checkpoint files

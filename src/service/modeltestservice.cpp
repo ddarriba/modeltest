@@ -28,6 +28,8 @@
 using namespace modeltest;
 using namespace std;
 
+static string raxmlng_name(Model const& model);
+
 ModelTestService::~ModelTestService()
 {
     destroy_instance();
@@ -138,6 +140,29 @@ void ModelTestService::print_command_lines(modeltest::Model const& model,
   out << "  > raxml-ng " << get_raxmlng_command_line(model, msa_filename) << endl;
   out << "  > paup " << get_paup_command_line(model, msa_filename) << endl;
   out << "  > iqtree " << get_iqtree_command_line(model, msa_filename) << endl;
+}
+
+void ModelTestService::print_raxml_partitions(
+                              const partitioning_scheme_t & partitions,
+                              const vector<modeltest::selection_model> & models,
+                              std::ostream  &out) const
+{
+  assert(partitions.size() == models.size());
+
+  for (mt_index_t i=0; i < partitions.size(); ++i)
+  {
+    out << models[i].model->get_name();
+    out << ", " << partitions[i].partition_name << " = ";
+    for (mt_index_t j=0; j<partitions[i].regions.size(); ++j)
+    {
+      if (j>0) out << ", ";
+      partition_region_t region = partitions[i].regions[j];
+      out << region.start << "-" << region.end;
+      if (region.stride > 1)
+        out << "\\" << region.stride;
+    }
+    out << endl;
+  }
 }
 
 mt_size_t ModelTestService::get_number_of_models(partition_id_t const& part_id) const
@@ -463,67 +488,10 @@ string ModelTestService::get_raxmlng_command_line(Model const& model,
 {
     stringstream raxml_args;
 
-    mt_index_t matrix_index = model.get_matrix_index();
-
     raxml_args << "--msa " << msa_filename;
 
-    raxml_args << " --model ";
-    if (model.get_datatype() == dt_dna)
-    {
-       /* matrix name */
-       mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
-                                        dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
-                                        matrix_index) - dna_model_matrices_indices);
-       if (standard_matrix_index < N_DNA_MODEL_MATRICES)
-       {
-           raxml_args << dna_model_names[2 * standard_matrix_index + (model.is_F()?1:0)];
-       }
-       else
-       {
-           raxml_args << dna_model_matrices[matrix_index];
-           if (model.is_F())
-           {
-             raxml_args << "+F0";
-           }
-       }
+    raxml_args << " --model " << raxmlng_name(model);
 
-       if (model.is_I())
-          raxml_args << "+I";
-
-       if (model.is_G())
-          raxml_args << "+G" << model.get_n_categories();
-    }
-    else
-    {
-        raxml_args << prot_model_names[matrix_index];;
-        if (model.is_I())
-            raxml_args << "I";
-        if (model.is_G())
-           raxml_args << "+G" << model.get_n_categories();
-        if (model.is_F())
-            raxml_args << "+F";
-    }
-
-    if (model.get_asc_bias_corr() == asc_lewis)
-    {
-      raxml_args << "+ASC_LEWIS";
-    }
-    else if (model.get_asc_bias_corr() == asc_felsenstein)
-    {
-      const mt_size_t * asc_weights = model.get_asc_weights();
-      raxml_args << "+ASC_FELS{" << asc_weights[0] << "}";
-    }
-    else if (model.get_asc_bias_corr() == asc_stamatakis)
-    {
-      const mt_size_t * asc_weights = model.get_asc_weights();
-      raxml_args << "+ASC_STAM{";
-      raxml_args << asc_weights[0];
-      for (mt_index_t i=1; i<model.get_n_states(); ++i)
-      {
-        raxml_args << "/" << asc_weights[i];
-      }
-      raxml_args << "}";
-    }
 
     return raxml_args.str();
 }
@@ -579,4 +547,72 @@ void ModelTestService::finalize()
     #if(MPI_ENABLED)
         MPI_Finalize();
     #endif
+}
+
+
+/* static */
+
+static string raxmlng_name(Model const& model)
+{
+  stringstream modelname;
+  mt_index_t matrix_index = model.get_matrix_index();
+
+  if (model.get_datatype() == dt_dna)
+  {
+     /* matrix name */
+     mt_index_t standard_matrix_index = (mt_index_t) (find(dna_model_matrices_indices,
+                                      dna_model_matrices_indices + N_DNA_MODEL_MATRICES,
+                                      matrix_index) - dna_model_matrices_indices);
+     if (standard_matrix_index < N_DNA_MODEL_MATRICES)
+     {
+         modelname << dna_model_names[2 * standard_matrix_index + (model.is_F()?1:0)];
+     }
+     else
+     {
+         modelname << dna_model_matrices[matrix_index];
+         if (model.is_F())
+         {
+           modelname << "+F0";
+         }
+     }
+
+     if (model.is_I())
+        modelname << "+I";
+
+     if (model.is_G())
+        modelname << "+G" << model.get_n_categories();
+  }
+  else
+  {
+      modelname << prot_model_names[matrix_index];;
+      if (model.is_I())
+        modelname << "I";
+      if (model.is_G())
+        modelname << "+G" << model.get_n_categories();
+      if (model.is_F())
+        modelname << "+F";
+  }
+
+  if (model.get_asc_bias_corr() == asc_lewis)
+  {
+    modelname << "+ASC_LEWIS";
+  }
+  else if (model.get_asc_bias_corr() == asc_felsenstein)
+  {
+    const mt_size_t * asc_weights = model.get_asc_weights();
+    modelname << "+ASC_FELS{" << asc_weights[0] << "}";
+  }
+  else if (model.get_asc_bias_corr() == asc_stamatakis)
+  {
+    const mt_size_t * asc_weights = model.get_asc_weights();
+    modelname << "+ASC_STAM{";
+    modelname << asc_weights[0];
+    for (mt_index_t i=1; i<model.get_n_states(); ++i)
+    {
+      modelname << "/" << asc_weights[i];
+    }
+    modelname << "}";
+  }
+
+  return modelname.str();
 }

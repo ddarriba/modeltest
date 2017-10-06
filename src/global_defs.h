@@ -26,6 +26,7 @@
 #include <vector>
 #include <climits>
 #include <iomanip>
+#include <mutex>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,6 +42,8 @@
 #define MPI_ENABLED 0
 #define BARRIER
 #endif
+
+#define ENABLE_DT_OUTPUT 0
 
 #ifndef __has_cpp_attribute         // Optional of course.
   #define __has_cpp_attribute(x) 0  // Compatibility with non-clang compilers.
@@ -99,6 +102,8 @@ namespace modeltest
   extern double pinv_guess;
   extern double alpha_inv_guess;
   extern double pinv_alpha_guess;
+
+  extern std::mutex model_mutex;
 
   extern int verbosity;
   extern time_t global_ini_time;

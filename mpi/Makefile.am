@@ -79,9 +79,4 @@ else
   modeltest_mpi_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
 endif
 
-
-if PLL_PREFIX
-  modeltest_mpi_CPPFLAGS += -DPLL_PREFIX
-endif
-
 endif

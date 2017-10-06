@@ -43,6 +43,7 @@ double alpha_guess = 1.0;
 double pinv_guess  = 1.0;
 double alpha_inv_guess  = 1.0;
 double pinv_alpha_guess = 1.0;
+std::mutex model_mutex;
 int verbosity = VERBOSITY_DEFAULT;
 time_t global_ini_time = time(NULL);
 

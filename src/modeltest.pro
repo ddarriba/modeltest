@@ -122,12 +122,6 @@ pll_local {
   LIBS += -Lbuild/lib
 } else {
   message(link to pll global)
-  pll_prefix {
-      QMAKE_CXXFLAGS += -DPLL_PREFIX
-      message(pll headers expected to be in 'libpll' subdirectory)
-  } else {
-      message(pll headers expected to be directly in the include path)
-  }
 }
 
 pll_dyn {

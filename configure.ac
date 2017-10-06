@@ -22,28 +22,12 @@ AC_PROG_CPP
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([pthread], [pthread_create])
 
-#AC_CHECK_HEADERS([pll.h], [], [
-#    AC_CHECK_HEADERS([libpll/pll.h], [
-#      have_prefix=yes
-#    ], [
-#      AC_MSG_ERROR([pll.h not found])
-#    ])])
-if test "x$have_prefix" = "xyes"; then
-  AC_CHECK_HEADERS([libpll/pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
-  AC_CHECK_HEADERS([libpll/pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
-  AC_CHECK_HEADERS([libpll/pll_optimize.h], [], [AC_MSG_ERROR([pll_optimize.h not found])])
-  AC_CHECK_HEADERS([libpll/pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
-else
-  AC_CHECK_HEADERS([pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
-  AC_CHECK_HEADERS([pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
-  AC_CHECK_HEADERS([pll_optimize.h], [], [AC_MSG_ERROR([pll_optimize.h not found])])
-  AC_CHECK_HEADERS([pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
-fi
+AC_CHECK_HEADERS([libpll/pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
+AC_CHECK_HEADERS([libpll/pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
+AC_CHECK_HEADERS([libpll/pll_optimize.h], [], [AC_MSG_ERROR([pll_optimize.h not found])])
+AC_CHECK_HEADERS([libpll/pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])])
 
 AC_ARG_ENABLE(static, AS_HELP_STRING([--enable-static], [Build static binary]), [build_static=yes])
-AC_ARG_ENABLE(subdir, AS_HELP_STRING([--enable-subdir], [Locate pll in include/libpll directory]), [have_prefix=yes])
-
-AM_CONDITIONAL(PLL_PREFIX, test "x$have_prefix" = "xyes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
 AM_CONDITIONAL(BUILD_STATIC, test "x$build_static" = "xyes")
 

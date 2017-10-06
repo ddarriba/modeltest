@@ -75,7 +75,7 @@ public:
           asc_bias_t asc_bias_corr = asc_none);
     Model( void );
     virtual ~Model();
-
+    
     /**
      * @brief Clones all parameters from another model
      * @param other the other model

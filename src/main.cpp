@@ -124,7 +124,9 @@ int main(int argc, char *argv[])
           }
           else
           {
-            modeltest::Utils::exit_with_error("Invalid arguments");
+            modeltest::Utils::exit_with_error(
+              "Invalid arguments\nTry `%s --help` for more information",
+              PACKAGE);
           }
         }
 
@@ -190,7 +192,12 @@ int main(int argc, char *argv[])
                  << PACKAGE << " --usage' for more information" << endl;
         }
 
-        vector<map<modeltest::ic_type, modeltest::selection_model>> best_models(opts.partitions_eff->size());
+        // vector<map<modeltest::ic_type, modeltest::selection_model>> best_models(opts.partitions_eff->size());
+        map<modeltest::ic_type, vector<modeltest::selection_model>> best_models;
+        best_models[modeltest::ic_bic].resize(opts.partitions_eff->size());
+        best_models[modeltest::ic_aic].resize(opts.partitions_eff->size());
+        best_models[modeltest::ic_aicc].resize(opts.partitions_eff->size());
+        best_models[modeltest::ic_dt].resize(opts.partitions_eff->size());
 
         ofstream * results_stream = 0;
 
@@ -222,66 +229,67 @@ int main(int argc, char *argv[])
                            modeltest::Utils::format_time(time(NULL) - ini_global_time) << endl;
 
               modeltest::ModelSelection * bic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_bic);
-              best_models[i][modeltest::ic_bic] = bic_selection->get_model(0);
+              best_models[modeltest::ic_bic][i] = bic_selection->get_model(0);
               ModelTestService::instance()->print_selection(*bic_selection, MT_INFO);
-              ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_bic].model,
+              ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_bic][i].model,
                                                                 opts.msa_filename,
                                                                 MT_INFO);
               if (results_stream)
               {
                   ModelTestService::instance()->print_selection(*bic_selection, *results_stream);
-                  ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_bic].model,
+                  ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_bic][i].model,
                                                                     opts.msa_filename,
                                                                     *results_stream);
               }
 
               modeltest::ModelSelection * aic_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aic);
-              best_models[i][modeltest::ic_aic] = aic_selection->get_model(0);
+              best_models[modeltest::ic_aic][i] = aic_selection->get_model(0);
               ModelTestService::instance()->print_selection(*aic_selection, MT_INFO);
-              ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_aic].model,
+              ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_aic][i].model,
                                                                 opts.msa_filename,
                                                                 MT_INFO);
               if (results_stream)
               {
                   ModelTestService::instance()->print_selection(*aic_selection, *results_stream);
-                  ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_aic].model,
+                  ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_aic][i].model,
                                                                     opts.msa_filename,
                                                                     *results_stream);
               }
 
               modeltest::ModelSelection * aicc_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_aicc);
-              best_models[i][modeltest::ic_aicc] = aicc_selection->get_model(0);
+              best_models[modeltest::ic_aicc][i] = aicc_selection->get_model(0);
               ModelTestService::instance()->print_selection(*aicc_selection, MT_INFO);
-              ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_aicc].model,
+              ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_aicc][i].model,
                                                                 opts.msa_filename,
                                                                 MT_INFO);
               if (results_stream)
               {
                 ModelTestService::instance()->print_selection(*aicc_selection, *results_stream);
-                ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_aicc].model,
+                ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_aicc][i].model,
                                                                   opts.msa_filename,
                                                                   *results_stream);
               }
 
+#if(ENABLE_DT_OUTPUT)
               /* ignore DT if topology is not fixed */
               if (opts.starting_tree != tree_ml)
               {
                   modeltest::ModelSelection * dt_selection = ModelTestService::instance()->select_models(part_id, modeltest::ic_dt);
-                  best_models[i][modeltest::ic_dt] = dt_selection->get_model(0);
+                  best_models[modeltest::ic_dt][i] = dt_selection->get_model(0);
                   ModelTestService::instance()->print_selection(*dt_selection, MT_INFO);
-                  ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_dt].model,
+                  ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_dt][i].model,
                                                                     opts.msa_filename,
                                                                     MT_INFO);
                   if (results_stream)
                   {
                       ModelTestService::instance()->print_selection(*dt_selection, *results_stream);
-                      ModelTestService::instance()->print_command_lines(*best_models[i][modeltest::ic_dt].model,
+                      ModelTestService::instance()->print_command_lines(*best_models[modeltest::ic_dt][i].model,
                                                                         opts.msa_filename,
                                                                         *results_stream);
                   }
                   delete dt_selection;
               }
-
+#endif
               /* topological summary */
               ModelTestService::instance()->topological_summary(part_id,
                                                                 *bic_selection,
@@ -317,17 +325,62 @@ int main(int argc, char *argv[])
           {
               MT_INFO <<  endl << "Partition " << i+1 << "/" << opts.partitions_eff->size() << ":" << endl;
               modeltest::ModelSelection::print_inline_header(MT_INFO);
-              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[i][modeltest::ic_bic], MT_INFO);
-              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[i][modeltest::ic_aic], MT_INFO);
-              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[i][modeltest::ic_aicc], MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_bic, best_models[modeltest::ic_bic][i], MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aic, best_models[modeltest::ic_aic][i], MT_INFO);
+              modeltest::ModelSelection::print_inline_best_model(modeltest::ic_aicc, best_models[modeltest::ic_aicc][i], MT_INFO);
+#if(ENABLE_DT_OUTPUT)
               if (opts.starting_tree != tree_ml)
-                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[i][modeltest::ic_dt], MT_INFO);
+                modeltest::ModelSelection::print_inline_best_model(modeltest::ic_dt, best_models[modeltest::ic_dt][i], MT_INFO);
+#endif
+          }
+
+          if (opts.partitions_eff->size() > 1)
+          {
+            ofstream * parts_stream = 0;
+            parts_stream = modeltest::Utils::open_file_for_writing(
+              opts.output_raxml_part_file + ".bic");
+            ModelTestService::instance()->print_raxml_partitions(
+              *opts.partitions_desc,
+              best_models[modeltest::ic_bic],
+              *parts_stream);
+            parts_stream->close();
+
+            parts_stream = modeltest::Utils::open_file_for_writing(
+              opts.output_raxml_part_file + ".aic");
+            ModelTestService::instance()->print_raxml_partitions(
+              *opts.partitions_desc,
+              best_models[modeltest::ic_aic],
+              *parts_stream);
+            parts_stream->close();
+
+            parts_stream = modeltest::Utils::open_file_for_writing(
+              opts.output_raxml_part_file + ".aicc");
+            ModelTestService::instance()->print_raxml_partitions(
+              *opts.partitions_desc,
+              best_models[modeltest::ic_aicc],
+              *parts_stream);
+            parts_stream->close();
+
+#if(ENABLE_DT_OUTPUT)
+            parts_stream = modeltest::Utils::open_file_for_writing(
+              opts.output_raxml_part_file + ".dt");
+            ModelTestService::instance()->print_raxml_partitions(
+              *opts.partitions_desc,
+              best_models[modeltest::ic_dt],
+              *parts_stream);
+            parts_stream->close();
+#endif
           }
 
           MT_INFO << endl;
-          MT_INFO << "Execution results written to " << opts.output_results_file << endl;
+          if (opts.partitions_eff->size() > 1)
+            MT_INFO << "Result partition files written to "
+                    << opts.output_raxml_part_file << ".*" << endl;
+          MT_INFO << "Execution results written to "
+                  << opts.output_results_file << endl;
           if (opts.output_tree_to_file)
-              MT_INFO << "Starting tree written to " << opts.output_tree_file << endl;
+              MT_INFO << "Starting tree written to "
+                      << opts.output_tree_file << endl;
           //MT_INFO << "Log written to " << opts.output_log_file << endl;
 
           /* clean */
