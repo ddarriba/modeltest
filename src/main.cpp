@@ -152,7 +152,13 @@ int main(int argc, char *argv[])
         }
 
         Meta::print_system_info(MT_INFO);
-        MT_INFO << endl;
+        MT_INFO << endl << flush;
+
+        if (!ModelTestService::instance()->create_instance(opts))
+        {
+            LOG_ERR << PACKAGE << ": " << modeltest::mt_errmsg << endl;
+            return (int)modeltest::mt_errno;
+        }
 
         Meta::print_options(opts, MT_INFO);
         MT_INFO << PACKAGE << " was called as follows: " << endl << ">> ";
@@ -164,12 +170,6 @@ int main(int argc, char *argv[])
 
         MT_INFO << flush;
         LOG_INFO << flush;
-
-        if (!ModelTestService::instance()->create_instance(opts))
-        {
-            LOG_ERR << PACKAGE << ": " << modeltest::mt_errmsg << endl;
-            return (int)modeltest::mt_errno;
-        }
 
         if (mpi_numprocs > 1 && n_procs > 1)
         {

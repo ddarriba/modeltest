@@ -32,7 +32,7 @@ modeltest_ng_CPPFLAGS = -D_NO_GUI_ -g -O3 -std=c++11 -Wall -DPTHREADS
 modeltest_ng_CPPFLAGS += -DHAVE_PTHREADS
 
 if BUILD_STATIC
-  modeltest_ng_LDFLAGS = -static -static-libstdc++
+  modeltest_ng_LDFLAGS = -static -static-libstdc++ -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 endif
 
 modeltest_ng_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll

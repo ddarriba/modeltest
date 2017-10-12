@@ -648,6 +648,7 @@ namespace modeltest
           new_region.stride = 1;
           partition.regions.clear();
           partition.regions.push_back(new_region);
+          partition.site_patterns = compressed_length;
       }
 
       assert (!weights);

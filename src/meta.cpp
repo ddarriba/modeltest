@@ -73,6 +73,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.starting_tree   = tree_mp;
     exec_opt.force_override  = false;
     exec_opt.asc_bias_corr   = asc_none;
+    exec_opt.write_checkpoint = true;
     memset(exec_opt.asc_weights, 0, sizeof(mt_size_t) * MT_MAX_STATES);
 
     static struct option long_options[] =
@@ -101,6 +102,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "psearch", required_argument,      0,  3 },
         { "smooth-frequencies", no_argument, 0,  4 },
         { "disable-repeats", no_argument,    0,  5 },
+        { "disable-checkpoint", no_argument, 0,  6 },
         { "eps", required_argument,          0, 10 },
         { "tol", required_argument,          0, 11 },
         { "force", no_argument,              0, 20 },
@@ -160,6 +162,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         case 5:
             /* disable subtree repeats */
             modeltest::disable_repeats = true;
+            break;
+        case 6:
+            /* disable checkpoint */
+            exec_opt.write_checkpoint = false;
             break;
         case 10:
             exec_opt.epsilon_opt = atof(optarg);
@@ -478,7 +484,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     if (!modeltest::MsaPll::test(exec_opt.msa_filename,
                                       &exec_opt.n_taxa,
                                       &exec_opt.n_sites,
-                                      exec_opt.compress_patterns?(&exec_opt.n_patterns):0,
+                                      0,//exec_opt.compress_patterns?(&exec_opt.n_patterns):0,
                                       &exec_opt.msa_format))
     {
         LOG_ERR << PACKAGE << ": Cannot parse the msa: " << exec_opt.msa_filename << endl;
@@ -486,8 +492,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         params_ok = false;
     }
 
-    if (!exec_opt.compress_patterns)
-      exec_opt.n_patterns = exec_opt.n_sites;
+    //if (!exec_opt.compress_patterns)
+    exec_opt.n_patterns = exec_opt.n_sites;
 
     /* if there are no model specifications, include all */
     mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
@@ -892,9 +898,11 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       exec_opt.output_tree_to_file = (exec_opt.starting_tree != tree_user_fixed);
 
       //TODO: Temporary checkpoint enabled by default
-      exec_opt.checkpoint_file = output_basename;
-      exec_opt.checkpoint_file.append(CHECKPOINT_SUFFIX);
-      exec_opt.write_checkpoint = true;
+      if (exec_opt.write_checkpoint)
+      {
+        exec_opt.checkpoint_file = output_basename;
+        exec_opt.checkpoint_file.append(CHECKPOINT_SUFFIX);
+      }
 
       /* validate output files */
       output_files_ok = true;
@@ -1037,7 +1045,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         out << "Random" << endl;
         break;
     }
-    out << "  " << left << setw(12) << "  file:";
+    out << "  " << left << setw(18) << "  file:";
     if (opts.tree_filename.compare(""))
     {
       out << opts.tree_filename << endl;
@@ -1047,9 +1055,31 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
       out << "-" << endl;
     }
 
-    out << "  " << left << setw(12) << "#taxa:" << opts.n_taxa << endl;
-    out << "  " << left << setw(12) << "#sites:" << opts.n_sites << endl;
-    out << "  " << left << setw(12) << "#patterns:" << opts.n_patterns << endl;
+    out << "  " << left << setw(18) << "#taxa:" << opts.n_taxa << endl;
+    out << "  " << left << setw(18) << "#sites:" << opts.n_sites << endl;
+    if (opts.partitions_eff)
+    {
+      mt_size_t n_patterns = 0;
+      mt_size_t max_memb = 0;
+      for (mt_index_t i=0; i<opts.partitions_eff->size(); ++i)
+      {
+        n_patterns += opts.partitions_eff->at(i).site_patterns;
+        mt_size_t memb = modeltest::Utils::mem_size(opts.n_taxa,
+                        opts.partitions_eff->at(i).site_patterns,
+                        opts.n_catg,
+                        opts.partitions_eff->at(i).states);
+        if (memb > max_memb)
+          max_memb = memb;
+      }
+
+      if (opts.partitions_eff->size() > 1)
+        out << "  " << left << setw(18) << "#patterns (sum):";
+      else
+        out << "  " << left << setw(18) << "#patterns:";
+      out << n_patterns << endl;
+      out << "  " << left << setw(18) << "Max. thread mem:"
+          << max_memb / (1024*1024) << " MB" << endl;
+    }
 
     out << endl << "Output:" << endl;
     out << "  " << left << setw(15) << "Log:" << opts.output_log_file << endl;
@@ -1314,6 +1344,8 @@ void Meta::print_help(std::ostream& out)
         << "sets a user tree" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --force"
         << "force output overriding" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --disable-checkpoint"
+        << "disable checkpoint writing" << endl;
 
     /************************************************************/
 

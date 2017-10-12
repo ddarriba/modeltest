@@ -18,9 +18,9 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_PROG_CPP
 
+
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
-AC_CHECK_LIB([pthread], [pthread_create])
 
 AC_CHECK_HEADERS([libpll/pll_binary.h], [], [AC_MSG_ERROR([pll_binary.h not found])])
 AC_CHECK_HEADERS([libpll/pllmod_algorithm.h], [], [AC_MSG_ERROR([pllmod_algorithm.h not found])])
@@ -29,7 +29,11 @@ AC_CHECK_HEADERS([libpll/pll_tree.h], [], [AC_MSG_ERROR([pll_tree.h not found])]
 
 AC_ARG_ENABLE(static, AS_HELP_STRING([--enable-static], [Build static binary]), [build_static=yes])
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
+
 AM_CONDITIONAL(BUILD_STATIC, test "x$build_static" = "xyes")
+if test x"$build_static" != xyes; then
+  AC_CHECK_LIB([pthread], [pthread_create])
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([cassert climits cstdin fstream iomanip iostream map string vector])

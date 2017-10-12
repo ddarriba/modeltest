@@ -392,11 +392,28 @@ static bool eval_ckp(mt_options_t & options,
     LOG_INFO << "Creating new checkpoint file: "
              << current_instance->ckp_filename << endl;
 
+    mt_size_t max_blocks = 1;
+    for (partition_descriptor_t const& partition : (*current_instance->partitions_eff))
+    {
+        if (partition.datatype == dt_dna)
+            max_blocks += 2 *
+              modeltest::Utils::number_of_models(
+                (mt_size_t)options.nt_candidate_models.size(),
+                partition.model_params);
+        else if (partition.datatype == dt_protein)
+            max_blocks += 2 *
+              modeltest::Utils::number_of_models(
+                (mt_size_t)options.aa_candidate_models.size(),
+                partition.model_params);
+        else
+            assert(0);
+    }
+
     FILE * bin_file = pllmod_binary_create(
                          current_instance->ckp_filename.c_str(),
                          &bin_header,
                          PLLMOD_BIN_ACCESS_RANDOM,
-                         2048);
+                         max_blocks);
     if (!bin_file)
     {
       LOG_ERR << "Cannot create ckp binary file: "

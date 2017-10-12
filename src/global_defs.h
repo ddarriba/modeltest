@@ -230,6 +230,7 @@ typedef struct
     data_type_t datatype;                    //! data type
     bool gap_aware;                          //! treat gaps as new state
     mt_size_t states;                        //! number of states
+    mt_size_t site_patterns;                 //! number of sites
     std::string partition_name;              //! name of the partition
     mt_mask_t model_params;                  //! model parameters
     mt_size_t n_categories;                  //! number of categories
@@ -267,6 +268,7 @@ typedef struct {
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
     mt_size_t n_patterns;    //! Number of unique patterns
+    mt_size_t max_memb;      //! Required memory estimation
 
     /* configuration */
     tree_type_t starting_tree;                    //! Starting tree type

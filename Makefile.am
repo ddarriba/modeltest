@@ -1,4 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4 --install
+AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src mpi
 EXTRA_DIST = src/modeltest.pro \
 						 example-data \
