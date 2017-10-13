@@ -22,15 +22,15 @@
 #ifndef XMODELTEST_H
 #define XMODELTEST_H
 
-#include "gui/xthreadopt.h"
-#include "gui/qdebugstream.h"
-#include "gui/mydebugstream.h"
-#include "gui/xutils.h"
+#include "../gui/xthreadopt.h"
+#include "../gui/qdebugstream.h"
+#include "../gui/mydebugstream.h"
+#include "../gui/xutils.h"
 
 /* dialogs */
-#include "gui/datainfodialog.h"
-#include "gui/modelsdialog.h"
-#include "gui/resultsdialog.h"
+#include "../gui/datainfodialog.h"
+#include "../gui/modelsdialog.h"
+#include "../gui/resultsdialog.h"
 
 #include <QMainWindow>
 #ifdef QT_WIDGETS_LIB

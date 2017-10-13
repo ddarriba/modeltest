@@ -22,10 +22,10 @@
 #ifndef MODEL_OPTIMIZER_H_
 #define MODEL_OPTIMIZER_H_
 
-#include "msa.h"
-#include "partition.h"
-#include "model/model.h"
-#include "thread/observer.h"
+#include "../msa.h"
+#include "../partition.h"
+#include "../model/model.h"
+#include "../thread/observer.h"
 
 #define EXCEPTION_INTERNAL_ERROR  301
 #define EXCEPTION_DATA_MISMATCH   302

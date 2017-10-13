@@ -22,13 +22,13 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "loggable.h"
-#include "model_defs.h"
-#include "model/parameter_pinv.h"
-#include "model/parameter_gamma.h"
-#include "model/parameter_branches.h"
-#include "model/parameter_substrates.h"
-#include "model/parameter_frequencies.h"
+#include "../loggable.h"
+#include "../model_defs.h"
+#include "parameter_pinv.h"
+#include "parameter_gamma.h"
+#include "parameter_branches.h"
+#include "parameter_substrates.h"
+#include "parameter_frequencies.h"
 
 #include <time.h>
 

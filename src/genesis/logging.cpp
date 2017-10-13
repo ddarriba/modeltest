@@ -28,8 +28,8 @@
  * @ingroup utils
  */
 
-#include "genesis/logging.h"
-#include "global_defs.h"
+#include "logging.h"
+#include "../global_defs.h"
 
 #include <fstream>
 #include <iomanip>
@@ -41,8 +41,8 @@
 #    include <mutex>
 #endif
 
-#include "genesis/string.h"
-#include "genesis/date_time.h"
+#include "string.h"
+#include "date_time.h"
 
 /* if LOG_ALL_PROCS = false, output is handled only for root process */
 #define LOG_ALL_PROCS false

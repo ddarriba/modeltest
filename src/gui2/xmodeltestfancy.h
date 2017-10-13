@@ -1,12 +1,12 @@
 #ifndef XMODELTESTFANCY_H
 #define XMODELTESTFANCY_H
 
-#include "global_defs.h"
-#include "model_selection.h"
+#include "../global_defs.h"
+#include "../model_selection.h"
 
-#include "gui/qdebugstream.h"
-#include "gui/mydebugstream.h"
-#include "gui/xthreadopt.h"
+#include "../gui/qdebugstream.h"
+#include "../gui/mydebugstream.h"
+#include "../gui/xthreadopt.h"
 
 #include <QMainWindow>
 #ifdef QT_WIDGETS_LIB

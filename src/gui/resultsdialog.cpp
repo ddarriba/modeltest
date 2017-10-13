@@ -19,10 +19,10 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/resultsdialog.h"
-#include "gui/resultsexportdialog.h"
-#include "service/modeltestservice.h"
-#include "model/model.h"
+#include "../gui/resultsdialog.h"
+#include "../gui/resultsexportdialog.h"
+#include "../service/modeltestservice.h"
+#include "../model/model.h"
 
 #include "ui_resultsdialog.h"
 

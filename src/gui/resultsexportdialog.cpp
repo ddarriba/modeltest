@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/resultsexportdialog.h"
+#include "../gui/resultsexportdialog.h"
 
 #include "ui_resultsexportdialog.h"
 

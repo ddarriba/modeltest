@@ -21,7 +21,7 @@
 #ifndef DATAINFODIALOG_H
 #define DATAINFODIALOG_H
 
-#include "global_defs.h"
+#include "../global_defs.h"
 
 #include <QWidget>
 

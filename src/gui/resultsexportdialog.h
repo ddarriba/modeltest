@@ -22,7 +22,7 @@
 #ifndef RESULTSEXPORTDIALOG_H
 #define RESULTSEXPORTDIALOG_H
 
-#include "model_selection.h"
+#include "../model_selection.h"
 
 #include <map>
 #include <vector>

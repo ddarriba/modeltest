@@ -19,9 +19,9 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "partition.h"
 #include "parameter_branches.h"
-#include "genesis/logging.h"
+#include "../partition.h"
+#include "../genesis/logging.h"
 
 #define MIN_BL 1e-4
 #define MAX_BL 5

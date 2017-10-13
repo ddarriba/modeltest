@@ -22,11 +22,11 @@
 #ifndef MODELTESTSERVICE_H
 #define MODELTESTSERVICE_H
 
-#include "modeltest.h"
-#include "global_defs.h"
-#include "model/model.h"
-#include "model_selection.h"
-#include "thread/observer.h"
+#include "../modeltest.h"
+#include "../global_defs.h"
+#include "../model/model.h"
+#include "../model_selection.h"
+#include "../thread/observer.h"
 
 #include <string>
 #include <vector>

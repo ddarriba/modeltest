@@ -22,7 +22,7 @@
 #ifndef PARAMETER_PINV_H
 #define PARAMETER_PINV_H
 
-#include "model/abstract_parameter.h"
+#include "abstract_parameter.h"
 
 namespace modeltest
 {

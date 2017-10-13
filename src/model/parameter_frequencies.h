@@ -22,7 +22,7 @@
 #ifndef PARAMETER_FREQUENCIES_H
 #define PARAMETER_FREQUENCIES_H
 
-#include "model/abstract_parameter.h"
+#include "abstract_parameter.h"
 
 #include <vector>
 

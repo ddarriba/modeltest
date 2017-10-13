@@ -22,7 +22,7 @@
 #ifndef MODELSDIALOG_H
 #define MODELSDIALOG_H
 
-#include "partitioning_scheme.h"
+#include "../partitioning_scheme.h"
 
 #include <QWidget>
 #include <QStandardItemModel>

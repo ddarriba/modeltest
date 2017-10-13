@@ -19,9 +19,9 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "model/model.h"
-#include "genesis/logging.h"
-#include "utils.h"
+#include "model.h"
+#include "../genesis/logging.h"
+#include "../utils.h"
 
 #include <cmath>
 #include <iomanip>

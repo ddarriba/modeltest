@@ -22,7 +22,7 @@
 #ifndef PARAMETER_BRANCHES_H
 #define PARAMETER_BRANCHES_H
 
-#include "model/abstract_parameter.h"
+#include "abstract_parameter.h"
 
 namespace modeltest
 {

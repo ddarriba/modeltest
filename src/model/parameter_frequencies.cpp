@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "partition.h"
-#include "model/parameter_frequencies.h"
+#include "parameter_frequencies.h"
+#include "../partition.h"
 
 #include <iostream>
 #include <iomanip>

@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "model/abstract_parameter.h"
+#include "abstract_parameter.h"
 
 namespace modeltest
 {

@@ -28,8 +28,8 @@
  * @ingroup utils
  */
 
-#include "genesis/std.h"
-#include "genesis/string.h"
+#include "std.h"
+#include "string.h"
 
 #include <algorithm>
 #include <cctype>

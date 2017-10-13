@@ -19,10 +19,10 @@
  Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
  */
 
-#include "service/checkpoint.h"
+#include "checkpoint.h"
 
-#include "utils.h"
-#include "genesis/logging.h"
+#include "../utils.h"
+#include "../genesis/logging.h"
 
 using namespace std;
 

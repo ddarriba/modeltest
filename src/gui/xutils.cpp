@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/xutils.h"
+#include "../gui/xutils.h"
 
 QString xutils::to_qstring(const char * msg, msg_level_id level)
 {

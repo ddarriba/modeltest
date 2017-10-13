@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "thread/observer.h"
+#include "observer.h"
 
 Observer::Observer() {}
 

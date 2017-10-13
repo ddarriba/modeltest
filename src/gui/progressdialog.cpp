@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/progressdialog.h"
+#include "../gui/progressdialog.h"
 
 #include "ui_progressdialog.h"
 

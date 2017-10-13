@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/xthreadopt.h"
-#include "service/modeltestservice.h"
+#include "../gui/xthreadopt.h"
+#include "../service/modeltestservice.h"
 
 #include <map>
 #include <vector>

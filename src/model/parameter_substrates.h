@@ -22,7 +22,7 @@
 #ifndef PARAMETER_SUBSTRATES_H
 #define PARAMETER_SUBSTRATES_H
 
-#include "model/abstract_parameter.h"
+#include "abstract_parameter.h"
 
 #include <vector>
 

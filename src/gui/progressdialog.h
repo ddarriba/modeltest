@@ -22,7 +22,7 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include "model/model.h"
+#include "../model/model.h"
 
 #include <QDialog>
 #include <QString>

@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "model/parameter_ratecats.h"
+#include "parameter_ratecats.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 2

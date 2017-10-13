@@ -22,9 +22,9 @@
 #ifndef XTHREADOPT_H
 #define XTHREADOPT_H
 
-#include "partitioning_scheme.h"
-#include "thread/threadpool.h"
-#include "thread/observer.h"
+#include "../partitioning_scheme.h"
+#include "../thread/threadpool.h"
+#include "../thread/observer.h"
 
 #include <qthread.h>
 

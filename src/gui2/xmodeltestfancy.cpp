@@ -19,14 +19,14 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui2/xmodeltestfancy.h"
+#include "../gui2/xmodeltestfancy.h"
+#include "../gui/xutils.h"
+
+#include "../service/modeltestservice.h"
+#include "../gui/progressdialog.h"
+#include "../meta.h"
+
 #include "ui_xmodeltestfancy.h"
-#include "gui/xutils.h"
-
-#include "service/modeltestservice.h"
-#include "gui/progressdialog.h"
-#include "meta.h"
-
 #include "ui_aboutdialog.h"
 
 #ifdef QT_WIDGETS_LIB

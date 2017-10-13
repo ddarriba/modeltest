@@ -22,8 +22,8 @@
 #ifndef CHECKPOINT_H_
 #define CHECKPOINT_H_
 
-#include "plldefs.h"
-#include "model/model.h"
+#include "../plldefs.h"
+#include "../model/model.h"
 
 typedef struct
 {

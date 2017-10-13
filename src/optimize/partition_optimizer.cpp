@@ -19,11 +19,11 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "optimize/partition_optimizer.h"
-#include "optimize/model_optimizer_pll.h"
+#include "partition_optimizer.h"
+#include "model_optimizer_pll.h"
+#include "../genesis/logging.h"
 
 #include <fstream>
-#include "genesis/logging.h"
 
 using namespace std;
 

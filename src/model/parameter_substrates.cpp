@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "partition.h"
-#include "model/parameter_substrates.h"
+#include "parameter_substrates.h"
+#include "../partition.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 100

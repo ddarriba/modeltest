@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/modelsdialog.h"
+#include "../gui/modelsdialog.h"
 
 #include "ui_modelsdialog.h"
 

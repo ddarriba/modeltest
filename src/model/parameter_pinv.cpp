@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "partition.h"
-#include "model/parameter_pinv.h"
+#include "parameter_pinv.h"
+#include "../partition.h"
 
 #define MIN_PINV 0.02
 #define MAX_PINV 0.95

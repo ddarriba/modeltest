@@ -22,8 +22,8 @@
 #ifndef ABSTRACT_PARAMETER_H
 #define ABSTRACT_PARAMETER_H
 
-#include "plldefs.h"
-#include "global_defs.h"
+#include "../plldefs.h"
+#include "../global_defs.h"
 
 #include <iostream>
 

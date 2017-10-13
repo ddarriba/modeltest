@@ -19,11 +19,11 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/xmodeltest.h"
-#include "gui/progressdialog.h"
-#include "gui/datainfodialog.h"
-#include "service/modeltestservice.h"
-#include "meta.h"
+#include "../gui/xmodeltest.h"
+#include "../gui/progressdialog.h"
+#include "../gui/datainfodialog.h"
+#include "../service/modeltestservice.h"
+#include "../meta.h"
 
 #include "ui_xmodeltest.h"
 

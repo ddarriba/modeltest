@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "model_defs.h"
-#include "service/modeltestservice.h"
+#include "modeltestservice.h"
+#include "../model_defs.h"
 
 #include <sstream>
 #include <algorithm>

@@ -19,8 +19,8 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "gui/datainfodialog.h"
-#include "gui/xutils.h"
+#include "../gui/datainfodialog.h"
+#include "../gui/xutils.h"
 
 #include "ui_datainfodialog.h"
 

@@ -22,12 +22,12 @@
 #ifndef PARTITION_OPTIMIZER_H_
 #define PARTITION_OPTIMIZER_H_
 
-#include "msapll.h"
-#include "plldefs.h"
-#include "treepll.h"
-#include "partition.h"
-#include "thread/observer.h"
-#include "thread/threadpool.h"
+#include "../msapll.h"
+#include "../plldefs.h"
+#include "../treepll.h"
+#include "../partition.h"
+#include "../thread/observer.h"
+#include "../thread/threadpool.h"
 
 namespace modeltest
 {

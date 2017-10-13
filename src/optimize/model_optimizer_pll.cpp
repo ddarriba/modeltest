@@ -19,9 +19,9 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "utils.h"
-#include "optimize/model_optimizer_pll.h"
-#include "genesis/logging.h"
+#include "model_optimizer_pll.h"
+#include "../utils.h"
+#include "../genesis/logging.h"
 
 #include <cassert>
 #include <iostream>

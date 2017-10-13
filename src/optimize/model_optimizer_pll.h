@@ -22,10 +22,10 @@
 #ifndef MODEL_OPTIMIZER_PLL_H_
 #define MODEL_OPTIMIZER_PLL_H_
 
-#include "msapll.h"
-#include "plldefs.h"
-#include "treepll.h"
-#include "optimize/model_optimizer.h"
+#include "model_optimizer.h"
+#include "../msapll.h"
+#include "../plldefs.h"
+#include "../treepll.h"
 
 #include <vector>
 

@@ -22,7 +22,7 @@
 #ifndef PARAMETER_GAMMA_H
 #define PARAMETER_GAMMA_H
 
-#include "model/parameter_ratecats.h"
+#include "parameter_ratecats.h"
 
 namespace modeltest
 {

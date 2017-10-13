@@ -22,8 +22,8 @@
 #ifndef RESULTSDIALOG_H
 #define RESULTSDIALOG_H
 
-#include "model_selection.h"
-#include "partitioning_scheme.h"
+#include "../model_selection.h"
+#include "../partitioning_scheme.h"
 
 #include <QWidget>
 #include <vector>

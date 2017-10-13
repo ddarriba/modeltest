@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "model/parameter_gamma.h"
+#include "parameter_gamma.h"
 
 #define MIN_ALPHA 0.02
 #define MAX_ALPHA 100
