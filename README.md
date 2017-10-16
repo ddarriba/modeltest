@@ -1,22 +1,22 @@
 ![ModelTest-NG](https://github.com/ddlsandbox/assets/blob/master/modeltest/img/header.png?raw=true)
 
-ModelTest-NG is a tool for selecting the best-fit model of evolution 
-for DNA and protein alignments. 
-ModelTest supersedes jModelTest and ProtTest in one single tool,
+ModelTest-NG is a tool for selecting the best-fit model of evolution
+for DNA and protein alignments.
+ModelTest-NG supersedes jModelTest and ProtTest in one single tool,
 with graphical and command console interfaces.
 
 ## Documentation
 
-If you want to read about using ModelTest-NG, a PDF manual is attached to 
-each [release](https://github.com/ddarriba/pll-modules/releases). 
-You can also browse the [wiki](https://github.com/ddarriba/pll-modules/wiki) for 
+If you want to read about using ModelTest-NG, a PDF manual is attached to
+each [release](https://github.com/ddarriba/pll-modules/releases).
+You can also browse the [wiki](https://github.com/ddarriba/pll-modules/wiki) for
 online documentation.
 
 ## Prerequisites
 
-Core model parameter optimization and likelihood evaluation depend on the 
-high-level modules for the Phylogenetic Likelihood Library. 
-The latest compatible version is linked here as a submodule, 
+Core model parameter optimization and likelihood evaluation depend on the
+high-level modules for the Phylogenetic Likelihood Library.
+The latest compatible version is linked here as a submodule,
 so if you are cloning the repository, make sure you initialize the submodules:
 
 ```bash
@@ -28,36 +28,67 @@ This step is not necessary if you downloaded the released tarball.
 
 0. Automatic Build
 
-  If you have downloaded a complete distribution, check the following files exist:
-    - libpll-x.y.z.tar.gz
-    - pll-modules-x.y.z.tar.gz
-    - build.sh
+  There are 2 ways of building ModelTest-NG:
+    - Using cmake
+    - Using autotools
 
-  Run the installer script:
+  Both should work, so choose the one is more comfortable for you. If you experience
+  any problem, please try the other one as well.
 
-  ```bash
-  $ build.sh
-  ```
+  a) Build ModelTest-NG using `cmake`:
 
-  This should extract and compile the required libraries and link them statically
-  in the ModelTest-NG binaries for console (modeltest-ng, modeltest-mpi) and GUI (modeltest-gui) if
-  a valid `qmake` is available.
+    PTHREADS version:
 
-  Note that, qmake might be available in some linux distributions, 
-  but NOT a functional QT framework. 
-  Try running `qmake`, and if you observe and error, 
-  install `qt5-default` from apt repositories:
+    ```
+    cd modeltest-ng
+    mkdir build && cd build
+    cmake ..
+    make
+    ```
 
-  ```bash
-  $ sudo apt-get install qt5-default
-  ```
+    MPI version:
 
-  The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
+    ```
+    cd modeltest-ng
+    mkdir build && cd build
+    cmake -DUSE_MPI=ON ..
+    make
+    ```
+
+    ModelTest-NG binaries will be placed in `modeltest-ng/bin` directory.
+
+  b) Build ModelTest-NG using `autotools`
+
+    If you have downloaded a complete distribution, check the following files exist:
+      - libpll-x.y.z.tar.gz
+      - pll-modules-x.y.z.tar.gz
+      - build.sh
+
+    Run the installer script:
+
+    ```bash
+    $ build.sh
+    ```
+
+    This should extract and compile the required libraries and link them statically
+    in the ModelTest-NG binaries for console (modeltest-ng, modeltest-mpi) and GUI (modeltest-gui) if
+    a valid `qmake` is available.
+
+    Note that, qmake might be available in some linux distributions,
+    but NOT a functional QT framework.
+    Try running `qmake`, and if you observe and error,
+    install `qt5-default` from apt repositories:
+
+    ```bash
+    $ sudo apt-get install qt5-default
+    ```
+
+    The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
 
 1. Graphical User Interface
 
   To install ModelTest-NG GUI type the following commands:
-  
+
   ```bash
   $ ./build_qmake-sh
   $ make -f Makefile.qmake
@@ -69,7 +100,7 @@ This step is not necessary if you downloaded the released tarball.
 2. Command Console Interface
 
   To install ModelTest-NG type the following commands:
-  
+
   ```bash
   $ ./configure [--prefix=INSTALL_DIR]
   $ make

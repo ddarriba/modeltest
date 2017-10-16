@@ -6,3 +6,4 @@
   - Removed option for PLL header files without "libpll" prefix
   - Fixed typos
   - Fixed race condition writing checkpoint files
+  - Added cmake build files
