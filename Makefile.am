@@ -10,6 +10,9 @@ EXTRA_DIST = src/modeltest.pro \
 						 src/gui2/* \
              src/gui/* \
              src/IMG/* \
-						 src/mtgraphics.qrc
+						 src/mtgraphics.qrc \
+						 CMakeLists.txt \
+						 src/CMakeLists.txt \
+						 libs/CMakeLists.txt
 
 

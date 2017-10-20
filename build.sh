@@ -53,7 +53,7 @@ dir_build=${prefix}
 dir_modules=${PWD}/libs/pll-modules
 dir_pll=${dir_modules}/libs/libpll
 
-dir_pll_include=${dir_build}/include/libpll
+dir_pll_include=${dir_build}/include
 dir_pll_lib=${dir_build}/lib
 
 makefile_qt=Makefile.qmake
@@ -100,8 +100,7 @@ for action in ${actions}; do
       shift; shift; shift;
       extra_args=$*
       test -f ./configure || autoreconf -i || return 1
-      test -f ./Makefile || \
-        ./configure CPPFLAGS=-I${dir_pll_include} LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args} || \
+      ./configure CPPFLAGS=-I${dir_pll_include} LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args} || \
         return 1
       make \
         && make install || return 1

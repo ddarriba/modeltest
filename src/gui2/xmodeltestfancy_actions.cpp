@@ -19,7 +19,7 @@
   Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "../xmodeltestfancy.h"
+#include "xmodeltestfancy.h"
 #include "../modeltest.h"
 #include "../utils.h"
 
