@@ -8,8 +8,8 @@ with graphical and command console interfaces.
 ## Documentation
 
 If you want to read about using ModelTest-NG, a PDF manual is attached to
-each [release](https://github.com/ddarriba/pll-modules/releases).
-You can also browse the [wiki](https://github.com/ddarriba/pll-modules/wiki) for
+each [release](https://github.com/ddarriba/modeltest/releases).
+You can also browse the [wiki](https://github.com/ddarriba/modeltest/wiki) for
 online documentation.
 
 ## Prerequisites
