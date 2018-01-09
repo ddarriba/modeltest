@@ -10,7 +10,8 @@ with graphical and command console interfaces.
 If you want to read about using ModelTest-NG, a PDF manual is attached to
 each [release](https://github.com/ddarriba/modeltest/releases).
 You can also browse the [wiki](https://github.com/ddarriba/modeltest/wiki) for
-online documentation.
+online documentation, and the [FAQ section](https://github.com/ddarriba/modeltest/wiki/FAQ)
+for common errors.
 
 ## Prerequisites
 

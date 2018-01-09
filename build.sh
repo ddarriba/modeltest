@@ -100,7 +100,8 @@ for action in ${actions}; do
       shift; shift; shift;
       extra_args=$*
       test -f ./configure || autoreconf -i || return 1
-      ./configure CPPFLAGS=-I${dir_pll_include} LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args} || \
+      printf "\nconfigure arguments: CPPFLAGS=-I${dir_pll_include} LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args}\n"
+      ./configure CPPFLAGS="-I${dir_pll_include} -I${dir_pll_include}/libpll" LDFLAGS=-L${dir_pll_lib} --prefix ${dir_build} ${extra_args} || \
         return 1
       make \
         && make install || return 1

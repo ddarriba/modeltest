@@ -118,7 +118,7 @@ build_static {
 
 pll_local {
   message(link to pll local)
-  INCPATH += $$PWD/../build/include/libpll
+  INCPATH += $$PWD/../build/include
   LIBS += -Lbuild/lib
 } else {
   message(link to pll global)

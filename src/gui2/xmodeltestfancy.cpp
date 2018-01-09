@@ -737,7 +737,7 @@ bool XModelTestFancy::run_modelselection()
 {
     partition_id_t part_id;
     int number_of_threads  = ui->slider_nthreads->value();
-    mt_size_t n_models, n_matrices, n_model_sets;
+    mt_size_t n_models, n_matrices, n_addmatrices, n_model_sets;
 
     /* validate */
     n_model_sets = ui->cbNoRateVarModels->isChecked() +
@@ -746,15 +746,28 @@ bool XModelTestFancy::run_modelselection()
             ui->cbIGModels->isChecked();
 
     n_matrices = 0;
+    n_addmatrices = 0;
     if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
+    {
         n_matrices = N_DNA_ALLMATRIX_COUNT;
+    }
     else
+    {
         for (int i=0; i < ui->modelsListView->count(); i++)
             if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
-                n_matrices++;
+            {
+                if (!ui->modelsListView->item(i)->text().compare("LG4X") || !ui->modelsListView->item(i)->text().compare("LG4M"))
+                    n_addmatrices++;
+                else
+                    n_matrices++;
+            }
+    }
 
+    /* adds all matrices x all different model sets plus special models (LG4X/M) */
     n_models = n_matrices * n_model_sets *
-            (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked());
+            (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked()) +
+            n_addmatrices * (ui->cbGModels->isChecked() +
+                             ui->cbIGModels->isChecked());
 
     if (n_models == 0)
     {
@@ -840,7 +853,12 @@ bool XModelTestFancy::run_modelselection()
     if (ui->cbIGModels->isChecked())
         model_params += MOD_PARAM_INV_GAMMA;
     if (ui->cbMlFreq->isChecked())
-        model_params += MOD_PARAM_ESTIMATED_FREQ;
+    {
+        if (ui->radDatatypeDna->isChecked())
+            model_params += MOD_PARAM_ESTIMATED_FREQ;
+        else
+            model_params += MOD_PARAM_EMPIRICAL_FREQ;
+    }
 
     std::vector<mt_index_t> matrices;
     if (ui->radDatatypeProt->isChecked())
@@ -913,6 +931,7 @@ bool XModelTestFancy::run_modelselection()
         partition.partition_name = "DATA";
         partition.regions.push_back(region);
         partition.unique_id = 1;
+        partition.model_params = model_params;
         scheme->push_back(partition);
     }
 
@@ -959,7 +978,7 @@ bool XModelTestFancy::run_modelselection()
     if (n_models != mythread->get_number_of_models())
     {
         QMessageBox msgBox;
-        msgBox.setText("Internal error. There are 0 models to optimize!");
+        msgBox.setText("Internal error. There are different number of models to optimize!");
         msgBox.setInformativeText("Please report this issue together with the current settings");
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
