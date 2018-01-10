@@ -838,6 +838,8 @@ bool ModelTest::build_instance(mt_options_t & options)
         case EXCEPTION_PARTITION_EMP_PINV:
             mt_errno = MT_ERROR_ALIGNMENT_ILLEGAL;
             break;
+        case EXCEPTION_BUILD_MODELS:
+            break;
         default:
             assert(0);
         }

@@ -1047,6 +1047,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
   memset(ckp_data.frequencies, 0, N_PROT_STATES * sizeof(double));
   memcpy(ckp_data.frequencies, frequencies, N_DNA_STATES * sizeof(double));
   memcpy(ckp_data.subst_rates, subst_rates, N_DNA_SUBST_RATES * sizeof(double));
+
   ckp_data.prop_invar = get_prop_inv();
   ckp_data.alpha = get_alpha();
 
@@ -1061,6 +1062,7 @@ int DnaModel::output_bin(std::string const& bin_filename) const
 
   assert(n_tips > 0);
   assert(tree);
+  assert(tree->nodes);
   write_ok &= pllmod_binary_utree_dump(bin_file,
                                        unique_id + 1,
                                        tree->nodes[0]->back,
@@ -1137,7 +1139,9 @@ int DnaModel::input_bin(std::string const& bin_filename)
     if(!loaded_tree)
     {
       mt_errno = pll_errno;
-      snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
+      snprintf(mt_errmsg, ERR_MSG_SIZE,
+               "Error loading tree from ckp file: %s",
+               pll_errmsg);
       read_ok = false;
     }
     else
@@ -1354,11 +1358,17 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
     n_tips = _n_tips;
 
 if (have_avx)
+{
     attributes |= PLL_ATTRIB_ARCH_AVX;
+}
 else if (have_sse3)
+{
     attributes |= PLL_ATTRIB_ARCH_SSE;
+}
 else
+{
     attributes |= PLL_ATTRIB_ARCH_CPU;
+}
 
     attributes |= asc_bias_attribute(asc_bias_corr);
 
@@ -1525,6 +1535,7 @@ int ProtModel::output_bin(std::string const& bin_filename) const
   ckp_data.dt    = dt;
   ckp_data.n_tips = n_tips;
 
+  memset(ckp_data.frequencies, 0, N_PROT_STATES * sizeof(double));
   memcpy(ckp_data.frequencies, frequencies, N_PROT_STATES * sizeof(double));
   memset(ckp_data.subst_rates, 0, N_DNA_SUBST_RATES * sizeof(double));
 
@@ -1541,9 +1552,11 @@ int ProtModel::output_bin(std::string const& bin_filename) const
                             PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
   assert(n_tips > 0);
+  assert(tree);
+  assert(tree->nodes);
   write_ok &= pllmod_binary_utree_dump(bin_file,
                                        unique_id + 1,
-                                       tree->nodes[0],
+                                       tree->nodes[0]->back,
                                        n_tips,
                                        PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
@@ -1566,6 +1579,8 @@ int ProtModel::input_bin(std::string const& bin_filename)
   unsigned int type, attributes;
   int read_ok;
   FILE * bin_file;
+
+  mt_errno = 0;
 
   bin_file = pllmod_binary_open(bin_filename.c_str(), &input_header);
   if (!bin_file)
@@ -1616,11 +1631,15 @@ int ProtModel::input_bin(std::string const& bin_filename)
     if(!loaded_tree)
     {
       mt_errno = pll_errno;
-      snprintf(mt_errmsg, ERR_MSG_SIZE, "Error loading tree from ckp file");
+      snprintf(mt_errmsg, ERR_MSG_SIZE,
+               "Error loading tree from ckp file: %s",
+               pll_errmsg);
       read_ok = false;
     }
     else
-      tree = pll_utree_wraptree(loaded_tree->back, n_tips);
+    {
+      tree = pll_utree_wraptree(loaded_tree, n_tips);
+    }
   }
   else
   {

@@ -34,6 +34,7 @@ namespace modeltest
 #define EXCEPTION_PARTITION_EMP_FREQS   201
 #define EXCEPTION_PARTITION_EMP_RATES   202
 #define EXCEPTION_PARTITION_EMP_PINV    203
+#define EXCEPTION_BUILD_MODELS          204
 
 class Partition : public Loggable
 {
