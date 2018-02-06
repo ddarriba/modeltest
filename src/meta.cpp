@@ -225,11 +225,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                       params_ok = false;
                     }
                     else
+                    {
                       exec_opt.asc_weights[0] = w;
+                    }
 
-                      //CHECK
-                      for (int i=1; i<MT_MAX_STATES; ++i)
-                        exec_opt.asc_weights[i] = 0;
+                    //CHECK
+                    for (int i=1; i<MT_MAX_STATES; ++i)
+                      exec_opt.asc_weights[i] = 0;
                   }
                   else
                   {
@@ -702,7 +704,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     {
       for (partition_descriptor_t & partition : (*exec_opt.partitions_desc))
       {
-        partition.model_params = modeltest::Utils::get_parameters_from_template(template_models, partition.datatype);
+        partition.model_params =
+          modeltest::Utils::get_parameters_from_template(template_models, partition.datatype)
+          & exec_opt.model_params;
         switch (partition.datatype)
         {
         case dt_dna:

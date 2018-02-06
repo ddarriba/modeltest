@@ -786,12 +786,6 @@ bool ModelTest::build_instance(mt_options_t & options)
   }
   current_instance->n_tips = current_instance->msa->get_n_sequences();
 
-  /* evaluate partitions */
-  if( options.partitions_filename.compare (""))
-  {
-
-  }
-
   if (options.model_params & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
     current_instance->n_catg = options.n_catg;
   else
@@ -812,7 +806,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                  *current_instance->tree,
                                  partition,
                                  options.nt_candidate_models,
-                                 options.model_params,
+                                 partition.model_params,
                                  options.checkpoint_file);
         else if (partition.datatype == dt_protein)
             new_part = new Partition(part_id,
@@ -820,7 +814,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                  *current_instance->tree,
                                  partition,
                                  options.aa_candidate_models,
-                                 options.model_params,
+                                 partition.model_params,
                                  options.checkpoint_file);
         else
             assert(0);

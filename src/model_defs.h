@@ -109,6 +109,7 @@ const mt_index_t dna_model_matrices_indices[N_DNA_MODEL_MATRICES] = {
 const dna_subst_schemes_t dna_raxml_schemes = ss_3;
 const mt_mask_t dna_raxml_parameters =
         MOD_PARAM_ESTIMATED_FREQ |
+        MOD_PARAM_NO_RATE_VAR |
         MOD_PARAM_GAMMA |
         MOD_PARAM_INV |
         MOD_PARAM_INV_GAMMA;
