@@ -34,6 +34,33 @@ using namespace std;
 namespace modeltest
 {
 
+  const unsigned int mt_map_parser[256] =
+    {
+      /*
+      0=stripped, 1=legal, 2=fatal, 3=silently stripped
+      @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+      P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+      */
+
+  /*  0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F        */
+      2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  2,  2,  /* 0 */
+      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  /* 1 */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  1,  2,  0,  /* 2 */
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  1,  /* 3 */
+      0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* 4 */
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  /* 5 */
+      0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  1,  1,  1,  0,  /* 6 */
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  /* 7 */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* 8 */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* 9 */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* A */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* B */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* C */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* D */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* E */
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   /* F */
+    };
+
   Msa::~Msa ()
   {
   }
@@ -82,7 +109,7 @@ namespace modeltest
     tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
     sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
 
-    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), pll_map_fasta);
+    pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), mt_map_parser);
 
     for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
     {
@@ -121,7 +148,7 @@ namespace modeltest
       case mf_phylip:
         {
           pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
-                                                       pll_map_phylip);
+                                                       mt_map_parser);
           pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
           assert(msa_data);
           n_taxa  = msa_data->count;
@@ -149,7 +176,7 @@ namespace modeltest
           tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
           sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
 
-          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), pll_map_fasta);
+          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), mt_map_parser);
 
         for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
         {
@@ -359,7 +386,7 @@ namespace modeltest
       if (format == mf_phylip)
       {
         pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
-                                                     pll_map_phylip);
+                                                     mt_map_parser);
         pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
         if (!msa_data)
         {
@@ -414,7 +441,7 @@ namespace modeltest
       }
       else if (format == mf_fasta)
       {
-          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), pll_map_fasta);
+          pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str (), mt_map_parser);
 
           if (!fp)
           {
