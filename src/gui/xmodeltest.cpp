@@ -507,11 +507,16 @@ void xmodeltest::run_modelselection()
         region.start = 1;
         region.end = n_sites;
         region.stride = 1;
-        partition.gap_aware = false;
+        partition.regions.push_back(region);
         partition.datatype = datatype;
+        partition.gap_aware = false;
         partition.states = datatype==dt_dna?N_DNA_STATES:N_PROT_STATES;
         partition.partition_name = "DATA";
-        partition.regions.push_back(region);
+        partition.model_params = model_params;
+        partition.asc_bias_corr = asc_none;
+        partition.asc_weights = 0;
+        partition.unique_id = 1;
+
         scheme->push_back(partition);
     }
 
