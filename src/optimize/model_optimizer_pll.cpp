@@ -76,7 +76,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   for (mt_index_t i = 0; i < n_tips; ++i)
   {
       const char *c_seq = partition.get_sequence(i);
-      const unsigned int *states_map =
+      const pll_state_t * states_map =
         (model.get_datatype() == dt_dna)?
           (model.is_gap_aware()?extended_dna_map:pll_map_nt)
             :pll_map_aa;
@@ -200,12 +200,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
   }
 
-  double ModelOptimizerPll::optimize_parameters( pll_unode_t * pll_tree,
+  double ModelOptimizerPll::optimize_parameters( pllmod_treeinfo_t * tree_info,
                                                  double epsilon,
                                                  double tolerance,
                                                  bool opt_per_param,
                                                  double start_loglh )
-  {
+{
     /* current loglh changes the sign of the lk, such that the optimization
      * function can minimize the score */
     double save_loglh = start_loglh;
@@ -231,7 +231,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         while ((!all_params_done) && (!interrupt_optimization))
         {
           all_params_done = model.optimize_oneparameter(pll_partition,
-                                          pll_tree,
+                                          tree_info,
                                           tolerance);
           cur_loglh = model.get_loglh();
 
@@ -254,7 +254,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         (fabs (cur_loglh - save_loglh) > epsilon && cur_loglh < save_loglh))
       {
           save_loglh = cur_loglh;
-          model.optimize(pll_partition, pll_tree, tolerance);
+          model.optimize(pll_partition, tree_info, tolerance);
           opt_delta = cur_loglh;
           notify();
           cur_loglh = model.get_loglh();
@@ -273,8 +273,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double loglh;
     double old_loglh,
            new_loglh;
-    double bl_min = 1e-4,
-           bl_max = 1e3;
 
     int thorough_insertion = false;
     int radius_min = 2;
@@ -299,13 +297,38 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     LOG_DBG << "[dbg] Initial log likelihood: " << loglh << endl;
 
+    tree_info = pllmod_treeinfo_create(pll_utree_graph_clone(pll_tree),
+                                       tree.get_n_tips(),
+                                       1,
+                                       1);
+
+     int retval = pllmod_treeinfo_init_partition(tree_info,
+                                                 0,
+                                                 pll_partition,
+                                                 0xFFFF,
+                                                 PLL_GAMMA_RATES_MEAN,
+                                                 model.get_alpha(),
+                                                 model.get_params_indices(),
+                                                 model.get_symmetries());
+
+                                                 // (pllmod_treeinfo_t * treeinfo,
+                                                 //                                            unsigned int partition_index,
+                                                 //                                            pll_partition_t * partition,
+                                                 //                                            int params_to_optimize,
+                                                 //                                            int gamma_mode,
+                                                 //                                            double alpha,
+                                                 //                                            const unsigned int * param_indices,
+                                                 //                                            const int * subst_matrix_symmetries)
+
+     if (!retval)
+     {
+       assert(pll_errno);
+       assert(0);
+     }
+
     if (optimize_topology)
     {
       assert(!pll_tree->data);
-      tree_info = pllmod_treeinfo_create(pll_utree_graph_clone(pll_tree),
-                                         tree.get_n_tips(),
-                                         1,
-                                         1);
       radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
 
       pllmod_treeinfo_destroy_partition(tree_info, 0);
@@ -318,7 +341,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                      0,                 /* param_indices */
                                      0);                /* subst matrix symmetries */
 
-      new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
+      new_loglh = optimize_parameters(tree_info, 1.0, 1.0, opt_per_param, new_loglh);
 
       cutoff_info_t * cutoff_info = NULL;
       cutoff_info = (cutoff_info_t *) calloc(1, sizeof(cutoff_info_t));
@@ -334,7 +357,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         LOG_DBG << "[dbg] SPR params:"
             << " round=" << spr_round_id
             << " rad=[" << radius_min << "," << radius_max << "]"
-            << " bl=[" << bl_min << "," << bl_max << "]"
+            << " bl=[" << MT_MIN_BRANCH_LENGTH << "," << MT_MAX_BRANCH_LENGTH << "]"
             << " ntopos=" << ntopol_keep
             << " smooth=" << smoothings
             << " tol=" << tolerance
@@ -345,8 +368,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           radius_max,
                                           ntopol_keep,
                                           thorough_insertion,
-                                          bl_min,
-                                          bl_max,
+                                          MT_MIN_BRANCH_LENGTH,
+                                          MT_MAX_BRANCH_LENGTH,
                                           smoothings,
                                           tolerance,
                                           cutoff_info, /* cutoff */
@@ -354,7 +377,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
         LOG_DBG << "[dbg] SPR cycle: " << old_loglh << " -> " << new_loglh << endl;
 
-        new_loglh = optimize_parameters(tree_info->root, 1.0, 1.0, opt_per_param, new_loglh);
+        new_loglh = optimize_parameters(tree_info, 1.0, 1.0, opt_per_param, new_loglh);
 
         bool impr = (new_loglh - old_loglh > epsilon);
         if (impr && thorough_insertion)
@@ -374,7 +397,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
             LOG_DBG << "[dbg] Reset insertion and radius: "
                     << radius_min << "," << radius_max << ": " << new_loglh << endl;
-            new_loglh = optimize_parameters(tree_info->root,
+            new_loglh = optimize_parameters(tree_info,
                                             ML_SEARCH_PARAM_EPS,
                                             ML_SEARCH_PARAM_TOL,
                                             opt_per_param,
@@ -396,17 +419,17 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       free (cutoff_info);
 
       pll_tree = tree_info->root;
-      pllmod_treeinfo_destroy(tree_info);
     }
 
     /* final thorough parameter optimization */
     model.set_loglh(new_loglh);
 
-    tolerance = 1e-4;
     LOG_DBG << "[dbg] final parameter optimization: " << new_loglh << endl;
-    loglh = optimize_parameters(pll_tree, epsilon, tolerance, opt_per_param, new_loglh);
+    loglh = optimize_parameters(tree_info, epsilon, tolerance, opt_per_param, new_loglh);
     LOG_DBG << "[dbg] model done: [" << epsilon
             << "/" << tolerance << "]: " << loglh << endl;
+
+    pllmod_treeinfo_destroy(tree_info);
     return loglh;
   }
 

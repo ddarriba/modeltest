@@ -136,6 +136,7 @@ extern MPI_Comm master_mpi_comm;
 #endif
 
 /* general errors */
+#define MT_ERROR_SYSTEM          800
 #define MT_ERROR_IO              900
 #define MT_ERROR_IO_FORMAT       910
 #define MT_ERROR_UNIMPLEMENTED 10000

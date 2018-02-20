@@ -128,7 +128,7 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
   double branch_scaler;
 
   cur_loglh = -1 * pllmod_algo_opt_rates_weights(params->partition,
-                                            params->tree,
+                                            params->tree_info->root,
                                             params->params_indices,
                                             0.01, 10,
                                             LBFGSB_FACTOR,

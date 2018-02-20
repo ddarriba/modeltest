@@ -41,7 +41,6 @@ class Partition : public Loggable
 public:
     Partition(partition_id_t _id,
               Msa &_msa,
-              Tree &_tree,
               partition_descriptor_t _descriptor,
               std::vector<mt_index_t> candidate_models,
               mt_mask_t model_params,
@@ -86,7 +85,6 @@ public:
 private:
     partition_id_t id;                   //! id of the partition
     Msa & msa;                           //! input MSA
-    Tree & tree;                         //! user defined tree (optional)
     mt_size_t n_sites;                   //! number of sites
     mt_size_t n_patterns;                //! number of unique patterns
     partition_descriptor_t descriptor;   //! partition descriptor

@@ -29,11 +29,11 @@ namespace modeltest
     double score = -1
           * pll_compute_edge_loglikelihood (
               params->partition,
-              params->tree->clv_index,
-              params->tree->scaler_index,
-              params->tree->back->clv_index,
-              params->tree->back->scaler_index,
-              params->tree->pmatrix_index,
+              params->tree_info->root->clv_index,
+              params->tree_info->root->scaler_index,
+              params->tree_info->root->back->clv_index,
+              params->tree_info->root->back->scaler_index,
+              params->tree_info->root->pmatrix_index,
               params->params_indices,
               NULL);
 

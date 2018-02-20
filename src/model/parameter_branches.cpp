@@ -23,8 +23,6 @@
 #include "../partition.h"
 #include "../genesis/logging.h"
 
-#define MIN_BL 1e-4
-#define MAX_BL 5
 #define SMOOTHINGS 4
 
 using namespace std;
@@ -99,7 +97,7 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 #ifdef DEBUG
   /* verify that matrices and partials where up to date */
   double test_loglh = pllmod_utree_compute_lk(params->partition,
-                                              params->tree,
+                                              params->tree_info->root,
                                               params->params_indices,
                                               1,
                                               1);
@@ -107,7 +105,7 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 #endif
 
   struct bl_data_t bl_data = {branch_lengths, 0};
-  pllmod_utree_traverse_apply(params->tree,
+  pllmod_utree_traverse_apply(params->tree_info->root,
                               NULL,
                               NULL,
                               &cb_extract_branches,
@@ -115,21 +113,21 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 
   cur_loglh = -1 * pllmod_opt_optimize_branch_lengths_iterative (
              params->partition,
-             params->tree,
+             params->tree_info->root,
              params->params_indices,
-             MIN_BL, MAX_BL,
+             MT_MIN_BRANCH_LENGTH, MT_MAX_BRANCH_LENGTH,
              tolerance, SMOOTHINGS, true);
 
   if (pll_errno)
   {
       bl_data.bl_pos = 0;
-      pllmod_utree_traverse_apply(params->tree,
+      pllmod_utree_traverse_apply(params->tree_info->root,
                                   NULL,
                                   NULL,
                                   &cb_reset_branches,
                                   &bl_data);
       cur_loglh = pllmod_utree_compute_lk(params->partition,
-                                          params->tree,
+                                          params->tree_info->root,
                                           params->params_indices,
                                           1,
                                           1);

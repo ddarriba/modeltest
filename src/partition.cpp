@@ -162,14 +162,12 @@ static bool build_models(const partition_descriptor_t &descriptor,
 
 Partition::Partition(partition_id_t _id,
                      Msa & _msa,
-                     Tree & _tree,
                      partition_descriptor_t _descriptor,
                      std::vector<mt_index_t> candidate_models,
                      mt_mask_t model_params,
                      string const& ckp_filename) :
     id(_id),
     msa(_msa),
-    tree(_tree),
     descriptor(_descriptor),
     model_params(model_params),
     ckp_filename(ckp_filename)

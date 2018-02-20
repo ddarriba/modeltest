@@ -803,7 +803,6 @@ bool ModelTest::build_instance(mt_options_t & options)
         if (partition.datatype == dt_dna)
             new_part = new Partition(part_id,
                                  *current_instance->msa,
-                                 *current_instance->tree,
                                  partition,
                                  options.nt_candidate_models,
                                  partition.model_params,
@@ -811,7 +810,6 @@ bool ModelTest::build_instance(mt_options_t & options)
         else if (partition.datatype == dt_protein)
             new_part = new Partition(part_id,
                                  *current_instance->msa,
-                                 *current_instance->tree,
                                  partition,
                                  options.aa_candidate_models,
                                  partition.model_params,

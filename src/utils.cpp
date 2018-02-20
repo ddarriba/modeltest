@@ -922,7 +922,11 @@ unsigned long Utils::get_memtotal()
   long pagesize = sysconf(_SC_PAGESIZE);
 
   if ((phys_pages == -1) || (pagesize == -1))
-    exit_with_error("Cannot determine amount of RAM");
+  {
+    mt_errno = MT_ERROR_SYSTEM;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM");
+    return 0L;
+  }
 
   // sysconf(3) notes that pagesize * phys_pages can overflow, such as
   // when long is 32-bits and there's more than 4GB RAM.  Since vsearch
@@ -935,19 +939,32 @@ unsigned long Utils::get_memtotal()
     return (unsigned long)pagesize * (unsigned long)phys_pages;
 
 #elif defined(__APPLE__)
+#if defined(CTL_HW) && (defined(HW_MEMSIZE)
 
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   size_t length = sizeof(ram);
   if(-1 == sysctl(mib, 2, &ram, &length, NULL, 0))
-    exit_with_error("Cannot determine amount of RAM");
+  {
+    mt_errno = MT_ERROR_SYSTEM;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for OS X");
+    return 0L;
+  }
   return ram;
-
+#else
+  mt_errno = MT_ERROR_SYSTEM;
+  snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for OS X");
+  return 0L;
+#endif
 #else
 
   struct sysinfo si;
   if (sysinfo(&si))
-    exit_with_error("Cannot determine amount of RAM");
+  {
+    mt_errno = MT_ERROR_SYSTEM;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM");
+    return 0L;
+  }
   return si.totalram * si.mem_unit;
 
 #endif

@@ -236,7 +236,6 @@ bool Model::is_gap_aware( void ) const
 
 const int * Model::get_symmetries( void ) const
 {
-  assert(0);
   return 0;
 }
 
@@ -516,13 +515,13 @@ mt_index_t Model::get_unique_id( void ) const
 }
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,
-                            pll_unode_t * root,
+                            pllmod_treeinfo_t * tree_info,
                             Partition const& partition )
 {
   assert(pll_partition);
   mt_opt_params_t params;
   params.partition = pll_partition;
-  params.tree = root;
+  params.tree_info = tree_info;
   params.params_indices = params_indices;
 
   bool result = true;
@@ -533,12 +532,12 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
 }
 
 bool Model::optimize( pll_partition_t * partition,
-                      pll_unode_t * root,
+                      pllmod_treeinfo_t * tree_info,
                       double tolerance )
 {
     mt_opt_params_t params;
     params.partition = partition;
-    params.tree = root;
+    params.tree_info = tree_info;
     params.params_indices = params_indices;
 
     if (optimize_gamma)
@@ -566,15 +565,17 @@ bool Model::optimize( pll_partition_t * partition,
 }
 
 bool Model::optimize_oneparameter( pll_partition_t * partition,
-                                   pll_unode_t * root,
+                                   pllmod_treeinfo_t * tree_info,
                                    double tolerance )
 {
-  assert(partition && root);
+  assert(partition);
+  assert(tree_info);
+  assert(tree_info->root);
 
   assert(current_opt_parameter < parameters.size());
   mt_opt_params_t params;
   params.partition = partition;
-  params.tree = root;
+  params.tree_info = tree_info;
   params.params_indices = params_indices;
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
@@ -1357,18 +1358,18 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
 
-if (have_avx)
-{
-    attributes |= PLL_ATTRIB_ARCH_AVX;
-}
-else if (have_sse3)
-{
-    attributes |= PLL_ATTRIB_ARCH_SSE;
-}
-else
-{
-    attributes |= PLL_ATTRIB_ARCH_CPU;
-}
+    if (have_avx)
+    {
+        attributes |= PLL_ATTRIB_ARCH_AVX;
+    }
+    else if (have_sse3)
+    {
+        attributes |= PLL_ATTRIB_ARCH_SSE;
+    }
+    else
+    {
+        attributes |= PLL_ATTRIB_ARCH_CPU;
+    }
 
     attributes |= asc_bias_attribute(asc_bias_corr);
 

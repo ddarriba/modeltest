@@ -2770,7 +2770,7 @@ margin-left: 5px;</string>
                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;single parameter&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="text">
-                      <string notr="true">0.001</string>
+                      <string notr="true">0.01</string>
                      </property>
                      <property name="maxLength">
                       <number>10</number>

@@ -140,7 +140,7 @@ const mt_mask_t dna_paup_parameters =
 
 /* extended DNA map. '-' is considered as a 5th state, and '?' as missing
    data. Only '-' itself and '?' will fill the CLV for this 5th steate. */
-const unsigned int extended_dna_map[256] =
+const pll_state_t extended_dna_map[256] =
          {
            0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
            0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

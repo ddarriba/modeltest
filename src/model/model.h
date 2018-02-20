@@ -75,7 +75,7 @@ public:
           asc_bias_t asc_bias_corr = asc_none);
     Model( void );
     virtual ~Model();
-    
+
     /**
      * @brief Clones all parameters from another model
      * @param other the other model
@@ -224,15 +224,15 @@ public:
     void set_loglh( double l );
 
     bool optimize_init ( pll_partition_t * pll_partition,
-                         pll_unode_t * root,
+                         pllmod_treeinfo_t * tree_info,
                          Partition const& partition );
 
     bool optimize( pll_partition_t * partition,
-                   pll_unode_t * root,
+                   pllmod_treeinfo_t * tree_info,
                    double tolerance );
 
     bool optimize_oneparameter( pll_partition_t * partition,
-                                pll_unode_t * root,
+                                pllmod_treeinfo_t * tree_info,
                                 double tolerance );
     /**
      * @brief Prints out the model in a human readable way

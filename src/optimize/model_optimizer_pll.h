@@ -58,7 +58,7 @@ namespace modeltest
                            double tolerance,
                            bool opt_per_param );
 
-    double optimize_parameters( pll_unode_t * pll_tree,
+    double optimize_parameters( pllmod_treeinfo_t * pll_tree,
                                 double epsilon,
                                 double tolerance,
                                 bool opt_per_param,

@@ -22,6 +22,9 @@
 #ifndef PARAMETER_BRANCHES_H
 #define PARAMETER_BRANCHES_H
 
+#define MT_MIN_BRANCH_LENGTH 1e-6
+#define MT_MAX_BRANCH_LENGTH 5
+
 #include "abstract_parameter.h"
 
 namespace modeltest

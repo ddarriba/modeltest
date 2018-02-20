@@ -260,7 +260,7 @@ namespace modeltest
       pll_msa[i]->label = tipnames;
 
       unsigned int states;
-      const unsigned int * char_map;
+      const pll_state_t * char_map;
       if (scheme[i].datatype == dt_dna)
       {
         states = 4;
@@ -419,7 +419,7 @@ namespace modeltest
         if (n_patterns)
         {
           int i_n_patterns = sites;
-          const unsigned int * char_map = l_datatype == dt_dna ?
+          const pll_state_t * char_map = l_datatype == dt_dna ?
                                             pll_map_nt :
                                             pll_map_aa;
 
@@ -523,7 +523,7 @@ namespace modeltest
           if (n_patterns)
           {
             int i_n_patterns = sites;
-            const unsigned int * char_map = l_datatype == dt_dna ?
+            const pll_state_t * char_map = l_datatype == dt_dna ?
                                               pll_map_nt :
                                               pll_map_aa;
 
@@ -645,7 +645,7 @@ namespace modeltest
           }
 
           int compressed_length = cur - new_region.start + 1;
-          const unsigned int * char_map = partition.datatype == dt_dna ? pll_map_nt : pll_map_aa;
+          const pll_state_t * char_map = partition.datatype == dt_dna ? pll_map_nt : pll_map_aa;
           unsigned int * pw;
           if (compress_patterns)
           {

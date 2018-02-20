@@ -156,7 +156,7 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
   double cur_loglh;
 
   cur_loglh = -1 * pllmod_algo_opt_subst_rates (params->partition,
-                                          params->tree,
+                                          params->tree_info->root,
                                           0,
                                           params->params_indices,
                                           (int *)&symmetries[0],

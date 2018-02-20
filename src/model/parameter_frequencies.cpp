@@ -114,7 +114,7 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
   double cur_loglh;
 
   cur_loglh = -1 * pllmod_algo_opt_frequencies(params->partition,
-                                         params->tree,
+                                         params->tree_info->root,
                                          0,
                                          params->params_indices,
                                          LBFGSB_FACTOR,

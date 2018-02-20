@@ -208,7 +208,7 @@ namespace modeltest
       {
         unsigned int * cost = new unsigned int[msa.get_n_patterns()];
         unsigned int states;
-        const unsigned int * map;
+        const pll_state_t * map;
         if (datatype == dt_dna)
         {
           map = pll_map_nt;

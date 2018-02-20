@@ -80,14 +80,14 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
-  cur_loglh = -1 * pllmod_algo_opt_pinv (params->partition,
-                                   params->tree,
-                                   params->params_indices,
-                                   MIN_PINV,
-                                   max_pinv,
-                                   tolerance);
+params->tree_info->partitions[0]->prop_invar[0] = params->partition->prop_invar[0];
+cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
+                                                  PLLMOD_OPT_PARAM_PINV,
+                                                  MIN_PINV,
+                                                  max_pinv,
+                                                  tolerance);
 
-  pinv = params->partition->prop_invar[0];
+  pinv = params->tree_info->partitions[0]->prop_invar[0];
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
