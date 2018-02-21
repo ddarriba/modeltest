@@ -311,15 +311,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                                  model.get_params_indices(),
                                                  model.get_symmetries());
 
-                                                 // (pllmod_treeinfo_t * treeinfo,
-                                                 //                                            unsigned int partition_index,
-                                                 //                                            pll_partition_t * partition,
-                                                 //                                            int params_to_optimize,
-                                                 //                                            int gamma_mode,
-                                                 //                                            double alpha,
-                                                 //                                            const unsigned int * param_indices,
-                                                 //                                            const int * subst_matrix_symmetries)
-
      if (!retval)
      {
        assert(pll_errno);
@@ -337,9 +328,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                      pll_partition,     /* partition */
                                      0,                 /* params to optimize */
                                      PLL_GAMMA_RATES_MEAN,
-                                     1.0,               /* alpha */
-                                     0,                 /* param_indices */
-                                     0);                /* subst matrix symmetries */
+                                     model.get_alpha(),
+                                     model.get_params_indices(),
+                                     model.get_symmetries());
 
       new_loglh = optimize_parameters(tree_info, 1.0, 1.0, opt_per_param, new_loglh);
 
@@ -368,6 +359,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           radius_max,
                                           ntopol_keep,
                                           thorough_insertion,
+                                          PLLMOD_OPT_BLO_NEWTON_FAST,
                                           MT_MIN_BRANCH_LENGTH,
                                           MT_MAX_BRANCH_LENGTH,
                                           smoothings,

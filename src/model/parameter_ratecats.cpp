@@ -134,7 +134,7 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
                                             LBFGSB_FACTOR,
                                             tolerance,
                                             &branch_scaler,
-                                            false);
+                                            true);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
   extract_rates_and_weights(params);
