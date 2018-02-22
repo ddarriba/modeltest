@@ -153,7 +153,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     if (_num_threads > 1)
     {
       LOG_INFO << "Multithread optimization is temporary unavailable" << endl;
-      assert(false);
+      assert(_num_threads == 1);
     }
     /* /PTHREADS */
     LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;

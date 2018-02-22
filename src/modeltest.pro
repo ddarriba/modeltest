@@ -134,4 +134,5 @@ pll_static {
   unix|win32: LIBS += -static -lpll_algorithm \
                       -lpll_binary -lpll_optimize -lpll_msa \
                       -lpll_tree -lpll_util -lpll -Wl,-Bdynamic
+  unix: LIBS += -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2
 }

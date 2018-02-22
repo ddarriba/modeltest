@@ -890,7 +890,7 @@ bool ModelTest::build_instance(mt_options_t & options)
         return false;
       }
 
-      start_opt->run(options.epsilon_opt, options.epsilon_param, 4);
+      start_opt->run(options.epsilon_opt, options.epsilon_param);
       assert(start_model->is_optimized());
       delete start_opt;
     }

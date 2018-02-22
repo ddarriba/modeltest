@@ -258,7 +258,7 @@
              </item>
              <item>
               <property name="text">
-               <string>Fixed JC/JTT ML</string>
+               <string>Fixed JC/DAYHOFF ML</string>
               </property>
              </item>
              <item>
@@ -700,8 +700,8 @@ p, li { white-space: pre-wrap; }
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>718</width>
-                 <height>606</height>
+                 <width>736</width>
+                 <height>589</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -1121,7 +1121,7 @@ p, li { white-space: pre-wrap; }
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>290</height>
+                       <height>330</height>
                       </size>
                      </property>
                      <property name="frameShape">
@@ -2053,13 +2053,13 @@ p, li { white-space: pre-wrap; }
                         <property name="minimumSize">
                          <size>
                           <width>220</width>
-                          <height>0</height>
+                          <height>300</height>
                          </size>
                         </property>
                         <property name="maximumSize">
                          <size>
                           <width>220</width>
-                          <height>250</height>
+                          <height>320</height>
                          </size>
                         </property>
                         <property name="font">
@@ -2081,6 +2081,9 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="lineWidth">
                          <number>0</number>
+                        </property>
+                        <property name="autoScroll">
+                         <bool>false</bool>
                         </property>
                         <property name="selectionMode">
                          <enum>QAbstractItemView::NoSelection</enum>
@@ -2136,13 +2139,13 @@ p, li { white-space: pre-wrap; }
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
-                    <height>100</height>
+                    <height>40</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
                     <width>16777215</width>
-                    <height>135</height>
+                    <height>40</height>
                    </size>
                   </property>
                   <property name="font">
@@ -2161,81 +2164,7 @@ p, li { white-space: pre-wrap; }
                    <property name="verticalSpacing">
                     <number>0</number>
                    </property>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="txtOptEpsilon">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>150</width>
-                       <height>25</height>
-                      </size>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <family>Courier</family>
-                       <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <italic>false</italic>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;model&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string notr="true">0.01</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>10</number>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="txtParEpsilon">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>150</width>
-                       <height>25</height>
-                      </size>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <family>Courier</family>
-                       <pointsize>10</pointsize>
-                       <weight>75</weight>
-                       <italic>false</italic>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;single parameter&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="text">
-                      <string notr="true">0.01</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>10</number>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
+                   <item row="3" column="0">
                     <widget class="QLabel" name="lblParEpsText">
                      <property name="minimumSize">
                       <size>
@@ -2263,7 +2192,57 @@ p, li { white-space: pre-wrap; }
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="0">
+                   <item row="3" column="1">
+                    <widget class="QLineEdit" name="txtParEpsilon">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>80</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="font">
+                      <font>
+                       <family>Courier</family>
+                       <pointsize>10</pointsize>
+                       <weight>75</weight>
+                       <italic>false</italic>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;single parameter&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string notr="true">0.01</string>
+                     </property>
+                     <property name="maxLength">
+                      <number>10</number>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="4">
+                    <spacer name="horizontalSpacer_18">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item row="3" column="2">
                     <widget class="QLabel" name="lblOptEpsText">
                      <property name="minimumSize">
                       <size>
@@ -2291,18 +2270,42 @@ p, li { white-space: pre-wrap; }
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="2">
-                    <spacer name="horizontalSpacer_18">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
+                   <item row="3" column="3">
+                    <widget class="QLineEdit" name="txtOptEpsilon">
+                     <property name="minimumSize">
                       <size>
-                       <width>40</width>
+                       <width>0</width>
                        <height>20</height>
                       </size>
                      </property>
-                    </spacer>
+                     <property name="maximumSize">
+                      <size>
+                       <width>80</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="font">
+                      <font>
+                       <family>Courier</family>
+                       <pointsize>10</pointsize>
+                       <weight>75</weight>
+                       <italic>false</italic>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Epsilon threshold for &lt;span style=&quot; font-weight:600;&quot;&gt;model&lt;/span&gt; optimization&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string notr="true">0.01</string>
+                     </property>
+                     <property name="maxLength">
+                      <number>10</number>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </widget>
@@ -3061,7 +3064,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1150</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -228,16 +228,17 @@ for action in ${actions}; do
   ;;
   "dist")
     echo "...build distribution package"
-    mkdir -p ${dir_dist}
     cd $dir_pll
     make dist
-    mv *gz ${dir_dist}
+    mv *gz ${dir_base}
     cd $dir_modules
     make dist
-    mv *gz ${dir_dist}
+    mv *gz ${dir_base}
     cd ${dir_base}
     make dist
-    mv *gz ${dir_dist}
+    mkdir -p ${dir_dist}
+    rm libpll-*.tar.gz pll-modules-*.tar.gz
+    mv modeltest-ng-*.tar.gz ${dir_dist}
   ;;
   "test")
    if test -f ${prefix}/bin/modeltest-ng; then

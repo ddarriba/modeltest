@@ -623,6 +623,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
           params_ok = false;
         }
       }
+
       if (params_ok)
       {
         if (!modeltest::ModelTest::test_partitions(*exec_opt.partitions_desc,
@@ -729,6 +730,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     if (exist_protein_models)
     {
+      if (exec_opt.starting_tree == tree_ml_gtr_fixed)
+      {
+        LOG_ERR << PACKAGE <<
+          ": GTR fixed ML tree is not available for protein models" <<
+          endl;
+        params_ok = false;
+      }
       if (!exist_dna_models && (dna_ss != ss_undef))
       {
         LOG_ERR << PACKAGE << ": Warning: Substitution schemes will be ignored" << endl;

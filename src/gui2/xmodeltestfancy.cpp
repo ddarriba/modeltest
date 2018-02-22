@@ -769,6 +769,18 @@ bool XModelTestFancy::run_modelselection()
             n_addmatrices * (ui->cbGModels->isChecked() +
                              ui->cbIGModels->isChecked());
 
+    if (ui->radDatatypeProt->isChecked() && ui->cmb_tree->currentIndex() == TREE_ML_GTR)
+    {
+       QMessageBox msgBox;
+       msgBox.setText("GTR fixed ML tree is not available for protein models");
+       msgBox.setInformativeText("Select a different starting tree");
+       msgBox.setStandardButtons(QMessageBox::Ok);
+       msgBox.setDefaultButton(QMessageBox::Ok);
+       msgBox.exec();
+
+       return false;
+    }
+
     if (n_models == 0)
     {
         QMessageBox msgBox;
