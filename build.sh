@@ -21,7 +21,8 @@ build_pll=yes            # build PLL
 build_modules=yes        # build PLL modules library
 build_gui=yes            # build modeltest-gui
 dir_base=${PWD}          # base directory
-prefix=${dir_base}/build # output directory for modeltest
+prefix=${dir_base}/build  # output directory for modeltest
+dir_dist=${dir_base}/dist # output directory for distribution
 qmake_bin=qmake          # qmake binary (for GUI)
 
 unameOut="$(uname -s)"
@@ -175,7 +176,7 @@ for action in ${actions}; do
     mt_qt_extra_conf=
     if test "x${machine}" = "xLinux" ; then
       mt_extra_conf="--enable-static"
-      mt_qt_extra_conf=#"build_static"
+      mt_qt_extra_conf="build_static"
     fi
     fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} ${mt_extra_conf} >> ${file_log} 2>&1 && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }
 
@@ -184,7 +185,20 @@ for action in ${actions}; do
       fn_qt src/modeltest.pro ${makefile_qt} ${prefix} ${mt_qt_extra_conf} >> ${file_log} 2>&1 && \
         { echo "...modeltest GUI OK!"
           if test "x${machine}" = "xMac" ; then
-            mv modeltest-gui.app ${prefix}/bin                                                                                                                                                                                                                                                                                                                                        
+            # include pll in app package:
+            echo "... ...including libPLL"
+            pll_libs="libpll_algorithm.0.dylib libpll_binary.0.dylib libpll_optimize.0.dylib libpll_msa.0.dylib libpll_tree.0.dylib libpll_util.0.dylib libpll.0.dylib"
+            mkdir modeltest-gui.app/Contents/Frameworks
+            for libfile in ${pll_libs}; do
+              cp ${dir_pll_lib}/${libfile} modeltest-gui.app/Contents/Frameworks
+              install_name_tool -id @executable_path/../Frameworks/${libfile} \
+                                    modeltest-gui.app/Contents/Frameworks/${libfile}
+              install_name_tool -change ${dir_pll_lib}/${libfile} @executable_path/../Frameworks/${libfile} modeltest-gui.app/Contents/MacOS/modeltest-gui
+              for inlibfile in ${pll_libs}; do
+                install_name_tool -change ${dir_pll_lib}/${inlibfile} @executable_path/../Frameworks/${inlibfile} modeltest-gui.app/Contents/Frameworks/$libfile
+              done
+            done
+            mv modeltest-gui.app ${prefix}/bin
           else
             mv modeltest-gui ${prefix}/bin;
           fi 
@@ -213,15 +227,17 @@ for action in ${actions}; do
     rm -f ${dir_pll_lib}/libpll*
   ;;
   "dist")
-    echo "...build distribution"
+    echo "...build distribution package"
+    mkdir -p ${dir_dist}
     cd $dir_pll
     make dist
-    mv *gz ${dir_base}
+    mv *gz ${dir_dist}
     cd $dir_modules
     make dist
-    mv *gz ${dir_base}
+    mv *gz ${dir_dist}
     cd ${dir_base}
     make dist
+    mv *gz ${dir_dist}
   ;;
   "test")
    if test -f ${prefix}/bin/modeltest-ng; then
