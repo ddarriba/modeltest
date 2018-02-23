@@ -6,7 +6,7 @@
 #   $ ./install.sh [actions]
 #
 #   actions:
-#     `build` - Build modeltest-ng and modeltest-gui
+#     `build` - Build modeltest-ng and modeltest-gui (default)
 #     `clean` - Clean all object and target files
 #     `dist`  - Pack libraries for distribution
 #
@@ -60,10 +60,37 @@ dir_pll_lib=${dir_build}/lib
 makefile_qt=Makefile.qmake
 
 actions=$*
-test -z "${actions}" && actions="build"
+test -z "${actions}" && actions="init build"
 
 for action in ${actions}; do
   case "$action" in
+  "init")
+    libpll_tarball=libpll-*.tar.gz
+    libpll_files=`ls ${dir_pll}/* 2> /dev/null`
+    if test -f ${libpll_tarball} && test -z "${libpll_files}"; then
+      echo "   ...extracting pll tarball"
+      libpll_dir=`echo ${libpll_tarball} | rev | cut -d'.' -f3- | rev`
+      tar zxf ${libpll_tarball}
+      test -d ${libpll_dir} || { echo "PLL extraction fail"; exit; }
+      mkdir -p ${dir_pll}
+      mv ${libpll_dir}/* ${dir_pll}/
+      rm -rf ${libpll_dir}
+      rm ${libpll_tarball}
+    fi
+    modules_tarball=pll-modules-*.tar.gz
+    modules_files=`ls ${dir_modules}/config* 2> /dev/null`
+    if test -f ${modules_tarball} && test -z "${modules_files}"; then
+      echo "   ...extracting modules tarball"
+      modules_dir=`echo ${modules_tarball} | rev | cut -d'.' -f3- | rev`
+      tar zxf ${modules_tarball}
+      test -d ${modules_dir} || { echo "Modules extraction fail"; exit; }
+      mkdir -p ${dir_modules}
+      mv ${modules_dir}/* ${dir_modules}/
+      rm -rf ${modules_dir}
+      rm ${modules_tarball}
+    fi
+   ;;
+
   "build")
 
     test -f ${dir_pll_lib}/libpll.a && build_pll=no
@@ -129,17 +156,6 @@ for action in ${actions}; do
 
     if test x${build_pll} = xyes; then
       echo "...build pll"
-      libpll_tarball=libpll-*.tar.gz
-      libpll_files=`ls ${dir_pll}/* 2> /dev/null`
-      if test -f ${libpll_tarball} && test -z "${libpll_files}"; then
-        echo "   ...extracting pll tarball"
-        libpll_dir=`echo ${libpll_tarball} | rev | cut -d'.' -f3- | rev`
-        tar zxf ${libpll_tarball}
-        test -d ${libpll_dir} || { echo "PLL extraction fail"; exit; }
-        mkdir -p ${dir_pll}
-        mv ${libpll_dir}/* ${dir_pll}/
-        rm -rf ${libpll_dir}
-      fi
       test -d ${dir_pll} || { echo "PLL directory missing"; exit; }
       cd $dir_pll
       echo "   ...building pll"
@@ -151,17 +167,6 @@ for action in ${actions}; do
 
     if test "x${build_modules}" = "xyes" ; then
       echo "...build modules"
-      modules_tarball=pll-modules-*.tar.gz
-      modules_files=`ls ${dir_modules}/config* 2> /dev/null`
-      if test -f ${modules_tarball} && test -z "${modules_files}"; then
-        echo "   ...extracting modules tarball"
-        modules_dir=`echo ${modules_tarball} | rev | cut -d'.' -f3- | rev`
-        tar zxf ${modules_tarball}
-        test -d ${modules_dir} || { echo "Modules extraction fail"; exit; }
-        mkdir -p ${dir_modules}
-        mv ${modules_dir}/* ${dir_modules}/
-        rm -rf ${modules_dir}
-      fi
       test -d ${dir_modules} || { echo "PLL modules directory missing"; exit; }
       cd $dir_modules
       echo "   ...building modules"
