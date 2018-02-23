@@ -74,9 +74,9 @@ modeltest_mpi_CPPFLAGS += -DHAVE_PTHREADS -DBUILD_MPI
 
 modeltest_mpi_LDFLAGS = 
 if BUILD_STATIC
-  modeltest_mpi_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll 
+  modeltest_mpi_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll -lpthread
 else
-  modeltest_mpi_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll
+  modeltest_mpi_LDADD = -lpll_binary -lpll_algorithm -lpll_optimize -lpll_msa -lpll_tree -lpll_util -lpll -lpthread
 endif
 
 endif
