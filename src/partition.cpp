@@ -212,6 +212,11 @@ Partition::Partition(partition_id_t _id,
   if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
   {
     emp_pinv = msa.get_stats(_descriptor.unique_id-1).inv_prop;
+    if (emp_pinv < 0.002)
+    {
+      LOG_WARN << "WARNING: Empirical invariant sites proportion for partition " << get_name() << " is " << emp_pinv << endl;
+      LOG_WARN << "         You should consider excluding +I and +I+G models from the analysis" << endl << endl;
+    }
   }
 
   if (!build_models(descriptor,

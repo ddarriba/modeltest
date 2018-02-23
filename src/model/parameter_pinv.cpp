@@ -62,13 +62,16 @@ bool ParameterPinv::initialize(mt_opt_params_t * params,
   }
   else
   {
-    pinv = max_pinv = MIN_PINV;
+    pinv = MIN_PINV/2;
+    max_pinv = MIN_PINV;
+    min_pinv = 1E-6;
   }
 
   for (mt_index_t i=0; i<params->partition->rate_cats; ++i)
     pll_update_invariant_sites_proportion(params->partition,
                                           params->params_indices[i],
                                           pinv);
+
   return true;
 }
 
@@ -80,12 +83,12 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
-params->tree_info->partitions[0]->prop_invar[0] = params->partition->prop_invar[0];
-cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
-                                                  PLLMOD_OPT_PARAM_PINV,
-                                                  MIN_PINV,
-                                                  max_pinv,
-                                                  tolerance);
+  params->tree_info->partitions[0]->prop_invar[0] = params->partition->prop_invar[0];
+  cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
+                                                    PLLMOD_OPT_PARAM_PINV,
+                                                    min_pinv,
+                                                    max_pinv,
+                                                    tolerance);
 
   pinv = params->tree_info->partitions[0]->prop_invar[0];
 
