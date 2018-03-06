@@ -56,14 +56,14 @@ bool ParameterPinv::initialize(mt_opt_params_t * params,
 {
   max_pinv = partition.get_empirical_pinv();
   min_pinv = MIN_PINV;
-  if (max_pinv > min_pinv)
+  if (max_pinv > 2*min_pinv)
   {
     pinv = (min_pinv + max_pinv) / 2;
   }
   else
   {
     pinv = MIN_PINV/2;
-    max_pinv = MIN_PINV;
+    max_pinv = max(MIN_PINV, max_pinv);
     min_pinv = 1E-6;
   }
 
