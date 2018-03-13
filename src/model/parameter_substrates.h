@@ -32,16 +32,47 @@ namespace modeltest
 class ParameterSubstRates : public AbstractParameter
 {
 public:
+
+  ParameterSubstRates(mt_size_t n_subst_params, mt_size_t rate_set_count);
+
   virtual bool initialize(mt_opt_params_t * params,
                           Partition const& partition);
 
-  const double * get_subst_rates( void ) const;
-  void set_subst_rates(const double * values);
+  virtual mt_size_t get_n_subst_params( void ) const;
+  virtual mt_size_t get_n_free_parameters( void ) const;
 
+  virtual const double * get_subst_rates( int rate_set_index = 0 ) const = 0;
+  virtual void set_subst_rates(const double * values, int rate_set_index = 0) = 0;
+
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const;
 protected:
-  double *subst_rates;
   mt_size_t n_subst_free_params;
   mt_size_t n_subst_params;
+  mt_size_t rate_set_count;
+};
+
+class ParameterSubstRatesFixed : public ParameterSubstRates
+{
+public:
+  ParameterSubstRatesFixed(const double * subst_rates, mt_size_t n_subst_rates);
+  ParameterSubstRatesFixed(mt_size_t n_subst_rates, int rate_set_count);
+  ParameterSubstRatesFixed(const ParameterSubstRatesFixed & other);
+  ~ParameterSubstRatesFixed(void);
+  virtual bool initialize(mt_opt_params_t * params,
+                          Partition const& partition);
+  virtual double optimize(mt_opt_params_t * params,
+                          double loglh,
+                          double tolerance = DEFAULT_PARAM_EPSILON,
+                          bool first_guess = false);
+
+  virtual const double * get_subst_rates( int rate_set_index = 0 ) const;
+  virtual void set_subst_rates(const double * values, int rate_set_index = 0);
+
+protected:
+  const double ** const_subst_rates;
 };
 
 class ParameterSubstRatesOpt : public ParameterSubstRates
@@ -57,11 +88,13 @@ public:
                           double loglh,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
-  virtual void print(std::ostream  &out = std::cout) const;
-  virtual mt_size_t get_n_free_parameters( void ) const;
+
+  virtual const double * get_subst_rates( int rate_set_index = 0 ) const;
+  virtual void set_subst_rates(const double * values, int rate_set_index = 0);
 
 protected:
   std::vector<int> symmetries;
+  double ** subst_rates;
 };
 
 } /* namespace modeltest */

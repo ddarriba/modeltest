@@ -23,6 +23,7 @@
 #define MODEL_OPTIMIZER_PLL_H_
 
 #include "model_optimizer.h"
+#include "../global_defs.h"
 #include "../msapll.h"
 #include "../plldefs.h"
 #include "../treepll.h"
@@ -40,7 +41,6 @@ namespace modeltest
                        Model & _model,
                        Partition &partition,
                        bool _optimize_topology,
-                       mt_size_t _n_cat_g = DEFAULT_GAMMA_RATE_CATS,
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
 
@@ -53,7 +53,6 @@ namespace modeltest
 
   private:
 
-    bool build_parameters( pll_unode_t * pll_tree );
     double optimize_model( double epsilon,
                            double tolerance,
                            bool opt_per_param );

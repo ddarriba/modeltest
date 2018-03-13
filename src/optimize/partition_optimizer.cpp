@@ -33,7 +33,6 @@ namespace modeltest
   PartitionOptimizer::PartitionOptimizer(Partition &partition,
                                          MsaPll & msa,
                                          TreePll & tree,
-                                         mt_size_t n_categories,
                                          part_opt_t opt_type,
                                          bool optimize_topology,
                                          double epsilon_param,
@@ -41,7 +40,6 @@ namespace modeltest
     partition(partition),
     msa(msa),
     tree(tree),
-    n_categories(n_categories),
     opt_type(opt_type),
     optimize_topology(optimize_topology),
     epsilon_param(epsilon_param),
@@ -383,7 +381,6 @@ BARRIER;
         ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
                                                       partition,
                                                       optimize_topology,
-                                                      n_categories,
                                                       thread_number);
         assert(mopt);
         result = mopt->run(epsilon_param, epsilon_opt);

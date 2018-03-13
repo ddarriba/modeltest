@@ -40,14 +40,16 @@ public:
                           double loglh,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
-  virtual void print(std::ostream  &out = std::cout) const;
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const;
   virtual double get_alpha( void ) const { return -1; }
   virtual void set_alpha( double alpha ) { UNUSED(alpha); }
   virtual double * get_weights( void ) const;
   virtual void set_weights( const double * weights );
   virtual double * get_rates( void ) const;
   virtual void set_rates( const double * rates );
-  void set_n_categories( mt_size_t n_categories );
 
   virtual mt_size_t get_n_free_parameters( void ) const;
 protected:

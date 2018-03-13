@@ -1401,15 +1401,33 @@ void Meta::print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -m, --models list"
         << "sets the candidate model matrices separated by commas" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "dna: JC HKY TrN TPM1 TPM2 TPM3" << endl;
+            << "dna:";
+    for (int i=0; i<N_DNA_MODEL_MATRICES; ++i)
+    {
+      const string modelname = i
+          ?(dna_model_names[2*i].compare(dna_model_names[2*i+1])<0
+              ?dna_model_names[2*i]
+              :dna_model_names[2*i+1])
+           :dna_model_names[0];
+      out << " " << modelname;
+      if ((i+1) % 6 == 0)
+        out << endl << setw(MAX_OPT_LENGTH + 4) << left << " ";
+    }
+    out << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "     TIM1 TIM2 TIM3 TVM GTR" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << " "
-        << "protein: DAYHOFF LG DCMUT JTT MTREV WAG RTREV CPREV" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << " "
-        << "         VT BLOSUM62 MTMAM MTART MTZOA PMB HIVB HIVW" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << " "
-        << "         JTTDCMUT FLU STMTREV LG4M LG4X" << endl;
+        << "protein:";
+    int prot_list_len = 0;
+    for (int i=0; i<N_PROT_MODEL_ALL_MATRICES; ++i)
+    {
+      prot_list_len += prot_model_names[i].length() + 1;
+      if (prot_list_len > 44)
+      {
+        out << endl << setw(MAX_OPT_LENGTH + 8) << left << " ";
+        prot_list_len = prot_model_names[i].length() + 1;
+      }
+      out << " " << prot_model_names[i];
+    }
+    out << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -s, --schemes [3|5|7|11|203]"
         << "sets the number of predefined DNA substitution schemes evaluated" << endl;

@@ -47,7 +47,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       Model &_model,
                                       Partition &_partition,
                                       bool _optimize_topology,
-                                      mt_size_t _n_cat_g,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_msa, _model, _partition,
                      _optimize_topology, _thread_number),
@@ -56,7 +55,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   mt_size_t n_tips = tree.get_n_tips ();
   mt_size_t n_patterns = partition.get_n_patterns();
 
-  pll_partition = model.build_partition(n_tips, n_patterns, _n_cat_g);
+  pll_partition = model.build_partition(n_tips, n_patterns);
 
   if (!pll_partition)
   {
@@ -69,8 +68,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
   // if (pllmod_utree_is_tip(pll_tree))
   //   pll_tree = pll_tree->back;
-
-  model.set_n_categories(pll_partition->rate_cats);
 
   /* find sequences and link them with the corresponding taxa */
   for (mt_index_t i = 0; i < n_tips; ++i)
@@ -101,29 +98,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   ModelOptimizerPll::~ModelOptimizerPll ()
   {
       pll_partition_destroy(pll_partition);
-  }
-
-  bool ModelOptimizerPll::build_parameters(pll_unode_t * pll_tree)
-  {
-    UNUSED(pll_tree);
-
-    // TODO: Refactor in paramter_substrates and parameter_frequencies
-    /* set initial model parameters */
-    if (model.is_mixture())
-    {
-        assert (pll_partition->rate_cats == N_MIXTURE_CATS);
-        for (mt_index_t i = 0; i < N_MIXTURE_CATS; i++)
-        {
-            pll_set_frequencies (pll_partition, i, model.get_mixture_frequencies(i));
-            pll_set_subst_params (pll_partition, i, model.get_mixture_subst_rates(i));
-        }
-    }
-    else
-    {
-       pll_set_subst_params (pll_partition, 0, model.get_subst_rates());
-    }
-
-    return true;
   }
 
   bool ModelOptimizerPll::run(double epsilon,
@@ -157,7 +131,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
     /* /PTHREADS */
     LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;
-    build_parameters(pll_tree);
     pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)

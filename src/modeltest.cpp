@@ -96,7 +96,6 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     mopt = new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
                                opt_topology,
-                               current_instance->n_catg,
                                thread_number);
    }
    catch(int e)
@@ -214,7 +213,6 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   PartitionOptimizer p_opt(partition,
                            *msa,
                            *tree,
-                           current_instance->n_catg,
                            opt_type,
                            opt_topology,
                            epsilon_param,

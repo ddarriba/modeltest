@@ -34,12 +34,14 @@ ParameterBranches::ParameterBranches( const ParameterBranches & other )
 {
   n_branches = other.n_branches;
   name = other.name;
+  char_id = other.char_id;
 }
 
 ParameterBranches::ParameterBranches( void )
 {
   n_branches = 0;
   name = "BranchLengths";
+  char_id = 'b';
 }
 
 ParameterBranches::~ParameterBranches( void )
@@ -145,10 +147,17 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
   return cur_loglh;
 }
 
-void ParameterBranches::print(std::ostream  &out) const
+void ParameterBranches::print(std::ostream  &out,
+                     bool line_break,
+                     int indent_first,
+                     int spacing) const
 {
   UNUSED(out);
+  UNUSED(line_break);
+  UNUSED(indent_first);
+  UNUSED(spacing);
 }
+
 
 mt_size_t ParameterBranches::get_n_free_parameters( void ) const
 {

@@ -47,6 +47,7 @@ ParameterRateCats::ParameterRateCats(mt_size_t n_cats)
     weights[i] = 1.0/n_cats;
 
   name = "RateCategories";
+  char_id = 'r';
 }
 
 ParameterRateCats::ParameterRateCats( const ParameterRateCats & other )
@@ -55,6 +56,7 @@ ParameterRateCats::ParameterRateCats( const ParameterRateCats & other )
   weights = new double[n_cats];
   rates   = new double[n_cats];
   name = other.name;
+  char_id = other.char_id;
 }
 
 ParameterRateCats::~ParameterRateCats( void )
@@ -96,18 +98,6 @@ void ParameterRateCats::set_rates( const double * r)
   memcpy(rates, r, sizeof(double) * n_cats);
 }
 
-void ParameterRateCats::set_n_categories( mt_size_t n_categories )
-{
-  if (n_cats != n_categories)
-  {
-    n_cats = n_categories;
-    delete[] weights;
-    delete[] rates;
-    weights = new double[n_cats];
-    rates   = new double[n_cats];
-  }
-}
-
 void ParameterRateCats::extract_rates_and_weights(mt_opt_params_t * params)
 {
   memcpy(weights,
@@ -143,14 +133,20 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
 
 }
 
-void ParameterRateCats::print(std::ostream  &out) const
+void ParameterRateCats::print(std::ostream  &out,
+                              bool line_break,
+                              int indent_first,
+                              int spacing) const
 {
   UNUSED(out);
+  UNUSED(line_break);
+  UNUSED(indent_first);
+  UNUSED(spacing);
 }
 
 mt_size_t ParameterRateCats::get_n_free_parameters( void ) const
 {
-  return (2*n_cats - 1);
+  return (2*n_cats - 2);
 }
 
 } /* namespace modeltest */

@@ -60,6 +60,11 @@ namespace modeltest
     {
         interrupt_optimization = false;
         optimized = false;
+
+        cur_parameter = 0;
+        opt_delta = 0.0;
+        n_patterns = 0;
+        n_sites = 0;
     }
     virtual ~ModelOptimizer ();
 

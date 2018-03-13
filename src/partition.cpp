@@ -101,7 +101,7 @@ static bool build_models(const partition_descriptor_t &descriptor,
                     if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                         c_models.push_back(
                             new ProtModel(LG4M_INDEX,
-                                        cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                        cur_rate_param | MOD_PARAM_FIXED_FREQ | MOD_PARAM_MIXTURE,
                                         descriptor,
                                         asc_bias_corr,
                                         asc_weights)
@@ -112,7 +112,7 @@ static bool build_models(const partition_descriptor_t &descriptor,
                     if (cur_rate_param & (MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
                         c_models.push_back(
                                 new ProtModel(LG4X_INDEX,
-                                        cur_rate_param | MOD_PARAM_FIXED_FREQ,
+                                        cur_rate_param | MOD_PARAM_FIXED_FREQ | MOD_PARAM_MIXTURE | MOD_PARAM_FREE_RATES,
                                         descriptor,
                                         asc_bias_corr,
                                         asc_weights)
@@ -120,7 +120,7 @@ static bool build_models(const partition_descriptor_t &descriptor,
                   }
                   else
                   {
-                      if (freq_params & MOD_PARAM_FIXED_FREQ)
+                      if ((freq_params & MOD_PARAM_FIXED_FREQ) && model_matrix != PROT_GTR_INDEX)
                           c_models.push_back(
                                       new ProtModel(model_matrix,
                                                     cur_rate_param | MOD_PARAM_FIXED_FREQ,
@@ -182,6 +182,7 @@ Partition::Partition(partition_id_t _id,
       break;
   case dt_protein:
       emp_freqs.resize(N_PROT_STATES);
+      emp_subst_rates.resize(N_PROT_SUBST_RATES);
       break;
   }
 
@@ -203,11 +204,8 @@ Partition::Partition(partition_id_t _id,
   for (mt_index_t i=0; i<_descriptor.states; i++)
      emp_freqs[i] = msa.get_stats(_descriptor.unique_id-1).freqs[i];
 
-  if (descriptor.datatype == dt_dna)
-  {
-    for (mt_index_t i=0; i<emp_subst_rates.size(); i++)
-       emp_subst_rates[i] = msa.get_stats(_descriptor.unique_id-1).subst_rates[i];
-  }
+  for (mt_index_t i=0; i<emp_subst_rates.size(); i++)
+     emp_subst_rates[i] = msa.get_stats(_descriptor.unique_id-1).subst_rates[i];
 
   if (model_params & (MOD_PARAM_INV | MOD_PARAM_INV_GAMMA))
   {
@@ -254,6 +252,7 @@ const partition_id_t Partition::get_id( void ) const
 {
     return id;
 }
+
 static bool sort_forwards(Model * m1, Model * m2)
 {
     /* sort by matrices */

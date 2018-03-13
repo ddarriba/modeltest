@@ -49,10 +49,17 @@ public:
                           double loglh,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false) = 0;
-  virtual void print(std::ostream  &out = std::cout) const = 0;
+
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const = 0;
   virtual mt_size_t get_n_free_parameters( void ) const = 0;
+
   const std::string & get_name( void ) const;
+  char get_char_id( void ) const;
 protected:
+  char char_id;
   static double cb_compute_negative_loglikelihood(void *p);
   std::string name;
 };

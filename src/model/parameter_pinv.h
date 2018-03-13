@@ -39,7 +39,10 @@ public:
                           double loglh,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
-  virtual void print(std::ostream  &out = std::cout) const;
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const;
   double get_pinv() const;
   void set_pinv( double value );
   virtual mt_size_t get_n_free_parameters( void ) const;

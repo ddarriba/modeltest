@@ -26,7 +26,8 @@
 #include "tree.h"
 #include "loggable.h"
 #include "global_defs.h"
-#include "model/model.h"
+#include "model/dnamodel.h"
+#include "model/protmodel.h"
 
 namespace modeltest
 {

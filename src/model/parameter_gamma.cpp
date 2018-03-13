@@ -34,6 +34,7 @@ ParameterGamma::ParameterGamma(mt_size_t n_cats, double alpha)
 {
   alpha = 1.0;
   name = "Alpha";
+  char_id = 'g';
 }
 
 ParameterGamma::ParameterGamma( const ParameterGamma & other )
@@ -41,6 +42,7 @@ ParameterGamma::ParameterGamma( const ParameterGamma & other )
 {
   alpha = other.alpha;
   name = other.name;
+  char_id = other.char_id;
 }
 
 ParameterGamma::~ParameterGamma( void )
@@ -89,9 +91,16 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
   return cur_loglh;
 }
 
-void ParameterGamma::print(std::ostream  &out) const
+void ParameterGamma::print(std::ostream  &out,
+                          bool line_break,
+                          int indent_first,
+                          int spacing) const
 {
-  UNUSED(out);
+  UNUSED(line_break);
+
+  if (indent_first && spacing > 0)
+    out << setw(spacing) << " ";
+  out << setprecision(MT_PRECISION_DIGITS) << alpha;
 }
 
 double ParameterGamma::get_alpha( void ) const

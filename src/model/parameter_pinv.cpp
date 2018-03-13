@@ -36,6 +36,7 @@ ParameterPinv::ParameterPinv( void )
   min_pinv = MIN_PINV;
   max_pinv = MAX_PINV;
   name = "P-inv";
+  char_id = 'i';
 }
 
 ParameterPinv::ParameterPinv( const ParameterPinv & other )
@@ -44,6 +45,7 @@ ParameterPinv::ParameterPinv( const ParameterPinv & other )
   max_pinv = other.max_pinv;
   min_pinv = other.min_pinv;
   name = other.name;
+  char_id = other.char_id;
 }
 
 ParameterPinv::~ParameterPinv( void )
@@ -97,9 +99,16 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   return cur_loglh;
 }
 
-void ParameterPinv::print(std::ostream  &out) const
+void ParameterPinv::print(std::ostream  &out,
+                        bool line_break,
+                        int indent_first,
+                        int spacing) const
 {
-  out << pinv;
+  UNUSED(line_break);
+
+  if (indent_first && spacing > 0)
+    out << setw(spacing) << " ";
+  out << setprecision(MT_PRECISION_DIGITS) << pinv;
 }
 
 double ParameterPinv::get_pinv() const

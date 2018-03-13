@@ -16,6 +16,8 @@ modeltest_ng_SOURCES = \
 	model/parameter_substrates.cpp \
 	model/parameter_frequencies.cpp \
 	model/model.cpp \
+	model/dnamodel.cpp \
+	model/protmodel.cpp \
 	optimize/model_optimizer_pll.cpp \
 	optimize/partition_optimizer.cpp \
 	model_selection.cpp \

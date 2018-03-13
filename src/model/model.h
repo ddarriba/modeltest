@@ -72,6 +72,7 @@ public:
     Model(mt_mask_t model_params,
           const partition_descriptor_t &partition,
           mt_size_t states,
+          mt_size_t n_categories,
           asc_bias_t asc_bias_corr = asc_none);
     Model( void );
     virtual ~Model();
@@ -147,7 +148,6 @@ public:
      * @return the number of categories
      */
     mt_size_t get_n_categories( void ) const;
-    void set_n_categories( mt_size_t ncat );
 
     /**
      * @brief Gets the number of substitution rates
@@ -157,16 +157,10 @@ public:
 
     /**
      * @brief Gets the model state frequencies
+     * @param[in] freqs_idx the index of frequencies set
      * @return the state frequencies
      */
-    const double * get_frequencies( void ) const;
-
-    /**
-     * @brief Gets the model state frequencies for mixture model
-     * @param[in] matrix_idx the index of the mixture matrix
-     * @return the state frequencies for the matrix
-     */
-    virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
+    const double * get_frequencies( mt_index_t freqs_idx = 0 ) const;
 
     /**
      * @brief Sets the model state frequencies
@@ -179,15 +173,8 @@ public:
      * @brief Gets the substitution rates
      * @return the substitution rates
      */
-    virtual const double * get_subst_rates( void ) const;
-    void set_subst_rates(const double value[]);
-
-    /**
-     * @brief Gets the substitution rates for mixture model
-     * @param[in] matrix_idx the index of the mixture matrix
-     * @return the substitution rates for the matrix
-     */
-    virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
+    virtual const double * get_subst_rates( mt_index_t matrix_idx = 0 ) const;
+    void set_subst_rates(const double value[], mt_index_t matrix_idx = 0);
 
     const unsigned int * get_params_indices( void ) const;
 
@@ -200,7 +187,11 @@ public:
     virtual void set_mixture_rates( const double * rates );
 
     /**
-     * @brief Gets the number of model substitution rate parameters
+     * @brief Gets the number of model substitution rate free parameters
+     *
+     * For example, JC (000000) has 0 parameters, while
+     * GTR (012345) has 5.
+     *
      * @return the number of model substitution rate parameters
      */
     virtual mt_size_t get_n_subst_params( void ) const;
@@ -308,8 +299,7 @@ public:
     void set_exec_time( time_t t);
 
     virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites,
-                                               mt_size_t n_cat_g ) = 0;
+                                               mt_size_t n_sites) = 0;
     pll_utree_t * get_tree( void ) const;
     pll_unode_t * get_tree_graph( void ) const;
 
@@ -317,7 +307,11 @@ public:
     void set_tree( pll_utree_t * tree );
 
     mt_index_t get_unique_id( void ) const;
+
 protected:
+
+    static mt_mask_t asc_bias_attribute(asc_bias_t v);
+
     bool restored_from_ckp;
 
     mt_index_t matrix_index;
@@ -332,6 +326,8 @@ protected:
     bool optimize_gamma;
     bool optimize_freqs;
     bool empirical_freqs;
+    bool optimize_ratecats;
+
     bool mixture;
 
     bool gap_aware;
@@ -362,100 +358,6 @@ protected:
     ParameterSubstRates * param_substrates;
     ParameterFrequencies * param_freqs;
     ParameterBranches * param_branches;
-};
-
-class DnaModel : public Model
-{
-public:
-    DnaModel(mt_index_t matrix_index,
-             mt_mask_t model_params,
-             const partition_descriptor_t &partition,
-             asc_bias_t asc_bias_corr = asc_none,
-             const mt_size_t *asc_w = 0);
-    DnaModel(const Model &other);
-    virtual ~DnaModel( void );
-
-    static mt_index_t get_index_for_matrix(const int * matrix);
-
-    virtual void clone(const Model *other);
-
-    virtual data_type_t get_datatype( void ) const
-    {
-        return dt_dna;
-    }
-
-    /**
-     * @brief Get the matrix symmetries
-     * @return the rate matrix symmetries
-     */
-    virtual const int * get_symmetries( void ) const;
-
-    /**
-     * @brief Get the number of substitution parameters
-     *
-     * For example, JC (000000) has 0 parameters, while
-     * GTR (012345) has 5.
-     *
-     * @return the number of substitution parameters
-     */
-    virtual mt_size_t get_n_subst_params() const;
-
-    /* extended */
-    virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites,
-                                               mt_size_t n_cat_g );
-    virtual void print(std::ostream  &out = std::cout);
-    virtual void print_xml(std::ostream  &out = std::cout);
-    virtual void output_log(std::ostream  &out) const;
-    virtual void input_log(std::istream  &in);
-    virtual int output_bin(std::string const& bin_filename) const;
-    virtual int input_bin(std::string const& bin_filename);
-
-private:
-  int *matrix_symmetries; //! The DNA matrix symmetries
-};
-
-class ProtModel : public Model
-{
-public:
-    ProtModel(mt_index_t matrix_index,
-              mt_mask_t model_params,
-              const partition_descriptor_t &partition,
-              asc_bias_t asc_bias_corr = asc_none,
-              const mt_size_t *asc_w = 0);
-    ProtModel(const Model &other);
-    virtual ~ProtModel( void );
-    virtual void clone(const Model *other);
-
-    virtual data_type_t get_datatype( void ) const
-    {
-        return dt_protein;
-    }
-
-    virtual const double * get_mixture_weights( void ) const;
-    virtual void set_mixture_weights( const double * weights );
-    virtual const double * get_mixture_rates( void ) const;
-    virtual void set_mixture_rates( const double * rates );
-
-    /* extended */
-    virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites,
-                                               mt_size_t n_cat_g );
-    virtual mt_size_t get_n_subst_params( void ) const;
-    virtual const double * get_mixture_frequencies( mt_index_t matrix_idx ) const;
-    virtual const double * get_subst_rates( void ) const;
-    virtual const double * get_mixture_subst_rates( mt_index_t matrix_idx ) const;
-    virtual void print(std::ostream  &out = std::cout);
-    virtual void print_xml(std::ostream  &out = std::cout);
-    virtual void output_log(std::ostream  &out) const;
-    virtual void input_log(std::istream  &in);
-    virtual int output_bin(std::string const& bin_filename) const;
-    virtual int input_bin(std::string const& bin_filename);
-
-private:
-    const double *fixed_subst_rates;
-    const double (*mixture_frequencies)[N_PROT_STATES];
-    const double (*mixture_subst_rates)[N_PROT_SUBST_RATES];
 };
 
 }

@@ -31,6 +31,13 @@ using namespace std;
 namespace modeltest
 {
 
+ParameterSubstRates::ParameterSubstRates(mt_size_t n_subst_params, mt_size_t rate_set_count)
+  : n_subst_params(n_subst_params), rate_set_count(rate_set_count)
+{
+  n_subst_free_params = 0;
+  char_id = 's';
+}
+
 bool ParameterSubstRates::initialize(mt_opt_params_t * params,
                                      Partition const& partition)
 {
@@ -40,14 +47,114 @@ bool ParameterSubstRates::initialize(mt_opt_params_t * params,
   return true;
 }
 
-const double * ParameterSubstRates::get_subst_rates( void ) const
+mt_size_t ParameterSubstRates::get_n_subst_params( void ) const
 {
-  return subst_rates;
+  return n_subst_params;
 }
 
-void ParameterSubstRates::set_subst_rates(const double * values)
+mt_size_t ParameterSubstRates::get_n_free_parameters( void ) const
 {
-  memcpy(subst_rates, values, n_subst_params * sizeof(double));
+  return n_subst_free_params;
+}
+
+void ParameterSubstRates::print(std::ostream  &out,
+                                bool line_break,
+                                int indent_first,
+                                int spacing) const
+{
+  if (indent_first && spacing > 0)
+    out << setw(spacing) << " ";
+  for (mt_index_t j=0; j<rate_set_count; ++j)
+    {
+    const double * rates = get_subst_rates(j);
+
+      if (j > 0)
+      {
+        if (line_break)
+          out << endl << endl;
+        if (spacing > 0)
+          out << setw(spacing) << " ";
+      }
+      for (mt_index_t i=0; i<n_subst_params; ++i)
+      {
+        if (i > 0)
+          out << ",";
+        out << rates[i];
+      }
+    }
+}
+
+/******************************************************************************/
+/* FIXED RATES */
+/******************************************************************************/
+
+ParameterSubstRatesFixed::ParameterSubstRatesFixed(const double * subst_rates, mt_size_t n_subst_rates)
+  : ParameterSubstRates(n_subst_rates, 1)
+{
+  const_subst_rates = new const double *[rate_set_count];
+  const_subst_rates[0] = subst_rates;
+
+  n_subst_free_params = 0;
+
+  name = "FixedSubstRates";
+}
+
+ParameterSubstRatesFixed::ParameterSubstRatesFixed(mt_size_t n_subst_rates, int rate_set_count)
+  : ParameterSubstRates(n_subst_rates, rate_set_count)
+{
+  const_subst_rates = new const double *[rate_set_count];
+
+  n_subst_free_params = 0;
+
+  name = "FixedSubstRates";
+}
+
+ParameterSubstRatesFixed::ParameterSubstRatesFixed( const ParameterSubstRatesFixed & other )
+  : ParameterSubstRates(other.n_subst_params, other.rate_set_count)
+{
+  const_subst_rates = new const double *[rate_set_count];
+  for (mt_index_t i=0; i<rate_set_count; ++i)
+    const_subst_rates[i] = other.const_subst_rates[i];
+  n_subst_free_params = other.n_subst_free_params;
+  name = other.name;
+}
+
+ParameterSubstRatesFixed::~ParameterSubstRatesFixed( void )
+{
+  delete[] const_subst_rates;
+}
+
+bool ParameterSubstRatesFixed::initialize(mt_opt_params_t * params,
+                                     Partition const& partition)
+{
+  UNUSED(partition);
+
+  for (mt_index_t i=0; i<rate_set_count; ++i)
+    pll_set_subst_params(params->partition, i, const_subst_rates[i]);
+
+  return true;
+}
+
+double ParameterSubstRatesFixed::optimize(mt_opt_params_t * params,
+                                double loglh,
+                                double tolerance,
+                                bool first_guess)
+{
+  UNUSED(first_guess);
+  UNUSED(tolerance);
+  UNUSED(params);
+
+  return loglh;
+}
+
+const double * ParameterSubstRatesFixed::get_subst_rates( int rate_set_index ) const
+{
+  return const_subst_rates[rate_set_index];
+}
+
+void ParameterSubstRatesFixed::set_subst_rates(const double * values, int rate_set_index)
+{
+  const_subst_rates[rate_set_index] = values;
 }
 
 /******************************************************************************/
@@ -55,14 +162,15 @@ void ParameterSubstRates::set_subst_rates(const double * values)
 /******************************************************************************/
 
 ParameterSubstRatesOpt::ParameterSubstRatesOpt(vector<int> symmetries)
-  : ParameterSubstRates(),
+  : ParameterSubstRates(symmetries.size(), 1),
     symmetries(symmetries)
 {
-  n_subst_params = symmetries.size();
-  subst_rates = new double[n_subst_params];
+  subst_rates = new double *[1];
+
+  subst_rates[0] = new double[n_subst_params];
   for (mt_index_t i=0; i<n_subst_params; ++i)
   {
-    subst_rates[i] = 1.0;
+    subst_rates[0][i] = 1.0;
     if (symmetries[i] > (int)n_subst_free_params)
       n_subst_free_params = (int)symmetries[i];
   }
@@ -71,10 +179,9 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt(vector<int> symmetries)
 }
 
 ParameterSubstRatesOpt::ParameterSubstRatesOpt(const int * a_symmetries,
-                                     mt_size_t _n_subst_params)
-  : ParameterSubstRates()
+                                               mt_size_t n_subst_params)
+  : ParameterSubstRates(n_subst_params, 1)
 {
-  n_subst_params = _n_subst_params;
   symmetries.resize(n_subst_params);
   n_subst_free_params = 0;
   for (mt_index_t i=0; i<n_subst_params; ++i)
@@ -83,26 +190,33 @@ ParameterSubstRatesOpt::ParameterSubstRatesOpt(const int * a_symmetries,
     if (symmetries[i] > (int) n_subst_free_params)
       n_subst_free_params = symmetries[i];
   }
-  subst_rates = new double[n_subst_params];
+  subst_rates = new double *[1];
+  subst_rates[0] = new double[n_subst_params];
   for (mt_index_t i=0; i<n_subst_params; ++i)
-    subst_rates[i] = 1.0;
+    subst_rates[0][i] = 1.0;
 
   name = "SubstRates";
 }
 
 ParameterSubstRatesOpt::ParameterSubstRatesOpt( const ParameterSubstRatesOpt & other )
-  : ParameterSubstRates()
+  : ParameterSubstRates(other.n_subst_params, other.rate_set_count)
 {
   symmetries = other.symmetries;
   n_subst_params = other.n_subst_params;
   n_subst_free_params = other.n_subst_free_params;
-  subst_rates = new double[n_subst_params];
-  memcpy(subst_rates, other.subst_rates, sizeof(double)*n_subst_params);
+  subst_rates = new double *[rate_set_count];
+  for (mt_index_t j=0; j<rate_set_count; ++j)
+  {
+    subst_rates[j] = new double[n_subst_params];
+    memcpy(subst_rates[j], other.subst_rates[j], sizeof(double)*n_subst_params);
+  }
   name = other.name;
 }
 
 ParameterSubstRatesOpt::~ParameterSubstRatesOpt( void )
 {
+  for (mt_index_t j=0; j<rate_set_count; ++j)
+    delete[] subst_rates[j];
   delete[] subst_rates;
 }
 
@@ -112,37 +226,41 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
     const vector<double> empirical_rates = partition.get_empirical_subst_rates();
     assert(empirical_rates.size() == n_subst_params);
 
-    for (mt_index_t i=0; i<n_subst_free_params; ++i)
+    for (mt_index_t k=0; k<rate_set_count; ++k)
     {
-        double sum_rate = 0;
-        int count = 0;
-        for (mt_index_t j=0; j<n_subst_params; ++j)
-        {
-            if ((mt_index_t)symmetries[j] == i)
-            {
-                ++count;
-                sum_rate += empirical_rates[j];
-            }
-        }
-        assert(count);
-        sum_rate /= count;
+      for (mt_index_t i=0; i<n_subst_free_params; ++i)
+      {
+          double sum_rate = 0;
+          int count = 0;
+          for (mt_index_t j=0; j<n_subst_params; ++j)
+          {
+              if ((mt_index_t)symmetries[j] == i)
+              {
+                  ++count;
+                  sum_rate += empirical_rates[j];
+              }
+          }
+          assert(count);
+          sum_rate /= count;
 
-        /* validate boundaries */
-        if (sum_rate < MIN_RATE)
-          sum_rate = MIN_RATE;
-        else if (sum_rate > MAX_RATE)
-          sum_rate = MAX_RATE;
+          /* validate boundaries */
+          if (sum_rate < MIN_RATE)
+            sum_rate = MIN_RATE;
+          else if (sum_rate > MAX_RATE)
+            sum_rate = MAX_RATE;
 
-        for (mt_index_t j=0; j<n_subst_params; ++j)
-            if ((mt_index_t)symmetries[j] == i)
-                subst_rates[j] = sum_rate;
+          for (mt_index_t j=0; j<n_subst_params; ++j)
+              if ((mt_index_t)symmetries[j] == i)
+                  subst_rates[k][j] = sum_rate;
+      }
+
+      for (mt_index_t i=0; i<n_subst_params; ++i)
+      {
+          subst_rates[k][i] /= subst_rates[k][n_subst_params-1];
+      }
+
+      pll_set_subst_params(params->partition, k, subst_rates[k]);
     }
-
-    for (mt_index_t j=0; j<n_subst_params; ++j)
-    {
-        subst_rates[j] /= subst_rates[n_subst_params-1];
-    }
-    pll_set_subst_params(params->partition, 0, subst_rates);
 
   return true;
 }
@@ -154,6 +272,8 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 {
   UNUSED(first_guess);
   double cur_loglh;
+
+  assert(rate_set_count == 1);
 
   cur_loglh = -1 * pllmod_algo_opt_subst_rates (params->partition,
                                           params->tree_info->root,
@@ -167,23 +287,18 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  memcpy(subst_rates, params->partition->subst_params[0], n_subst_params * sizeof(double));
+  memcpy(subst_rates[0], params->partition->subst_params[0], n_subst_params * sizeof(double));
   return cur_loglh;
 }
 
-void ParameterSubstRatesOpt::print(std::ostream  &out) const
+const double * ParameterSubstRatesOpt::get_subst_rates( int rate_set_index ) const
 {
-  for (mt_index_t i=0; i<n_subst_params; ++i)
-  {
-    if (i > 0)
-      out << ",";
-    out << subst_rates[i];
-  }
+  return subst_rates[rate_set_index];
 }
 
-mt_size_t ParameterSubstRatesOpt::get_n_free_parameters( void ) const
+void ParameterSubstRatesOpt::set_subst_rates(const double * values, int rate_set_index)
 {
-  return n_subst_free_params;
+  memcpy(subst_rates[rate_set_index], values, n_subst_params * sizeof(double));
 }
 
 } /* namespace modeltest */

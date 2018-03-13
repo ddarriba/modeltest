@@ -55,7 +55,6 @@ namespace modeltest
     PartitionOptimizer(Partition &partition,
                        MsaPll & msa,
                        TreePll & tree,
-                       mt_size_t n_categories,
                        part_opt_t opt_type,
                        bool optimize_topology,
                        double epsilon_param,
@@ -76,7 +75,6 @@ namespace modeltest
     Partition & partition;  //! partition instance
     MsaPll & msa;           //! msa instance
     TreePll & tree;         //! tree instance
-    mt_size_t n_categories;
     part_opt_t opt_type;
     bool optimize_topology;
     double epsilon_param;

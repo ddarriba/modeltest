@@ -34,36 +34,52 @@ using namespace std;
 namespace modeltest
 {
 
-ParameterFrequencies::ParameterFrequencies( mt_size_t states ) :
-  states(states)
+static const double equal_dna_freqs[4] = { 0.25, 0.25, 0.25, 0.25 };
+
+ParameterFrequencies::ParameterFrequencies( mt_size_t states, mt_size_t freq_set_count ) :
+  states(states),
+  freq_set_count(freq_set_count)
 {
-  frequencies = 0;
-  name = "Frequencies";
+  assert(freq_set_count > 0);
+  char_id = 'f';
 }
 
 ParameterFrequencies::~ParameterFrequencies( void )
 {
 }
 
-const double * ParameterFrequencies::get_frequencies( void ) const
+void ParameterFrequencies::print(std::ostream  &out,
+                                bool line_break,
+                                int indent_first,
+                                int spacing) const
 {
-    return frequencies;
-}
+  if (indent_first && spacing > 0)
+    out << setw(spacing) << " ";
+  for (mt_index_t j=0; j<freq_set_count; ++j)
+    {
+    const double * freqs = get_frequencies(j);
 
-void ParameterFrequencies::set_frequencies(const double value[])
-{
-    memcpy(frequencies, value, states * sizeof(double));
-}
-
-void ParameterFrequencies::set_frequencies(const vector<double> & value)
-{
-    memcpy(frequencies, &(value[0]), states * sizeof(double));
-}
-
-void ParameterFrequencies::print(std::ostream  &out) const
-{
-  for (mt_index_t i=0; i<states; i++)
-      out << setprecision(MT_PRECISION_DIGITS) << frequencies[i] << " ";
+      if (j > 0)
+      {
+        if (line_break)
+          out << endl;
+        if (spacing > 0)
+          out << setw(spacing) << " ";
+      }
+      for (mt_index_t i=0; i<states; ++i)
+      {
+//        if (i == 10 && line_break)
+//        {
+//          out << endl;
+//          if (spacing > 0)
+//            out << setw(spacing) << " ";
+//        }
+//        else
+          if (i > 0)
+          out << " ";
+        out << setprecision(MT_PRECISION_DIGITS) << freqs[i];
+      }
+    }
 }
 
 /******************************************************************************/
@@ -71,36 +87,47 @@ void ParameterFrequencies::print(std::ostream  &out) const
 ParameterFrequenciesOpt::ParameterFrequenciesOpt( mt_size_t states )
   : ParameterFrequencies(states)
 {
-  frequencies = new double[states];
+  frequencies = new double*[freq_set_count];
 
-  for (mt_index_t i=0; i<states; ++i)
+  for (mt_index_t j = 0; j < (mt_size_t) freq_set_count; ++j)
   {
-    frequencies[i] = 1.0/states;
+    frequencies[j] = new double[states];
+    for (mt_index_t i = 0; i < states; ++i)
+    {
+      frequencies[j][i] = 1.0 / states;
+    }
   }
+
+  name = "OptFrequencies";
 }
 
 ParameterFrequenciesOpt::ParameterFrequenciesOpt( ParameterFrequenciesOpt const& other )
-  : ParameterFrequencies(other.states)
+  : ParameterFrequencies(other.states, other.freq_set_count)
 {
-  frequencies = new double[states];
-  memcpy(frequencies,
-         other.frequencies,
-         sizeof(double) * states);
+  for (mt_index_t j=0; j<freq_set_count; ++j)
+    memcpy(frequencies[j],
+           other.frequencies[j],
+           sizeof(double) * states);
 }
 
 ParameterFrequenciesOpt::~ParameterFrequenciesOpt( void )
 {
+  for (mt_index_t j=0; j<(mt_size_t)freq_set_count; ++j)
+    delete[] frequencies[j];
   delete[] frequencies;
 }
 
 bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
                                          Partition const& partition)
 {
-  memcpy(frequencies,
-         &partition.get_empirical_frequencies()[0],
-         sizeof(double) * states);
+  for (mt_index_t j=0; j<freq_set_count; ++j)
+  {
+    memcpy(frequencies[j],
+           &partition.get_empirical_frequencies()[0],
+           sizeof(double) * states);
 
-  pll_set_frequencies(params->partition, 0, frequencies);
+    pll_set_frequencies(params->partition, j, frequencies[j]);
+  }
 
   return true;
 }
@@ -113,6 +140,9 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
+  /* optimize only a single set of frequencies */
+  assert(freq_set_count == 1);
+
   cur_loglh = -1 * pllmod_algo_opt_frequencies(params->partition,
                                          params->tree_info->root,
                                          0,
@@ -122,7 +152,7 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  memcpy(frequencies,
+  memcpy(frequencies[0],
          params->partition->frequencies[0],
          sizeof(double) * states);
 
@@ -131,48 +161,71 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
 
 mt_size_t ParameterFrequenciesOpt::get_n_free_parameters( void ) const
 {
-  return states - 1;
+  return freq_set_count * (states - 1);
+}
+
+const double * ParameterFrequenciesOpt::get_frequencies( mt_index_t freq_set_index ) const
+{
+  return frequencies[freq_set_index];
+}
+
+void ParameterFrequenciesOpt::set_frequencies(const double value[], mt_index_t freq_set_index)
+{
+  assert(frequencies);
+  memcpy(frequencies[freq_set_index], value, states * sizeof(double));
+}
+
+void ParameterFrequenciesOpt::set_frequencies(const vector<double> & value, mt_index_t freq_set_index)
+{
+  assert(frequencies);
+  memcpy(frequencies[freq_set_index], &(value[0]), states * sizeof(double));
 }
 
 /******************************************************************************/
 
 ParameterFrequenciesFixed::ParameterFrequenciesFixed( mt_size_t states,
-                                                      bool equal_frequencies )
-  : ParameterFrequencies(states), equal_frequencies(equal_frequencies)
+                                                      freqs_type_t freqs_type,
+                                                      mt_size_t freq_set_count)
+  : ParameterFrequencies(states, freq_set_count),
+    freqs_type(freqs_type)
 {
-  frequencies = new double[states];
-  for (mt_index_t i=0; i<states; ++i)
+  fixed_frequencies = new const double*[freq_set_count];
+
+  if (freqs_type == freqs_equal)
   {
-    frequencies[i] = 1.0/states;
+    assert (states == 4);
+    for (mt_index_t j=0; j<freq_set_count; ++j)
+      fixed_frequencies[j] = equal_dna_freqs;
   }
+  name = "FixedFrequencies";
 }
 
 ParameterFrequenciesFixed::ParameterFrequenciesFixed( ParameterFrequenciesFixed const& other )
-  : ParameterFrequencies(other.states)
+  : ParameterFrequencies(other.states, other.freq_set_count)
 {
-  equal_frequencies = other.equal_frequencies;
-  frequencies = new double[states];
-  memcpy(frequencies,
-         other.frequencies,
-         sizeof(double) * states);
+  freqs_type = other.freqs_type;
+  fixed_frequencies = new const double*[freq_set_count];
+  for (mt_index_t j=0; j<freq_set_count; ++j)
+    fixed_frequencies[j] = other.fixed_frequencies[j];
 }
 
 ParameterFrequenciesFixed::~ParameterFrequenciesFixed( void )
 {
-  delete[] frequencies;
+  delete[] fixed_frequencies;
 }
 
 bool ParameterFrequenciesFixed::initialize(mt_opt_params_t * params,
                                            Partition const& partition)
 {
-  if (!equal_frequencies)
+  for (mt_index_t j=0; j<freq_set_count; ++j)
   {
-    memcpy(frequencies,
-           &partition.get_empirical_frequencies()[0],
-           sizeof(double) * states);
-  }
+    if (freqs_type == freqs_empirical)
+    {
+      fixed_frequencies[j] = &partition.get_empirical_frequencies()[0];
+    }
 
-  pll_set_frequencies(params->partition, 0, frequencies);
+    pll_set_frequencies(params->partition, j, fixed_frequencies[j]);
+  }
 
   return true;
 }
@@ -192,7 +245,26 @@ double ParameterFrequenciesFixed::optimize(mt_opt_params_t * params,
 
 mt_size_t ParameterFrequenciesFixed::get_n_free_parameters( void ) const
 {
-  return equal_frequencies?0:(states-1);
+  return freqs_type == freqs_empirical?(freq_set_count * (states-1)):0;
+}
+
+const double * ParameterFrequenciesFixed::get_frequencies( mt_index_t freq_set_index ) const
+{
+  return fixed_frequencies[freq_set_index];
+}
+
+void ParameterFrequenciesFixed::set_frequencies(const double value[], mt_index_t freq_set_index)
+{
+  assert(fixed_frequencies);
+  assert(freqs_type == freqs_predef);
+  fixed_frequencies[freq_set_index] = value;
+}
+
+void ParameterFrequenciesFixed::set_frequencies(const vector<double> & value, mt_index_t freq_set_index)
+{
+  assert(fixed_frequencies);
+  assert(freqs_type == freqs_predef);
+  fixed_frequencies[freq_set_index] = &(value[0]);
 }
 
 } /* namespace modeltest */

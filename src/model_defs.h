@@ -34,11 +34,12 @@
 #define N_PROT_STATES               20
 #define N_PROT_SUBST_RATES         190
 #define N_PROT_MODEL_MATRICES       21
-#define N_PROT_MODEL_ALL_MATRICES   21 //! all protein matrices
+#define N_PROT_MODEL_ALL_MATRICES   22 //! all protein matrices
 
 #define N_MIXTURE_CATS  4
-#define LG4M_INDEX      19
-#define LG4X_INDEX      20
+#define LG4M_INDEX     19
+#define LG4X_INDEX     20
+#define PROT_GTR_INDEX 21
 
 #define N_DNA_RAXML_MATRICES     3
 #define N_DNA_MRBAYES_MATRICES   3
@@ -65,12 +66,22 @@
 #define MOD_PARAM_MIXTURE         (1<<7)
 #define MOD_PARAM_FREE_RATES      (1<<8)
 
+// b(branches) f(freqs) g(gamma) i(pinv)
+// r(ratecats) s(substrates)
+#define N_PARAMETERS                  6
+
 #define MOD_PARAM_MIN_RPARAM MOD_PARAM_NO_RATE_VAR
 #define MOD_PARAM_MAX_RPARAM MOD_PARAM_INV_GAMMA
 
 #define MOD_MASK_FREQ_PARAMS    7
 #define MOD_MASK_RATE_PARAMS  120
 #define MOD_MASK_MIXT_PARAMS  384
+
+typedef enum {
+    freqs_equal,
+    freqs_empirical,
+    freqs_predef
+} freqs_type_t;
 
 const mt_index_t raxml_matrices_indices[3] = {
     DNA_JC_INDEX,
@@ -92,6 +103,7 @@ const std::string dna_model_names[22] = {
     "SYM",    "GTR"
 };
 
+/* matrices included in default search */
 const mt_index_t dna_model_matrices_indices[N_DNA_MODEL_MATRICES] = {
     0,    /*     JC/F81    */
     18,   /*    K80/HKY    */
@@ -218,12 +230,19 @@ const std::string prot_model_names[N_PROT_MODEL_ALL_MATRICES] = {
     "PMB",       // 13
     "HIVB",      // 14
     "HIVW",      // 15
-    "JTTDCMUT",  // 16
+    "JTT-DCMUT", // 16
     "FLU",       // 17
     "STMTREV",   // 18
     /* additional mixture matrices */
     "LG4M",      // 19
-    "LG4X"       // 20
+    "LG4X",      // 20
+    /* matrices not included by default*/
+    "GTR"        // 21
+};
+
+/* matrices included in default search */
+const mt_index_t prot_model_matrices_indices[N_PROT_MODEL_MATRICES] = {
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
 };
 
 const mt_index_t prot_raxml_matrices_indices[N_PROT_RAXML_MATRICES] = {

@@ -39,7 +39,10 @@ public:
                           double loglh,
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
-  virtual void print(std::ostream  &out = std::cout) const;
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const;
   virtual double get_alpha( void ) const;
   virtual void set_alpha( double alpha );
 

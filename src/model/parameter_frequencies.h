@@ -22,7 +22,12 @@
 #ifndef PARAMETER_FREQUENCIES_H
 #define PARAMETER_FREQUENCIES_H
 
+#define PARAM_FREQUENCIES_EQUAL      1
+#define PARAM_FREQUENCIES_EMPIRICAL  2
+#define PARAM_FREQUENCIES_PREDEFINED 3
+
 #include "abstract_parameter.h"
+#include "../model_defs.h"
 
 #include <vector>
 
@@ -32,27 +37,31 @@ namespace modeltest
 class ParameterFrequencies : public AbstractParameter
 {
 public:
-  ParameterFrequencies( mt_size_t states );
+  ParameterFrequencies( mt_size_t states,
+                        mt_size_t freq_set_count = 1);
   ~ParameterFrequencies( void );
 
   /**
    * @brief Gets the model state frequencies
    * @return the state frequencies
    */
-  const double * get_frequencies( void ) const;
+  virtual const double * get_frequencies( mt_index_t freq_set_index = 0 ) const = 0;
 
   /**
    * @brief Sets the model state frequencies
    * @param[in] value the model state frequencies
    */
-  void set_frequencies(const double value[]);
-  void set_frequencies(const std::vector<double> & value);
+  virtual void set_frequencies(const double value[], mt_index_t freq_set_index = 0) = 0;
+  virtual void set_frequencies(const std::vector<double> & value, mt_index_t freq_set_index = 0) = 0;
 
-  virtual void print(std::ostream  &out = std::cout) const;
+  virtual void print(std::ostream  &out = std::cout,
+                     bool line_break = false,
+                     int indent_first = false,
+                     int spacing = 0) const;
 
 protected:
   mt_size_t states;
-  double * frequencies;
+  mt_size_t freq_set_count;
 };
 
 class ParameterFrequenciesOpt : public ParameterFrequencies
@@ -68,12 +77,21 @@ public:
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
   virtual mt_size_t get_n_free_parameters( void ) const;
+
+  virtual const double * get_frequencies( mt_index_t freq_set_index = 0 ) const;
+  virtual void set_frequencies(const double value[], mt_index_t freq_set_index = 0);
+  virtual void set_frequencies(const std::vector<double> & value, mt_index_t freq_set_index = 0);
+
+private:
+  double ** frequencies;
 };
 
 class ParameterFrequenciesFixed : public ParameterFrequencies
 {
 public:
-  ParameterFrequenciesFixed( mt_size_t states, bool equal_frequencies );
+  ParameterFrequenciesFixed( mt_size_t states,
+                             freqs_type_t freqs_type,
+                             mt_size_t freq_set_count = 1);
   ParameterFrequenciesFixed( ParameterFrequenciesFixed const& other );
   ~ParameterFrequenciesFixed( void );
   virtual bool initialize(mt_opt_params_t * params,
@@ -83,8 +101,14 @@ public:
                           double tolerance = DEFAULT_PARAM_EPSILON,
                           bool first_guess = false);
   virtual mt_size_t get_n_free_parameters( void ) const;
+
+  virtual const double * get_frequencies( mt_index_t freq_set_index = 0 ) const;
+  virtual void set_frequencies(const double value[], mt_index_t freq_set_index = 0);
+  virtual void set_frequencies(const std::vector<double> & value, mt_index_t freq_set_index = 0);
+
 private:
-    bool equal_frequencies;
+    const double ** fixed_frequencies;
+    freqs_type_t freqs_type;
 };
 
 } /* namespace modeltest */

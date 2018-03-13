@@ -44,4 +44,9 @@ namespace modeltest
   {
       return name;
   }
+
+  char AbstractParameter::get_char_id( void ) const
+  {
+    return char_id;
+  }
 }

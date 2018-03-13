@@ -24,6 +24,8 @@ SOURCES += main.cpp\
     model/parameter_pinv.cpp \
     model/parameter_substrates.cpp \
     model/model.cpp \
+    model/dnamodel.cpp \
+    model/protmodel.cpp \
     optimize/model_optimizer_pll.cpp \
     optimize/partition_optimizer.cpp \
     modeltest.cpp \
@@ -60,6 +62,8 @@ HEADERS  += \
     model/parameter_pinv.h \
     model/parameter_substrates.h \
     model/model.h \
+    model/dnamodel.h \
+    model/protmodel.h \
     optimize/model_optimizer.h \
     optimize/model_optimizer_pll.h \
     optimize/partition_optimizer.h \

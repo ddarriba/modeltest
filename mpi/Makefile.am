@@ -22,6 +22,8 @@ modeltestmpi_headers = \
 	../src/model/parameter_substrates.h \
 	../src/model/parameter_frequencies.h \
 	../src/model/model.h \
+	../src/model/dnamodel.h \
+	../src/model/protmodel.h \
 	../src/optimize/model_optimizer_pll.h \
 	../src/optimize/model_optimizer.h \
 	../src/optimize/partition_optimizer.h \
@@ -57,6 +59,8 @@ modeltest_mpi_SOURCES = \
 	../src/model/parameter_substrates.cpp \
 	../src/model/parameter_frequencies.cpp \
 	../src/model/model.cpp \
+	../src/model/dnamodel.cpp \
+	../src/model/protmodel.cpp \
 	../src/optimize/model_optimizer_pll.cpp \
 	../src/optimize/partition_optimizer.cpp \
 	../src/model_selection.cpp \

@@ -697,9 +697,9 @@ void XModelTestFancy::on_btn_report_clicked()
         Meta::print_options(opts, *report_file);
         for (mt_index_t i=0; i<model_selection.size(); ++i)
         {
+            ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_bic], *report_file);
             ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_aic], *report_file);
             ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_aicc], *report_file);
-            ModelTestService::instance()->print_selection(*model_selection[i][modeltest::ic_bic], *report_file);
         }
         report_file->close();
 
@@ -946,6 +946,7 @@ bool XModelTestFancy::run_modelselection()
         partition.asc_bias_corr = asc_none;
         partition.asc_weights = 0;
         partition.unique_id = 1;
+        partition.n_categories = opts.n_catg;
 
         scheme->push_back(partition);
     }

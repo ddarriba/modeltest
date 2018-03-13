@@ -586,7 +586,7 @@ static string raxmlng_name(Model const& model)
   {
       modelname << prot_model_names[matrix_index];;
       if (model.is_I())
-        modelname << "I";
+        modelname << "+I";
       if (model.is_G())
         modelname << "+G" << model.get_n_categories();
       if (model.is_F())
