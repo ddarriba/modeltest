@@ -181,8 +181,16 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
   ss_name << prot_model_names[matrix_index];
   if (optimize_pinv)
       ss_name << "+I";
-  if (optimize_gamma && !mixture)
-      ss_name << "+G";
+
+  if (!mixture)
+  {
+    if (optimize_gamma)
+        ss_name << "+G" << n_categories;
+    else if (optimize_ratecats)
+    {
+      ss_name << "+R" << n_categories;
+    }
+  }
 
   if (empirical_freqs)
   {
@@ -309,9 +317,11 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
 
     attributes |= Model::asc_bias_attribute(asc_bias_corr);
 
-    n_cats = optimize_gamma?n_categories:1;
     if (mixture)
-        n_cats = N_MIXTURE_CATS;
+      n_cats = N_MIXTURE_CATS;
+    else
+      n_cats = (optimize_gamma | optimize_ratecats)?n_categories:1;
+
 
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */

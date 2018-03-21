@@ -117,14 +117,13 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
   double cur_loglh;
   double branch_scaler;
 
-  cur_loglh = -1 * pllmod_algo_opt_rates_weights(params->partition,
-                                            params->tree_info->root,
-                                            params->params_indices,
-                                            0.01, 10,
-                                            LBFGSB_FACTOR,
-                                            tolerance,
-                                            &branch_scaler,
-                                            true);
+  assert(params->tree_info->params_to_optimize[0] &
+        (PLLMOD_OPT_PARAM_FREE_RATES | PLLMOD_OPT_PARAM_RATE_WEIGHTS));
+  cur_loglh = -1 * pllmod_algo_opt_rates_weights_treeinfo (params->tree_info,
+                                                        0.01,
+                                                        10,
+                                                        LBFGSB_FACTOR,
+                                                        tolerance);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
   extract_rates_and_weights(params);

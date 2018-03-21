@@ -581,10 +581,20 @@ bool ModelTest::build_instance(mt_options_t & options)
     {
       if (stats.freqs[j] == 0.0)
       {
-        LOG_ERR << "Error: " << part_header << "State " << j << " is missing in the alignment" << endl;
-        mt_errno = MT_ERROR_FREQUENCIES;
-        snprintf(mt_errmsg, ERR_MSG_SIZE, "There are missing states in the alignment");
-        return false;
+        LOG_WARN << "WARNING: " << part_header << "State ";
+        if (stats.states == 4)
+           LOG_WARN << dna_chars[j];
+        else if (stats.states == 20)
+          LOG_WARN << aa_chars[j];
+        else
+          LOG_WARN << j;
+        LOG_WARN << " is missing in the alignment" << endl;
+        if (options.partitions_eff->at(i).model_params & MOD_PARAM_EMPIRICAL_FREQ)
+        {
+          mt_errno = MT_ERROR_FREQUENCIES;
+          snprintf(mt_errmsg, ERR_MSG_SIZE, "There are missing states. You should disable models with empirical frequencies: \"-f f\"");
+          return false;
+        }
       }
     }
 

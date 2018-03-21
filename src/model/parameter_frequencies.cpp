@@ -256,14 +256,12 @@ const double * ParameterFrequenciesFixed::get_frequencies( mt_index_t freq_set_i
 void ParameterFrequenciesFixed::set_frequencies(const double value[], mt_index_t freq_set_index)
 {
   assert(fixed_frequencies);
-  assert(freqs_type == freqs_predef);
   fixed_frequencies[freq_set_index] = value;
 }
 
 void ParameterFrequenciesFixed::set_frequencies(const vector<double> & value, mt_index_t freq_set_index)
 {
   assert(fixed_frequencies);
-  assert(freqs_type == freqs_predef);
   fixed_frequencies[freq_set_index] = &(value[0]);
 }
 

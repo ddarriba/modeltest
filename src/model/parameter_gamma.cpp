@@ -72,19 +72,31 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
                                 bool first_guess)
 {
   double cur_loglh;
+  double init_alpha;
   UNUSED(first_guess);
 
   if (n_cats == 1)
     return loglh;
 
+  init_alpha = params->tree_info->alphas[0];
+  assert(params->tree_info->params_to_optimize[0] & PLLMOD_OPT_PARAM_ALPHA);
   cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
                                                     PLLMOD_OPT_PARAM_ALPHA,
                                                     MIN_ALPHA,
                                                     MAX_ALPHA,
                                                     tolerance);
-
   alpha = params->tree_info->alphas[0];
 
+  if (isinf(cur_loglh))
+  {
+    if (pll_errno == PLLMOD_OPT_ERROR_BRENT_INIT)
+    {
+      assert(fabs(alpha - init_alpha) < 1e-8);
+      cur_loglh = loglh;
+    }
+  }
+
+  assert(!isinf(cur_loglh));
   assert(!loglh || (cur_loglh - loglh)/loglh <= 1e-10);
   extract_rates_and_weights(params);
 

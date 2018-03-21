@@ -51,8 +51,6 @@ void XModelTestFancy::on_radDatatypeDna_clicked()
     ui->modelsListView->addItem("012314  TVMef / TVM");
     ui->modelsListView->addItem("012345  SYM / GTR");
 
-    ui->modelsListView->setMinimumHeight(250);
-    ui->modelsListView->setMaximumHeight(250);
     on_radSchemes11_clicked();
 
     update_gui();
@@ -64,15 +62,13 @@ void XModelTestFancy::on_radDatatypeProt_clicked()
     ui->cbEqualFreq->setText("Model frequencies");
     ui->cbMlFreq->setText("Empirical frequencies");
     ui->modelsListView->clear();
-    for (mt_index_t i=0; i<N_PROT_MODEL_MATRICES; i++)
+    for (mt_index_t i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
     {
         ui->modelsListView->addItem(prot_model_names[i].c_str());
-        ui->modelsListView->item(i)->setCheckState(Qt::CheckState::Checked);
+        ui->modelsListView->item(i)->setCheckState(i<N_PROT_MODEL_MATRICES?Qt::CheckState::Checked:Qt::CheckState::Unchecked);
     }
 
-    ui->modelsListView->setMinimumHeight(363);
-    ui->modelsListView->setMaximumHeight(363);
-    ui->modelsListView->selectAll();
+    //ui->modelsListView->selectAll();
 
     update_gui();
 }
@@ -96,6 +92,12 @@ void XModelTestFancy::on_cbIGModels_toggled(bool checked)
 }
 
 void XModelTestFancy::on_cbIModels_toggled(bool checked)
+{
+    UNUSED(checked);
+    update_gui();
+}
+
+void XModelTestFancy::on_cbFreeRates_toggled(bool checked)
 {
     UNUSED(checked);
     update_gui();
@@ -208,6 +210,7 @@ void XModelTestFancy::on_radSetMrbayes_toggled(bool checked)
     ui->cbGModels->setChecked(true);
     ui->cbIModels->setChecked(true);
     ui->cbIGModels->setChecked(true);
+    ui->cbFreeRates->setChecked(false);
     update_gui();
 }
 
@@ -222,6 +225,7 @@ void XModelTestFancy::on_radSetRaxml_toggled(bool checked)
     ui->cbGModels->setChecked(true);
     ui->cbIModels->setChecked(false);
     ui->cbIGModels->setChecked(false);
+    ui->cbFreeRates->setChecked(false);
     ui->sliderNCat->setValue(4);
     on_sliderNCat_sliderMoved(4);
     update_gui();
@@ -238,6 +242,7 @@ void XModelTestFancy::on_radSetPhyml_toggled(bool checked)
     ui->cbIModels->setChecked(true);
     ui->cbGModels->setChecked(true);
     ui->cbIGModels->setChecked(true);
+    ui->cbFreeRates->setChecked(false);
     update_gui();
 }
 
@@ -252,5 +257,6 @@ void XModelTestFancy::on_radSetModelTest_toggled(bool checked)
     ui->cbIModels->setChecked(true);
     ui->cbGModels->setChecked(true);
     ui->cbIGModels->setChecked(true);
+    ui->cbFreeRates->setChecked(false);
     update_gui();
 }

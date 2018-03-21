@@ -83,7 +83,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 
     for (Observer * observer : observers)
         mopt->attach(observer);
-    mopt->run(epsilon_param, epsilon_opt);
+    mopt->run(epsilon_opt, epsilon_param);
     delete mopt;
 
     return true;
@@ -410,8 +410,6 @@ string ModelTestService::get_iqtree_command_line(Model const& model,
     //mt_index_t matrix_index = model.get_matrix_index();
 
     iqtree_args << "-s " << msa_filename << " -m " << model.get_name();
-    if (model.is_G())
-      iqtree_args << model.get_n_categories();
 
     return iqtree_args.str();
 }

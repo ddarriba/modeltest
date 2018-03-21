@@ -94,6 +94,16 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
 
   pinv = params->tree_info->partitions[0]->prop_invar[0];
 
+  if (isinf(cur_loglh))
+  {
+    if (pll_errno == PLLMOD_OPT_ERROR_BRENT_INIT)
+    {
+      assert(fabs(pinv - params->partition->prop_invar[0]) < 1e-8);
+      cur_loglh = loglh;
+    }
+  }
+
+  assert(!isinf(cur_loglh));
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
   return cur_loglh;

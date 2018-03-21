@@ -97,7 +97,11 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     }
     if (optimize_gamma)
     {
-      ss_name << "+G";
+      ss_name << "+G" << n_categories;
+    }
+    else if (optimize_ratecats)
+    {
+      ss_name << "+R" << n_categories;
     }
 
     name = ss_name.str();
@@ -269,7 +273,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
                 n_sites,                           /* sites */
                 1,                                 /* rate matrices */
                 2*n_tips-3,                        /* prob matrices */
-                optimize_gamma ? n_categories : 1, /* rate cats */
+                optimize_gamma | optimize_ratecats ? n_categories : 1, /* rate cats */
                 n_tips-2,                          /* scale buffers */
                 attributes                         /* attributes */
                 );

@@ -370,7 +370,7 @@
            <string extracomment="Main console"/>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <property name="tabsClosable">
            <bool>false</bool>
@@ -1121,7 +1121,7 @@ p, li { white-space: pre-wrap; }
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>330</height>
+                       <height>300</height>
                       </size>
                      </property>
                      <property name="frameShape">
@@ -1541,13 +1541,13 @@ p, li { white-space: pre-wrap; }
                            <property name="minimumSize">
                             <size>
                              <width>0</width>
-                             <height>50</height>
+                             <height>90</height>
                             </size>
                            </property>
                            <property name="maximumSize">
                             <size>
                              <width>16777215</width>
-                             <height>50</height>
+                             <height>90</height>
                             </size>
                            </property>
                            <property name="frameShape">
@@ -1566,6 +1566,34 @@ p, li { white-space: pre-wrap; }
                             <property name="bottomMargin">
                              <number>2</number>
                             </property>
+                            <item row="2" column="2">
+                             <widget class="QLabel" name="lblNCat">
+                              <property name="minimumSize">
+                               <size>
+                                <width>100</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                              <property name="font">
+                               <font>
+                                <family>Courier</family>
+                                <pointsize>10</pointsize>
+                                <weight>50</weight>
+                                <italic>false</italic>
+                                <bold>false</bold>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>4 categories</string>
+                              </property>
+                             </widget>
+                            </item>
                             <item row="0" column="0">
                              <widget class="QCheckBox" name="cbNoRateVarModels">
                               <property name="minimumSize">
@@ -1675,34 +1703,6 @@ p, li { white-space: pre-wrap; }
                               </property>
                              </spacer>
                             </item>
-                            <item row="1" column="2">
-                             <widget class="QLabel" name="lblNCat">
-                              <property name="minimumSize">
-                               <size>
-                                <width>100</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                              <property name="maximumSize">
-                               <size>
-                                <width>100</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                              <property name="font">
-                               <font>
-                                <family>Courier</family>
-                                <pointsize>10</pointsize>
-                                <weight>50</weight>
-                                <italic>false</italic>
-                                <bold>false</bold>
-                               </font>
-                              </property>
-                              <property name="text">
-                               <string>4 categories</string>
-                              </property>
-                             </widget>
-                            </item>
                             <item row="0" column="1">
                              <widget class="QCheckBox" name="cbGModels">
                               <property name="minimumSize">
@@ -1737,7 +1737,7 @@ p, li { white-space: pre-wrap; }
                               </property>
                              </widget>
                             </item>
-                            <item row="1" column="1">
+                            <item row="2" column="1">
                              <widget class="QSlider" name="sliderNCat">
                               <property name="minimumSize">
                                <size>
@@ -1777,6 +1777,18 @@ p, li { white-space: pre-wrap; }
                               </property>
                               <property name="orientation">
                                <enum>Qt::Horizontal</enum>
+                              </property>
+                             </widget>
+                            </item>
+                            <item row="3" column="0" colspan="2">
+                             <widget class="QCheckBox" name="cbFreeRates">
+                              <property name="font">
+                               <font>
+                                <family>Courier</family>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>free rates (+R)</string>
                               </property>
                              </widget>
                             </item>
@@ -2053,13 +2065,13 @@ p, li { white-space: pre-wrap; }
                         <property name="minimumSize">
                          <size>
                           <width>220</width>
-                          <height>300</height>
+                          <height>250</height>
                          </size>
                         </property>
                         <property name="maximumSize">
                          <size>
                           <width>220</width>
-                          <height>320</height>
+                          <height>250</height>
                          </size>
                         </property>
                         <property name="font">
@@ -2073,6 +2085,9 @@ p, li { white-space: pre-wrap; }
                         <property name="toolTip">
                          <string>Substitution schemes (DNA) or empirical matrices (protein)</string>
                         </property>
+                        <property name="autoFillBackground">
+                         <bool>false</bool>
+                        </property>
                         <property name="frameShape">
                          <enum>QFrame::NoFrame</enum>
                         </property>
@@ -2081,6 +2096,9 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="lineWidth">
                          <number>0</number>
+                        </property>
+                        <property name="verticalScrollBarPolicy">
+                         <enum>Qt::ScrollBarAlwaysOn</enum>
                         </property>
                         <property name="autoScroll">
                          <bool>false</bool>

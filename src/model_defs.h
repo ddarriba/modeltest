@@ -33,7 +33,7 @@
 #define N_DNA_ALLMATRIX_COUNT      203
 #define N_PROT_STATES               20
 #define N_PROT_SUBST_RATES         190
-#define N_PROT_MODEL_MATRICES       21
+#define N_PROT_MODEL_MATRICES       19
 #define N_PROT_MODEL_ALL_MATRICES   22 //! all protein matrices
 
 #define N_MIXTURE_CATS  4
@@ -63,19 +63,20 @@
 #define MOD_PARAM_INV             (1<<4)
 #define MOD_PARAM_GAMMA           (1<<5)
 #define MOD_PARAM_INV_GAMMA       (1<<6)
-#define MOD_PARAM_MIXTURE         (1<<7)
-#define MOD_PARAM_FREE_RATES      (1<<8)
+#define MOD_PARAM_FREE_RATES      (1<<7)
+#define MOD_PARAM_MIXTURE         (1<<8)
 
 // b(branches) f(freqs) g(gamma) i(pinv)
 // r(ratecats) s(substrates)
 #define N_PARAMETERS                  6
 
 #define MOD_PARAM_MIN_RPARAM MOD_PARAM_NO_RATE_VAR
-#define MOD_PARAM_MAX_RPARAM MOD_PARAM_INV_GAMMA
+#define MOD_PARAM_MAX_RPARAM MOD_PARAM_FREE_RATES
 
 #define MOD_MASK_FREQ_PARAMS    7
-#define MOD_MASK_RATE_PARAMS  120
-#define MOD_MASK_MIXT_PARAMS  384
+#define MOD_MASK_RATE_PARAMS  248 // u,i,g,f,r
+#define MOD_MASK_MIXT_PARAMS  384 // u,i,g,f,r,m
+#define DEFAULT_PARAMS        120 // u,i,g,f
 
 typedef enum {
     freqs_equal,
@@ -214,6 +215,7 @@ const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
 };
 
 const std::string prot_model_names[N_PROT_MODEL_ALL_MATRICES] = {
+    /* included by default */
     "DAYHOFF",   //  0
     "LG",        //  1
     "DCMUT",     //  2

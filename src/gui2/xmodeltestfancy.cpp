@@ -153,7 +153,8 @@ void XModelTestFancy::update_gui()
   n_model_sets = ui->cbNoRateVarModels->isChecked() +
           ui->cbIModels->isChecked() +
           ui->cbGModels->isChecked() +
-          ui->cbIGModels->isChecked();
+          ui->cbIGModels->isChecked() +
+          ui->cbFreeRates->isChecked();
 
   n_matrices = 0;
   if (ui->radDatatypeDna->isChecked() && ui->radSchemes203->isChecked())
@@ -743,7 +744,8 @@ bool XModelTestFancy::run_modelselection()
     n_model_sets = ui->cbNoRateVarModels->isChecked() +
             ui->cbIModels->isChecked() +
             ui->cbGModels->isChecked() +
-            ui->cbIGModels->isChecked();
+            ui->cbIGModels->isChecked()+
+            ui->cbFreeRates->isChecked();
 
     n_matrices = 0;
     n_addmatrices = 0;
@@ -757,7 +759,10 @@ bool XModelTestFancy::run_modelselection()
             if (ui->modelsListView->item(i)->checkState() == Qt::CheckState::Checked)
             {
                 if (!ui->modelsListView->item(i)->text().compare("LG4X") || !ui->modelsListView->item(i)->text().compare("LG4M"))
-                    n_addmatrices++;
+                    n_addmatrices += (ui->cbGModels->isChecked() +
+                                      ui->cbIGModels->isChecked());
+                else if (!ui->modelsListView->item(i)->text().compare("GTR"))
+                    n_addmatrices += n_model_sets;
                 else
                     n_matrices++;
             }
@@ -766,8 +771,7 @@ bool XModelTestFancy::run_modelselection()
     /* adds all matrices x all different model sets plus special models (LG4X/M) */
     n_models = n_matrices * n_model_sets *
             (ui->cbEqualFreq->isChecked() + ui->cbMlFreq->isChecked()) +
-            n_addmatrices * (ui->cbGModels->isChecked() +
-                             ui->cbIGModels->isChecked());
+            n_addmatrices;
 
     if (ui->radDatatypeProt->isChecked() && ui->cmb_tree->currentIndex() == TREE_ML_GTR)
     {
@@ -864,6 +868,8 @@ bool XModelTestFancy::run_modelselection()
         model_params += MOD_PARAM_GAMMA;
     if (ui->cbIGModels->isChecked())
         model_params += MOD_PARAM_INV_GAMMA;
+    if (ui->cbFreeRates->isChecked())
+        model_params += MOD_PARAM_FREE_RATES;
     if (ui->cbMlFreq->isChecked())
     {
         if (ui->radDatatypeDna->isChecked())

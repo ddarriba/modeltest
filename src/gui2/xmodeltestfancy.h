@@ -102,6 +102,7 @@ private slots:
     void on_cbGModels_toggled(bool checked);
     void on_cbIGModels_toggled(bool checked);
     void on_cbIModels_toggled(bool checked);
+    void on_cbFreeRates_toggled(bool checked);
     void on_cbEqualFreq_toggled(bool checked);
     void on_cbMlFreq_toggled(bool checked);
 

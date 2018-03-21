@@ -337,6 +337,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 case 'F':
                     exec_opt.model_params  |= MOD_PARAM_INV_GAMMA;
                     break;
+                case 'r':
+                case 'R':
+                    exec_opt.model_params  |= MOD_PARAM_FREE_RATES;
+                    break;
                 default:
                     LOG_ERR <<  PACKAGE << ": Unrecognised rate heterogeneity parameter " << optarg[i] << endl;
                     LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a non-empty combination {u,i,g,f}" << endl;
@@ -501,11 +505,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     mt_mask_t all_params = MOD_PARAM_NO_RATE_VAR |
                            MOD_PARAM_INV |
                            MOD_PARAM_GAMMA |
-                           MOD_PARAM_INV_GAMMA;
-    if (!(exec_opt.model_params &
-          all_params))
-        exec_opt.model_params |=
-                all_params;
+                           MOD_PARAM_INV_GAMMA |
+                           MOD_PARAM_FREE_RATES;
+    if (!(exec_opt.model_params & all_params))
+        exec_opt.model_params |= DEFAULT_PARAMS;
 
     if (freqs_mask)
     {
@@ -744,15 +747,34 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
       if (user_candidate_models.compare(""))
       {
-        if (exec_opt.aa_candidate_models.size())
-            exec_opt.aa_candidate_models.clear();
+        int prot_matrices_bitv_add = 0;
+        int prot_matrices_bitv_rm = 0;
 
-        int prot_matrices_bitv = 0;
+        bool edit_mode = !user_candidate_models.substr(0,1).compare("-")
+                      || !user_candidate_models.substr(0,1).compare("+");
+        if(edit_mode)
+        {
+          for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
+            prot_matrices_bitv_add |= 1<<prot_model_matrices_indices[i];
+        }
+        else
+        {
+          if (exec_opt.aa_candidate_models.size())
+            exec_opt.aa_candidate_models.clear();
+        }
+
         /* parse user defined models */
         istringstream f(user_candidate_models);
         string s;
         while (getline(f, s, ',')) {
             mt_index_t i, c_matrix = 0;
+            char action = '+';
+            if (edit_mode)
+            {
+              action = s.c_str()[0];
+              s = s.substr(1);
+            }
+
             for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
             {
                 if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
@@ -766,15 +788,24 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 LOG_ERR << PACKAGE << ": Invalid protein matrix: " << s << endl;
                 params_ok = false;
             }
-            prot_matrices_bitv |= 1<<c_matrix;
+
+            assert (action == '+' || action == '-');
+            if (action == '+')
+              prot_matrices_bitv_add |= 1<<c_matrix;
+            else
+              prot_matrices_bitv_rm |= 1<<c_matrix;
         }
+        prot_matrices_bitv_rm = ~prot_matrices_bitv_rm;
+
         for (mt_index_t i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
         {
-            if (prot_matrices_bitv&1)
+            if ((prot_matrices_bitv_add&1) && (prot_matrices_bitv_rm&1))
             {
-                exec_opt.aa_candidate_models.push_back(i);
+              exec_opt.aa_candidate_models.push_back(i);
             }
-            prot_matrices_bitv >>= 1;
+
+            prot_matrices_bitv_add >>= 1;
+            prot_matrices_bitv_rm >>= 1;
         }
       }
       else if (!exec_opt.aa_candidate_models.size())
@@ -789,15 +820,35 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     {
       if (user_candidate_models.compare("") && (dna_ss == ss_undef))
       {
-        if (exec_opt.nt_candidate_models.size())
-            exec_opt.nt_candidate_models.clear();
+        int dna_matrices_bitv_add = 0;
+        int dna_matrices_bitv_rm = 0;
 
-        int dna_matrices_bitv = 0;
+        bool edit_mode = !user_candidate_models.substr(0, 1).compare("-")
+          || !user_candidate_models.substr(0, 1).compare("+");
+        if (edit_mode)
+        {
+          for (int i = 0; i < 2*N_DNA_MODEL_MATRICES; i++)
+            dna_matrices_bitv_add |= 1 << i;
+        }
+        else
+        {
+          if (exec_opt.nt_candidate_models.size())
+            exec_opt.nt_candidate_models.clear();
+        }
+
         /* parse user defined models */
         istringstream f(user_candidate_models);
         string s;
         while (getline(f, s, ',')) {
           mt_index_t i, c_matrix = 0;
+          char action = '+';
+
+          if (edit_mode)
+          {
+            action = s.c_str()[0];
+            s = s.substr(1);
+          }
+
           for (i=0; i<N_DNA_MODEL_MATRICES; i++)
           {
             if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
@@ -812,16 +863,24 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             LOG_ERR << PACKAGE << ": Invalid dna matrix: " << s << endl;
             params_ok = false;
           }
-          dna_matrices_bitv |= 1<<c_matrix;
+
+          assert (action == '+' || action == '-');
+          if (action == '+')
+            dna_matrices_bitv_add |= 1<<c_matrix;
+          else
+            dna_matrices_bitv_rm |= 1<<c_matrix;
         }
+        dna_matrices_bitv_rm = ~dna_matrices_bitv_rm;
+
         for (mt_index_t i=0; i<N_DNA_MODEL_MATRICES; i++)
         {
-          if (dna_matrices_bitv&1)
+          if ((dna_matrices_bitv_add&1) && (dna_matrices_bitv_rm&1))
           {
             exec_opt.nt_candidate_models.push_back(
                         dna_model_matrices_indices[i]);
           }
-          dna_matrices_bitv >>= 1;
+          dna_matrices_bitv_add >>= 1;
+          dna_matrices_bitv_rm >>= 1;
         }
       }
       else
@@ -1023,6 +1082,7 @@ static void print_model_params(mt_mask_t model_params, std::ostream  &out)
     out << "    " << left << setw(17) << "p-inv (+I):" << ((model_params&MOD_PARAM_INV)?"true":"false") << endl;
     out << "    " << left << setw(17) << "gamma (+G):" << ((model_params&MOD_PARAM_GAMMA)?"true":"false") << endl;
     out << "    " << left << setw(17) << "both (+I+G):" << ((model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "free rates (+R):" << ((model_params&MOD_PARAM_FREE_RATES)?"true":"false") << endl;
     out << "    " << left << setw(17) << "fixed freqs:" << ((model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
     out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
 }
@@ -1031,7 +1091,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-
+    out << "ModelTest-NG v" << VERSION << endl << endl;
     out << "Input data:" << endl;
     out << "  " << left << setw(12) << "MSA:" << opts.msa_filename << endl;
     out << "  " << left << setw(12) << "Tree:";
@@ -1135,7 +1195,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         print_model_params(model_params, out);
 
     }
-    if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA))
+    if (opts.model_params&(MOD_PARAM_GAMMA | MOD_PARAM_INV_GAMMA | MOD_PARAM_FREE_RATES))
     {
       out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
     }
@@ -1399,7 +1459,13 @@ void Meta::print_help(std::ostream& out)
         << "f: both +I and +G (+I+G)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -m, --models list"
-        << "sets the candidate model matrices separated by commas" << endl;
+        << "sets the candidate model matrices separated by commas." << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+            << "use '+' or '-' prefix for updating the default list." << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+                << "e.g., \"-m JTT,LG\" evaluates JTT and LG only ." << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+                << "      \"-m +LG4X,+LG4M,-LG\" adds LG4 models and removes LG and from the list." << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
             << "dna:";
     for (int i=0; i<N_DNA_MODEL_MATRICES; ++i)
@@ -1409,7 +1475,7 @@ void Meta::print_help(std::ostream& out)
               ?dna_model_names[2*i]
               :dna_model_names[2*i+1])
            :dna_model_names[0];
-      out << " " << modelname;
+      out << " *" << modelname;
       if ((i+1) % 6 == 0)
         out << endl << setw(MAX_OPT_LENGTH + 4) << left << " ";
     }
@@ -1425,9 +1491,11 @@ void Meta::print_help(std::ostream& out)
         out << endl << setw(MAX_OPT_LENGTH + 8) << left << " ";
         prot_list_len = prot_model_names[i].length() + 1;
       }
-      out << " " << prot_model_names[i];
+      out << (i<N_PROT_MODEL_MATRICES?" *":" ") << prot_model_names[i];
     }
     out << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+                    << "* included by default" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -s, --schemes [3|5|7|11|203]"
         << "sets the number of predefined DNA substitution schemes evaluated" << endl;

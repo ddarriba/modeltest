@@ -383,7 +383,7 @@ BARRIER;
                                                       optimize_topology,
                                                       thread_number);
         assert(mopt);
-        result = mopt->run(epsilon_param, epsilon_opt);
+        result = mopt->run(epsilon_opt, epsilon_param);
 
         delete mopt;
       }

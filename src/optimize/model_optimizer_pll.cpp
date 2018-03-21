@@ -192,7 +192,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     notify();
 
     /* loglh intialized to an arbitrary value above the current lk */
-    save_loglh = cur_loglh - 1;
+    save_loglh = cur_loglh - epsilon - 1;
 
     if (opt_per_param)
     {
@@ -294,16 +294,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     {
       assert(!pll_tree->data);
       radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
-
-      pllmod_treeinfo_destroy_partition(tree_info, 0);
-      pllmod_treeinfo_init_partition(tree_info,         /* treeinfo */
-                                     0,                 /* partition index */
-                                     pll_partition,     /* partition */
-                                     0,                 /* params to optimize */
-                                     PLL_GAMMA_RATES_MEAN,
-                                     model.get_alpha(),
-                                     model.get_params_indices(),
-                                     model.get_symmetries());
 
       new_loglh = optimize_parameters(tree_info, 1.0, 1.0, opt_per_param, new_loglh);
 
