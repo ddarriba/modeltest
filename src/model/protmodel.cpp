@@ -88,7 +88,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
             partition,
             N_PROT_STATES,
             (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX)
-              ? 4
+              ? N_MIXTURE_CATS
               : partition.n_categories,
             asc_bias_corr)
 {
@@ -212,50 +212,8 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
                2 * (optimize_freqs || empirical_freqs);
 }
 
-ProtModel::ProtModel(const Model & other)
-    : Model()
-{
-    clone(&other);
-}
-
 ProtModel::~ProtModel()
 {
-}
-
-void ProtModel::clone(const Model * other_model)
-{
-    const ProtModel * other = dynamic_cast<const ProtModel *>(other_model);
-    matrix_index = other->matrix_index;
-    name = other->name;
-    model_params    = other->model_params;
-    optimize_pinv   = other->optimize_pinv;
-    optimize_gamma  = other->optimize_gamma;
-    optimize_freqs  = other->optimize_freqs;
-    empirical_freqs = other->empirical_freqs;
-    optimize_ratecats = other->optimize_ratecats;
-
-    unique_id = other->unique_id;
-    //TODO: Check for LG4!
-    // memcpy(frequencies, other->frequencies, N_PROT_STATES * sizeof(double));
-
-    if (!mixture)
-    {
-      param_substrates = new ParameterSubstRatesFixed(prot_model_rates[matrix_index], n_subst_rates);
-      parameters.push_back(param_substrates);
-    }
-
-    n_categories = other->n_categories;
-    n_free_variables = other->n_free_variables;
-
-    loglh  = other->loglh;
-    bic  = other->bic;
-    aic  = other->aic;
-    aicc = other->aicc;
-    dt   = other->dt;
-
-    exec_time = other->exec_time;
-    if (other->tree)
-        tree = pll_utree_clone(other->tree);
 }
 
 mt_size_t ProtModel::get_n_subst_params() const
@@ -264,31 +222,10 @@ mt_size_t ProtModel::get_n_subst_params() const
     return 0;
 }
 
-const double * ProtModel::get_mixture_weights( void ) const
-{
-    return param_gamma->get_weights();
-}
-
-void ProtModel::set_mixture_weights( const double * weights )
-{
-  param_gamma->set_weights(weights);
-}
-
-const double * ProtModel::get_mixture_rates( void ) const
-{
-    return param_gamma->get_rates();
-}
-
-void ProtModel::set_mixture_rates( const double * rates )
-{
-  param_gamma->set_rates(rates);
-}
-
 pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
                                             mt_size_t n_sites)
 {
     mt_mask_t attributes;
-    mt_size_t n_cats;
 
     if (disable_repeats)
     {
@@ -317,12 +254,6 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
 
     attributes |= Model::asc_bias_attribute(asc_bias_corr);
 
-    if (mixture)
-      n_cats = N_MIXTURE_CATS;
-    else
-      n_cats = (optimize_gamma | optimize_ratecats)?n_categories:1;
-
-
     pll_partition_t * part = pll_partition_create (
                 n_tips,                           /* tips */
                 n_tips-2,                         /* clv buffers */
@@ -330,7 +261,7 @@ pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
                 n_sites,                          /* sites */
                 mixture?N_MIXTURE_CATS:1,         /* rate matrices */
                 2*n_tips-3,                       /* prob matrices */
-                n_cats,                           /* rate cats */
+                n_categories,                           /* rate cats */
                 n_tips-2,                         /* scale buffers */
                 attributes                        /* attributes */
                 );
@@ -352,18 +283,19 @@ void ProtModel::print(std::ostream  &out)
       param_freqs->print(out, true, false, PRINTMODEL_TABSIZE);
       out << endl;
 
-  if (mixture)
+  if (is_R())
   {
+      assert(rates && rate_weights);
       if (matrix_index == LG4X_INDEX)
       {
         out << setw(PRINTMODEL_TABSIZE) << left << "Mixture weights:";
-        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        for (mt_index_t j=0; j<n_categories; j++)
         {
            out << rate_weights[j] << " ";
         }
         out << endl;
         out << setw(PRINTMODEL_TABSIZE) << left << "Mixture rates:";
-        for (mt_index_t j=0; j<N_MIXTURE_CATS; j++)
+        for (mt_index_t j=0; j<n_categories; j++)
         {
            out << rates[j] << " ";
         }

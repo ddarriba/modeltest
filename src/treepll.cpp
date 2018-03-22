@@ -116,7 +116,7 @@ namespace modeltest
             if (!strcmp (tip_nodes[j]->label, header))
             {
                 tips_found[j] = true;
-                tip_nodes[j]->clv_index = tip_clv_index = i;
+                tip_nodes[j]->clv_index = tip_nodes[j]->node_index = tip_clv_index = i;
 
                 if (cur_tip_found)
                 {
@@ -244,13 +244,20 @@ namespace modeltest
       }
     }
 
+    if (ROOT && !set_indices(starting_tree, msa))
+    {
+      cleanup();
+      throw EXCEPTION_TREE_FORMAT;
+    }
+
     #if (MPI_ENABLED)
 
     /* broadcast starting topology */
     pll_unode_t * serialized_tree;
     if (ROOT)
     {
-      serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0],
+
+      serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0]->back,
                                                n_tips);
       if (!serialized_tree)
       {
@@ -271,18 +278,13 @@ namespace modeltest
                 MPI_BYTE,
                 0,
                 master_mpi_comm );
+
       starting_tree = pllmod_utree_expand(serialized_tree, n_tips);
 
       update_names(starting_tree, &msa);
       free(serialized_tree);
     }
     #endif
-
-    if (!set_indices(starting_tree, msa))
-    {
-      cleanup();
-      throw EXCEPTION_TREE_FORMAT;
-    }
 
     clone_tree( starting_tree );
     pll_utree_destroy(starting_tree, NULL);

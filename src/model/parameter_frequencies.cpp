@@ -189,7 +189,7 @@ ParameterFrequenciesFixed::ParameterFrequenciesFixed( mt_size_t states,
   : ParameterFrequencies(states, freq_set_count),
     freqs_type(freqs_type)
 {
-  fixed_frequencies = new const double*[freq_set_count];
+  fixed_frequencies = new const double*[freq_set_count]();
 
   if (freqs_type == freqs_equal)
   {

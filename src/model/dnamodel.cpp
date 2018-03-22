@@ -135,13 +135,6 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
                 /* reserve id+1 for tree */
 }
 
-DnaModel::DnaModel(const Model & other)
-    : Model()
-{
-    matrix_symmetries = new int[other.get_n_subst_rates()];
-    clone(&other);
-}
-
 DnaModel::~DnaModel( void )
 {
   delete[] matrix_symmetries;
@@ -155,71 +148,6 @@ mt_index_t DnaModel::get_index_for_matrix(const int * matrix)
                                    matrix_str) - dna_model_matrices);
   assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
   return matrix_index;
-}
-
-void DnaModel::clone(const Model * other_model)
-{
-  const DnaModel * other = dynamic_cast<const DnaModel *>(other_model);
-  matrix_index = other->matrix_index;
-  name = other->name;
-  memcpy(matrix_symmetries, other->matrix_symmetries, N_DNA_SUBST_RATES * sizeof(int));
-  model_params    = other->model_params;
-  optimize_pinv   = other->optimize_pinv;
-  optimize_gamma  = other->optimize_gamma;
-  optimize_freqs  = other->optimize_freqs;
-  empirical_freqs = other->empirical_freqs;
-  optimize_ratecats = other->optimize_ratecats;
-
-  unique_id = other->unique_id;
-
-  n_categories = other->n_categories;
-  n_free_variables = other->n_free_variables;
-
-  loglh  = other->loglh;
-  bic  = other->bic;
-  aic  = other->aic;
-  aicc = other->aicc;
-  dt   = other->dt;
-
-  exec_time = other->exec_time;
-  if (other->tree)
-      tree = pll_utree_clone(other->tree);
-
-  /* clone parameters */
-  if (other->param_gamma)
-  {
-    param_gamma = new ParameterGamma(*dynamic_cast<ParameterGamma *>(other->param_gamma));
-    parameters.push_back(param_gamma);
-  }
-  if (other->param_pinv)
-  {
-    param_pinv = new ParameterPinv(*(other->param_pinv));
-    parameters.push_back(param_pinv);
-  }
-  if (other->param_substrates)
-  {
-    const ParameterSubstRatesOpt * other_rates =
-      dynamic_cast<const ParameterSubstRatesOpt *>(other->param_substrates);
-    param_substrates = new ParameterSubstRatesOpt(*other_rates);
-    parameters.push_back(param_substrates);
-  }
-  if (other->param_freqs)
-  {
-    if (optimize_freqs)
-      param_freqs = new ParameterFrequenciesOpt(
-        *(dynamic_cast<const ParameterFrequenciesOpt *>(
-          other->param_freqs)));
-    else
-      param_freqs = new ParameterFrequenciesFixed(
-        *(dynamic_cast<const ParameterFrequenciesFixed *>(
-          other->param_freqs)));
-    parameters.push_back(param_freqs);
-  }
-  if (other->param_branches)
-  {
-    param_branches = new ParameterBranches(*(other->param_branches));
-    parameters.push_back(param_branches);
-  }
 }
 
 const int * DnaModel::get_symmetries( void ) const

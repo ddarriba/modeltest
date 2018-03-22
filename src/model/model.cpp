@@ -146,49 +146,6 @@ Model::Model(mt_mask_t model_params,
   }
 }
 
-Model::Model( void )
-    : optimize_pinv(false),
-      optimize_gamma(false),
-      optimize_freqs(false),
-      empirical_freqs(false),
-      optimize_ratecats(false),
-      mixture(false),
-      gap_aware(false),
-      asc_bias_corr(asc_none)
-{
-  restored_from_ckp = false;
-  model_params = (mt_mask_t) 0;
-  matrix_index = 0;
-  current_opt_parameter = 0;
-  unique_id = 0;
-
-  loglh  = 0.0;
-  bic  = 0.0;
-  aic  = 0.0;
-  aicc = 0.0;
-  dt   = 0.0;
-
-  exec_time = 0;
-
-  n_categories = 0;
-  params_indices = 0;
-
-  n_free_variables = 0;
-  n_frequencies = 0;
-  n_subst_rates = 0;
-
-  tree = 0;
-  n_tips = 0;
-
-  asc_weights = 0;
-
-  param_gamma = 0;
-  param_pinv = 0;
-  param_branches = 0;
-  param_freqs = 0;
-  param_substrates = 0;
-}
-
 Model::~Model()
 {
   if (asc_weights)
@@ -236,6 +193,11 @@ bool Model::is_G() const
 bool Model::is_F() const
 {
   return optimize_freqs || empirical_freqs;
+}
+
+bool Model::is_R() const
+{
+  return optimize_ratecats;
 }
 
 bool Model::is_mixture( void ) const
@@ -361,26 +323,22 @@ void Model::set_subst_rates(const double value[], mt_index_t matrix_idx)
 
 const double * Model::get_mixture_weights( void ) const
 {
-  return 0;
+  return param_gamma->get_weights();
 }
 
 void Model::set_mixture_weights( const double * weights )
 {
-  /* this applies only to mixture models */
-  UNUSED(weights);
-  assert(0);
+  param_gamma->set_weights(weights);
 }
 
 const double * Model::get_mixture_rates( void ) const
 {
-  return 0;
+  return param_gamma->get_rates();
 }
 
 void Model::set_mixture_rates( const double * rates )
 {
-  /* this applies only to mixture models */
-  UNUSED(rates);
-  assert(0);
+  param_gamma->set_rates(rates);
 }
 
 bool Model::evaluate_criteria (mt_size_t n_branches_params,

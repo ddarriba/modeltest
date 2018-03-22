@@ -34,19 +34,12 @@ public:
               const partition_descriptor_t &partition,
               asc_bias_t asc_bias_corr = asc_none,
               const mt_size_t *asc_w = 0);
-    ProtModel(const Model &other);
     virtual ~ProtModel( void );
-    virtual void clone(const Model *other);
 
     virtual data_type_t get_datatype( void ) const
     {
         return dt_protein;
     }
-
-    virtual const double * get_mixture_weights( void ) const;
-    virtual void set_mixture_weights( const double * weights );
-    virtual const double * get_mixture_rates( void ) const;
-    virtual void set_mixture_rates( const double * rates );
 
     /* extended */
     virtual pll_partition_t * build_partition( mt_size_t n_tips,

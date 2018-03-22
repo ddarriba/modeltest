@@ -150,15 +150,6 @@ public:
      */
     std::vector<Model *> const& get_models(const partition_id_t &part_id);
 
-    /**
-     * @brief Updates the existing models with the values of another set
-     * @param[in] c_models candidate models
-     * @param[in] part_id  the partition id
-     * @return false if the models cannot be updated
-     */
-    bool set_models(const std::vector<Model *> &c_models,
-                    const partition_id_t &part_id);
-
     virtual void update(Observable * subject, void * data);
 private:
     mt_size_t number_of_threads;              //! number of threads

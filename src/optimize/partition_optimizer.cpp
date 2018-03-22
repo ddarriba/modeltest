@@ -130,13 +130,10 @@ namespace modeltest
           double rates[N_DNA_SUBST_RATES];
           double freqs[N_DNA_STATES];
         } dna_data;
-        struct {
-          double freqs[N_PROT_STATES];
-          /* specific for LG4X (4 rates) */
-          double mixture_weights[4];
-          double mixture_rates[4];
-        } prot_data;
+        //TODO: PROTGTR Rates
     };
+    double rate_categories[MT_MAX_CATEGORIES];
+    double rate_weights[MT_MAX_CATEGORIES];
   } mpi_comm_data_t;
 
   void * PartitionOptimizer::model_scheduler( vector<Model *> const& models ) {
@@ -175,11 +172,17 @@ namespace modeltest
         Model *model = models[rec_data.model_index];
         if (model->is_G()) model->set_alpha(rec_data.alpha);
         if (model->is_I()) model->set_prop_inv(rec_data.pinv);
+        if (model->is_R())
+        {
+          model->set_mixture_rates(rec_data.rate_categories);
+          model->set_mixture_weights(rec_data.rate_weights);
+        }
         model->set_loglh(rec_data.loglh);
 
         expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
         tree.update_names(expanded_tree);
         model->set_tree(expanded_tree);
+
         free(serialized_tree);
 
         if (partition.get_datatype() == dt_dna)
@@ -189,12 +192,9 @@ namespace modeltest
         }
         else
         {
-          model->set_frequencies(rec_data.prot_data.freqs);
-          if (model->is_mixture())
+          if (model->is_F())
           {
-            ProtModel * pmodel = (ProtModel *) model;
-            pmodel->set_mixture_weights(rec_data.prot_data.mixture_weights);
-            pmodel->set_mixture_rates(rec_data.prot_data.mixture_rates);
+            model->set_frequencies(&partition.get_empirical_frequencies()[0]);
           }
         }
 
@@ -333,27 +333,20 @@ namespace modeltest
 #if(MPI_ENABLED)
         snd_data.model_index = next_model;
         snd_data.loglh = model->get_loglh();
+
         serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
                                                  tree.get_n_tips());
         if (model->is_G()) snd_data.alpha = model->get_alpha();
         if (model->is_I()) snd_data.pinv = model->get_prop_inv();
+        if (model->is_R())
+        {
+          memcpy(snd_data.rate_categories, model->get_mixture_rates(), model->get_n_categories() * sizeof(double));
+          memcpy(snd_data.rate_weights, model->get_mixture_weights(), model->get_n_categories() * sizeof(double));
+        }
         if (partition.get_datatype() == dt_dna)
         {
           memcpy(snd_data.dna_data.freqs, model->get_frequencies(), N_DNA_STATES * sizeof(double));
           memcpy(snd_data.dna_data.rates, model->get_subst_rates(), N_DNA_SUBST_RATES * sizeof(double));
-        }
-        else
-        {
-          memcpy(snd_data.prot_data.freqs, model->get_frequencies(), N_PROT_STATES * sizeof(double));
-          if (model->is_mixture())
-          {
-            memcpy(snd_data.prot_data.mixture_weights,
-                   model->get_mixture_weights(),
-                   4 * sizeof(double));
-            memcpy(snd_data.prot_data.mixture_rates,
-                   model->get_mixture_rates(),
-                   4 * sizeof(double));
-          }
         }
 #endif
       }
@@ -383,6 +376,7 @@ BARRIER;
                                                       optimize_topology,
                                                       thread_number);
         assert(mopt);
+
         result = mopt->run(epsilon_opt, epsilon_param);
 
         delete mopt;

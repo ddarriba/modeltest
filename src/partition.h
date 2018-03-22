@@ -65,8 +65,6 @@ public:
     data_type_t get_datatype( void ) const;
     const partition_id_t get_id( void ) const;
 
-    bool set_models(const std::vector<Model *> &models);
-
     const char * get_sequence(mt_index_t idx) const;
     const mt_size_t * get_weights( void ) const;
 

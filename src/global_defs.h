@@ -82,6 +82,7 @@
 #define MT_MIN_SMOOTH_FREQ        0.02
 
 #define MT_MAX_STATES             20
+#define MT_MAX_CATEGORIES         20
 
 #define MT_ERROR_LENGTH           400
 

@@ -34,12 +34,9 @@ public:
              const partition_descriptor_t &partition,
              asc_bias_t asc_bias_corr = asc_none,
              const mt_size_t *asc_w = 0);
-    DnaModel(const Model &other);
     virtual ~DnaModel( void );
 
     static mt_index_t get_index_for_matrix(const int * matrix);
-
-    virtual void clone(const Model *other);
 
     virtual data_type_t get_datatype( void ) const
     {

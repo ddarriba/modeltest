@@ -943,12 +943,6 @@ vector<Model *> const& ModelTest::get_models(partition_id_t const& part_id)
   return partitioning_scheme->get_partition(part_id).get_models();
 }
 
-bool ModelTest::set_models(const vector<Model *> &c_models,
-                           const partition_id_t &part_id)
-{
-  return partitioning_scheme->get_partition(part_id).set_models(c_models);
-}
-
 void ModelTest::update(Observable * subject, void * data)
 {
   UNUSED(subject);

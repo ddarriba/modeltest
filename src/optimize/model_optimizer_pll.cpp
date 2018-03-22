@@ -66,6 +66,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   }
 
   pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
+  
   // if (pllmod_utree_is_tip(pll_tree))
   //   pll_tree = pll_tree->back;
 
@@ -131,7 +132,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     }
     /* /PTHREADS */
     LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;
-    pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
+    double initial_lk = pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
     double test_loglh;         /* temporary variable */

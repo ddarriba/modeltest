@@ -348,21 +348,6 @@ Model * Partition::get_model_by_matrix(mt_index_t matrix_id,
   return NULL;
 }
 
-bool Partition::set_models(const std::vector<Model *> &models)
-{
-    /* validate */
-    if (c_models.size() != models.size())
-        return false;
-    for (size_t i=0; i<models.size(); i++)
-        if (models[i]->get_name().compare(c_models[i]->get_name()))
-            return false;
-    for (size_t i=0; i<models.size(); i++)
-    {
-        c_models[i]->clone(models[i]);
-    }
-    return true;
-}
-
 const char * Partition::get_sequence(mt_index_t idx) const
 {
   const char * msa_seq = msa.get_sequence (idx);

@@ -74,14 +74,7 @@ public:
           mt_size_t states,
           mt_size_t n_categories,
           asc_bias_t asc_bias_corr = asc_none);
-    Model( void );
     virtual ~Model();
-
-    /**
-     * @brief Clones all parameters from another model
-     * @param other the other model
-     */
-    virtual void clone(const Model *other) = 0;
 
     virtual data_type_t get_datatype( void ) const = 0;
 
@@ -116,6 +109,12 @@ public:
      * @return true, if the model is +G
      */
     bool is_G( void ) const;
+
+    /**
+     * @brief checks whether the model contains free rates
+     * @return true, if the model is +R
+     */
+    bool is_R( void ) const;
 
     /**
      * @brief checks whether the model contains unequal frequencies

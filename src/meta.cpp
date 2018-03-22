@@ -271,10 +271,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 'c':
             exec_opt.n_catg = (mt_size_t) atoi(optarg);
-            if (exec_opt.n_catg <= 0)
+            if (exec_opt.n_catg <= 0 || exec_opt.n_catg > MT_MAX_CATEGORIES)
             {
                 LOG_ERR << PACKAGE << ": Invalid number of categories: " << exec_opt.n_catg << endl;
-                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a positive integer number" << endl;
+                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a positive integer number between 1 and " << MT_MAX_CATEGORIES << endl;
                 params_ok = false;
             }
             break;
