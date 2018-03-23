@@ -45,7 +45,9 @@ typedef struct
   int empirical_freqs;
   int optimize_pinv;
   int optimize_gamma;
-  unsigned int n_tips;
+  mt_size_t n_tips;
+  mt_size_t n_branches;
+  mt_size_t sample_size;
   double loglh;
   double bic;
   double aic;
@@ -54,6 +56,9 @@ typedef struct
 
   double frequencies[N_PROT_STATES];
   double subst_rates[N_DNA_SUBST_RATES];
+  double mixture_weights[MT_MAX_CATEGORIES];
+  double mixture_rates[MT_MAX_CATEGORIES];
+
   double prop_invar;
   double alpha;
 
@@ -259,14 +264,14 @@ public:
      * @param  bin_filename binary file
      * @return true, if success
      */
-    virtual int output_bin(std::string const& bin_filename) const = 0;
+    virtual int output_bin(std::string const& bin_filename) const;
 
     /**
      * @brief Import object in binary format
      * @param  bin_filename binary file
      * @return true, if success
      */
-    virtual int input_bin(std::string const& bin_filename) = 0;
+    virtual int input_bin(std::string const& bin_filename);
 
     bool evaluate_criteria (mt_size_t n_branches_params,
                             double sample_size );
@@ -350,6 +355,8 @@ protected:
 
     pll_utree_t *tree;
     mt_size_t n_tips;
+    mt_size_t n_branches;
+    mt_size_t sample_size;
 
     std::vector<AbstractParameter *> parameters;
     ParameterRateCats * param_gamma;

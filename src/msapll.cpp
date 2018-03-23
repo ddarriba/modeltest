@@ -23,6 +23,7 @@
 #include "msapll.h"
 #include "plldefs.h"
 #include "genesis/logging.h"
+#include "model_defs.h"
 
 #include <cerrno>
 #include <vector>
@@ -290,6 +291,35 @@ namespace modeltest
         snprintf(mt_errmsg, ERR_MSG_SIZE, "%s", pll_errmsg);
         return false;
       }
+
+      /* validate */
+      /* check frequencies */
+      bool freqs_ok = true;
+      for (mt_index_t j=0; j<states; ++j)
+      {
+        if (statsv->freqs[j] == 0.0)
+        {
+          LOG_WARN << "WARNING: State ";
+          if (states == 4)
+             LOG_WARN << dna_chars[j];
+          else if (states == 20)
+            LOG_WARN << aa_chars[j];
+          else
+            LOG_WARN << j;
+          LOG_WARN << " is missing in ";
+          if (scheme.size() == 1)
+            LOG_WARN << "the alignment" << endl;
+          else
+            LOG_WARN << "partition " << scheme[i].partition_name << endl;
+          freqs_ok = false;
+        }
+      }
+      if (!freqs_ok && (scheme[i].model_params & MOD_PARAM_EMPIRICAL_FREQ))
+      {
+        scheme[i].model_params &= ~MOD_PARAM_EMPIRICAL_FREQ;
+        LOG_WARN << "WARNING: Empirical frequencies will be disabled" << endl;
+      }
+
 
       stats.push_back(*((msa_stats_t *)statsv));
       free(statsv);

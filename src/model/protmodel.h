@@ -49,8 +49,6 @@ public:
     virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out) const;
     virtual void input_log(std::istream  &in);
-    virtual int output_bin(std::string const& bin_filename) const;
-    virtual int input_bin(std::string const& bin_filename);
 };
 
 }

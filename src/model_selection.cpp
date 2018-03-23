@@ -186,14 +186,18 @@ ModelSelection::ModelSelection(const vector<Model *> &c_models,
         avg_frequencies[j] += model->get_frequencies()[j] * models[i].weight;
       importance_freqs += models[i].weight;
     }
-    //TODO: We need to compute the importance of every rate for doing this
   }
-  avg_gamma /= importance_gamma;
-  avg_pinv /= importance_inv;
-  avg_pinv_gamma /= importance_gamma_inv;
-  avg_gamma_pinv /= importance_gamma_inv;
-  for (mt_index_t j=0; j<n_states; ++j)
-    avg_frequencies[j] /= importance_freqs;
+  if (importance_gamma > 0)
+    avg_gamma /= importance_gamma;
+  if (importance_inv > 0)
+    avg_pinv /= importance_inv;
+  if (importance_gamma_inv > 0)
+    avg_pinv_gamma /= importance_gamma_inv;
+  if (importance_gamma_inv > 0)
+    avg_gamma_pinv /= importance_gamma_inv;
+  if (importance_freqs > 0)
+    for (mt_index_t j=0; j<n_states; ++j)
+      avg_frequencies[j] /= importance_freqs;
 
   //mt_size_t n_subst_rates = models[0].model->get_n_subst_rates();
 }
@@ -318,25 +322,44 @@ void ModelSelection::print_inline_best_model(ic_type type, selection_model &mode
     out << endl;
 }
 
+static void print_val(double val, double div_val, std::ostream  &out)
+{
+  if (div_val > 0)
+    out << val << endl;
+  else
+    out << "-" << endl;
+}
+
 void ModelSelection::print_importances(std::ostream  &out) const
 {
   out << fixed << setprecision(MT_PRECISION_DIGITS);
-  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << importance_inv << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Gamma:" << importance_gamma << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:" << importance_gamma_inv << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:" << importance_freqs << endl;
+  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:";
+  print_val(importance_inv, importance_inv, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Gamma:";
+  print_val(importance_gamma, importance_gamma, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Gamma-Inv:";
+  print_val(importance_gamma_inv, importance_gamma_inv, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+  print_val(importance_freqs, importance_freqs, out);
 }
 
 void ModelSelection::print_averages(std::ostream  &out) const
 {
   out << fixed << setprecision(MT_PRECISION_DIGITS);
-  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:" << avg_pinv << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Alpha:" << avg_gamma << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Alpha-P.Inv:" << avg_gamma_pinv << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "P.Inv-Alpha:" << avg_pinv_gamma << endl
-      << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
-  for (mt_index_t j=0; j<avg_frequencies.size(); ++j)
-    out  << avg_frequencies[j] << " ";
+  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv:";
+  print_val(avg_pinv, importance_inv, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Alpha:";
+  print_val(avg_gamma, importance_gamma, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Alpha-P.Inv:";
+  print_val(avg_gamma_pinv, importance_gamma_inv, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "P.Inv-Alpha:";
+  print_val(avg_pinv_gamma, importance_gamma_inv, out);
+  out << setw(PRINTMODEL_TABSIZE) << left << "Frequencies:";
+  if (avg_frequencies[0] > 0)
+    for (mt_index_t j=0; j<avg_frequencies.size(); ++j)
+      out  << avg_frequencies[j] << " ";
+  else
+    out << "-";
   out << endl;
 }
 }

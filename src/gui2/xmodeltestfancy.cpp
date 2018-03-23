@@ -999,14 +999,15 @@ bool XModelTestFancy::run_modelselection()
 
     if (n_models != mythread->get_number_of_models())
     {
-        QMessageBox msgBox;
-        msgBox.setText("Internal error. There are different number of models to optimize!");
-        msgBox.setInformativeText("Please report this issue together with the current settings");
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        msgBox.exec();
-
-        return false;
+      n_models = mythread->get_number_of_models();
+        // QMessageBox msgBox;
+        // msgBox.setText("Internal error. There are different number of models to optimize!");
+        // msgBox.setInformativeText("Please report this issue together with the current settings");
+        // msgBox.setStandardButtons(QMessageBox::Ok);
+        // msgBox.setDefaultButton(QMessageBox::Ok);
+        // msgBox.exec();
+        //
+        // return false;
     }
 
     QObject::connect(mythread,

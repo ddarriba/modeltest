@@ -94,6 +94,8 @@ Model::Model(mt_mask_t model_params,
 
   tree = 0;
   n_tips = 0;
+  n_branches = 0;
+  sample_size = 0;
 
   asc_weights = 0;
 
@@ -342,10 +344,15 @@ void Model::set_mixture_rates( const double * rates )
 }
 
 bool Model::evaluate_criteria (mt_size_t n_branches_params,
-                                double sample_size )
+                                double _sample_size )
 {
-  if (!is_optimized())
+  if (!is_optimized()
+    || (n_branches && n_branches != n_branches_params)
+    || (sample_size && sample_size != _sample_size))
       return false;
+
+  n_branches = n_branches_params;
+  sample_size = _sample_size;
 
   mt_size_t n_params = n_free_variables + n_branches_params;
 
@@ -589,4 +596,153 @@ mt_mask_t Model::asc_bias_attribute(asc_bias_t v)
   return attr;
 }
 
+int Model::input_bin(std::string const& bin_filename)
+{
+  ckpdata_t * ckp_data;
+  pll_binary_header_t input_header;
+  size_t size = 0;
+  unsigned int type, attributes;
+  int read_ok;
+  FILE * bin_file;
+
+  bin_file = pllmod_binary_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error opening file: %d %s",
+             pll_errno, pll_errmsg);
+    return false;
+  }
+
+  ckp_data = (ckpdata_t *) pllmod_binary_custom_load(bin_file,
+                                             unique_id,
+                                             &size,
+                                             &type,
+                                             &attributes,
+                                             PLLMOD_BIN_ACCESS_SEEK);
+  read_ok = (ckp_data != NULL);
+
+  if (read_ok)
+  {
+    assert(ckp_data->matrix_index == matrix_index);
+    set_loglh(ckp_data->loglh);
+    if (is_optimized())
+      evaluate_criteria (ckp_data->n_branches, ckp_data->sample_size);
+
+    set_frequencies(ckp_data->frequencies);
+    set_subst_rates(ckp_data->subst_rates);
+    if (optimize_pinv)
+      set_prop_inv(ckp_data->prop_invar);
+    if (optimize_gamma)
+      set_alpha(ckp_data->alpha);
+    if (optimize_ratecats)
+    {
+      set_mixture_rates( ckp_data->mixture_rates );
+      set_mixture_weights( ckp_data->mixture_weights );
+    }
+
+    n_tips = ckp_data->n_tips;
+
+    free(ckp_data);
+
+    pll_errno = 0;
+    pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
+                                                       unique_id + 1,
+                                                       &attributes,
+                                                       PLLMOD_BIN_ACCESS_SEEK);
+
+    if(!loaded_tree)
+    {
+      mt_errno = pll_errno;
+      snprintf(mt_errmsg, ERR_MSG_SIZE,
+               "Error loading tree from ckp file: %s",
+               pll_errmsg);
+      read_ok = false;
+    }
+    else
+    {
+      tree = pll_utree_wraptree(loaded_tree, n_tips);
+    }
+  }
+  else
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "%s", pll_errmsg);
+  }
+
+  pllmod_binary_close(bin_file);
+
+  restored_from_ckp = read_ok;
+  return read_ok;
+}
+
+int Model::output_bin(std::string const& bin_filename) const
+{
+  assert(ROOT);
+
+  if (restored_from_ckp)
+    return true;
+
+  ckpdata_t ckp_data;
+  pll_binary_header_t input_header;
+  const double * subst_rates = get_subst_rates();
+  const double * frequencies = get_frequencies();
+  int write_ok;
+  FILE * bin_file;
+
+  std::unique_lock<std::mutex> lock(model_mutex);
+
+  bin_file = pllmod_binary_append_open(bin_filename.c_str(), &input_header);
+  if (!bin_file)
+    return false;
+
+  ckp_data.matrix_index = matrix_index;
+  ckp_data.loglh = loglh;
+  ckp_data.n_tips = n_tips;
+  ckp_data.n_branches = n_branches;
+  ckp_data.sample_size = sample_size;
+
+  memset(ckp_data.frequencies, 0, N_PROT_STATES * sizeof(double));
+  memset(ckp_data.subst_rates, 0, N_DNA_SUBST_RATES * sizeof(double));
+  memset(ckp_data.mixture_rates, 0, MT_MAX_CATEGORIES * sizeof(double));
+  memset(ckp_data.mixture_weights, 0, MT_MAX_CATEGORIES * sizeof(double));
+  if (n_frequencies <= N_PROT_STATES)
+    memcpy(ckp_data.frequencies, frequencies, n_frequencies * sizeof(double));
+  if (n_subst_rates <= N_DNA_SUBST_RATES)
+    memcpy(ckp_data.subst_rates, subst_rates, n_subst_rates * sizeof(double));
+  if (optimize_ratecats)
+  {
+    memcpy(ckp_data.mixture_rates, get_mixture_rates(), n_frequencies * sizeof(double));
+    memcpy(ckp_data.mixture_weights, get_mixture_weights(), n_frequencies * sizeof(double));
+  }
+
+  ckp_data.prop_invar = get_prop_inv();
+  ckp_data.alpha = get_alpha();
+
+  assert(bin_file);
+  write_ok = pllmod_binary_custom_dump(bin_file,
+                            unique_id,
+                            &ckp_data,
+                            sizeof(ckpdata_t),
+                            PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  assert(n_tips > 0);
+  assert(tree);
+  assert(tree->nodes);
+  write_ok &= pllmod_binary_utree_dump(bin_file,
+                                       unique_id + 1,
+                                       tree->nodes[0]->back,
+                                       n_tips,
+                                       PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+
+  pllmod_binary_close(bin_file);
+
+  if(!write_ok)
+  {
+    mt_errno = pll_errno;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "Error dumping checkpoint");
+  }
+
+  return write_ok;
+}
 } /* namespace */

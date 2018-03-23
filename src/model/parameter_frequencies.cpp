@@ -126,6 +126,17 @@ bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
            &partition.get_empirical_frequencies()[0],
            sizeof(double) * states);
 
+    /* if there are missing states, set initial freqs to equal */
+    for (mt_index_t i=0; i<states; ++i)
+    {
+      if (frequencies[j][i] <= 1e-7)
+      {
+        for (mt_index_t k=0; k<states; ++k)
+          frequencies[j][k] = 1.0/states;
+        break;
+      }
+    }
+
     pll_set_frequencies(params->partition, j, frequencies[j]);
   }
 
