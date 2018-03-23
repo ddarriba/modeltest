@@ -180,7 +180,7 @@ for action in ${actions}; do
     mt_extra_conf=
     mt_qt_extra_conf=
     if test "x${machine}" = "xLinux" ; then
-      mt_extra_conf= #--enable-static"
+      mt_extra_conf=-enable-static"
       mt_qt_extra_conf="build_static"
     fi
     fn_build ${prefix} ${dir_pll_include} ${dir_pll_lib} ${mt_extra_conf} >> ${file_log} 2>&1 && echo "...modeltest OK!" || { echo "...modeltest FAIL!"; exit 1; }

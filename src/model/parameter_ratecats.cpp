@@ -115,7 +115,6 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
 {
   UNUSED(first_guess);
   double cur_loglh;
-  double branch_scaler;
 
   assert(params->tree_info->params_to_optimize[0] &
         (PLLMOD_OPT_PARAM_FREE_RATES | PLLMOD_OPT_PARAM_RATE_WEIGHTS));

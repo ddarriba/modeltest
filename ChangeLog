@@ -1,3 +1,13 @@
+* release 0.1.4
+
+  - Added Protein GTR models '-d aa -m GTR'
+  - Added free rate models with fixed number of categories '-h r'
+  - Upgrade '-m' argument for add/remove models (e.g., '-m -HIVb,-HIVw,+LG4X)
+  - Fix +G model optimization with ML trees
+  - More stable model optimization
+  - RAxML-NG model name convention (e.g., +G[ncats])
+  - Partitions with missing states leave a warning and disable empirical freqs
+
 * release 0.1.3
 
   - Fixed bug in OS X

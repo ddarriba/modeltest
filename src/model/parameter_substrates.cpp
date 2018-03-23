@@ -282,10 +282,28 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
                                                         LBFGSB_FACTOR,
                                                         tolerance);
 
+  if (loglh && (cur_loglh - loglh)/loglh > 1e-10)
+  {
+    /* revert */
+    memcpy(params->partition->subst_params[0],
+           subst_rates[0],
+           n_subst_params * sizeof(double));
+
+    pll_set_subst_params(params->partition, 0, subst_rates[0]);
+
+    cur_loglh = pllmod_utree_compute_lk(params->partition,
+                                        params->tree_info->root,
+                                        params->params_indices,
+                                        1,
+                                        1);
+  }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
-  memcpy(subst_rates[0], params->partition->subst_params[0], n_subst_params * sizeof(double));
+  memcpy(subst_rates[0],
+         params->partition->subst_params[0],
+         n_subst_params * sizeof(double));
+
   return cur_loglh;
 }
 

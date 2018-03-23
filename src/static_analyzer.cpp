@@ -54,7 +54,7 @@ void StaticAnalyzer::print_info(const string msa_filename, msa_format_t format)
     }
     assert(test_msa);
 
-    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+    sequences = static_cast<char **>(Utils::c_allocate(n_taxa, sizeof(char *)));
 
     pll_fasta_t * fp = pll_fasta_open (msa_filename.c_str(), pll_map_fasta);
 
@@ -77,10 +77,10 @@ void StaticAnalyzer::print_info(const string msa_filename, msa_format_t format)
                                                  pll_map_phylip);
     pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
     assert(msa_data);
-    n_taxa  = msa_data->count;
-    n_sites = msa_data->length;
+    n_taxa  = static_cast<mt_size_t>(msa_data->count);
+    n_sites = static_cast<mt_size_t>(msa_data->length);
     cout << ". . . size: " << n_taxa << " x " << n_sites << endl;
-    sequences = (char **)Utils::c_allocate(n_taxa, sizeof(char *));
+    sequences = static_cast<char **>(Utils::c_allocate(n_taxa, sizeof(char *)));
 
     cout << ". . . placing sequences" << endl;
     for (size_t cur_seq = 0; cur_seq < n_taxa; ++cur_seq)

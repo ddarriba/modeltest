@@ -161,6 +161,22 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
                                                         LBFGSB_FACTOR,
                                                         tolerance);
 
+  if (loglh && (cur_loglh - loglh)/loglh > 1e-10)
+  {
+    /* revert */
+    memcpy(params->partition->frequencies[0],
+           frequencies[0],
+           sizeof(double) * states);
+
+    pll_set_frequencies(params->partition, 0, frequencies[0]);
+
+    cur_loglh = pllmod_utree_compute_lk(params->partition,
+                                        params->tree_info->root,
+                                        params->params_indices,
+                                        1,
+                                        1);
+  }
+
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 
   memcpy(frequencies[0],

@@ -133,6 +133,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /* /PTHREADS */
     LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;
     double initial_lk = pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
+    LOG_DBG << "[dbg] Initial score: " << initial_lk << endl;
 
 #if(CHECK_LOCAL_CONVERGENCE)
     double test_loglh;         /* temporary variable */
