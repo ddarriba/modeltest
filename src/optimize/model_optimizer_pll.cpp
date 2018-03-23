@@ -66,7 +66,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   }
 
   pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
-  
+
   // if (pllmod_utree_is_tip(pll_tree))
   //   pll_tree = pll_tree->back;
 
@@ -385,6 +385,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG << "[dbg] model done: [" << epsilon
             << "/" << tolerance << "]: " << loglh << endl;
 
+    pll_utree_graph_destroy(tree_info->root, NULL);
     pllmod_treeinfo_destroy(tree_info);
     return loglh;
   }

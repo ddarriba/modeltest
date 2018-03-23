@@ -372,6 +372,8 @@ static bool eval_ckp(mt_options_t & options,
 {
   pll_binary_header_t bin_header;
   bin_desc_t bin_desc;
+  memset(&bin_desc, 0, sizeof(bin_desc_t));
+
   bin_desc.h_msa_filename = hash<string>{}(options.msa_filename);
   bin_desc.h_tree_filename = hash<string>{}(options.tree_filename);
   bin_desc.h_parts_filename = hash<string>{}(options.partitions_filename);
@@ -510,6 +512,7 @@ static bool eval_ckp(mt_options_t & options,
       return false;
     }
     free(rec_bin_desc);
+    pllmod_binary_close(bin_file);
   }
 
   return true;

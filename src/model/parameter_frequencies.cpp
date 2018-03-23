@@ -25,7 +25,7 @@
 #include <iostream>
 #include <iomanip>
 
-#define MIN_FREQ_RATE 0.01
+#define MIN_FREQ_RATE 0.001
 #define MAX_FREQ_RATE 100
 #define LBFGSB_FACTOR 1e9
 
@@ -154,12 +154,12 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
   /* optimize only a single set of frequencies */
   assert(freq_set_count == 1);
 
-  cur_loglh = -1 * pllmod_algo_opt_frequencies(params->partition,
-                                         params->tree_info->root,
-                                         0,
-                                         params->params_indices,
-                                         LBFGSB_FACTOR,
-                                         tolerance);
+  cur_loglh = -1 * pllmod_algo_opt_frequencies_treeinfo(params->tree_info,
+                                                        0,
+                                                        MIN_FREQ_RATE,
+                                                        MAX_FREQ_RATE,
+                                                        LBFGSB_FACTOR,
+                                                        tolerance);
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 

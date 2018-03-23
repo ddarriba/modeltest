@@ -684,6 +684,8 @@ int Model::output_bin(std::string const& bin_filename) const
     return true;
 
   ckpdata_t ckp_data;
+  memset(&ckp_data, 0, sizeof(ckpdata_t));
+
   pll_binary_header_t input_header;
   const double * subst_rates = get_subst_rates();
   const double * frequencies = get_frequencies();
@@ -702,10 +704,6 @@ int Model::output_bin(std::string const& bin_filename) const
   ckp_data.n_branches = n_branches;
   ckp_data.sample_size = sample_size;
 
-  memset(ckp_data.frequencies, 0, N_PROT_STATES * sizeof(double));
-  memset(ckp_data.subst_rates, 0, N_DNA_SUBST_RATES * sizeof(double));
-  memset(ckp_data.mixture_rates, 0, MT_MAX_CATEGORIES * sizeof(double));
-  memset(ckp_data.mixture_weights, 0, MT_MAX_CATEGORIES * sizeof(double));
   if (n_frequencies <= N_PROT_STATES)
     memcpy(ckp_data.frequencies, frequencies, n_frequencies * sizeof(double));
   if (n_subst_rates <= N_DNA_SUBST_RATES)

@@ -243,12 +243,6 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
           assert(count);
           sum_rate /= count;
 
-          /* validate boundaries */
-          if (sum_rate < MIN_RATE)
-            sum_rate = MIN_RATE;
-          else if (sum_rate > MAX_RATE)
-            sum_rate = MAX_RATE;
-
           for (mt_index_t j=0; j<n_subst_params; ++j)
               if ((mt_index_t)symmetries[j] == i)
                   subst_rates[k][j] = sum_rate;
@@ -257,6 +251,12 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
       for (mt_index_t i=0; i<n_subst_params; ++i)
       {
           subst_rates[k][i] /= subst_rates[k][n_subst_params-1];
+
+          /* validate boundaries */
+          if (subst_rates[k][i] < MIN_RATE)
+            subst_rates[k][i] = MIN_RATE;
+          else if (subst_rates[k][i] > MAX_RATE)
+            subst_rates[k][i] = MAX_RATE;
       }
 
       pll_set_subst_params(params->partition, k, subst_rates[k]);
@@ -275,15 +275,13 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 
   assert(rate_set_count == 1);
 
-  cur_loglh = -1 * pllmod_algo_opt_subst_rates (params->partition,
-                                          params->tree_info->root,
-                                          0,
-                                          params->params_indices,
-                                          (int *)&symmetries[0],
-                                          MIN_RATE,
-                                          MAX_RATE,
-                                          LBFGSB_FACTOR,
-                                          tolerance);
+  cur_loglh = -1 * pllmod_algo_opt_subst_rates_treeinfo(params->tree_info,
+                                                        0,
+                                                        MIN_RATE,
+                                                        MAX_RATE,
+                                                        LBFGSB_FACTOR,
+                                                        tolerance);
+
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);
 

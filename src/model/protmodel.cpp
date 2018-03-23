@@ -87,7 +87,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
     : Model(model_params,
             partition,
             N_PROT_STATES,
-            (matrix_index == LG4M_INDEX || matrix_index == LG4X_INDEX)
+            (_matrix_index == LG4M_INDEX || _matrix_index == LG4X_INDEX)
               ? N_MIXTURE_CATS
               : partition.n_categories,
             asc_bias_corr)

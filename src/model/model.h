@@ -41,18 +41,10 @@ class Partition;
 typedef struct
 {
   mt_index_t matrix_index;
-  int optimize_freqs;
-  int empirical_freqs;
-  int optimize_pinv;
-  int optimize_gamma;
   mt_size_t n_tips;
   mt_size_t n_branches;
   mt_size_t sample_size;
   double loglh;
-  double bic;
-  double aic;
-  double aicc;
-  double dt;
 
   double frequencies[N_PROT_STATES];
   double subst_rates[N_DNA_SUBST_RATES];
