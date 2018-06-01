@@ -36,13 +36,51 @@ using namespace std;
 
 namespace modeltest {
 
+#if(0)
+struct sdata_t {
+  unsigned int * stree;
+  unsigned int next_i;
+};
+
+static int cb_serialize(pll_unode_t * node, void *data)
+{
+   sdata_t * sdata = (sdata_t *) data;
+
+  sdata->stree[sdata->next_i] = node->node_index;
+  ++(sdata->next_i);
+
+  return 1;
+}
+
+static vector<unsigned int> serialize_topo(pll_unode_t * root, mt_size_t tips)
+{
+  vector<unsigned int> v(2*tips - 2);
+
+  sdata_t sdata;
+  sdata.stree = &v[0];
+  sdata.next_i = 0;
+
+  /* root must be a tip node */
+  assert (!root->next);
+
+  pllmod_utree_traverse_apply(root->back,
+                              NULL,
+                              NULL,
+                              &cb_serialize,
+                              &sdata);
+  assert(sdata.next_i == (2*tips-2));
+
+  return v;
+}
+#endif
+
 // b(branches) f(freqs) g(gamma) i(pinv)
 // r(ratecats) s(substrates)
 static char parameter_order[N_PARAMETERS+1] = "bifgrs";
 
 static bool sort_parameters(AbstractParameter * p1, AbstractParameter * p2)
 {
-    /* sort parameters */
+  /* sort parameters */
   for (int i=0; i<N_PARAMETERS; ++i)
   {
     if (parameter_order[i] == p1->get_char_id())
@@ -426,19 +464,25 @@ pll_utree_t * Model::get_tree( void ) const
 pll_unode_t * Model::get_tree_graph( void ) const
 {
   assert(is_optimized());
+  if (!tree)
+    return NULL;
+  assert(tree->nodes);
   return tree->nodes[0];
 }
 
 void Model::set_tree( pll_unode_t * _tree, int _n_tips )
 {
+  assert(_tree);
+
   /* set node zero */
   while (_tree->node_index > 0)
+  {
     if (_tree->next)
       _tree = _tree->next->back;
     else
      _tree = _tree->back;
-
-  assert(n_tips || n_tips > 0);
+  }
+  assert(n_tips || _n_tips > 0);
 
   if (_n_tips > 0)
     n_tips = _n_tips;
@@ -602,6 +646,7 @@ int Model::input_bin(std::string const& bin_filename)
   pll_binary_header_t input_header;
   size_t size = 0;
   unsigned int type, attributes;
+  bool should_load_tree;
   int read_ok;
   FILE * bin_file;
 
@@ -643,26 +688,33 @@ int Model::input_bin(std::string const& bin_filename)
 
     n_tips = ckp_data->n_tips;
 
+    should_load_tree = ckp_data->should_save_tree;
+
     free(ckp_data);
 
-    pll_errno = 0;
-    pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
-                                                       unique_id + 1,
-                                                       &attributes,
-                                                       PLLMOD_BIN_ACCESS_SEEK);
-
-    if(!loaded_tree)
+    if (should_load_tree)
     {
-      mt_errno = pll_errno;
-      snprintf(mt_errmsg, ERR_MSG_SIZE,
-               "Error loading tree from ckp file: %s",
-               pll_errmsg);
-      read_ok = false;
+      pll_errno = 0;
+      pll_unode_t * loaded_tree = pllmod_binary_utree_load(bin_file,
+                                                         unique_id + 1,
+                                                         &attributes,
+                                                         PLLMOD_BIN_ACCESS_SEEK);
+
+      if(!loaded_tree)
+      {
+        mt_errno = pll_errno;
+        snprintf(mt_errmsg, ERR_MSG_SIZE,
+                 "Error loading tree from ckp file: %s",
+                 pll_errmsg);
+        read_ok = false;
+      }
+      else
+      {
+        tree = pll_utree_wraptree(loaded_tree, n_tips);
+      }
     }
     else
-    {
-      tree = pll_utree_wraptree(loaded_tree, n_tips);
-    }
+      tree = NULL;
   }
   else
   {
@@ -671,6 +723,7 @@ int Model::input_bin(std::string const& bin_filename)
   }
 
   pllmod_binary_close(bin_file);
+
 
   restored_from_ckp = read_ok;
   return read_ok;
@@ -717,6 +770,8 @@ int Model::output_bin(std::string const& bin_filename) const
   ckp_data.prop_invar = get_prop_inv();
   ckp_data.alpha = get_alpha();
 
+  ckp_data.should_save_tree = (tree != NULL);
+
   assert(bin_file);
   write_ok = pllmod_binary_custom_dump(bin_file,
                             unique_id,
@@ -724,14 +779,20 @@ int Model::output_bin(std::string const& bin_filename) const
                             sizeof(ckpdata_t),
                             PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
-  assert(n_tips > 0);
-  assert(tree);
-  assert(tree->nodes);
-  write_ok &= pllmod_binary_utree_dump(bin_file,
-                                       unique_id + 1,
-                                       tree->nodes[0]->back,
-                                       n_tips,
-                                       PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+  if (ckp_data.should_save_tree)
+  {
+    assert(n_tips > 0);
+    assert(tree);
+    assert(tree->nodes);
+
+//  vector<unsigned int> v = serialize_topo(tree->nodes[0], n_tips);
+
+    write_ok &= pllmod_binary_utree_dump(bin_file,
+                                         unique_id + 1,
+                                         tree->nodes[0]->back,
+                                         n_tips,
+                                         PLLMOD_BIN_ATTRIB_UPDATE_MAP);
+  }
 
   pllmod_binary_close(bin_file);
 

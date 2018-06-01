@@ -54,6 +54,8 @@ typedef struct
   double prop_invar;
   double alpha;
 
+  int should_save_tree;
+
   time_t exec_time;
 } ckpdata_t;
 

@@ -29,6 +29,7 @@
 #endif
 #include "utils.h"
 #include "meta.h"
+#include "thread/parallel_context.h"
 
 #include <ctime>
 #include <cerrno>
@@ -63,12 +64,14 @@ MPI_Comm master_mpi_comm;
 int main(int argc, char *argv[])
 {
 #if(MPI_ENABLED)
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_numprocs);
 
     /* so far, allow only for single-process tasks */
     master_mpi_comm = MPI_COMM_WORLD;
+
+    ParallelContext::init_mpi(argc, argv, 0);
+
+    mpi_numprocs = ParallelContext::num_procs();
+    mpi_rank = ParallelContext::proc_id();
 
     if (mpi_numprocs == 1)
     {
@@ -119,7 +122,7 @@ int main(int argc, char *argv[])
         {
           if (modeltest::mt_errno == MT_ERROR_IGNORE)
           {
-            ModelTestService::finalize();
+            ModelTestService::finalize( false);
             return EXIT_SUCCESS;
           }
           else
@@ -153,6 +156,8 @@ int main(int argc, char *argv[])
 
         Meta::print_system_info(MT_INFO);
         MT_INFO << endl << flush;
+
+        LOG_DBG << "[dbg] Create modeltest instance" << endl;
 
         if (!ModelTestService::instance()->create_instance(opts))
         {
@@ -215,6 +220,7 @@ int main(int argc, char *argv[])
                << endl << endl;
 
           partition_id_t part_id = {i};
+
           exec_ok = ModelTestService::instance()->evaluate_models(part_id,
                                                         n_procs,
                                                         opts.epsilon_param,
@@ -290,13 +296,18 @@ int main(int argc, char *argv[])
                   delete dt_selection;
               }
 #endif
-              /* topological summary */
-              ModelTestService::instance()->topological_summary(part_id,
-                                                                *bic_selection,
-                                                                *aic_selection,
-                                                                *aicc_selection,
-                                                                opts.output_topos_file,
-                                                                MT_INFO);
+
+              /* ignore topological summary if topology is fixed */
+              if (opts.starting_tree == tree_ml)
+              {
+                /* topological summary */
+                ModelTestService::instance()->topological_summary(part_id,
+                                                                  *bic_selection,
+                                                                  *aic_selection,
+                                                                  *aicc_selection,
+                                                                  opts.output_topos_file,
+                                                                  MT_INFO);
+              }
 
               delete bic_selection;
               delete aic_selection;
@@ -413,7 +424,7 @@ int main(int argc, char *argv[])
     }
 BARRIER;
 
-    ModelTestService::finalize();
+    ModelTestService::finalize( false );
 
     return return_val;
 }

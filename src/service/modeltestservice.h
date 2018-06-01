@@ -54,7 +54,7 @@ public:
   ~ModelTestService();
 
   static bool initialized( void ) { return s_instance != NULL; }
-  static void finalize( void );
+  static void finalize( bool force = false );
 
   bool create_instance( mt_options_t & options );
   bool destroy_instance( void );
@@ -99,7 +99,7 @@ public:
       return modeltest_instance;
   }
 
-  void topological_summary(partition_id_t const& part_id,
+  bool topological_summary(partition_id_t const& part_id,
                            modeltest::ModelSelection const& bic_selection,
                            modeltest::ModelSelection const& aic_selection,
                            modeltest::ModelSelection const& aicc_selection,

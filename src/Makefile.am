@@ -8,6 +8,7 @@ modeltest_ng_SOURCES = \
 	service/modeltestservice.cpp \
 	service/checkpoint.cpp \
 	thread/observer.cpp \
+	thread/parallel_context.cpp \
 	model/abstract_parameter.cpp \
 	model/parameter_branches.cpp \
 	model/parameter_ratecats.cpp \

@@ -44,6 +44,7 @@ SOURCES += main.cpp\
     gui/modelsdialog.cpp \
     gui/resultsexportdialog.cpp \
     thread/observer.cpp \
+    thread/parallel_context.cpp \
     meta.cpp \
     gui2/xmodeltestfancy.cpp \
     gui2/xmodeltestfancy_actions.cpp
@@ -84,6 +85,7 @@ HEADERS  += \
     gui/xthreadopt.h \
     gui/progressdialog.h \
     thread/observer.h \
+    thread/parallel_context.h \
     gui/datainfodialog.h \
     gui/xutils.h \
     gui/resultsdialog.h \

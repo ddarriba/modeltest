@@ -1,3 +1,9 @@
+* dev 0.1.5
+
+  - Added parallel context for PTHREADS/MPI
+  - Remove trees from checkpoints when topology is not optimized
+  - Remove output topological summary when topology is not optimized
+
 * release 0.1.4
 
   - Added Protein GTR models '-d aa -m GTR'

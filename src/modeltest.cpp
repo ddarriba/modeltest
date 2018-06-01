@@ -210,6 +210,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   else
     opt_type = partition_optimize_all;
 
+  LOG_DBG << "[dbg] ... ... build partition optimizer " << endl;
   PartitionOptimizer p_opt(partition,
                            *msa,
                            *tree,
@@ -218,6 +219,8 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            epsilon_param,
                            epsilon_opt);
   p_opt.attach(this);
+
+  LOG_DBG << "[dbg] ... ... evaluate partition" << endl;
   exec_ok = p_opt.evaluate(n_procs);
 
   return exec_ok;

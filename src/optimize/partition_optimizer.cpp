@@ -163,11 +163,6 @@ namespace modeltest
         pll_unode_t * serialized_tree;
         pll_utree_t * expanded_tree;
 
-        serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_unode_t));
-
-        /* receive serialized tree */
-        MPI_Recv(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
-
         /* update model */
         Model *model = models[rec_data.model_index];
         if (model->is_G()) model->set_alpha(rec_data.alpha);
@@ -179,11 +174,19 @@ namespace modeltest
         }
         model->set_loglh(rec_data.loglh);
 
-        expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
-        tree.update_names(expanded_tree);
-        model->set_tree(expanded_tree);
+        if (optimize_topology)
+        {
+          serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_unode_t));
 
-        free(serialized_tree);
+          /* receive serialized tree */
+          MPI_Recv(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, &status[0]);
+
+          expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
+          tree.update_names(expanded_tree);
+          model->set_tree(expanded_tree);
+
+          free(serialized_tree);
+        }
 
         if (partition.get_datatype() == dt_dna)
         {
@@ -303,7 +306,7 @@ namespace modeltest
     snd_data.t_end = exec_info.end_time;
     MPI_Send(&snd_data, sizeof(mpi_comm_data_t), MPI_BYTE, 0, 201, master_mpi_comm);
 
-    if (snd_data.model_index >= 0)
+    if (optimize_topology && snd_data.model_index >= 0)
     {
       assert(serialized_tree);
       MPI_Send(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
@@ -334,8 +337,10 @@ namespace modeltest
         snd_data.model_index = next_model;
         snd_data.loglh = model->get_loglh();
 
-        serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
-                                                 tree.get_n_tips());
+        if (optimize_topology)
+          serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
+                                                   tree.get_n_tips());
+
         if (model->is_G()) snd_data.alpha = model->get_alpha();
         if (model->is_I()) snd_data.pinv = model->get_prop_inv();
         if (model->is_R())

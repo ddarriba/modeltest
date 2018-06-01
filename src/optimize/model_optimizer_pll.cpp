@@ -166,10 +166,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       model.set_exec_time(end_time - start_time);
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
+
       if (optimize_topology)
         model.set_tree(pll_tree);
-      else
-        model.set_tree((pll_utree_t *) tree.extract_tree(thread_number));
 
       return true;
     }
@@ -386,8 +385,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG << "[dbg] model done: [" << epsilon
             << "/" << tolerance << "]: " << loglh << endl;
 
-    pll_utree_graph_destroy(tree_info->root, NULL);
+    if (!optimize_topology)
+      pll_utree_graph_destroy(tree_info->root, NULL);
     pllmod_treeinfo_destroy(tree_info);
+
     return loglh;
   }
 

@@ -14,6 +14,7 @@ modeltestmpi_headers = \
 	../src/service/checkpoint.h \
 	../src/thread/observer.h \
 	../src/thread/threadpool.h \
+	../src/thread/parallel_context.h \
 	../src/model/abstract_parameter.h \
 	../src/model/parameter_branches.h \
 	../src/model/parameter_ratecats.h \
@@ -51,6 +52,7 @@ modeltest_mpi_SOURCES = \
 	../src/service/modeltestservice.cpp \
 	../src/service/checkpoint.cpp \
 	../src/thread/observer.cpp \
+	../src/thread/parallel_context.cpp \
 	../src/model/abstract_parameter.cpp \
 	../src/model/parameter_branches.cpp \
 	../src/model/parameter_ratecats.cpp \

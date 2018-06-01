@@ -21,6 +21,7 @@
 
 #include "modeltestservice.h"
 #include "../model_defs.h"
+#include "../thread/parallel_context.h"
 
 #include <sstream>
 #include <algorithm>
@@ -96,6 +97,7 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                        ostream &out)
 {
     assert(modeltest_instance);
+
     return modeltest_instance->evaluate_models(part_id,
                                                n_procs,
                                                epsilon_param,
@@ -242,7 +244,7 @@ static bool sort_topos_bic(const topo_info_t & t1, const topo_info_t & t2)
     return t1.bic_support > t2.bic_support;
 }
 
-void ModelTestService::topological_summary(partition_id_t const& part_id,
+bool ModelTestService::topological_summary(partition_id_t const& part_id,
                                            ModelSelection const& bic_selection,
                                            ModelSelection const& aic_selection,
                                            ModelSelection const& aicc_selection,
@@ -260,6 +262,11 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
 
   for (mt_index_t tree_id = 0; tree_id < n_models; ++tree_id)
   {
+    if (!c_models[tree_id]->get_tree_graph())
+    {
+      out << endl << "Cannot build topological summary (missing trees)" << endl << endl;
+      return false;
+    }
     all_splits[tree_id] = pllmod_utree_split_create(c_models[tree_id]->get_tree_graph(),
                                                     n_tips,
                                                     NULL);
@@ -377,10 +384,17 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
                                                          weights,
                                                          0.0,
                                                          n_topologies);
-  out << "extended majority-rule consensus: ";
-  print_newick(constree->tree, out);
-  out << endl;
-  pllmod_utree_consensus_destroy(constree);
+  if (constree)
+  {
+    out << "extended majority-rule consensus: ";
+    print_newick(constree->tree, out);
+    out << endl;
+    pllmod_utree_consensus_destroy(constree);
+  }
+  else
+  {
+    out << "error computing majority-rule consensus " << pll_errmsg << endl << endl;
+  }
 
   constree = pllmod_utree_weight_consensus(trees,
                                            weights,
@@ -395,11 +409,13 @@ void ModelTestService::topological_summary(partition_id_t const& part_id,
   }
   else
   {
-    out << "error computing strict consensus " << pll_errmsg << endl;
+    out << "error computing strict consensus " << pll_errmsg << endl << endl;
   }
 
   free(weights);
   free(trees);
+
+  return true;
 }
 
 string ModelTestService::get_iqtree_command_line(Model const& model,
@@ -536,15 +552,13 @@ string ModelTestService::get_phyml_command_line(Model const& model,
     return phyml_args.str();
 }
 
-void ModelTestService::finalize()
+void ModelTestService::finalize( bool force )
 {
     if (s_instance)
       delete s_instance;
     s_instance = 0;
 
-    #if(MPI_ENABLED)
-        MPI_Finalize();
-    #endif
+    ParallelContext::finalize(force);
 }
 
 

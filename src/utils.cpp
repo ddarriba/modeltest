@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "model_defs.h"
 #include "service/modeltestservice.h"
+#include "thread/parallel_context.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -240,9 +241,8 @@ void Utils::exit_with_error(const char * message, ...) {
 
     ModelTestService::instance()->destroy_instance();
 
-#if(MPI_ENABLED)
-    MPI_Finalize();
-#endif
+    ParallelContext::finalize(true);
+
     exit(EXIT_FAILURE);
 }
 
