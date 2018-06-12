@@ -752,6 +752,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
         bool edit_mode = !user_candidate_models.substr(0,1).compare("-")
                       || !user_candidate_models.substr(0,1).compare("+");
+        char action = '+';
+
         if(edit_mode)
         {
           for (int i=0; i<N_PROT_MODEL_MATRICES; i++)
@@ -768,11 +770,20 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         string s;
         while (getline(f, s, ',')) {
             mt_index_t i, c_matrix = 0;
-            char action = '+';
             if (edit_mode)
             {
-              action = s.c_str()[0];
-              s = s.substr(1);
+              char cur_action = s.c_str()[0];
+              if (!(cur_action == '+' || cur_action == '-'))
+              {
+                LOG_ERR << PACKAGE
+                        << ": Warning: Undefined action {+,-} for model " << s
+                        << ". Using previous action: " << action <<  endl;
+              }
+              else
+              {
+                action = cur_action;
+                s = s.substr(1);
+              }
             }
 
             for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
@@ -1457,6 +1468,8 @@ void Meta::print_help(std::ostream& out)
         << "g: discrite Gamma rate categories (+G)" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "f: both +I and +G (+I+G)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "r: free rate models (+R)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -m, --models list"
         << "sets the candidate model matrices separated by commas." << endl;
