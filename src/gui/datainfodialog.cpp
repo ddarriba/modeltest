@@ -24,6 +24,8 @@
 
 #include "ui_datainfodialog.h"
 
+#include <cstdio>
+
 DataInfoDialog::DataInfoDialog(std::string const& msa_filename,
                                mt_size_t n_taxa,
                                mt_size_t n_sites,
