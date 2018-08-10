@@ -437,7 +437,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             else
             {
                 LOG_ERR << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
-                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {mp,mp,fixed-ml-gtr,fixed-ml-jc,random,user}" << endl;
+                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {ml,mp,fixed-ml-gtr,fixed-ml-jc,random,user}" << endl;
                 params_ok = false;
             }
             break;
@@ -1461,15 +1461,17 @@ void Meta::print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -h, --model-het [uigf]"
         << "sets the candidate models rate heterogeneity" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "u: uniform" << endl;
+        << "u: *uniform" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "i: proportion of invariant sites (+I)" << endl;
+        << "i: *proportion of invariant sites (+I)" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "g: discrite Gamma rate categories (+G)" << endl;
+        << "g: *discrite Gamma rate categories (+G)" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
-        << "f: both +I and +G (+I+G)" << endl;
+        << "f: *both +I and +G (+I+G)" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
         << "r: free rate models (+R)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << " "
+        << "* included by default" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -m, --models list"
         << "sets the candidate model matrices separated by commas." << endl;
@@ -1569,6 +1571,8 @@ void Meta::print_help(std::ostream& out)
         << "sets the parameter optimization tolerance" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
         << "forces frequencies smoothing" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --disable-checkpoint"
+        << "does not create checkpoint files" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -H, --no-compress"
         << "disables pattern compression" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
