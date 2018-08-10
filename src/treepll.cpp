@@ -202,7 +202,9 @@ namespace modeltest
       }
       else if (type == tree_random)
       {
-        starting_tree = pllmod_utree_create_random(n_tips, msa.get_headers());
+        starting_tree = pllmod_utree_create_random(n_tips,
+                                                   msa.get_headers(),
+                                                   random_seed);
       }
       else
       {
