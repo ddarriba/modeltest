@@ -67,6 +67,7 @@
 #define MT_PRECISION_DIGITS 4
 
 #define DEFAULT_GAMMA_RATE_CATS   4
+#define DEFAULT_GAMMA_RATE_MODE   PLL_GAMMA_RATES_MEAN
 #define DEFAULT_PARAM_EPSILON     0.01
 #define DEFAULT_OPT_EPSILON       0.01
 #define DEFAULT_RND_SEED          12345
@@ -283,6 +284,7 @@ typedef struct {
     std::vector<mt_index_t> aa_candidate_models;  //! Candidate models for AA
     mt_mask_t model_params;                       //! Model parameters to opt
     mt_size_t n_catg;                             //! Number of gamma rate cats
+    int gamma_rates_mode;                         //! Gamma Rates mode (median/mean)
     asc_bias_t asc_bias_corr;                     //! ascertainment bias correction
     mt_size_t asc_weights[MT_MAX_STATES];         //! dummy weights
     std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning

@@ -57,7 +57,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     data_type_t arg_datatype = dt_dna;
     mt_size_t freqs_mask = 0;
     bool gap_aware = false;
-    exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.n_catg           = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.gamma_rates_mode = DEFAULT_GAMMA_RATE_MODE;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
@@ -84,6 +85,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "gap-aware", no_argument,          0, 13 },
         { "input", required_argument,        0, 'i' },
         { "model-freqs", required_argument,  0, 'f' },
+        { "gamma-rates", required_argument,  0, 'g' },
         { "no-compress", no_argument,        0, 'H' },
         { "model-het", required_argument,    0, 'h' },
         { "models", required_argument,       0, 'm' },
@@ -112,7 +114,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:h:Hi:m:o:p:q:r:s:t:T:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hi:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -314,6 +316,23 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be a non-empty combination of {f,e}" << endl;
                     params_ok = false;
                 }
+            }
+            break;
+        case 'g':
+            switch(optarg[0])
+            {
+            case 'a':
+            case 'A':
+                exec_opt.gamma_rates_mode = PLL_GAMMA_RATES_MEAN;
+                break;
+            case 'm':
+            case 'M':
+                exec_opt.gamma_rates_mode = PLL_GAMMA_RATES_MEDIAN;
+                break;
+            default:
+                LOG_ERR <<  PACKAGE << ": Unrecognised gamma rates mode " << optarg << endl;
+                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be either 'a' (average) or 'm' (median)" << endl;
+                params_ok = false;
             }
             break;
         case 'h':
@@ -1571,6 +1590,15 @@ void Meta::print_help(std::ostream& out)
         << "sets the parameter optimization tolerance" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
         << "forces frequencies smoothing" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -g, --gamma-rates [a|g]"
+        << "sets gamma rates mode" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "               a"
+        << "uses the average (or mean) per category (default)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "               m"
+        << "uses the median per category" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --disable-checkpoint"
         << "does not create checkpoint files" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -H, --no-compress"

@@ -514,6 +514,7 @@ mt_index_t Model::get_unique_id( void ) const
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,
                             pllmod_treeinfo_t * tree_info,
+                            int gamma_rates_mode,
                             Partition const& partition )
 {
   assert(pll_partition);
@@ -521,6 +522,7 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
   params.partition = pll_partition;
   params.tree_info = tree_info;
   params.params_indices = params_indices;
+  params.gamma_rates_mode = gamma_rates_mode;
 
   /* reorder parameters */
   sort(parameters.begin(),

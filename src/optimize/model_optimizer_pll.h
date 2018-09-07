@@ -41,6 +41,7 @@ namespace modeltest
                        Model & _model,
                        Partition &partition,
                        bool _optimize_topology,
+                       int gamma_rates = PLL_GAMMA_RATES_MEAN,
                        mt_index_t _thread_number = 0);
     virtual ~ModelOptimizerPll ();
 

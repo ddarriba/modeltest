@@ -214,6 +214,7 @@ public:
 
     bool optimize_init ( pll_partition_t * pll_partition,
                          pllmod_treeinfo_t * tree_info,
+                         int gamma_rates_mode,
                          Partition const& partition );
 
     bool optimize( pll_partition_t * partition,

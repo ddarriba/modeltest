@@ -1,4 +1,8 @@
-* dev 0.1.5
+* dev 0.1.6
+
+  - Allow for gamma rates mode selection (mean: -g a / median: -g m)
+
+* release 0.1.5
 
   - Added parallel context for PTHREADS/MPI
   - Remove trees from checkpoints when topology is not optimized

@@ -47,9 +47,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       Model &_model,
                                       Partition &_partition,
                                       bool _optimize_topology,
+                                      int _gamma_rates,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_msa, _model, _partition,
-                     _optimize_topology, _thread_number),
+                     _optimize_topology, _gamma_rates, _thread_number),
       tree(_tree)
 {
   mt_size_t n_tips = tree.get_n_tips ();
@@ -114,6 +115,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     if (!model.optimize_init(pll_partition,
                              NULL,
+                             gamma_rates,
                              partition))
     {
       return false;
@@ -276,11 +278,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                        1,
                                        1);
 
+     assert(gamma_rates == PLL_GAMMA_RATES_MEAN ||
+            gamma_rates == PLL_GAMMA_RATES_MEDIAN);
+
      int retval = pllmod_treeinfo_init_partition(tree_info,
                                                  0,
                                                  pll_partition,
                                                  0xFFFF,
-                                                 PLL_GAMMA_RATES_MEAN,
+                                                 gamma_rates,
                                                  model.get_alpha(),
                                                  model.get_params_indices(),
                                                  model.get_symmetries());

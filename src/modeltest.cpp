@@ -96,6 +96,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     mopt = new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
                                opt_topology,
+                               current_instance->gamma_rates,
                                thread_number);
    }
    catch(int e)
@@ -216,6 +217,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            *tree,
                            opt_type,
                            opt_topology,
+                           current_instance->gamma_rates,
                            epsilon_param,
                            epsilon_opt);
   p_opt.attach(this);
@@ -782,6 +784,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     current_instance->n_catg = options.n_catg;
   else
     current_instance->n_catg = 1;
+  current_instance->gamma_rates = options.gamma_rates_mode;
 
   assert(!partitioning_scheme);
   partitioning_scheme = new PartitioningScheme();

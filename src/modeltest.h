@@ -48,6 +48,7 @@ typedef struct
 
   mt_size_t n_tips;               //! number of tips
   mt_size_t n_catg;               //! number of Gamma rate categories
+  int gamma_rates;
 
   bool ckp_enabled;
   std::string ckp_filename;

@@ -916,6 +916,7 @@ bool XModelTestFancy::run_modelselection()
     opts.rnd_seed = 12345;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();
+    opts.gamma_rates_mode = DEFAULT_GAMMA_RATE_MODE;
     opts.msa_filename = msa_filename;
     opts.tree_filename = utree_filename;
     opts.partitions_filename = "";
