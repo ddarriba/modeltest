@@ -75,7 +75,8 @@ void ModelTest::create_instance()
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
                                      mt_index_t thread_number,
-                                     bool force_opt_topo)
+                                     bool force_opt_topo,
+                                     bool keep_model_parameters)
 {
   ModelOptimizer * mopt;
   bool opt_topology;
@@ -96,6 +97,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     mopt = new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
                                opt_topology,
+                               keep_model_parameters,
                                current_instance->gamma_rates,
                                thread_number);
    }
@@ -217,6 +219,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            *tree,
                            opt_type,
                            opt_topology,
+                           current_instance->keep_model_parameters,
                            current_instance->gamma_rates,
                            epsilon_param,
                            epsilon_opt);
@@ -367,6 +370,7 @@ typedef struct {
   mt_size_t n_sites;
   tree_type_t starting_tree;
   bool smooth_freqs;
+  bool keep_model_parameters;
   unsigned int rnd_seed;
   double epsilon_param;
   double epsilon_opt;
@@ -386,6 +390,7 @@ static bool eval_ckp(mt_options_t & options,
   bin_desc.n_sites = options.n_sites;
   bin_desc.starting_tree = options.starting_tree;
   bin_desc.smooth_freqs = options.smooth_freqs;
+  bin_desc.keep_model_parameters = options.keep_model_parameters;
   bin_desc.rnd_seed = options.rnd_seed;
   bin_desc.epsilon_param = options.epsilon_param;
   bin_desc.epsilon_opt = options.epsilon_opt;
@@ -498,6 +503,11 @@ static bool eval_ckp(mt_options_t & options,
       ckp_valid = false;
       LOG_ERR << "  RNG seed differs" << endl;
     }
+    if (rec_bin_desc->keep_model_parameters != bin_desc.keep_model_parameters)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Optimization mode (keep model parameters) differ" << endl;
+    }
     if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
         fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
     {
@@ -532,6 +542,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   create_instance ();
 
   current_instance->ckp_enabled = options.write_checkpoint;
+  current_instance->keep_model_parameters = options.keep_model_parameters;
 
   assert (options.partitions_desc);
 
@@ -832,6 +843,11 @@ bool ModelTest::build_instance(mt_options_t & options)
         }
         free_stuff();
         return false;
+    }
+
+    if (current_instance->tree->get_n_branches() < new_part->get_n_sites() + 2)
+    {
+      LOG_WARN << "WARNING: MSA has not enough sites to infer reliable results" << endl;
     }
 
     /*

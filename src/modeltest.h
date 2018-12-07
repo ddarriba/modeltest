@@ -50,6 +50,7 @@ typedef struct
   mt_size_t n_catg;               //! number of Gamma rate categories
   int gamma_rates;
 
+  bool keep_model_parameters;
   bool ckp_enabled;
   std::string ckp_filename;
 } selection_instance;
@@ -138,7 +139,8 @@ public:
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
                                          mt_index_t thread_number = 0,
-                                         bool force_opt_topo = false);
+                                         bool force_opt_topo = false,
+                                         bool keep_model_parameters = false);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
 

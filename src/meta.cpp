@@ -64,6 +64,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
     exec_opt.compress_patterns = true;
+    exec_opt.keep_model_parameters = false;
     exec_opt.smooth_freqs    = false;
     exec_opt.rate_clustering = false;
     exec_opt.subst_schemes   = ss_undef;
@@ -88,6 +89,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "gamma-rates", required_argument,  0, 'g' },
         { "no-compress", no_argument,        0, 'H' },
         { "model-het", required_argument,    0, 'h' },
+        { "keep-params", no_argument,        0, 'k' },
         { "models", required_argument,       0, 'm' },
         { "output", required_argument,       0, 'o' },
         { "processes", required_argument,    0, 'p' },
@@ -114,7 +116,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hi:m:o:p:q:r:s:t:T:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -369,6 +371,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 'H':
             exec_opt.compress_patterns = false;
+            break;
+        case 'k':
+            exec_opt.keep_model_parameters = true;
             break;
         case 'i':
             exec_opt.msa_filename = optarg;

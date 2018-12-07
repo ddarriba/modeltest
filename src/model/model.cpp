@@ -393,9 +393,10 @@ bool Model::evaluate_criteria (mt_size_t n_branches_params,
   sample_size = _sample_size;
 
   mt_size_t n_params = n_free_variables + n_branches_params;
-
+  mt_size_t aicc_sample_size = max(sample_size, n_params + 2);
+ 
   aic = 2*n_params - 2*loglh;
-  aicc = aic + 2*n_params*(n_params+1)/(sample_size - n_params - 1);
+  aicc = aic + 2*n_params*(n_params+1)/(aicc_sample_size - n_params - 1);
   bic = -2*loglh + n_params * log(sample_size);
 
   return true;

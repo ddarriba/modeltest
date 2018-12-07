@@ -38,7 +38,6 @@ namespace modeltest
 {
 
 bool on_run = true;
-static bool keep_branch_lengths = true;
 
 ModelOptimizer::~ModelOptimizer() {}
 
@@ -47,10 +46,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       Model &_model,
                                       Partition &_partition,
                                       bool _optimize_topology,
+                                      bool _keep_model_parameters,
                                       int _gamma_rates,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_msa, _model, _partition,
-                     _optimize_topology, _gamma_rates, _thread_number),
+                     _optimize_topology, _keep_model_parameters,
+                     _gamma_rates, _thread_number),
       tree(_tree)
 {
   mt_size_t n_tips = tree.get_n_tips ();
@@ -147,7 +148,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG << "[dbg] Model optimization done: " << cur_loglh << endl;
 
     /* TODO: if bl are reoptimized */
-    if (keep_branch_lengths)
+    if (keep_model_parameters)
       tree.set_bl_optimized();
 
     time_t end_time = time(NULL);
@@ -272,7 +273,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     new_loglh = loglh;
 
     LOG_DBG << "[dbg] Initial log likelihood: " << loglh << endl;
-    tree_info = pllmod_treeinfo_create(keep_branch_lengths
+    tree_info = pllmod_treeinfo_create(keep_model_parameters
                                          ?pll_tree
                                          :pll_utree_graph_clone(pll_tree),
                                        tree.get_n_tips(),
@@ -391,7 +392,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG << "[dbg] model done: [" << epsilon
             << "/" << tolerance << "]: " << loglh << endl;
 
-    if (!(optimize_topology || keep_branch_lengths))
+    if (!(optimize_topology || keep_model_parameters))
       pll_utree_graph_destroy(tree_info->root, NULL);
     pllmod_treeinfo_destroy(tree_info);
 

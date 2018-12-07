@@ -294,6 +294,7 @@ typedef struct {
     double epsilon_opt;      //! Global optimization epsilon
 
     bool smooth_freqs;                //! Force frequencies smoothing
+    bool keep_model_parameters;       //! Keep model params between optimizations
     unsigned int rnd_seed;            //! RNG seed
     int verbose;                      //! Verbosity level
 
