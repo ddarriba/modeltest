@@ -38,7 +38,7 @@ namespace modeltest
 {
 
 bool on_run = true;
-static bool keep_branch_lengths = false;
+static bool keep_branch_lengths = true;
 
 ModelOptimizer::~ModelOptimizer() {}
 
@@ -272,8 +272,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     new_loglh = loglh;
 
     LOG_DBG << "[dbg] Initial log likelihood: " << loglh << endl;
-
-    tree_info = pllmod_treeinfo_create(pll_utree_graph_clone(pll_tree),
+    tree_info = pllmod_treeinfo_create(keep_branch_lengths
+                                         ?pll_tree
+                                         :pll_utree_graph_clone(pll_tree),
                                        tree.get_n_tips(),
                                        1,
                                        1);
@@ -390,7 +391,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG << "[dbg] model done: [" << epsilon
             << "/" << tolerance << "]: " << loglh << endl;
 
-    if (!optimize_topology)
+    if (!(optimize_topology || keep_branch_lengths))
       pll_utree_graph_destroy(tree_info->root, NULL);
     pllmod_treeinfo_destroy(tree_info);
 
