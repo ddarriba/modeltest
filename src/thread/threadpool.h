@@ -31,16 +31,23 @@
 #define THREADPOOL_H
 
 #include <map>
+#if(USE_POSIX_THREADS)
 #include <mutex>
+#include <thread>
+#include <future>
+#include <condition_variable>
+#else
+#include "../mingw/mingw.mutex.h"
+#include "../mingw/mingw.thread.h"
+#include "../mingw/mingw.future.h"
+#include "../mingw/mingw.condition_variable.h"
+#endif
 #include <queue>
 #include <memory>
-#include <future>
-#include <thread>
 #include <vector>
 #include <unistd.h>
 #include <stdexcept>
 #include <functional>
-#include <condition_variable>
 
 namespace modeltest {
 

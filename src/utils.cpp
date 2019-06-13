@@ -34,6 +34,10 @@
 #include <unistd.h>
 #include <algorithm>
 
+#if defined(_WIN32) || defined(WIN32)
+#include <windows.h>
+#endif
+
 using namespace std;
 
 namespace modeltest {
@@ -956,8 +960,11 @@ unsigned long Utils::get_memtotal()
   snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for OS X");
   return 0L;
 #endif
+#elif defined(_WIN32) || defined(WIN32)
+  mt_errno = MT_ERROR_SYSTEM;
+  snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for Windows");
+  return 0L;
 #else
-
   struct sysinfo si;
   if (sysinfo(&si))
   {

@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
           }
         }
 
+        opts.n_procs = mpi_numprocs;
+
         switch (opts.verbose)
         {
           case VERBOSITY_LOW:

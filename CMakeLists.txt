@@ -1,5 +1,24 @@
 cmake_minimum_required (VERSION 2.8.10 FATAL_ERROR)
 
+set(CMAKE_SYSTEM_NAME Windows)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+# which compilers to use for C and C++
+set(CMAKE_C_COMPILER i686-w64-mingw32-gcc-posix)
+set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++-posix)
+
+# here is the target environment located
+set(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32)
+
+# adjust the default behaviour of the FIND_XXX() commands:
+# search headers and libraries in the target environment, search
+# programs in the host environment
+#set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+#set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+#set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+endif()
+
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
@@ -54,7 +73,7 @@ set (CMAKE_BUILD_TYPE DEBUG)
 message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 
 set (WARN_FLAGS               "-Wall -Wextra")
-set (CMAKE_CXX_FLAGS          "-std=c++11 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS          "-std=gnu++11 ${WARN_FLAGS}")
 
 set (CMAKE_CXX_FLAGS_DEBUG    "-g")
 set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG")

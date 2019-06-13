@@ -22,11 +22,17 @@
 #ifndef GLOBAL_DEFS_H
 #define GLOBAL_DEFS_H
 
+#define USE_POSIX_THREADS 1
+
 #include <string>
 #include <vector>
 #include <climits>
 #include <iomanip>
+#if(USE_POSIX_THREADS)
 #include <mutex>
+#else
+#include "mingw/mingw.mutex.h"
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -68,7 +74,7 @@
 
 #define DEFAULT_GAMMA_RATE_CATS   4
 #define DEFAULT_GAMMA_RATE_MODE   PLL_GAMMA_RATES_MEAN
-#define DEFAULT_PARAM_EPSILON     0.01
+#define DEFAULT_PARAM_EPSILON     0.05
 #define DEFAULT_OPT_EPSILON       0.01
 #define DEFAULT_RND_SEED          12345
 
@@ -299,6 +305,7 @@ typedef struct {
     int verbose;                      //! Verbosity level
 
     mt_size_t n_threads;              //! Number of threads for optimiz.
+    mt_size_t n_procs;                //! Number of processes for optimiz.
 } mt_options_t;
 
 #endif // GLOBAL_DEFS_H

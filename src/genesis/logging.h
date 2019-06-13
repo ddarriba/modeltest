@@ -39,6 +39,9 @@
 #include <string>
 #include <vector>
 
+#include <stdio.h>
+#include <sys/types.h>
+
 namespace genesis {
 namespace utils {
 
@@ -271,15 +274,6 @@ typedef struct {
 
     /** @brief Include the current run time of the program in sec. */
     bool runtime;
-
-    /**
-     * @brief Include the run time difference to the last log message
-     * in sec.
-     *
-     * Useful for timing and profiling code sections. Is 0.0 at the first
-     * log message.
-     */
-    bool rundiff;
 
     /** @brief Include the filename where the log message was generated. */
     bool file;
@@ -541,9 +535,6 @@ protected:
 
     // how many log calls were made so far
     static long    count_;
-
-    // when was the last call to logging (used for time measurements)
-    static clock_t last_clock_;
 
     // array of streams that are used for output and error
     static std::vector<std::ostream*> ostreams_;

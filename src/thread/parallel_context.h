@@ -14,8 +14,13 @@
 #endif
 
 #ifdef PTHREADS
-#include <thread>
+#if(USE_POSIX_THREADS)
 #include <mutex>
+#include <thread>
+#else
+#include "../mingw/mingw.mutex.h"
+#include "../mingw/mingw.thread.h"
+#endif
 typedef std::thread ThreadType;
 typedef std::thread::id ThreadIDType;
 typedef std::mutex MutexType;

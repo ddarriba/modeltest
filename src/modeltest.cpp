@@ -52,8 +52,8 @@ bool disable_repeats = false;
 
 using namespace std;
 
-ModelTest::ModelTest(mt_size_t _number_of_threads)
-    : number_of_threads(_number_of_threads)
+ModelTest::ModelTest(mt_size_t _number_of_threads, mt_size_t _number_of_procs)
+    : number_of_threads(_number_of_threads), number_of_procs(_number_of_procs)
 {
     setlocale(LC_NUMERIC, "C");
     partitioning_scheme = 0;
@@ -854,7 +854,7 @@ bool ModelTest::build_instance(mt_options_t & options)
      * sort candidate models by
      * estimated computational needs
      */
-    new_part->sort_models(number_of_threads == 1);
+    new_part->sort_models(number_of_threads == 1 && number_of_procs == 1);
 
     partitioning_scheme->add_partition(part_id, new_part);
     cur_part_id++;

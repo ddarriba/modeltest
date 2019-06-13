@@ -117,7 +117,7 @@ namespace modeltest
       if (!cur_seq)
         n_sites = n_sites_read;
 
-      assert (n_sites_read == n_sites);
+      assert (n_sites_read == (long) n_sites);
       for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
          hdr[i] = '\0';
       tipnames[cur_seq]  = hdr;
@@ -181,7 +181,7 @@ namespace modeltest
 
         for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
         {
-            assert (n_sites_read == n_sites);
+            assert (n_sites_read == (long) n_sites);
             for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
                hdr[i] = '\0';
             tipnames[cur_seq]  = hdr;
@@ -503,7 +503,7 @@ namespace modeltest
                   }
               }
 
-              assert(n_sites_read < MT_SIZE_UNDEF);
+              assert(n_sites_read < (long) MT_SIZE_UNDEF);
 
               if (n_sites_read < 0)
               {
