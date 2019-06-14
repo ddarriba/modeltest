@@ -950,14 +950,13 @@ void ModelTest::update(Observable * subject, void * data)
 {
   UNUSED(subject);
 
-  //TODO: Use struct here
-  if (!ROOT) return;
   opt_info_t * opt_info = static_cast<opt_info_t *>(data);
+
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
                                 opt_info->start_time, global_ini_time,
-                                MT_INFO);
+                                cout);
 
-  if (current_instance->ckp_enabled)
+  if (ROOT && current_instance->ckp_enabled)
   {
     opt_info->model->output_bin(current_instance->ckp_filename);
   }

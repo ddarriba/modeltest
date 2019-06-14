@@ -73,15 +73,8 @@ int main(int argc, char *argv[])
     mpi_numprocs = ParallelContext::num_procs();
     mpi_rank = ParallelContext::proc_id();
 
-    if (mpi_numprocs == 1)
-    {
-      modeltest::Utils::exit_with_error("MPI version requires at least 2 processors");
-    }
-    else
-    {
-      cout << "MPI Start: Size: " << mpi_numprocs
-               << " Rank: " << mpi_rank << endl;
-    }
+    cout << "MPI Start: Size: " << mpi_numprocs
+         << " Rank: " << mpi_rank << endl;
 #else
     mpi_rank = 0;
     mpi_numprocs = 1;
