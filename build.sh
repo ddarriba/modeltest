@@ -17,13 +17,13 @@
 #   - PLL and modules are statically linked
 
 # Static configuration
-build_pll=yes            # build PLL
-build_modules=yes        # build PLL modules library
-build_gui=yes            # build modeltest-gui
-dir_base=${PWD}          # base directory
+build_pll=yes             # build PLL
+build_modules=yes         # build PLL modules library
+build_gui=yes             # build modeltest-gui
+dir_base=${PWD}           # base directory
 prefix=${dir_base}/build  # output directory for modeltest
 dir_dist=${dir_base}/dist # output directory for distribution
-qmake_bin=qmake          # qmake binary (for GUI)
+qmake_bin=qmake           # qmake binary (for GUI)
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
@@ -42,9 +42,12 @@ test -d ${prefix}/bin || { echo "Output directory could not be created"; exit; }
 
 # check if `qmake` is available
 if test "x`which ${qmake_bin}`" = "x" ; then
-  build_gui=no
+  echo "qmake binary not found. Please fix its path in this script or set build_gui to \"no\"";
+  exit;
 else
-  ${qmake_bin} -v 2> /dev/null || build_gui=no
+  ${qmake_bin} -v 2> /dev/null ||
+    { echo "qmake binary dows not work. Please fix it or set build_gui to \"no\"";
+      exit; }
 fi
 
 # output directory for pll and modules

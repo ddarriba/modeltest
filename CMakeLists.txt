@@ -1,42 +1,43 @@
 cmake_minimum_required (VERSION 2.8.10 FATAL_ERROR)
 
-set(CMAKE_SYSTEM_NAME Windows)
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-# which compilers to use for C and C++
-set(CMAKE_C_COMPILER i686-w64-mingw32-gcc-posix)
-set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++-posix)
-
-# here is the target environment located
-set(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32)
-
-# adjust the default behaviour of the FIND_XXX() commands:
-# search headers and libraries in the target environment, search
-# programs in the host environment
-#set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-#set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-#set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-endif()
+###############################################################################
+# CONFIGURATION
+###############################################################################
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
-set (USE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
 set (USE_MPI OFF CACHE BOOL "Enable MPI support")
 set (USE_GUI OFF CACHE BOOL "Enable QT GUI")
 
-# set both following options to OFF to build a portable binary 
+# set both following options to OFF to build a portable binary
 # (don't worry, libpll will still have full SIMD support!)
-set (ENABLE_MODELTEST_SIMD OFF CACHE BOOL "Enable SIMD instructions (non-portable but slightly faster)")
-set (ENABLE_PLLMOD_SIMD OFF CACHE BOOL "Enable SIMD instructions in pll-modules (non-portable but slightly faster)")
+set (ENABLE_MODELTEST_SIMD ON CACHE BOOL "Enable SIMD instructions (non-portable but slightly faster)")
+set (ENABLE_PLLMOD_SIMD ON CACHE BOOL "Enable SIMD instructions in pll-modules (non-portable but slightly faster)")
+
+set (USE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
+
+set(USE_LIBPLL_CMAKE ON CACHE BOOL "Use CMake to build libpll and pll-modules")
 
 # build a static binary
 set(STATIC_BUILD OFF CACHE BOOL "Build static binary")
 
-set(ENABLE_PTHREADS ${USE_PTHREADS})
+###############################################################################
+# END OF CONFIGURATION
+###############################################################################
 
 project (modeltest-ng C CXX)
+
+set(ENABLE_PTHREADS ${USE_PTHREADS})
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  # which compilers to use for C and C++
+  set(CMAKE_C_COMPILER i686-w64-mingw32-gcc-posix)
+  set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++-posix)
+
+  # here is the target environment located
+  set(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32)
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # no support for static linking on Mac
@@ -48,27 +49,12 @@ else()
   set(ENABLE_MPI ${USE_MPI})
 endif()
 
-#check for minimum compiler versions
-message(STATUS "Compier: ${CMAKE_CXX_COMPILER_ID}")
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(MODELTEST_COMPILER_TARGET_VERSION "4.8")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
-    message (FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler too old! Minimum required: ${MODELTEST_COMPILER_TARGET_VERSION}")
-  endif()
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(MODELTEST_COMPILER_TARGET_VERSION "3.8")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
-    message (FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler too old! Minimum required: ${MODELTEST_COMPILER_TARGET_VERSION}")
-  endif()
-endif()
-
 set (modeltest-ng_VERSION_MAJOR 0)
-set (modeltest-ng_VERSION_MINOR 5)
+set (modeltest-ng_VERSION_MINOR 1)
 
 set (CMAKE_BUILD_TYPE DEBUG)
 #set (CMAKE_BUILD_TYPE RELEASE)
-# set (CMAKE_VERBOSE_MAKEFILE ON)
+#set (CMAKE_VERBOSE_MAKEFILE ON)
 
 message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 
@@ -102,10 +88,22 @@ if(ENABLE_PTHREADS)
 endif()
 
 if(ENABLE_GUI)
-  find_package(Qt5Widgets)
+  set(CMAKE_AUTOUIC ON)
+  set(CMAKE_AUTOMOC ON)
+
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+  # Find the QtWidgets library
+  find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_NO_GUI_ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 endif()
+
+message(STATUS "Using flags: ${CMAKE_CXX_FLAGS}")
+
+# build dependencies
+set(MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
+add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
 
 if(ENABLE_MPI)
   find_package(MPI)
@@ -120,16 +118,20 @@ if(ENABLE_MPI)
   endif()
 endif()
 
-message(STATUS "Using flags: ${CMAKE_CXX_FLAGS}")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(MODELTEST_COMPILER_TARGET_VERSION "4.8")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
+    message (FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler too old! Minimum required: ${MODELTEST_COMPILER_TARGET_VERSION}")
+  endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(MODELTEST_COMPILER_TARGET_VERSION "3.8")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
+    message (FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler too old! Minimum required: ${MODELTEST_COMPILER_TARGET_VERSION}")
+  endif()
+endif()
 
-set(pll_dir ${PROJECT_SOURCE_DIR}/libs/pll-modules/libs/libpll/src)
-set(pll_binary_dir ${PROJECT_SOURCE_DIR}/libs/pll-modules/src/binary)
-set(pll_optimize_dir ${PROJECT_SOURCE_DIR}/libs/pll-modules/src/optimize)
-set(pll_msa_dir ${PROJECT_SOURCE_DIR}/libs/pll-modules/src/msa)
-
-# build dependencies
-set(MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
-add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
+#check for minimum compiler versions
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} => ${CMAKE_CXX_COMPILER}")
 
 include_directories(${MODELTEST_LOCALDEPS_DIR}/include)
 

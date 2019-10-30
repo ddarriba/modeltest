@@ -56,6 +56,15 @@ This step is not necessary if you downloaded the released tarball.
     make
     ```
 
+    GUI version:
+
+    ```
+    cd modeltest-ng
+    mkdir build && cd build
+    cmake -DUSE_GUI=ON ..
+    make
+    ```
+
     ModelTest-NG binaries will be placed in `modeltest-ng/bin` directory.
 
   b) Build ModelTest-NG using `autotools`
@@ -85,44 +94,3 @@ This step is not necessary if you downloaded the released tarball.
     ```
 
     The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
-
-1. Graphical User Interface
-
-  To install ModelTest-NG GUI type the following commands:
-
-  ```bash
-  $ ./build_qmake-sh
-  $ make -f Makefile.qmake
-  $ make install -f Makefile.qmake
-  ```
-
-  Run 'modeltest-gui' without arguments for loading the GUI
-
-2. Command Console Interface
-
-  To install ModelTest-NG type the following commands:
-
-  ```bash
-  $ ./configure [--prefix=INSTALL_DIR]
-  $ make
-  $ make install
-  ```
-
-Set a custom install directory if you don't have root access or you prefer a
-different location.
-
-This will compile pthreads and MPI versions
-Run 'modeltest-ng --help' for help about the console interface.
-
-To compile a Windows executable, install MinGW and run:
-
-```bash
-$ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
-$ make
-```
-
-In case the configure script does not exist, it must be generated using autotools:
-
-```bash
-$ autoreconf -i
-```

@@ -25,7 +25,6 @@
 #include "msapll.h"
 #include "treepll.h"
 #include "genesis/logging.h"
-#include "thread/threadpool.h"
 #include "optimize/partition_optimizer.h"
 
 #include <sstream>

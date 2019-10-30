@@ -6,6 +6,7 @@ if(Qt5Widgets_FOUND)
                              ${PROJECT_SOURCE_DIR}/src/thread/*.cpp
                              ${PROJECT_SOURCE_DIR}/src/gui/*.ui
                              ${PROJECT_SOURCE_DIR}/src/gui/*.cpp
+                             ${PROJECT_SOURCE_DIR}/src/gui/mydebugstream.h
                              ${PROJECT_SOURCE_DIR}/src/gui2/*.cpp
                              ${PROJECT_SOURCE_DIR}/src/genesis/*.cpp)
 else()
@@ -30,31 +31,48 @@ if(STATIC_BUILD)
   endif()
 endif()
 
-add_executable        (modeltest_module ${modeltest_sources})
+if(Qt5Widgets_FOUND)
+  # Generate code from ui files
+  qt5_wrap_ui(UI_HEADERS
+      gui/progressdialog.ui
+      gui/resultsexportdialog.ui
+      gui/resultsdialog.ui
+      gui/modelsdialog.ui
+      gui/xmodeltest.ui
+      gui/datainfodialog.ui
+      gui2/xmodeltestfancy.ui
+      gui2/aboutdialog.ui
+  )
+endif()
 
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_algorithm.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_binary.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_optimize.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_msa.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_tree.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_util.a)
-target_link_libraries (modeltest_module ${MODELTEST_LOCALDEPS_DIR}/lib/libpll.a)
-target_link_libraries (modeltest_module m)
+add_executable(modeltest_module ${modeltest_sources} ${UI_HEADERS})
+
+if (USE_LIBPLL_CMAKE)
+  target_include_directories(modeltest_module PRIVATE ${PLLMOD_EXPORTED_INCLUDE_PATH})
+  set(LIBPLL_LIBS  ${PLLMODULES_LIBRARIES} ${PLL_LIBRARIES})
+else()
+  set(LIBPLL_LIBS ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_algorithm.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_binary.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_optimize.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_msa.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_tree.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_util.a
+                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll.a
+                  )
+endif()
+
+set(MODELTEST_LIBS ${LIBPLL_LIBS} m)
+
+target_link_libraries(modeltest_module ${MODELTEST_LIBS})
 
 if(Qt5Widgets_FOUND)
-
-  # Find the QtWidgets library
-  find_package(Qt5Widgets REQUIRED)
-
-  # Generate code from ui files
-  qt5_wrap_ui(UI_HEADERS xmodeltest.ui)
-  #add_library(window mainwindow.cpp ${UI_HEADERS})
+  qt5_use_modules(modeltest_module Widgets)
 
   # Generate rules for building source files from the resources
-  qt5_add_resources(QRCS resources.qrc)
+  #qt5_add_resources(QRCS resources.qrc)
 
   #  target_link_libraries (modeltest_module ${Qt5Widgets_LIBRARIES })
-  target_link_libraries (modeltest_module Qt5::Widgets)
+  target_link_libraries (modeltest_module Qt5::Widgets Qt5::Gui)
 elseif(MPI_FOUND)
   target_link_libraries (modeltest_module ${MPI_CXX_LIBRARIES})
 endif()

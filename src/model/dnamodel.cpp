@@ -59,7 +59,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
     assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
 
     n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
-    n_subst_rates = gap_aware?10:N_DNA_SUBST_RATES;
+    n_subst_rates = gap_aware?10:pllmod_util_subst_rate_count(N_DNA_STATES);
 
     if (!optimize_freqs)
     {
