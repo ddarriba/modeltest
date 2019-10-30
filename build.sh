@@ -40,14 +40,16 @@ mkdir -p ${prefix}/bin ${prefix}/include/libpll ${prefix}/lib
 
 test -d ${prefix}/bin || { echo "Output directory could not be created"; exit; }
 
-# check if `qmake` is available
-if test "x`which ${qmake_bin}`" = "x" ; then
-  echo "qmake binary not found. Please fix its path in this script or set build_gui to \"no\"";
-  exit;
-else
-  ${qmake_bin} -v 2> /dev/null ||
-    { echo "qmake binary dows not work. Please fix it or set build_gui to \"no\"";
-      exit; }
+if test x${build_gui} = xyes; then
+  # check if `qmake` is available
+  if test "x`which ${qmake_bin}`" = "x" ; then
+    echo "qmake binary not found. Please fix its path in this script or set build_gui to \"no\"";
+    exit;
+  else
+    ${qmake_bin} -v 2> /dev/null ||
+      { echo "qmake binary dows not work. Please fix it or set build_gui to \"no\"";
+        exit; }
+  fi
 fi
 
 # output directory for pll and modules
@@ -209,11 +211,11 @@ for action in ${actions}; do
             mv modeltest-gui.app ${prefix}/bin
           else
             mv modeltest-gui ${prefix}/bin;
-          fi 
+          fi
         } || \
         { echo "...modeltest GUI FAIL!"; exit 1; }
     else
-      echo "...cannot find qmake. Skip modeltest GUI"
+      echo "...skip modeltest GUI"
     fi
   ;;
   "clean")

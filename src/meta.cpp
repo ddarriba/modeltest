@@ -1234,6 +1234,19 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     {
       out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
     }
+    out << "  " << left << setw(20) << "gamma rates mode:";
+    switch(opts.gamma_rates_mode)
+    {
+      case PLL_GAMMA_RATES_MEAN:
+        out << "mean" << endl;
+        break;
+      case PLL_GAMMA_RATES_MEDIAN:
+        out << "median" << endl;
+        break;
+      default:
+        out << "undefined" << endl;
+        break;
+    }
     out << "  " << left << setw(20) << "asc bias:";
     switch(opts.asc_bias_corr)
     {
@@ -1272,6 +1285,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
 
     out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
     out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
+    out << "  " << left << setw(20) << "keep branches:" << (opts.keep_model_parameters?"true":"false") << endl;
 
     out << endl << "Additional options:" << endl;
     out << "  " << left << setw(18) << "verbosity:";
@@ -1610,6 +1624,8 @@ void Meta::print_help(std::ostream& out)
         << "disables pattern compression" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
         << PACKAGE << " ignores if there are missing states" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -k, --keep-params"
+        << "keep branch lengths fixed" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
         << "run in verbose mode" << endl;
 

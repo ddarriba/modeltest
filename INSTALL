@@ -12,6 +12,12 @@ without warranty of any kind.
 Basic Installation
 ==================
 
+   IMPORTANT
+   ********************************************************************
+   Please read README.md file first for easy install instructions.
+   The text below assumes that library dependencies are met correctly.
+   ********************************************************************
+
    Briefly, the shell command `./configure && make && make install'
 should configure, build, and install this package.  The following
 more-detailed instructions are generic; see the `README' file for

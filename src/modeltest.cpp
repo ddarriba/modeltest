@@ -481,16 +481,22 @@ static bool eval_ckp(mt_options_t & options,
     {
       ckp_valid = false;
       LOG_ERR << "  MSA filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_msa_filename << "\" instead of \""
+                          << rec_bin_desc->h_msa_filename <<"\"" << endl;
     }
     if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
     {
       ckp_valid = false;
       LOG_ERR << "  Tree filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_tree_filename << "\" instead of \""
+                          << rec_bin_desc->h_tree_filename <<"\"" << endl;
     }
     if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
     {
       ckp_valid = false;
       LOG_ERR << "  Partitions filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_parts_filename << "\" instead of \""
+                          << rec_bin_desc->h_parts_filename <<"\"" << endl;
     }
     if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
     {
