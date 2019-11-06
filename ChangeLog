@@ -1,4 +1,8 @@
-* dev 0.1.6
+* dev 0.1.7
+
+  - Added informative message for excessive number of partitions
+  
+* release 0.1.6
 
   - New feature: allow for gamma rates mode selection (mean: -g a / median: -g m)
   - New feature: allow for keeping fixed branch lengths (-k)

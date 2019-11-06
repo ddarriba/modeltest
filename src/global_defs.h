@@ -167,6 +167,7 @@ extern MPI_Comm master_mpi_comm;
 #define MT_ERROR_TREE_MISSING              10301
 #define MT_ERROR_PARTITIONS_OUTBOUNDS      10401
 #define MT_ERROR_PARTITIONS_OVERLAP        10402
+#define MT_ERROR_PARTITIONS_OVERFLOW       10403
 
 #define MT_ERROR_NUMBER_INT                10801
 #define MT_ERROR_NUMBER_FLOAT              10802

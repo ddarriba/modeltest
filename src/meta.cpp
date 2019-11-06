@@ -644,6 +644,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                    << " [" << modeltest::mt_errno << "] "
                    << modeltest::mt_errmsg << endl;
               break;
+          case MT_ERROR_PARTITIONS_OVERFLOW:
+              LOG_ERR << PACKAGE << ": Partitions overflow: "
+                   << exec_opt.partitions_filename << endl;
+              LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
+                   << " [" << modeltest::mt_errno << "] "
+                   << modeltest::mt_errmsg << endl;
+              break;
           default:
               assert(0);
           }
