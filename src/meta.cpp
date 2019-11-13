@@ -502,6 +502,22 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         }
     }
 
+    switch (exec_opt.verbose)
+    {
+      case VERBOSITY_LOW:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
+        break;
+      case VERBOSITY_DEFAULT:
+      case VERBOSITY_MID:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
+        break;
+      case VERBOSITY_HIGH:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
+        break;
+      default:
+        assert(0);
+    }
+
     if (__builtin_popcount(exclusion_modelset) > 1)
     {
       LOG_ERR << PACKAGE << ": Options 'm' (--models), 's' (--schemes), and 'T' (--template) are mutually exclusive" << endl;
@@ -1093,12 +1109,12 @@ void Meta::print_header(std::ostream  &out)
 
 void Meta::print_version(std::ostream  &out)
 {
-    out << PACKAGE << " " << VERSION << endl;
-    out << "Copyright (C) 2017 Diego Darriba, David Posada, Alexandros Stamatakis" << endl;
-    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
-    out << "This is free software: you are free to change and redistribute it." << endl;
-    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
-    out << endl << "Written by Diego Darriba." << endl;
+    out << "ModelTest-NG v" << MTNG_VERSION << " released on " << MTNG_DATE
+        << " by The Exelixis Lab." << endl;
+    out << "Written by Diego Darriba." << endl;
+    out << "Contributors: Tomas Flouri, Alexey Kozlov, Benoit Morel, David Posada, "
+        << endl << "              Alexandros Stamatakis." << endl;
+    out << "Latest version: https://github.com/ddarriba/modeltest" << endl;
 }
 
 void Meta::print_system_info(std::ostream  &out)
@@ -1133,7 +1149,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    out << "ModelTest-NG v" << VERSION << endl << endl;
+    out << "ModelTest-NG v" << MTNG_VERSION << endl << endl;
     out << "Input data:" << endl;
     out << "  " << left << setw(12) << "MSA:" << opts.msa_filename << endl;
     out << "  " << left << setw(12) << "Tree:";

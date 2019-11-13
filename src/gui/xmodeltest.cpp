@@ -722,8 +722,11 @@ void xmodeltest::action_open_msa()
                 case mf_fasta:
                     cout << "FASTA" << endl;
                     break;
-                case mf_phylip:
-                    cout << "PHYLIP" << endl;
+                case mf_phylip_sequential:
+                    cout << "PHYLIP sequential" << endl;
+                    break;
+                case mf_phylip_interleaved:
+                    cout << "PHYLIP interleaved" << endl;
                     break;
                 case mf_undefined:
                     cout << "Undefined" << endl;

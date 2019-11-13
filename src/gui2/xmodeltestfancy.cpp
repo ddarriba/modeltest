@@ -359,9 +359,13 @@ void XModelTestFancy::action_open_msa()
                     ui->lbl_format->setText("FASTA");
                     cout << "FASTA" << endl;
                     break;
-                case mf_phylip:
-                    ui->lbl_format->setText("PHYLIP");
-                    cout << "PHYLIP" << endl;
+                case mf_phylip_sequential:
+                    ui->lbl_format->setText("PHYLIP sequential");
+                    cout << "PHYLIP sequential" << endl;
+                    break;
+                case mf_phylip_interleaved:
+                    ui->lbl_format->setText("PHYLIP interleaved");
+                    cout << "PHYLIP interleaved" << endl;
                     break;
                 case mf_undefined:
                     ui->lbl_format->setText("Undefined");

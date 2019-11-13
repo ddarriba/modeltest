@@ -623,8 +623,6 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
             strncpy (tmpchar, token.lexeme, (size_t)token.len);
             tmpchar[token.len] = '\0';
 
-            mt_size_t w = Utils::parse_size(tmpchar);
-
             free(tmpchar);
             CONSUME(TOKEN_WHITESPACE)
             CONSUME(TOKEN_COMMA)
@@ -738,7 +736,7 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         if (pi.unique_id > MAX_PARTITION_INDEX)
         {
             mt_errno = MT_ERROR_PARTITIONS_OVERFLOW;
-            snprintf(mt_errmsg, ERR_MSG_SIZE, "The number of partitions exceeds the limit (%ld)", MAX_PARTITION_INDEX);
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "The number of partitions exceeds the limit (%d)", MAX_PARTITION_INDEX);
             delete partitions;
             return 0;
         }

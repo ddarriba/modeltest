@@ -22,6 +22,10 @@
 #ifndef GLOBAL_DEFS_H
 #define GLOBAL_DEFS_H
 
+#define PACKAGE "modeltest-ng"
+#define MTNG_VERSION "0.1.7"
+#define MTNG_DATE "06.11.2019"
+
 #define USE_POSIX_THREADS 1
 
 #include <string>
@@ -36,9 +40,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#else
-#define PACKAGE "modeltest"
-#define VERSION "x.y.z"
 #endif
 
 #ifdef BUILD_MPI
@@ -192,7 +193,8 @@ typedef enum {
 typedef enum {
     mf_undefined,
     mf_fasta,
-    mf_phylip
+    mf_phylip_sequential,
+    mf_phylip_interleaved
 } msa_format_t;
 
 typedef enum {

@@ -558,7 +558,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                         *options.partitions_desc,
                                         options.compress_patterns);
   }
-  else if (options.msa_format == mf_phylip)
+  else if (options.msa_format == mf_phylip_sequential || options.msa_format == mf_phylip_interleaved)
   {
     current_instance->msa = new MsaPll (options.msa_filename,
                                         options.msa_format,

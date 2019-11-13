@@ -128,22 +128,6 @@ int main(int argc, char *argv[])
 
         opts.n_procs = mpi_numprocs;
 
-        switch (opts.verbose)
-        {
-          case VERBOSITY_LOW:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
-            break;
-          case VERBOSITY_DEFAULT:
-          case VERBOSITY_MID:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
-            break;
-          case VERBOSITY_HIGH:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
-            break;
-          default:
-            assert(0);
-        }
-
         if (opts.output_log_file.compare(""))
         {
           genesis::utils::Logging::log_to_file(opts.output_log_file);

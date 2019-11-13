@@ -1,6 +1,7 @@
 * dev 0.1.7
 
   - Added informative message for excessive number of partitions
+  - Added support for PHYLIP interleaved MSA format
   
 * release 0.1.6
 
