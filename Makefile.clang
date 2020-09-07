@@ -3,7 +3,7 @@ CC = clang++
 INSTALLDIR = $(PWD)
 
 CPPFLAGS = -D_NO_GUI_ -g -O3 -Weverything -Wno-padded -Wno-c++98-compat -std=c++11 \
-           -Wno-exit-time-destructors -Wno-global-constructors \
+           -mmacosx-version-min=10.5 -Wno-exit-time-destructors -Wno-global-constructors \
            -m64 -pipe
 CPPLIBS = -lpll_optimize -lpll -lm -lpthread
 
