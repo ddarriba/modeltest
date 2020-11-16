@@ -114,7 +114,7 @@ different location.
 This will compile pthreads and MPI versions
 Run 'modeltest-ng --help' for help about the console interface.
 
-## Windows
+### Windows installation
 
 To compile a Windows executable, install [MSYS2](https://www.msys2.org/), then launch MinGW and run:
 
