@@ -119,7 +119,11 @@ Run 'modeltest-ng --help' for help about the console interface.
 To compile a Windows executable, install [MSYS2](https://www.msys2.org/), then launch MinGW and run:
 
 ```bash
-$ pacman -S autoconf automake make gcc
+$ pacman -S autoconf automake make gcc libtool flex bison
+$ cd libs/pll-modules
+$ autoreconf -i
+$ ./configure
+$ cd ../
 $ autoreconf -i
 $ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
 $ make
