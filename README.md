@@ -126,3 +126,17 @@ In case the configure script does not exist, it must be generated using autotool
 ```bash
 $ autoreconf -i
 ```
+
+3. Using docker
+
+Build docker image using a command like this:
+
+```sh
+docker build -t modeltest-ng .
+```
+
+Then call docker run to create a container using the created image.
+
+```sh
+docker run -it modeltest-ng bash
+```
