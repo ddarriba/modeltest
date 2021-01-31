@@ -13,6 +13,13 @@ You can also browse the [wiki](https://github.com/ddarriba/modeltest/wiki) for
 online documentation, and the [FAQ section](https://github.com/ddarriba/modeltest/wiki/FAQ)
 for common errors.
 
+## Citation
+
+If you use ModelTest-NG, please cite the following:
+
+* Darriba, D., Posada, D., Kozlov, A. M., Stamatakis, A., Morel, B., & Flouri, T. (2020). ModelTest-NG: a new and scalable tool for the selection of DNA and protein evolutionary models. Molecular Biology and Evolution, 37(1), 291-294. doi.org/10.1093/molbev/msz189
+* Flouri T., Izquierdo-Carrasco F., Darriba D., Aberer AJ, Nguyen LT, Minh BQ, von Haeseler A., Stamatakis A. (2014) The Phylogenetic Likelihood Library. Systematic Biology, 64(2): 356-362. doi:10.1093/sysbio/syu084
+
 ## Prerequisites
 
 Core model parameter optimization and likelihood evaluation depend on the
