@@ -61,6 +61,10 @@ message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 set (WARN_FLAGS               "-Wall -Wextra")
 set (CMAKE_CXX_FLAGS          "-std=gnu++11 ${WARN_FLAGS}")
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -mmacosx-version-min=10.7")
+endif()
+
 set (CMAKE_CXX_FLAGS_DEBUG    "-g")
 set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG")
 

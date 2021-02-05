@@ -3,7 +3,7 @@ CC = g++
 INSTALLDIR = $(PWD)
 
 #CPPFLAGS = -D_NO_GUI_ -g -O3 -Wall -std=c++11 \
-           -m64 -pipe
+           -mmacosx-version-min=10.5 -m64 -pipe
 CPPFLAGS = -D_NO_GUI_ -std=c++11 -g -Wall -O3 -m64 -pipe
 
 CPPLIBS = -lpll_optimize -lpll -lm -lpthread
