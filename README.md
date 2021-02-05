@@ -121,15 +121,22 @@ different location.
 This will compile pthreads and MPI versions
 Run 'modeltest-ng --help' for help about the console interface.
 
-To compile a Windows executable, install MinGW and run:
+### Windows installation
+
+To compile a Windows executable, install [MSYS2](https://www.msys2.org/), then launch MinGW and run:
 
 ```bash
-$ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
-$ make
-```
-
-In case the configure script does not exist, it must be generated using autotools:
-
-```bash
+$ pacman -S autoconf automake make cmake gcc libtool flex bison
+$ cd libs/pll-modules/libs/libpll
 $ autoreconf -i
+$ ./configure
+$ make
+$ cd ../../
+$ autoreconf -i
+$ ./configure
+$ mkdir build && cd build && cmake .. && make
+$ cd ../../../
+$ autoreconf -i
+$ mkdir build && cd build && cmake .. && make
 ```
+
