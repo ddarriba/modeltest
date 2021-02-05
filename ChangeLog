@@ -2,7 +2,9 @@
 
   - Added informative message for excessive number of partitions
   - Added support for PHYLIP interleaved MSA format
-  
+  - Added flag for min macos version - Thanks to Johannes Klein (jtklein)
+  - Added docker support - Thanks to prx0
+
 * release 0.1.6
 
   - New feature: allow for gamma rates mode selection (mean: -g a / median: -g m)
