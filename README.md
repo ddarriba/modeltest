@@ -29,12 +29,13 @@ This step is not necessary if you downloaded the released tarball.
 
 0. Automatic Build
 
-  There are 2 ways of building ModelTest-NG:
-    - Using cmake
-    - Using autotools
+  There are 3 ways of building ModelTest-NG:
+    * Using cmake
+    * Using autotools
+    * Using docker
 
-  Both should work, so choose the one is more comfortable for you. If you experience
-  any problem, please try the other one as well.
+  Choose the one is more comfortable for you. If you experience
+  any problem, please try another.
 
   a) Build ModelTest-NG using `cmake`:
 
@@ -94,3 +95,17 @@ This step is not necessary if you downloaded the released tarball.
     ```
 
     The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
+
+  c) Using docker
+
+    Build docker image using a command like this:
+
+    ```sh
+    docker build -t modeltest-ng .
+    ```
+
+    Then call docker run to create a container using the created image.
+
+    ```sh
+    docker run -it modeltest-ng bash
+    ```
