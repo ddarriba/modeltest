@@ -1,4 +1,17 @@
-* dev 0.1.5
+* release 0.1.7
+
+  - Added informative message for excessive number of partitions
+  - Added support for PHYLIP interleaved MSA format
+  - Added flag for min macos version - Thanks to Johannes Klein (jtklein)
+  - Added docker support - Thanks to prx0
+
+* release 0.1.6
+
+  - New feature: allow for gamma rates mode selection (mean: -g a / median: -g m)
+  - New feature: allow for keeping fixed branch lengths (-k)
+  - Added warning for small sample sizes (sites < branches)
+
+* release 0.1.5
 
   - Added parallel context for PTHREADS/MPI
   - Remove trees from checkpoints when topology is not optimized

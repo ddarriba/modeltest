@@ -393,9 +393,10 @@ bool Model::evaluate_criteria (mt_size_t n_branches_params,
   sample_size = _sample_size;
 
   mt_size_t n_params = n_free_variables + n_branches_params;
-
+  mt_size_t aicc_sample_size = max(sample_size, n_params + 2);
+ 
   aic = 2*n_params - 2*loglh;
-  aicc = aic + 2*n_params*(n_params+1)/(sample_size - n_params - 1);
+  aicc = aic + 2*n_params*(n_params+1)/(aicc_sample_size - n_params - 1);
   bic = -2*loglh + n_params * log(sample_size);
 
   return true;
@@ -514,6 +515,7 @@ mt_index_t Model::get_unique_id( void ) const
 
 bool Model::optimize_init ( pll_partition_t * pll_partition,
                             pllmod_treeinfo_t * tree_info,
+                            int gamma_rates_mode,
                             Partition const& partition )
 {
   assert(pll_partition);
@@ -521,6 +523,7 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
   params.partition = pll_partition;
   params.tree_info = tree_info;
   params.params_indices = params_indices;
+  params.gamma_rates_mode = gamma_rates_mode;
 
   /* reorder parameters */
   sort(parameters.begin(),

@@ -66,7 +66,6 @@ LoggingDetails Logging::details = {
     false, // date
     false, // time
     false, // runtime
-    false, // rundiff
     false, // file
     false, // line
     false, // function
@@ -74,7 +73,6 @@ LoggingDetails Logging::details = {
 };
 Logging::LoggingLevel      Logging::max_level_  = kDebug4;
 long                       Logging::count_      = 0;
-clock_t                    Logging::last_clock_ = 0;
 std::vector<std::ostream*> Logging::ostreams_;
 std::vector<std::ostream*> Logging::estreams_;
 int                        Logging::report_percentage_ = 5;
@@ -280,7 +278,6 @@ void Logging::err_to_file (const std::string& fn)
 Logging::~Logging()
 {
     // build the details for the log message into a buffer
-    clock_t now_clock = clock();
     std::ostringstream det_buff;
     det_buff.str("");
     if (details_.count) {
@@ -293,23 +290,6 @@ Logging::~Logging()
     }
     if (details_.time) {
         det_buff << current_time() << " ";
-    }
-    if (details_.runtime) {
-        det_buff << std::fixed
-                 << std::setprecision(6)
-                 << double(now_clock) / CLOCKS_PER_SEC
-                 << " ";
-    }
-    if (details_.rundiff) {
-        double val = 0.0;
-        if (last_clock_ > 0) {
-            val = (double) (now_clock - last_clock_) / CLOCKS_PER_SEC;
-        }
-        det_buff << std::fixed
-                 << std::setprecision(6)
-                 << val
-                 << " ";
-        last_clock_ = now_clock;
     }
     if (details_.file) {
         det_buff << file_ << (details_.line ? "" : " ");

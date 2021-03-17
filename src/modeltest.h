@@ -48,7 +48,9 @@ typedef struct
 
   mt_size_t n_tips;               //! number of tips
   mt_size_t n_catg;               //! number of Gamma rate categories
+  int gamma_rates;
 
+  bool keep_model_parameters;
   bool ckp_enabled;
   std::string ckp_filename;
 } selection_instance;
@@ -56,7 +58,7 @@ typedef struct
 class ModelTest : public Observer
 {
 public:
-    ModelTest(mt_size_t number_of_threads = 1);
+    ModelTest(mt_size_t number_of_threads = 1, mt_size_t number_of_procs = 1);
     ~ModelTest();
 
     /**
@@ -137,7 +139,8 @@ public:
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
                                          mt_index_t thread_number = 0,
-                                         bool force_opt_topo = false);
+                                         bool force_opt_topo = false,
+                                         bool keep_model_parameters = false);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
 
@@ -153,6 +156,7 @@ public:
     virtual void update(Observable * subject, void * data);
 private:
     mt_size_t number_of_threads;              //! number of threads
+    mt_size_t number_of_procs;                //! number of processes
     selection_instance * current_instance;    //! model optimization parameters
     //partitions_map_t partitions;            //! partitions
     PartitioningScheme * partitioning_scheme; //! partitioning scheme

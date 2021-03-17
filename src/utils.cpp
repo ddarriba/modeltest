@@ -34,6 +34,10 @@
 #include <unistd.h>
 #include <algorithm>
 
+#if defined(_WIN32) || defined(WIN32)
+#include <windows.h>
+#endif
+
 using namespace std;
 
 namespace modeltest {
@@ -609,7 +613,6 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
 
         if (token.tokenType == TOKEN_OBRACKET)
         {
-          printf("Bracket Found\n");
           NEXT_TOKEN
           /* parse composition */
           while (token.tokenType != TOKEN_CBRACKET)
@@ -619,9 +622,6 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
             tmpchar = (char *) Utils::c_allocate((mt_size_t)token.len+10, sizeof(char));
             strncpy (tmpchar, token.lexeme, (size_t)token.len);
             tmpchar[token.len] = '\0';
-
-            mt_size_t w = Utils::parse_size(tmpchar);
-            printf("WEIGHT = %d %s\n", w, tmpchar);
 
             free(tmpchar);
             CONSUME(TOKEN_WHITESPACE)
@@ -733,6 +733,13 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         pi.gap_aware = false;
         pi.unique_id = ++partition_id;
 
+        if (pi.unique_id > MAX_PARTITION_INDEX)
+        {
+            mt_errno = MT_ERROR_PARTITIONS_OVERFLOW;
+            snprintf(mt_errmsg, ERR_MSG_SIZE, "The number of partitions exceeds the limit (%d)", MAX_PARTITION_INDEX);
+            delete partitions;
+            return 0;
+        }
         partitions->push_back(pi);
     }
 
@@ -956,8 +963,11 @@ unsigned long Utils::get_memtotal()
   snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for OS X");
   return 0L;
 #endif
+#elif defined(_WIN32) || defined(WIN32)
+  mt_errno = MT_ERROR_SYSTEM;
+  snprintf(mt_errmsg, ERR_MSG_SIZE, "Cannot determine amount of RAM for Windows");
+  return 0L;
 #else
-
   struct sysinfo si;
   if (sysinfo(&si))
   {

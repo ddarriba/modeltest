@@ -73,15 +73,8 @@ int main(int argc, char *argv[])
     mpi_numprocs = ParallelContext::num_procs();
     mpi_rank = ParallelContext::proc_id();
 
-    if (mpi_numprocs == 1)
-    {
-      modeltest::Utils::exit_with_error("MPI version requires at least 2 processors");
-    }
-    else
-    {
-      cout << "MPI Start: Size: " << mpi_numprocs
-               << " Rank: " << mpi_rank << endl;
-    }
+    cout << "MPI Start: Size: " << mpi_numprocs
+         << " Rank: " << mpi_rank << endl;
 #else
     mpi_rank = 0;
     mpi_numprocs = 1;
@@ -133,21 +126,7 @@ int main(int argc, char *argv[])
           }
         }
 
-        switch (opts.verbose)
-        {
-          case VERBOSITY_LOW:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
-            break;
-          case VERBOSITY_DEFAULT:
-          case VERBOSITY_MID:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
-            break;
-          case VERBOSITY_HIGH:
-            genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
-            break;
-          default:
-            assert(0);
-        }
+        opts.n_procs = mpi_numprocs;
 
         if (opts.output_log_file.compare(""))
         {

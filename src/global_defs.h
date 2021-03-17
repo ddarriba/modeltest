@@ -22,17 +22,24 @@
 #ifndef GLOBAL_DEFS_H
 #define GLOBAL_DEFS_H
 
+#define PACKAGE "modeltest-ng"
+#define MTNG_VERSION "0.1.7"
+#define MTNG_DATE "17.03.2021"
+
+#define USE_POSIX_THREADS 1
+
 #include <string>
 #include <vector>
 #include <climits>
 #include <iomanip>
+#if(USE_POSIX_THREADS)
 #include <mutex>
+#else
+#include "mingw/mingw.mutex.h"
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#else
-#define PACKAGE "modeltest"
-#define VERSION "x.y.z"
 #endif
 
 #ifdef BUILD_MPI
@@ -67,7 +74,8 @@
 #define MT_PRECISION_DIGITS 4
 
 #define DEFAULT_GAMMA_RATE_CATS   4
-#define DEFAULT_PARAM_EPSILON     0.01
+#define DEFAULT_GAMMA_RATE_MODE   PLL_GAMMA_RATES_MEAN
+#define DEFAULT_PARAM_EPSILON     0.05
 #define DEFAULT_OPT_EPSILON       0.01
 #define DEFAULT_RND_SEED          12345
 
@@ -160,6 +168,7 @@ extern MPI_Comm master_mpi_comm;
 #define MT_ERROR_TREE_MISSING              10301
 #define MT_ERROR_PARTITIONS_OUTBOUNDS      10401
 #define MT_ERROR_PARTITIONS_OVERLAP        10402
+#define MT_ERROR_PARTITIONS_OVERFLOW       10403
 
 #define MT_ERROR_NUMBER_INT                10801
 #define MT_ERROR_NUMBER_FLOAT              10802
@@ -184,7 +193,8 @@ typedef enum {
 typedef enum {
     mf_undefined,
     mf_fasta,
-    mf_phylip
+    mf_phylip_sequential,
+    mf_phylip_interleaved
 } msa_format_t;
 
 typedef enum {
@@ -283,6 +293,7 @@ typedef struct {
     std::vector<mt_index_t> aa_candidate_models;  //! Candidate models for AA
     mt_mask_t model_params;                       //! Model parameters to opt
     mt_size_t n_catg;                             //! Number of gamma rate cats
+    int gamma_rates_mode;                         //! Gamma Rates mode (median/mean)
     asc_bias_t asc_bias_corr;                     //! ascertainment bias correction
     mt_size_t asc_weights[MT_MAX_STATES];         //! dummy weights
     std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning
@@ -292,10 +303,12 @@ typedef struct {
     double epsilon_opt;      //! Global optimization epsilon
 
     bool smooth_freqs;                //! Force frequencies smoothing
+    bool keep_model_parameters;       //! Keep model params between optimizations
     unsigned int rnd_seed;            //! RNG seed
     int verbose;                      //! Verbosity level
 
     mt_size_t n_threads;              //! Number of threads for optimiz.
+    mt_size_t n_procs;                //! Number of processes for optimiz.
 } mt_options_t;
 
 #endif // GLOBAL_DEFS_H

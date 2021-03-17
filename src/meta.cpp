@@ -57,12 +57,14 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     data_type_t arg_datatype = dt_dna;
     mt_size_t freqs_mask = 0;
     bool gap_aware = false;
-    exec_opt.n_catg          = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.n_catg           = DEFAULT_GAMMA_RATE_CATS;
+    exec_opt.gamma_rates_mode = DEFAULT_GAMMA_RATE_MODE;
     exec_opt.epsilon_param   = DEFAULT_PARAM_EPSILON;
     exec_opt.epsilon_opt     = DEFAULT_OPT_EPSILON;
     exec_opt.rnd_seed        = DEFAULT_RND_SEED;
     exec_opt.model_params    = 0;
     exec_opt.compress_patterns = true;
+    exec_opt.keep_model_parameters = false;
     exec_opt.smooth_freqs    = false;
     exec_opt.rate_clustering = false;
     exec_opt.subst_schemes   = ss_undef;
@@ -84,8 +86,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "gap-aware", no_argument,          0, 13 },
         { "input", required_argument,        0, 'i' },
         { "model-freqs", required_argument,  0, 'f' },
+        { "gamma-rates", required_argument,  0, 'g' },
         { "no-compress", no_argument,        0, 'H' },
         { "model-het", required_argument,    0, 'h' },
+        { "keep-params", no_argument,        0, 'k' },
         { "models", required_argument,       0, 'm' },
         { "output", required_argument,       0, 'o' },
         { "processes", required_argument,    0, 'p' },
@@ -112,7 +116,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:h:Hi:m:o:p:q:r:s:t:T:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:q:r:s:t:T:u:v", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -316,6 +320,23 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                 }
             }
             break;
+        case 'g':
+            switch(optarg[0])
+            {
+            case 'a':
+            case 'A':
+                exec_opt.gamma_rates_mode = PLL_GAMMA_RATES_MEAN;
+                break;
+            case 'm':
+            case 'M':
+                exec_opt.gamma_rates_mode = PLL_GAMMA_RATES_MEDIAN;
+                break;
+            default:
+                LOG_ERR <<  PACKAGE << ": Unrecognised gamma rates mode " << optarg << endl;
+                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be either 'a' (average) or 'm' (median)" << endl;
+                params_ok = false;
+            }
+            break;
         case 'h':
             for (mt_index_t i=0; i<strlen(optarg); i++)
             {
@@ -350,6 +371,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 'H':
             exec_opt.compress_patterns = false;
+            break;
+        case 'k':
+            exec_opt.keep_model_parameters = true;
             break;
         case 'i':
             exec_opt.msa_filename = optarg;
@@ -476,6 +500,22 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         default:
             return false;
         }
+    }
+
+    switch (exec_opt.verbose)
+    {
+      case VERBOSITY_LOW:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
+        break;
+      case VERBOSITY_DEFAULT:
+      case VERBOSITY_MID:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
+        break;
+      case VERBOSITY_HIGH:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
+        break;
+      default:
+        assert(0);
     }
 
     if (__builtin_popcount(exclusion_modelset) > 1)
@@ -615,6 +655,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
               break;
           case MT_ERROR_IO_FORMAT:
               LOG_ERR << PACKAGE << ": Cannot parse partitions: "
+                   << exec_opt.partitions_filename << endl;
+              LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
+                   << " [" << modeltest::mt_errno << "] "
+                   << modeltest::mt_errmsg << endl;
+              break;
+          case MT_ERROR_PARTITIONS_OVERFLOW:
+              LOG_ERR << PACKAGE << ": Partitions overflow: "
                    << exec_opt.partitions_filename << endl;
               LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ')
                    << " [" << modeltest::mt_errno << "] "
@@ -1062,12 +1109,12 @@ void Meta::print_header(std::ostream  &out)
 
 void Meta::print_version(std::ostream  &out)
 {
-    out << PACKAGE << " " << VERSION << endl;
-    out << "Copyright (C) 2017 Diego Darriba, David Posada, Alexandros Stamatakis" << endl;
-    out << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
-    out << "This is free software: you are free to change and redistribute it." << endl;
-    out << "There is NO WARRANTY, to the extent permitted by law." << endl;
-    out << endl << "Written by Diego Darriba." << endl;
+    out << "ModelTest-NG v" << MTNG_VERSION << " released on " << MTNG_DATE
+        << " by The Exelixis Lab." << endl;
+    out << "Written by Diego Darriba." << endl;
+    out << "Contributors: Tomas Flouri, Alexey Kozlov, Benoit Morel, David Posada, "
+        << endl << "              Alexandros Stamatakis." << endl;
+    out << "Latest version: https://github.com/ddarriba/modeltest" << endl;
 }
 
 void Meta::print_system_info(std::ostream  &out)
@@ -1102,7 +1149,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
 {
     mt_size_t num_cores = modeltest::Utils::count_physical_cores();
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
-    out << "ModelTest-NG v" << VERSION << endl << endl;
+    out << "ModelTest-NG v" << MTNG_VERSION << endl << endl;
     out << "Input data:" << endl;
     out << "  " << left << setw(12) << "MSA:" << opts.msa_filename << endl;
     out << "  " << left << setw(12) << "Tree:";
@@ -1210,6 +1257,19 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     {
       out << "    " << left << setw(17) << "#categories:" << opts.n_catg << endl;
     }
+    out << "  " << left << setw(20) << "gamma rates mode:";
+    switch(opts.gamma_rates_mode)
+    {
+      case PLL_GAMMA_RATES_MEAN:
+        out << "mean" << endl;
+        break;
+      case PLL_GAMMA_RATES_MEDIAN:
+        out << "median" << endl;
+        break;
+      default:
+        out << "undefined" << endl;
+        break;
+    }
     out << "  " << left << setw(20) << "asc bias:";
     switch(opts.asc_bias_corr)
     {
@@ -1248,6 +1308,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
 
     out << "  " << left << setw(20) << "epsilon (opt):" << opts.epsilon_opt << endl;
     out << "  " << left << setw(20) << "epsilon (par):" << opts.epsilon_param << endl;
+    out << "  " << left << setw(20) << "keep branches:" << (opts.keep_model_parameters?"true":"false") << endl;
 
     out << endl << "Additional options:" << endl;
     out << "  " << left << setw(18) << "verbosity:";
@@ -1571,12 +1632,23 @@ void Meta::print_help(std::ostream& out)
         << "sets the parameter optimization tolerance" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --smooth-frequencies"
         << "forces frequencies smoothing" << endl;
+
+    out << setw(MAX_OPT_LENGTH) << left << "  -g, --gamma-rates [a|g]"
+        << "sets gamma rates mode" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "               a"
+        << "uses the average (or mean) per category (default)" << endl;
+    out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+        << "               m"
+        << "uses the median per category" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "      --disable-checkpoint"
         << "does not create checkpoint files" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -H, --no-compress"
         << "disables pattern compression" << endl;
     out << setw(MAX_OPT_LENGTH) << left << " "
         << PACKAGE << " ignores if there are missing states" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -k, --keep-params"
+        << "keep branch lengths fixed" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
         << "run in verbose mode" << endl;
 

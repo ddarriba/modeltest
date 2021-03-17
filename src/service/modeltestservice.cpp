@@ -42,7 +42,7 @@ bool ModelTestService::create_instance( mt_options_t & options )
     if(modeltest_instance)
         return false;
 
-    modeltest_instance = new ModelTest(options.n_threads);
+    modeltest_instance = new ModelTest(options.n_threads, options.n_procs);
     build_ok = modeltest_instance->build_instance(options);
 
     return build_ok;

@@ -8,19 +8,22 @@
 \begin{tabular}{rllp{.6\textwidth}}
   \hline
   \texttt{-d} & \texttt{--datatype}   & \bf{nt},\bf{aa} & Data type is `nt' for nucleotide (default), `aa' for amino-acid sequences. \\
-  \texttt{-i} & \texttt{--input}      & {\em filename} & Input MSA file in FASTA or sequential PHYLIP format. Check section~\ref{sec:arg:input} \\
+  \texttt{-i} & \texttt{--input}      & {\em filename} & Input MSA file in FASTA or PHYLIP format. Check section~\ref{sec:arg:input} \\
+  \texttt{-o} & \texttt{--output}     & {\em filename} & Pipes the output into a file \\
+  \texttt{-q} & \texttt{--partitions} & {\em filename} & Partitions filename in RAxML format. Check section~\ref{sec:arg:parts} \\
+  \texttt{-p} & \texttt{--processes}  & {\em number\_of\_threads} & Number of concurrent threads \\
+  \texttt{-r} & \texttt{--rngseed}    & {\em seed} & Sets the seed for the random number generator \\
   \texttt{-t} & \texttt{--topology}   & {\em topology\_type}. & Check section~\ref{sec:arg:topo} \\
                && \bf{ml}             & maximum likelihood \\
-               && \bf{mp}             & maximum parsimony (default)\\
+               && \bf{mp}             & maximum parsimony \\
                && \bf{fixed-ml-jc}    & fixed maximum likelihood (JC) \\
                && \bf{fixed-ml-gtr}   & fixed maximum likelihood (GTR) \\
+               && \bf{fixed-mp}       & fixed maximum parsimony (default) \\
                && \bf{random}         & random generated tree \\
                && \bf{user}           & fixed user defined (requires -u argument) \\
   \texttt{-u} & \texttt{--utree}      & {\em filename} & User-defined tree in NEWICK format. Check section~\ref{sec:arg:topo}\\
-  \texttt{-q} & \texttt{--partitions} & {\em filename} & Partitions filename in RAxML format. Check section~\ref{sec:arg:parts} \\
-  \texttt{-o} & \texttt{--output}     & {\em filename} & Pipes the output into a file \\
-  \texttt{-p} & \texttt{--processes}  & {\em number\_of\_threads} & Number of concurrent threads \\
-  \texttt{-r} & \texttt{--rngseed}    & {\em seed} & Sets the seed for the random number generator \\
+              & \texttt{--force}      & & Forces output overriding \\
+              & \multicolumn{2}{l}{\texttt{--disable-checkpoint}} & Disables checkpoint writing (skips generating the {\em .ckp} file) \\
   \hline
 \end{tabular}
 
@@ -35,14 +38,17 @@
      \texttt{-f} & \texttt{--frequencies} & [ef]           & Sets the candidate models frequencies \\
                                      &&& {\bf e}: Estimated - maximum likelihood (DNA) / empirical (AA) \\
                                      &&& {\bf f}: Fixed - equal (DNA) / model defined (AA) \\
-     \texttt{-h} & \texttt{--model-het} & [uigf] & Sets the candidate models rate heterogeneity \\
-                                     &&& {\bf u}: Uniform \\
-                                     &&& {\bf i}: Proportion of invariant sites (+I) \\
-                                     &&& {\bf g}: Discrite Gamma rate categories (+G) \\
-                                     &&& {\bf f}: Both +I and +G (+I+G) \\
+     \texttt{-h} & \texttt{--model-het} & [uigfh] & Sets the candidate models rate heterogeneity \\
+                                     &&& {\bf u}: *Uniform \\
+                                     &&& {\bf i}: *Proportion of invariant sites (+I) \\
+                                     &&& {\bf g}: *Discrite Gamma rate categories (+G) \\
+                                     &&& {\bf f}: *Both +I and +G (+I+G) \\
+                                     &&& {\bf r}: Free rate models (+R) \\
+                                     &&& * {\it included by default} \\
      \texttt{-m} & \texttt{--models}  & {\em list} & Sets the candidate model matrices separated by commas \\
-                                      && dna: & JC HKY TrN TPM1 TPM2 TPM3 TIM1 TIM2 TIM3 TVM GTR \\
-                                      && protein: & DAYHOFF LG DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU STMTREV \\
+                                      && dna: & *JC *HKY *TrN *TPM1 *TPM2 *TPM3 *TIM1 *TIM2 *TIM3 *TVM *GTR \\
+                                      && protein: & *DAYHOFF *LG *DCMUT *JTT *MTREV *WAG *RTREV *CPREV *VT *BLOSUM62 *MTMAM *MTART *MTZOA *PMB *HIVB *HIVW *JTT-DCMUT *FLU *STMTREV LG4M LG4X GTR \\
+                                      &&& * {\it included by default} \\
     \texttt{-s} & \texttt{--schemes}  & {\em number\_of\_schemes} & Number of DNA substitution schemes. \\
                                       &&& {\bf 3}: JC, HKY, GTR \\
                                       &&& {\bf 5}: JC, HKY, TrN, TPM1, GTR \\
@@ -64,7 +70,9 @@
       & \texttt{--eps} & {\em epsilon\_value}    & Sets the model optimization epsilon \\
       & \texttt{--tol} & {\em tolerance\_value}  & Sets the parameter optimization tolerance \\
       & \texttt{--smooth-frequencies}   & & Forces frequencies smoothing \\
+   \texttt{-g} & \texttt{--gamma-rates}   & \bf{a},\bf{m} & Gamma rates per category are computed as `a' average (default), or `m' median. \\
    \texttt{-H} & \texttt{--no-compress} & & Disables pattern compression. \modeltest ignores if there are missing states \\
+   \texttt{-k} & \texttt{--keep-params} & & Keep branch lengths fixed \\
    \texttt{-v} & \texttt{--verbose} & & Run in verbose mode \\
       & \texttt{--help}    & & Display this help message and exit \\
       & \texttt{--version} & & Output version information and exit \\

@@ -59,7 +59,7 @@ bool ParameterGamma::initialize(mt_opt_params_t * params,
   if (!pll_compute_gamma_cats (alpha,
                           n_cats,
                           rates,
-                          PLL_GAMMA_RATES_MEAN))
+                          params->gamma_rates_mode))
     assert(0);
   pll_set_category_rates(params->partition,
                          rates);

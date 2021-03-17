@@ -25,7 +25,6 @@
 #include "msapll.h"
 #include "treepll.h"
 #include "genesis/logging.h"
-#include "thread/threadpool.h"
 #include "optimize/partition_optimizer.h"
 
 #include <sstream>
@@ -52,8 +51,8 @@ bool disable_repeats = false;
 
 using namespace std;
 
-ModelTest::ModelTest(mt_size_t _number_of_threads)
-    : number_of_threads(_number_of_threads)
+ModelTest::ModelTest(mt_size_t _number_of_threads, mt_size_t _number_of_procs)
+    : number_of_threads(_number_of_threads), number_of_procs(_number_of_procs)
 {
     setlocale(LC_NUMERIC, "C");
     partitioning_scheme = 0;
@@ -75,7 +74,8 @@ void ModelTest::create_instance()
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
                                      mt_index_t thread_number,
-                                     bool force_opt_topo)
+                                     bool force_opt_topo,
+                                     bool keep_model_parameters)
 {
   ModelOptimizer * mopt;
   bool opt_topology;
@@ -96,6 +96,8 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
     mopt = new ModelOptimizerPll(*msa, *tree, *model,
                                partition,
                                opt_topology,
+                               keep_model_parameters,
+                               current_instance->gamma_rates,
                                thread_number);
    }
    catch(int e)
@@ -216,6 +218,8 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            *tree,
                            opt_type,
                            opt_topology,
+                           current_instance->keep_model_parameters,
+                           current_instance->gamma_rates,
                            epsilon_param,
                            epsilon_opt);
   p_opt.attach(this);
@@ -365,6 +369,7 @@ typedef struct {
   mt_size_t n_sites;
   tree_type_t starting_tree;
   bool smooth_freqs;
+  bool keep_model_parameters;
   unsigned int rnd_seed;
   double epsilon_param;
   double epsilon_opt;
@@ -384,6 +389,7 @@ static bool eval_ckp(mt_options_t & options,
   bin_desc.n_sites = options.n_sites;
   bin_desc.starting_tree = options.starting_tree;
   bin_desc.smooth_freqs = options.smooth_freqs;
+  bin_desc.keep_model_parameters = options.keep_model_parameters;
   bin_desc.rnd_seed = options.rnd_seed;
   bin_desc.epsilon_param = options.epsilon_param;
   bin_desc.epsilon_opt = options.epsilon_opt;
@@ -475,16 +481,22 @@ static bool eval_ckp(mt_options_t & options,
     {
       ckp_valid = false;
       LOG_ERR << "  MSA filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_msa_filename << "\" instead of \""
+                          << rec_bin_desc->h_msa_filename <<"\"" << endl;
     }
     if (rec_bin_desc->h_tree_filename != bin_desc.h_tree_filename)
     {
       ckp_valid = false;
       LOG_ERR << "  Tree filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_tree_filename << "\" instead of \""
+                          << rec_bin_desc->h_tree_filename <<"\"" << endl;
     }
     if (rec_bin_desc->h_parts_filename != bin_desc.h_parts_filename)
     {
       ckp_valid = false;
       LOG_ERR << "  Partitions filename differs" << endl;
+      LOG_ERR << "    \"" << bin_desc.h_parts_filename << "\" instead of \""
+                          << rec_bin_desc->h_parts_filename <<"\"" << endl;
     }
     if (rec_bin_desc->starting_tree != bin_desc.starting_tree)
     {
@@ -495,6 +507,11 @@ static bool eval_ckp(mt_options_t & options,
     {
       ckp_valid = false;
       LOG_ERR << "  RNG seed differs" << endl;
+    }
+    if (rec_bin_desc->keep_model_parameters != bin_desc.keep_model_parameters)
+    {
+      ckp_valid = false;
+      LOG_ERR << "  Optimization mode (keep model parameters) differ" << endl;
     }
     if (fabs(rec_bin_desc->epsilon_opt - bin_desc.epsilon_opt) > 1e-10 ||
         fabs(rec_bin_desc->epsilon_param - bin_desc.epsilon_param) > 1e-10 )
@@ -530,6 +547,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   create_instance ();
 
   current_instance->ckp_enabled = options.write_checkpoint;
+  current_instance->keep_model_parameters = options.keep_model_parameters;
 
   assert (options.partitions_desc);
 
@@ -540,7 +558,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                         *options.partitions_desc,
                                         options.compress_patterns);
   }
-  else if (options.msa_format == mf_phylip)
+  else if (options.msa_format == mf_phylip_sequential || options.msa_format == mf_phylip_interleaved)
   {
     current_instance->msa = new MsaPll (options.msa_filename,
                                         options.msa_format,
@@ -782,6 +800,7 @@ bool ModelTest::build_instance(mt_options_t & options)
     current_instance->n_catg = options.n_catg;
   else
     current_instance->n_catg = 1;
+  current_instance->gamma_rates = options.gamma_rates_mode;
 
   assert(!partitioning_scheme);
   partitioning_scheme = new PartitioningScheme();
@@ -831,11 +850,16 @@ bool ModelTest::build_instance(mt_options_t & options)
         return false;
     }
 
+    if (current_instance->tree->get_n_branches() < new_part->get_n_sites() + 2)
+    {
+      LOG_WARN << "WARNING: MSA has not enough sites to infer reliable results" << endl;
+    }
+
     /*
      * sort candidate models by
      * estimated computational needs
      */
-    new_part->sort_models(number_of_threads == 1);
+    new_part->sort_models(number_of_threads == 1 && number_of_procs == 1);
 
     partitioning_scheme->add_partition(part_id, new_part);
     cur_part_id++;
@@ -931,14 +955,13 @@ void ModelTest::update(Observable * subject, void * data)
 {
   UNUSED(subject);
 
-  //TODO: Use struct here
-  if (!ROOT) return;
   opt_info_t * opt_info = static_cast<opt_info_t *>(data);
+
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
                                 opt_info->start_time, global_ini_time,
-                                MT_INFO);
+                                cout);
 
-  if (current_instance->ckp_enabled)
+  if (ROOT && current_instance->ckp_enabled)
   {
     opt_info->model->output_bin(current_instance->ckp_filename);
   }

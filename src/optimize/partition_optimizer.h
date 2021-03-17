@@ -57,6 +57,8 @@ namespace modeltest
                        TreePll & tree,
                        part_opt_t opt_type,
                        bool optimize_topology,
+                       bool keep_model_parameters,
+                       int gamma_rates,
                        double epsilon_param,
                        double epsilon_opt);
     ~PartitionOptimizer();
@@ -77,6 +79,8 @@ namespace modeltest
     TreePll & tree;         //! tree instance
     part_opt_t opt_type;
     bool optimize_topology;
+    bool keep_model_parameters;
+    int gamma_rates;        //! Gamma rates mode (mean/median)
     double epsilon_param;
     double epsilon_opt;
   };

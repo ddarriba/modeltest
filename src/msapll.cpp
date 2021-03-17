@@ -70,7 +70,7 @@ namespace modeltest
                   pll_msa_t * msa_data,
                   partitioning_scheme_t & scheme,
                   bool compress_patterns)
-      : Msa(msa_filename, mf_phylip, scheme), pll_msa(0)
+      : Msa(msa_filename, mf_phylip_sequential, scheme), pll_msa(0)
   {
     assert(msa_data);
 
@@ -96,7 +96,7 @@ namespace modeltest
                   mt_size_t _n_taxa,
                   partitioning_scheme_t & scheme,
                   bool compress_patterns)
-      : Msa(msa_filename, mf_phylip, scheme), pll_msa(0)
+      : Msa(msa_filename, mf_phylip_sequential, scheme), pll_msa(0)
   {
     char *hdr = NULL;
     char *seq = NULL;
@@ -117,7 +117,7 @@ namespace modeltest
       if (!cur_seq)
         n_sites = n_sites_read;
 
-      assert (n_sites_read == n_sites);
+      assert (n_sites_read == (long) n_sites);
       for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
          hdr[i] = '\0';
       tipnames[cur_seq]  = hdr;
@@ -146,11 +146,16 @@ namespace modeltest
     /* MSA should be always checked beforehand */
     switch (msa_format)
     {
-      case mf_phylip:
+      case mf_phylip_sequential:
+      case mf_phylip_interleaved:
         {
           pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
                                                        mt_map_parser);
-          pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
+          pll_msa_t * msa_data;
+          if (msa_format == mf_phylip_sequential)
+            msa_data = pll_phylip_parse_sequential(phylip_data);
+          else
+            msa_data = pll_phylip_parse_interleaved(phylip_data);
           assert(msa_data);
           n_taxa  = msa_data->count;
           n_sites = msa_data->length;
@@ -181,7 +186,7 @@ namespace modeltest
 
         for (size_t cur_seq = 0; pll_fasta_getnext(fp,&hdr,&hdr_len,&seq,&n_sites_read,&seq_idx); ++cur_seq)
         {
-            assert (n_sites_read == n_sites);
+            assert (n_sites_read == (long) n_sites);
             for (size_t i=(strlen(hdr)-1); i>0 && hdr[i] == ' '; i--)
                hdr[i] = '\0';
             tipnames[cur_seq]  = hdr;
@@ -340,11 +345,13 @@ namespace modeltest
 
       if (first_char == '>')
       {
-          return mf_fasta;
+        LOG_DBG << "[dbg] Guessed FASTA file format" << endl;
+        return mf_fasta;
       }
       if (first_char >= '0' && first_char <= '9')
       {
-          return mf_phylip;
+        LOG_DBG << "[dbg] Guessed PHYLIP file format" << endl;
+        return mf_phylip_sequential;
       }
       return mf_undefined;
   }
@@ -411,24 +418,40 @@ namespace modeltest
           return false;
       }
 
+      LOG_DBG << "[dbg] guessing file format" << endl;
       format = modeltest::Msa::guess_msa_format(msa_filename);
 
-      if (format == mf_phylip)
+      if (format == mf_phylip_sequential)
       {
+        LOG_DBG << "[dbg] guessed PHYLIP sequential" << endl;
         pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
                                                      mt_map_parser);
-        pll_msa_t * msa_data = pll_phylip_parse_sequential(phylip_data);
+        pll_msa_t * msa_data;
+        msa_data = pll_phylip_parse_sequential(phylip_data);
         if (!msa_data)
         {
-          mt_errno = MT_ERROR_IO_FORMAT;
-          strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
-          return false;
+          LOG_DBG << "[dbg] sequential PHYLIP failed" << endl;
+          pll_msa_destroy(msa_data);
+          pll_phylip_close(phylip_data);
+          phylip_data = pll_phylip_open(msa_filename.c_str(),
+                                        mt_map_parser);
+          msa_data = pll_phylip_parse_interleaved(phylip_data);
+          if (!msa_data)
+          {
+            LOG_DBG << "[dbg] interleaved PHYLIP failed" << endl;
+            mt_errno = MT_ERROR_IO_FORMAT;
+            strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
+            return false;
+          }
+          else
+          {
+            LOG_DBG << "[dbg] guessed PHYLIP interleaved" << endl;
+            format = mf_phylip_interleaved;
+          }
         }
-        else
-        {
-          sites  = msa_data->length;
-          cur_seq = msa_data->count;
-        }
+
+        sites  = msa_data->length;
+        cur_seq = msa_data->count;
 
         l_datatype = dt_dna;
         if (dt_unknown)
@@ -503,7 +526,7 @@ namespace modeltest
                   }
               }
 
-              assert(n_sites_read < MT_SIZE_UNDEF);
+              assert(n_sites_read < (long) MT_SIZE_UNDEF);
 
               if (n_sites_read < 0)
               {

@@ -37,6 +37,7 @@ typedef struct
     pll_partition_t * partition;
     pllmod_treeinfo_t * tree_info;
     unsigned int * params_indices;
+    int gamma_rates_mode;
 } mt_opt_params_t;
 
 class AbstractParameter

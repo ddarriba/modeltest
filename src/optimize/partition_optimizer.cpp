@@ -25,6 +25,8 @@
 
 #include <fstream>
 
+#define MPI_RMA 1
+
 using namespace std;
 
 namespace modeltest
@@ -35,6 +37,8 @@ namespace modeltest
                                          TreePll & tree,
                                          part_opt_t opt_type,
                                          bool optimize_topology,
+                                         bool keep_model_parameters,
+                                         int gamma_rates,
                                          double epsilon_param,
                                          double epsilon_opt) :
     partition(partition),
@@ -42,6 +46,8 @@ namespace modeltest
     tree(tree),
     opt_type(opt_type),
     optimize_topology(optimize_topology),
+    keep_model_parameters(keep_model_parameters),
+    gamma_rates(gamma_rates),
     epsilon_param(epsilon_param),
     epsilon_opt(epsilon_opt)
   {
@@ -226,24 +232,25 @@ namespace modeltest
 
     return 0;
   }
-  #else
+
+#else
+
   void * PartitionOptimizer::model_scheduler( vector<Model *> const& models ) {
     UNUSED(models);
     assert(0);
     return 0;
   }
-  #endif
+
+#endif
 
   bool PartitionOptimizer::evaluate_all_models( vector<Model *> const& models,
                                                 mt_size_t n_procs )
   {
     bool exec_ok = true;
     mt_size_t n_models = models.size();
+    mt_size_t opt_models_count = 0;
 
     BARRIER;
-#if(MPI_ENABLED)
-    mpi_comm_data_t snd_data;
-#endif
 
     if (n_procs > 1)
     {
@@ -280,6 +287,8 @@ namespace modeltest
       {
         f.wait();
         exec_ok &= f.get();
+        ++opt_models_count;
+
       }
     }
     else
@@ -290,41 +299,75 @@ namespace modeltest
       exec_info.model_index = 0;
 #if(MPI_ENABLED)
   int next_model = 0;
+
+#if(MPI_RMA)
+  int * job_ids;
+  MPI_Win comm_win;
   if (ROOT)
   {
-    model_scheduler(models);
-    next_model = -1;
+    MPI_Win_allocate(
+      sizeof(int) * n_models,
+      sizeof(int),
+      MPI_INFO_NULL, MPI_COMM_WORLD,
+      &job_ids, &comm_win);
+
+      MPI_Win_fence(0, comm_win);
+      for (int i=0; i<n_models; ++i)
+      {
+        job_ids[i] = -1;
+      }
+      MPI_Win_fence(0, comm_win);
   }
+  else
+  {
+    MPI_Win_allocate(0, sizeof(int),
+                     MPI_INFO_NULL, MPI_COMM_WORLD,
+                     &job_ids, &comm_win);
+
+    MPI_Win_fence(0, comm_win);
+    MPI_Win_fence(0, comm_win);
+  }
+#endif
 
   pll_unode_t * serialized_tree = 0;
-  snd_data.model_index = -1;
-  while (next_model != -1)
+  while (next_model < n_models)
   {
+    /* get next model */
+    MPI_Win_lock_all(0, comm_win);
+
+    bool found = false;
+    while (next_model < n_models && !found)
+    {
+      int job_id;
+      MPI_Fetch_and_op(&next_model, &job_id,
+               MPI_INT, 0, next_model,
+               MPI_REPLACE, comm_win);
+      if (job_id == -1)
+        found = true;
+      else
+        next_model++;
+    }
+
+      MPI_Win_sync(comm_win);
+    MPI_Win_unlock_all(comm_win);
+
     /* request model */
     MPI_Status status;
-    snd_data.t_start = exec_info.start_time;
-    snd_data.t_end = exec_info.end_time;
-    MPI_Send(&snd_data, sizeof(mpi_comm_data_t), MPI_BYTE, 0, 201, master_mpi_comm);
 
-    if (optimize_topology && snd_data.model_index >= 0)
-    {
-      assert(serialized_tree);
-      MPI_Send(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
-      free(serialized_tree);
-    }
-    MPI_Recv(&next_model, 1, MPI_INT, 0, 202, master_mpi_comm, &status);
-
-    if (next_model < 0) break;
+    if (next_model < 0 || next_model >= n_models) break;
     exec_info.model_index = next_model;
 
     Model *model = models[exec_info.model_index];
-#else
+#else // MPI_ENABLED
       for (Model *model : models)
       {
         ++exec_info.model_index;
-#endif
+#endif // MPI_ENABLED
+
         exec_info.start_time = time(NULL);
         exec_ok &= evaluate_single_model(*model, 0);
+        if (exec_ok) ++opt_models_count;
+
         if (mt_errno)
           break;
 
@@ -332,30 +375,109 @@ namespace modeltest
 
         exec_info.end_time = time(NULL);
         notify((void *) &exec_info);
+      }
 
-#if(MPI_ENABLED)
-        snd_data.model_index = next_model;
-        snd_data.loglh = model->get_loglh();
+#if(MPI_ENABLED & MPI_RMA)
+    if (ROOT)
+    {
+      mpi_comm_data_t rec_data;
+      while(opt_models_count < n_models)
+      {
+         MPI_Recv(&rec_data, sizeof(mpi_comm_data_t), MPI_BYTE,
+                  MPI_ANY_SOURCE, 201, master_mpi_comm, MPI_STATUS_IGNORE);
 
-        if (optimize_topology)
-          serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
-                                                   tree.get_n_tips());
+         /* update local model information */
+         pll_unode_t * serialized_tree;
+         pll_utree_t * expanded_tree;
 
-        if (model->is_G()) snd_data.alpha = model->get_alpha();
-        if (model->is_I()) snd_data.pinv = model->get_prop_inv();
-        if (model->is_R())
-        {
-          memcpy(snd_data.rate_categories, model->get_mixture_rates(), model->get_n_categories() * sizeof(double));
-          memcpy(snd_data.rate_weights, model->get_mixture_weights(), model->get_n_categories() * sizeof(double));
-        }
-        if (partition.get_datatype() == dt_dna)
-        {
-          memcpy(snd_data.dna_data.freqs, model->get_frequencies(), N_DNA_STATES * sizeof(double));
-          memcpy(snd_data.dna_data.rates, model->get_subst_rates(), N_DNA_SUBST_RATES * sizeof(double));
-        }
-#endif
+         /* update model */
+         Model *model = models[rec_data.model_index];
+         if (model->is_G()) model->set_alpha(rec_data.alpha);
+         if (model->is_I()) model->set_prop_inv(rec_data.pinv);
+         if (model->is_R())
+         {
+           model->set_mixture_rates(rec_data.rate_categories);
+           model->set_mixture_weights(rec_data.rate_weights);
+         }
+         model->set_loglh(rec_data.loglh);
+
+         if (optimize_topology)
+         {
+           serialized_tree = (pll_unode_t *) malloc((2*tree.get_n_tips() - 2) * sizeof(pll_unode_t));
+
+           /* receive serialized tree */
+           MPI_Recv(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2),
+                    MPI_BYTE,MPI_ANY_SOURCE, 301, master_mpi_comm, MPI_STATUS_IGNORE);
+
+           expanded_tree = pllmod_utree_expand(serialized_tree, tree.get_n_tips());
+           tree.update_names(expanded_tree);
+           model->set_tree(expanded_tree);
+
+           free(serialized_tree);
+         }
+
+         if (partition.get_datatype() == dt_dna)
+         {
+           model->set_frequencies(rec_data.dna_data.freqs);
+           model->set_subst_rates(rec_data.dna_data.rates);
+         }
+         else
+         {
+           if (model->is_F())
+           {
+             model->set_frequencies(&partition.get_empirical_frequencies()[0]);
+           }
+         }
+
+         model->evaluate_criteria(tree.get_n_branches(), msa.get_n_sites());
+
+         ++opt_models_count;
       }
     }
+    else
+    {
+      for (mt_index_t mindex = 0; mindex < models.size(); ++mindex)
+      {
+        Model * model = models[mindex];
+        mpi_comm_data_t snd_data;
+        if (model->is_optimized())
+        {
+          snd_data.model_index = mindex;
+          snd_data.loglh = model->get_loglh();
+
+          if (optimize_topology)
+            serialized_tree = pllmod_utree_serialize(model->get_tree()->nodes[0]->back,
+                                                     tree.get_n_tips());
+
+          if (model->is_G()) snd_data.alpha = model->get_alpha();
+          if (model->is_I()) snd_data.pinv = model->get_prop_inv();
+          if (model->is_R())
+          {
+            memcpy(snd_data.rate_categories, model->get_mixture_rates(), model->get_n_categories() * sizeof(double));
+            memcpy(snd_data.rate_weights, model->get_mixture_weights(), model->get_n_categories() * sizeof(double));
+          }
+          if (partition.get_datatype() == dt_dna)
+          {
+            memcpy(snd_data.dna_data.freqs, model->get_frequencies(), N_DNA_STATES * sizeof(double));
+            memcpy(snd_data.dna_data.rates, model->get_subst_rates(), N_DNA_SUBST_RATES * sizeof(double));
+          }
+          MPI_Send(&snd_data, sizeof(mpi_comm_data_t), MPI_BYTE, 0, 201, master_mpi_comm);
+
+          if (optimize_topology && snd_data.model_index >= 0)
+          {
+            assert(serialized_tree);
+            MPI_Send(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
+            free(serialized_tree);
+          }
+        }
+      }
+    }
+
+    MPI_Win_free(&comm_win);
+#endif
+
+    }
+
 
 BARRIER;
 
@@ -379,6 +501,8 @@ BARRIER;
         ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
                                                       partition,
                                                       optimize_topology,
+                                                      keep_model_parameters,
+                                                      gamma_rates,
                                                       thread_number);
         assert(mopt);
 

@@ -36,12 +36,13 @@ This step is not necessary if you downloaded the released tarball.
 
 0. Automatic Build
 
-  There are 2 ways of building ModelTest-NG:
-    - Using cmake
-    - Using autotools
+  There are 3 ways of building ModelTest-NG:
+    * Using cmake
+    * Using autotools
+    * Using docker
 
-  Both should work, so choose the one is more comfortable for you. If you experience
-  any problem, please try the other one as well.
+  Choose the one is more comfortable for you. If you experience
+  any problem, please try another.
 
   a) Build ModelTest-NG using `cmake`:
 
@@ -60,6 +61,15 @@ This step is not necessary if you downloaded the released tarball.
     cd modeltest-ng
     mkdir build && cd build
     cmake -DUSE_MPI=ON ..
+    make
+    ```
+
+    GUI version:
+
+    ```
+    cd modeltest-ng
+    mkdir build && cd build
+    cmake -DUSE_GUI=ON ..
     make
     ```
 
@@ -93,43 +103,16 @@ This step is not necessary if you downloaded the released tarball.
 
     The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
 
-1. Graphical User Interface
+  c) Using docker
 
-  To install ModelTest-NG GUI type the following commands:
+    Build docker image using a command like this:
 
-  ```bash
-  $ ./build_qmake-sh
-  $ make -f Makefile.qmake
-  $ make install -f Makefile.qmake
-  ```
+    ```sh
+    docker build -t modeltest-ng .
+    ```
 
-  Run 'modeltest-gui' without arguments for loading the GUI
+    Then call docker run to create a container using the created image.
 
-2. Command Console Interface
-
-  To install ModelTest-NG type the following commands:
-
-  ```bash
-  $ ./configure [--prefix=INSTALL_DIR]
-  $ make
-  $ make install
-  ```
-
-Set a custom install directory if you don't have root access or you prefer a
-different location.
-
-This will compile pthreads and MPI versions
-Run 'modeltest-ng --help' for help about the console interface.
-
-To compile a Windows executable, install MinGW and run:
-
-```bash
-$ ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure
-$ make
-```
-
-In case the configure script does not exist, it must be generated using autotools:
-
-```bash
-$ autoreconf -i
-```
+    ```sh
+    docker run -it modeltest-ng bash
+    ```
