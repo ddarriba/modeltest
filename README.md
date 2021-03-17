@@ -23,12 +23,17 @@ If you use ModelTest-NG, please cite the following:
 ## Prerequisites
 
 Core model parameter optimization and likelihood evaluation depend on the
-high-level modules for the Phylogenetic Likelihood Library.
+high-level modules for the Phylogenetic Likelihood Library (pll).
 The latest compatible version is linked here as a submodule,
 so if you are cloning the repository, make sure you initialize the submodules:
 
 ```bash
 $ git clone --recursive https://github.com/ddarriba/modeltest
+```
+For compiling pll and pll-modules sources you need _**flex**_ and _**bison**_
+
+```bash
+$ sudo apt install flex bison
 ```
 This step is not necessary if you downloaded the released tarball.
 
