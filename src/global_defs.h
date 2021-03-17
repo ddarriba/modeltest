@@ -24,7 +24,7 @@
 
 #define PACKAGE "modeltest-ng"
 #define MTNG_VERSION "0.1.7"
-#define MTNG_DATE "06.11.2019"
+#define MTNG_DATE "17.03.2021"
 
 #define USE_POSIX_THREADS 1
 
