@@ -22,6 +22,7 @@
 #include "partition_optimizer.h"
 #include "model_optimizer_pll.h"
 #include "../genesis/logging.h"
+#include "../thread/threadpool.h"
 
 #include <fstream>
 
@@ -31,6 +32,7 @@ using namespace std;
 
 namespace modeltest
 {
+  thread_local int this_thread_id;
 
   PartitionOptimizer::PartitionOptimizer(Partition &partition,
                                          MsaPll & msa,
@@ -257,7 +259,6 @@ namespace modeltest
       /* execute on thread pool */
       ThreadPool pool(n_procs);
       vector< future<int> > results;
-      map<thread::id, mt_index_t> thread_map = pool.worker_ids;
 
       mt_index_t cur_model = 0;
       for (Model *model : models)
@@ -265,13 +266,12 @@ namespace modeltest
         ++cur_model;
 
         results.emplace_back(
-          pool.enqueue([cur_model, model, n_models,
-                         this, &thread_map] {
+          pool.enqueue([cur_model, model, n_models, this] {
             opt_info_t exec_info;
             exec_info.start_time = time(NULL);
             exec_info.n_models = n_models;
 
-            int res = evaluate_single_model(*model, thread_map[std::this_thread::get_id()]);
+            int res = evaluate_single_model(*model, this_thread_id);
 
             exec_info.model_index = cur_model + 1;
             exec_info.model = model;

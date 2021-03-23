@@ -51,6 +51,8 @@
 
 namespace modeltest {
 
+extern thread_local int this_thread_id;
+
 class ThreadPool {
 public:
   ThreadPool(mt_size_t);
@@ -63,7 +65,6 @@ public:
         this->tasks.pop();
   }
   ~ThreadPool();
-  std::map< std::thread::id, mt_index_t > worker_ids;
   mt_size_t ready;
 private:
   // need to keep track of threads so we can join them
@@ -83,12 +84,9 @@ inline ThreadPool::ThreadPool(mt_size_t threads)
 {
   for(size_t i = 0;i<threads;++i)
     workers.emplace_back(
-    [this]
+    [this, i]
     {
-      {
-        std::unique_lock<std::mutex> lock(this->queue_mutex);
-        worker_ids[std::this_thread::get_id()] = --ready;
-      }
+      this_thread_id = i;
       for(;;)
       {
         std::function<void()> task;
@@ -106,14 +104,6 @@ inline ThreadPool::ThreadPool(mt_size_t threads)
       }
     }
   );
-  /* wait for initialization */
-  while(1)
-  {
-    std::unique_lock<std::mutex> lock(this->queue_mutex);
-    if(!ready) break;
-  }
-
-  ;
 }
 
 // add new work item to the pool

@@ -68,7 +68,7 @@
 #define FALLTHROUGH
 #endif
 
-#define ERR_MSG_SIZE 200
+#define ERR_MSG_SIZE 240
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define MT_PRECISION_DIGITS 4

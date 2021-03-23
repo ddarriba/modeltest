@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+# Aux files
+.deps
+.dirstamps
+Makefile.in
+config.h.in

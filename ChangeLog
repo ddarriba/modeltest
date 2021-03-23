@@ -1,3 +1,7 @@
+* dev 0.1.8
+
+  - Fixed bug with pthreads and static linking
+
 * release 0.1.7
 
   - Added informative message for excessive number of partitions

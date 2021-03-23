@@ -130,7 +130,6 @@ void xThreadOpt::run()
         {
             pool = new modeltest::ThreadPool(n_threads);
             vector< future<void> > results;
-            map<thread::id, mt_index_t> thread_map = pool->worker_ids;
 
             //cout << "Starting jobs... (output might be unsorted)" << endl;
             for (cur_model=0; cur_model < partition.get_number_of_models(); cur_model++)
@@ -142,9 +141,10 @@ void xThreadOpt::run()
                 partition_id_t p_id = partition.get_id();
                 mt_size_t n_models_par = n_models;
                 results.emplace_back(
-                  pool->enqueue([cur_model, model, n_models_par, p_id, eps_par, eps_opt, this, thread_map] {
-                      emit next_model( model, thread_map.at(this_thread::get_id()) );
-                      optimize_single(p_id, n_models_par, model, thread_map.at(this_thread::get_id()), epsilon_param, epsilon_opt);
+                  pool->enqueue([cur_model, model, n_models_par, p_id, eps_par, eps_opt, this]
+                  {
+                      emit next_model( model, modeltest::this_thread_id );
+                      optimize_single(p_id, n_models_par, model, modeltest::this_thread_id, epsilon_param, epsilon_opt);
                   })
                 );
             }

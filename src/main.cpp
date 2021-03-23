@@ -38,7 +38,6 @@
 #include <chrono>
 
 #include "genesis/logging.h"
-#include "thread/threadpool.h"
 
 ModelTestService *ModelTestService::s_instance = 0;
 
