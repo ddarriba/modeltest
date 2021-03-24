@@ -43,8 +43,8 @@ test -d ${prefix}/bin || { echo "Output directory could not be created"; exit; }
 if test x${build_gui} = xyes; then
   # check if `qmake` is available
   if test "x`which ${qmake_bin}`" = "x" ; then
-    echo "qmake binary not found. Please fix its path in this script or set build_gui to \"no\"";
-    exit;
+    echo "qmake binary not found. GUI build will be disabled";
+    build_gui=no
   else
     ${qmake_bin} -v 2> /dev/null ||
       { echo "qmake binary dows not work. Please fix it or set build_gui to \"no\"";
@@ -247,8 +247,26 @@ for action in ${actions}; do
     cd ${dir_base}
     make dist
     mkdir -p ${dir_dist}
-    rm libpll-*.tar.gz pll-modules-*.tar.gz
-    mv modeltest-ng-*.tar.gz ${dir_dist}
+    mt_name=`ls modeltest-ng-*.tar.gz | rev | cut -d'.' -f 3- | rev`
+    libpll_name=`ls libpll-*.tar.gz | rev | cut -d'.' -f 3- | rev`
+    modules_name=`ls pll-modules-*.tar.gz | rev | cut -d'.' -f 3- | rev`
+    mv libpll-*.tar.gz pll-modules-*.tar.gz ${dir_dist}
+    echo $mt_name
+    mv $mt_name.tar.gz ${dir_dist}
+    cd ${dir_dist}
+    tar zvxf ${mt_name}.tar.gz
+    tar zvxf ${libpll_name}.tar.gz
+    tar zvxf ${modules_name}.tar.gz
+    mv ${modules_name} ${mt_name}/libs/pll-modules
+    mkdir -p ${mt_name}/libs/pll-modules/libs
+    mv ${libpll_name} ${mt_name}/libs/pll-modules/libs/libpll
+    rm ${libpll_name}.tar.gz ${modules_name}.tar.gz
+    cd ..
+    for f in `find libs/pll-modules -name "CMakeLists.txt"`; do
+      cp $f ${dir_dist}/${mt_name}/$f
+    done
+    cd ${dir_dist}
+    tar zvcf ${mt_name}.tar.gz ${mt_name}
   ;;
   "test")
    if test -f ${prefix}/bin/modeltest-ng; then

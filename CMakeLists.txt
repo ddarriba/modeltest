@@ -4,31 +4,27 @@ cmake_minimum_required (VERSION 2.8.10 FATAL_ERROR)
 # CONFIGURATION
 ###############################################################################
 
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
+set (STATIC_BUILD OFF CACHE BOOL "Build static binary")
+set (ENABLE_MPI OFF CACHE BOOL "Enable MPI support")
+set (ENABLE_GUI OFF CACHE BOOL "Enable QT GUI")
+set (ENABLE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
 
-set (USE_MPI OFF CACHE BOOL "Enable MPI support")
-set (USE_GUI OFF CACHE BOOL "Enable QT GUI")
-
-# set both following options to OFF to build a portable binary
+# set following options to OFF to build a portable binary
 # (don't worry, libpll will still have full SIMD support!)
 set (ENABLE_MODELTEST_SIMD ON CACHE BOOL "Enable SIMD instructions (non-portable but slightly faster)")
 set (ENABLE_PLLMOD_SIMD ON CACHE BOOL "Enable SIMD instructions in pll-modules (non-portable but slightly faster)")
-
-set (USE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
-
-set(USE_LIBPLL_CMAKE ON CACHE BOOL "Use CMake to build libpll and pll-modules")
-
-# build a static binary
-set(STATIC_BUILD OFF CACHE BOOL "Build static binary")
 
 ###############################################################################
 # END OF CONFIGURATION
 ###############################################################################
 
-project (modeltest-ng C CXX)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
-set(ENABLE_PTHREADS ${USE_PTHREADS})
+project (modeltest C CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # which compilers to use for C and C++
@@ -44,29 +40,34 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(STATIC_BUILD OFF)
   # MPI support on Macs seems to be tricky (and unnecessary)
   set(ENABLE_MPI OFF)
-else()
-  set(ENABLE_GUI ${USE_GUI})
-  set(ENABLE_MPI ${USE_MPI})
 endif()
 
-set (modeltest-ng_VERSION_MAJOR 0)
-set (modeltest-ng_VERSION_MINOR 1)
+set (modeltest_VERSION_MAJOR 0)
+set (modeltest_VERSION_MINOR 1)
+set (modeltest_VERSION_PATCH 7)
 
-set (CMAKE_BUILD_TYPE DEBUG)
-#set (CMAKE_BUILD_TYPE RELEASE)
-#set (CMAKE_VERBOSE_MAKEFILE ON)
+set (CMAKE_BUILD_TYPE RELEASE)
+if ( $ENV{MT_DEBUG} )
+  set (CMAKE_BUILD_TYPE DEBUG)
+endif ()
+
+if ( $ENV{MT_VERBOSE} )
+  set (CMAKE_VERBOSE_MAKEFILE ON)
+endif()
 
 message (STATUS "Building ${CMAKE_BUILD_TYPE}")
-
-set (WARN_FLAGS               "-Wall -Wextra")
-set (CMAKE_CXX_FLAGS          "-std=gnu++11 ${WARN_FLAGS}")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -mmacosx-version-min=10.7")
 endif()
 
-set (CMAKE_CXX_FLAGS_DEBUG    "-g")
+set (WARN_FLAGS               "-Wall -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
+set (CMAKE_CXX_FLAGS          "-std=c++11 ${WARN_FLAGS}")
+
+set (CMAKE_CXX_FLAGS_DEBUG    "-O0 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG")
+set (CMAKE_C_FLAGS_DEBUG      "-O0 -g -ggdb3 -D_GLIBCXX_DEBUG")
 set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG")
+set (CMAKE_C_FLAGS_RELEASE    "-O3")
 
 if (ENABLE_MODELTEST_SIMD)
   include(CheckCXXCompilerFlag)
@@ -103,25 +104,37 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_NO_GUI_ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 endif()
 
-message(STATUS "Using flags: ${CMAKE_CXX_FLAGS}")
-
-# build dependencies
-set(MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
-add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
-
 if(ENABLE_MPI)
-  find_package(MPI)
+  find_package(MPI REQUIRED)
   if(MPI_CXX_FOUND)
-    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
     include_directories(${MPI_CXX_INCLUDE_PATH})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILER_FLAGS} -DBUILD_MPI")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-
+    
     # disable static build for MPI
     set(STATIC_BUILD OFF)
   endif()
 endif()
 
+message(STATUS "ModelTest Using flags: ${CMAKE_CXX_FLAGS}")
+
+#check for minimum compiler versions
+message(STATUS "ModelTest Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} => ${CMAKE_CXX_COMPILER}")
+
+# =============================================
+#   Download Dependencies
+# =============================================
+
+# Downloads dependencies if they are not there. We use a special script for this.
+include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
+
+# Do not replace the hashes below manually!
+SET( pll-modules_COMMIT_HASH "82959854129c05a18741ecb93a6ba5c00b9eb667" )
+SET( libpll_COMMIT_HASH "c5f63744743e4070a68da763899889bdb3ef4216" )
+
+DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "pll-modules" "README.md" "ddarriba/pll-modules" ${pll-modules_COMMIT_HASH} )
+DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs/pll-modules/libs" "libpll" "README.md" "xflouris/libpll-2" ${libpll_COMMIT_HASH} )
+                                                         
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(MODELTEST_COMPILER_TARGET_VERSION "4.8")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
@@ -134,9 +147,40 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   endif()
 endif()
 
-#check for minimum compiler versions
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} => ${CMAKE_CXX_COMPILER}")
+# =============================================
+#         Build pll-modules
+# =============================================
 
+set( BUILD_PLLMODULES_STATIC ON   CACHE BOOL "Passing BUILD_PLLMODULES_STATIC=ON to pll-modules" )
+set( BUILD_PLLMODULES_SHARED OFF  CACHE BOOL "Passing BUILD_PLLMODULES_SHARED=OFF to pll-modules" )
+set(MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
+
+add_subdirectory( ${PROJECT_SOURCE_DIR}/libs/pll-modules )
+
+set(PLLMOD_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/src")
+set(LIBPLL_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/libs/libpll/src")
+
+file(COPY ${PLLMOD_SRC}/pllmod_common.h
+          ${PLLMOD_SRC}/util/pllmod_util.h
+          ${PLLMOD_SRC}/algorithm/pllmod_algorithm.h
+          ${PLLMOD_SRC}/binary/pll_binary.h
+          ${PLLMOD_SRC}/msa/pll_msa.h
+          ${PLLMOD_SRC}/optimize/pll_optimize.h
+          ${PLLMOD_SRC}/tree/pll_tree.h
+          ${LIBPLL_SRC}/pll.h
+          DESTINATION ${MODELTEST_LOCALDEPS_DIR}/include/libpll)
+
+# =============================================
+#         Recurse and compile main code
+# =============================================
+  
 include_directories(${MODELTEST_LOCALDEPS_DIR}/include)
-
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+
+#install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin COMPONENT applications)
+                          
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_VERSION_MAJOR "${modeltest_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${modeltest_VERSION_MINOR}")
+include(CPack)

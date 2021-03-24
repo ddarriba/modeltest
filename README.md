@@ -20,104 +20,74 @@ If you use ModelTest-NG, please cite the following:
 * Darriba, D., Posada, D., Kozlov, A. M., Stamatakis, A., Morel, B., & Flouri, T. (2020). ModelTest-NG: a new and scalable tool for the selection of DNA and protein evolutionary models. Molecular Biology and Evolution, 37(1), 291-294. doi.org/10.1093/molbev/msz189
 * Flouri T., Izquierdo-Carrasco F., Darriba D., Aberer AJ, Nguyen LT, Minh BQ, von Haeseler A., Stamatakis A. (2014) The Phylogenetic Likelihood Library. Systematic Biology, 64(2): 356-362. doi:10.1093/sysbio/syu084
 
-## Prerequisites
+## Download
 
-Core model parameter optimization and likelihood evaluation depend on the
-high-level modules for the Phylogenetic Likelihood Library (pll).
-The latest compatible version is linked here as a submodule,
-so if you are cloning the repository, make sure you initialize the submodules:
+From the [releases section](https://github.com/ddarriba/modeltest/releases) you can
+download the latest stable distribution and pre-compiled binaries.
 
-```bash
-$ git clone --recursive https://github.com/ddarriba/modeltest
-```
-For compiling pll and pll-modules sources you need _**flex**_ and _**bison**_
+If there is no binary for your system or it is not working, you can either download the sources
+distribution or clone this repository, and follow the Install instructions below:
 
 ```bash
-$ sudo apt install flex bison
+$ git clone https://github.com/ddarriba/modeltest
 ```
-This step is not necessary if you downloaded the released tarball.
 
 ## Install
 
-0. Automatic Build
+1. **Install the dependencies.** On Debian-based systems, you can simply run
 
-  There are 3 ways of building ModelTest-NG:
-    * Using cmake
-    * Using autotools
-    * Using docker
+```
+sudo apt-get install flex bison
+```
+For other systems, please make sure you have following packages/libraries installed:
+[`GNU Bison`](http://www.gnu.org/software/bison/) [`Flex`](http://flex.sourceforge.net/)
 
-  Choose the one is more comfortable for you. If you experience
-  any problem, please try another.
+2. **Build ModelTest-NG.**
 
-  a) Build ModelTest-NG using `cmake`:
+PTHREADS version:
 
-    PTHREADS version:
+```
+mkdir build && cd build
+cmake ..
+make
+```
 
-    ```
-    cd modeltest-ng
-    mkdir build && cd build
-    cmake ..
-    make
-    ```
+MPI version:
 
-    MPI version:
+```
+mkdir build && cd build
+cmake -ENABLE_MPI=ON ..
+make
+```
 
-    ```
-    cd modeltest-ng
-    mkdir build && cd build
-    cmake -DUSE_MPI=ON ..
-    make
-    ```
+GUI version:
 
-    GUI version:
+```
+mkdir build && cd build
+cmake -DENABLE_GUI=ON ..
+make
+```
 
-    ```
-    cd modeltest-ng
-    mkdir build && cd build
-    cmake -DUSE_GUI=ON ..
-    make
-    ```
+Portable PTHREADS version (static linkage, compatible with old non-AVX CPUs):
 
-    ModelTest-NG binaries will be placed in `modeltest-ng/bin` directory.
+```
+mkdir build && cd build
+cmake -DSTATIC_BUILD=ON -DENABLE_MODELTEST_SIMD=OFF -DENABLE_PLLMOD_SIMD=OFF ..
+make
+```
 
-  b) Build ModelTest-NG using `autotools`
+ModelTest-NG binaries will be placed in `modeltest-ng/bin` directory.
 
-    If you have downloaded a complete distribution, check the following files exist:
-      - libpll-x.y.z.tar.gz
-      - pll-modules-x.y.z.tar.gz
-      - build.sh
+## Build a Docker image of ModelTest-NG
 
-    Run the installer script:
+If you want to build a [Docker](https://www.docker.com/) image, use a command like this:
 
-    ```bash
-    $ build.sh
-    ```
+```sh
+docker build -t modeltest-ng .
+```
 
-    This should extract and compile the required libraries and link them statically
-    in the ModelTest-NG binaries for console (modeltest-ng, modeltest-mpi) and GUI (modeltest-gui) if
-    a valid `qmake` is available.
+Then call docker run to create a container using the created image.
 
-    Note that, qmake might be available in some linux distributions,
-    but NOT a functional QT framework.
-    Try running `qmake`, and if you observe and error,
-    install `qt5-default` from apt repositories:
-
-    ```bash
-    $ sudo apt-get install qt5-default
-    ```
-
-    The resulting binaries and libraries will be placed in `build/bin` and `build/lib` directories
-
-  c) Using docker
-
-    Build docker image using a command like this:
-
-    ```sh
-    docker build -t modeltest-ng .
-    ```
-
-    Then call docker run to create a container using the created image.
-
-    ```sh
-    docker run -it modeltest-ng bash
-    ```
+```sh
+docker run -it modeltest-ng bash
+```

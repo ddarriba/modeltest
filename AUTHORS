@@ -1,14 +1,30 @@
 ModelTest (c) 2015
 
-Diego Darriba [1], diego.darriba@h-its.org
-David Posada [2], dposada@uvigo.es
-Alexandros Stamatakis [1], alexandros.stamatakis@h-its.org
+Diego Darriba [1], diego.darriba at udc.es
+David Posada [2], dposada at uvigo.es
+Alexey M Kozlov [3], alexey.kozlov at h-its.org
+Alexandros Stamatakis [3,4], alexandros.stamatakis at h-its.org
+Benoit Morel [3], benoit.morel at h-its.org
+Tomas Flouri [5], t.flouris at ucl.ac.uk
 ----------------------------------------------------------
 
-[1] Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg, 35
-    Heidelberg (Germany)
-
+[1] Computer Architecture Group
+    Centro de investigación CITIC
+    Universidade da Coruña, Spain
+    
 [2] Phylogenomics
     Department of Biochemistry, Genetics and Inmunology
-    University of Vigo (Spain)
+    University of Vigo, Spain
+
+[3] Heidelberg Institute for Theoretical Studies
+    Schloss-Wolfsbrunnenweg, 35
+    Heidelberg, Germany
+
+[4] Institute of Theoretical Informatics
+    Karlsruhe Institute of Technology
+    Karlsruhe, Germany
+    
+[5] Department of Genetics, Evolution and Environment
+    University College London
+    London, United Kingdom
+

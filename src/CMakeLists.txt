@@ -47,23 +47,11 @@ endif()
 
 add_executable(modeltest_module ${modeltest_sources} ${UI_HEADERS})
 
-if (USE_LIBPLL_CMAKE)
-  target_include_directories(modeltest_module PRIVATE ${PLLMOD_EXPORTED_INCLUDE_PATH})
-  set(LIBPLL_LIBS  ${PLLMODULES_LIBRARIES} ${PLL_LIBRARIES})
-else()
-  set(LIBPLL_LIBS ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_algorithm.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_binary.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_optimize.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_msa.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_tree.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll_util.a
-                  ${MODELTEST_LOCALDEPS_DIR}/lib/libpll.a
-                  )
-endif()
+target_link_libraries (modeltest_module ${PLLMODULES_LIBRARIES})
 
 set(MODELTEST_LIBS ${LIBPLL_LIBS} m)
 
-target_link_libraries(modeltest_module ${MODELTEST_LIBS})
+#target_link_libraries(modeltest_module ${MODELTEST_LIBS})
 
 if(Qt5Widgets_FOUND)
   qt5_use_modules(modeltest_module Widgets)
@@ -89,7 +77,7 @@ endif()
 
 if(Qt5Widgets_FOUND)
   set_target_properties (modeltest_module PROPERTIES OUTPUT_NAME modeltest-gui)
-elseif(MPI_FOUND)
+elseif(MPI_CXX_FOUND)
   set_target_properties (modeltest_module PROPERTIES OUTPUT_NAME modeltest-ng-mpi)
 elseif(STATIC_BUILD)
   set_target_properties (modeltest_module PROPERTIES OUTPUT_NAME modeltest-ng-static)

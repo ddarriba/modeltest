@@ -4,85 +4,14 @@
 
 \subsection{Compilation}
 
-Sources can be compiled for every major Operating System, including Linux, Windows, and Mac OS X. For convenience, with each release you will find binaries for each of these systems.
+Sources can be compiled for every major Operating System, including Linux, Windows, and Mac OS X. For convenience, with each release you will find binaries for each of these systems whenever possible.
 Nonetheless, it might happen that for certain distributions only some of theme are available, for example if the realease fixes a bug affecting one single OS.
 
 This tool is distributed under GPL v3 license. 
 The source code is freely available at github repository: \url{https://github.com/ddarriba/modeltest}.
 
-If you clone the repository, make sure to clone also libpll and pll-modules submodules with `--recursive` flag, or call `git submodule init --recursive` afterwards.
+For most users, download the latest release and follow the instructions in the README.md file
 
-For most users, download the latest release and call the build script, {\em build.sh}. 
-It should work correctly and (by default) compile all dependencies and place the final binaries under `build` directory.
-
-\begin{itemize}
-\item Run {\em build.sh} with no arguments for compiling all dependencies and modeltest in 3 flavors: {\em modeltest-ng} (command console execution), {\em modeltest-mpi} (MPI version), and {\em modeltest-gui} (graphical user interface). Note that you need QT 4 or 5 for compiling the GUI version.
-\item Run {\em build.sh clean} for removing all object and output files.
-\item Run {\em build.sh dist} for building a distribution package.
-\end{itemize}
-
-You can change the behaviour and the target directories in the static configuration section, at the beggining of the build script.
-
-\begin{lstlisting}
-# Static configuration                                                          
-build_pll=yes            # build PLL                                            
-build_modules=yes        # build PLL modules library                            
-build_gui=yes            # build modeltest-gui                                  
-dir_base=${PWD}          # base directory                                       
-prefix=${dir_base}/build # output directory for modeltest                       
-qmake_bin=qmake          # qmake binary (for GUI)
-\end{lstlisting}
-
-\begin{tabular}{lll}
-  {\bf property} & {\bf default} & {\bf description} \\
-  \hline
-  build\_pll & yes & Build the pll dependency \\
-  build\_modules & yes & Build the pll modules dependency \\
-  build\_gui & yes & Build the graphical user interface \\
-  dir\_base & current directory & Base directory \\
-  prefix & {\em dir\_base}/build & Target directory \\
-  qmake\_bin & qmake & qmake binary \\
-\end{tabular}
-\vspace{1em}
-
-Note: QT utility, {\em qmake} can be also an absolute/relative path, e.g., {\em qmake\_bin=/usr/local/bin/qmake}.
-For example, I used a custom distribution for OSX and the configuration line looks like this:
-
-\begin{lstlisting}
-qmake_bin=/usr/local/Cellar/qt/5.9.1/bin/qmake
-\end{lstlisting}
-
-If everything went fine, the output should look like this:
-
-\begin{lstlisting}
-Running install script for Linux
-QMake version 3.0
-Using Qt version 5.5.1 in /usr/lib/x86_64-linux-gnu
-...configuration:
-   prefix:       /home/diego/Repositories/phylogenetics/modeltest-dev/build
-   build:        /home/diego/Repositories/phylogenetics/modeltest-dev/build
-   pll:          [yes] /home/diego/Repositories/phylogenetics/modeltest-dev/libs/pll-modules/libs/libpll
-   modules:      [yes] /home/diego/Repositories/phylogenetics/modeltest-dev/libs/pll-modules
-      include:   /home/diego/Repositories/phylogenetics/modeltest-dev/build/include/libpll
-      lib:       /home/diego/Repositories/phylogenetics/modeltest-dev/build/lib
-
-...writing log to /home/diego/Repositories/phylogenetics/modeltest-dev/build.log
-...build pll
-   ...building pll
-...pll OK!
-/home/diego/Repositories/phylogenetics/modeltest-dev
-...build modules
-   ...building modules
-...modules OK!
-/home/diego/Repositories/phylogenetics/modeltest-dev
-...build modeltest
-Project MESSAGE: link to pll local
-Project MESSAGE: pll dynamic link
-...modeltest GUI OK!
-\end{lstlisting}
-
-The console output contains only trace messages.
-The full output is redirected to {\em build.log}, so please check it if there are errors building \modeltest.
 \subsection{Example run}
 
 \begin{enumerate}

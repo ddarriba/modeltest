@@ -1,6 +1,7 @@
 * dev 0.1.8
 
   - Fixed bug with pthreads and static linking
+	- Unify build methods
 
 * release 0.1.7
 
