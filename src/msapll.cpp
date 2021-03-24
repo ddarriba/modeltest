@@ -176,7 +176,10 @@ namespace modeltest
         break;
       case mf_fasta:
         {
-          bool test_msa = MsaPll::test(msa_filename, &n_taxa, &n_sites);
+        #ifndef NDEBUG
+          bool test_msa = 
+        #endif
+            MsaPll::test(msa_filename, &n_taxa, &n_sites);
           assert(test_msa);
 
           tipnames  = (char **)Utils::c_allocate(n_taxa, sizeof(char *));

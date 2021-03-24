@@ -312,7 +312,7 @@ namespace modeltest
       &job_ids, &comm_win);
 
       MPI_Win_fence(0, comm_win);
-      for (int i=0; i<n_models; ++i)
+      for (mt_size_t i=0; i<n_models; ++i)
       {
         job_ids[i] = -1;
       }
@@ -330,13 +330,13 @@ namespace modeltest
 #endif
 
   pll_unode_t * serialized_tree = 0;
-  while (next_model < n_models)
+  while ((mt_size_t)next_model < n_models)
   {
     /* get next model */
     MPI_Win_lock_all(0, comm_win);
 
     bool found = false;
-    while (next_model < n_models && !found)
+    while ((mt_size_t)next_model < n_models && !found)
     {
       int job_id;
       MPI_Fetch_and_op(&next_model, &job_id,
@@ -352,9 +352,8 @@ namespace modeltest
     MPI_Win_unlock_all(comm_win);
 
     /* request model */
-    MPI_Status status;
 
-    if (next_model < 0 || next_model >= n_models) break;
+    if (next_model < 0 || (mt_size_t)next_model >= n_models) break;
     exec_info.model_index = next_model;
 
     Model *model = models[exec_info.model_index];

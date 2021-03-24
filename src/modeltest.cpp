@@ -809,7 +809,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   {
     partition_id_t part_id(1);
     part_id[0] = cur_part_id;
-    Partition * new_part;
+    Partition * new_part = 0;
     try {
         if (partition.datatype == dt_dna)
             new_part = new Partition(part_id,
