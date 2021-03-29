@@ -1,0 +1,278 @@
+.TH ModelTest-NG "1" "25 Mar 2021" "User Commands"
+.SH NAME
+ModelTest-NG \- Selecting the best-fit model of evolution for DNA and protein alignments
+.SH SYNOPSIS
+.B modeltest-ng \fB\-i\fR \fIfile\fR
+             [\fB-d\fR nt|aa] [\fB-t\fR ml|mp|...] [\fB-o\fR \fIprefix\fR]
+             [\fB-q\fR \fIpartitions_file\fR] [\fB-T\fR \fItemplate\fR]
+             [\fB-p\fR \fI#threads\fR] [\fB-v\fR] [\fB-V\fR]
+
+.SH DESCRIPTION
+.PP
+Selects the best-fit model of amino acid or nucleotide replacement
+.PP
+Mandatory arguments to long options are mandatory for short options too
+
+.SH "OPTIONS"
+.IX Header "OPTIONS"
+.SS "Main arguments"
+.IX Subsection "Main arguments"
+
+.TP
+\fB\-d\fR, \fB\-\-datatype\fR \fI{nt|aa}\fR
+Sets the data type (default: \fBnt\fR)
+.RS 8
+.IP \fBnt\fR 8
+(nucleotide)   DNA data
+.IP \fBaa\fR 8
+(amino acid)   Protein data
+.RE
+
+.TP
+\fB\-i\fR, \fB\-\-input_msa\fR \fIfile\fR
+Sets the input MSA file (FASTA or PHYLIP format, required). It is recommended that the file extension matches the MSA format, i.e., .fa or .fas for FASTA and .phy for PHYLIP.
+
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fIprefix\fR
+Specify the \fIprefix\fR for output files. If you set a custom prefix, that may contain an absolute or relative path, output files will start with the given prefix. If \fB\-o\fR is not specified, output files will use the input MSA filename (and path) as prefix.
+
+.TP
+\fB\-p\fR, \fB\-\-processes\fR \fInumber\fR
+Sets the number of threads to use (shared memory).
+By default, ModelTest-NG runs in one single thread, but you can perform model optimizations in parallel using several threads.
+Note that this number should be at most the number of cores available in your system,
+and ModelTest-NG will require a proportional amount of memory to the number of threads used.
+You can see the estimated amount of memory required at the beginning of the execution.
+By default, one single thread is used.
+
+.TP
+\fB\-q\fR, \fB\-\-partitions\fR \fIfile\fR
+Sets a partitioning scheme defined in a file. If a partitioning scheme is provided, the model selection process will be performed individually for each partition.
+
+.TP
+\fB\-r\fR, \fB\-\-rngseed\fR \fInumber\fR
+Sets the seed for the random number generator.
+
+.TP
+\fB\-t\fR, \fB\-\-topology\fR \fItype\fR
+Sets the tree topology used during search process (default: \fBfixed-mp\fR)
+.RS 8
+.IP \fBml\fR 15
+maximum likelihood
+.IP \fBmp\fR 15
+maximum parsimony
+.IP \fBfixed-ml-jc\fR 15
+fixed maximum likelihood obtained from JC (or JTT) model
+.IP \fBfixed-ml-gtr\fR 15
+fixed maximum likelihood obtained from GTR model
+.IP \fBfixed-mp\fR 15
+fixed maximum parsimony (default).br
+.IP \fBrandom\fR 15
+fixed random generated tree
+.IP \fBused\fR 15
+fixed user defined (requires -u argument)
+.RE
+
+.TP
+\fB\-u\fR, \fB\-\-utree\fR \fIfile\fR
+Sets a fixed user tree for the model selection process (forces -t used argument).
+The tree must be unrooted and in NEWICK format
+Note that branch lengths will be re-optimized anyway for each model unless if \fB-k\fR argument is present.
+
+.TP
+\fB\-\-disable-checkpoint\fR
+Disables writing checkpoint files.
+If you set this argument, there will be no intermediate output,
+but you will not be able to re-run the execution after an unexpected crash.
+
+.TP
+\fB\-\-force\fR
+Forces output overriding, in case it exists output files from a previous run with the same name.
+
+.TP
+\fB\-\-help\fR
+Displays a help message
+
+./" #################################################
+
+.SS "Candidate models"
+.IX Subsection "Candidate models"
+
+.TP
+\fB\-a\fR, \fB\-\-asc-bias\fR \fItype[:weights]\fR
+Includes ascertainment bias correction. Check the manual for more information.
+.RS 8
+.IP "\fBlewis\fR" 4
+Lewis (2001)
+.IP "\fBfelsenstein:\fI#inv\fR" 4
+Felsenstein. Requires the number of invariant sites.
+e.g., -a felsenstein:20
+.IP "\fBstamatakis:\fI#A,#C,#G,#T\fR" 4
+Leaché et al. (2015). Requires the invariant sites composition, i.e., the count of invariable sites for each state in alphabetical order. For example, -a stamatakis:10,5,7,15.
+.RE
+
+.TP
+\fB\-f, --frequencies\fR \fI[ef]\fR
+Sets the candidate models frequencies. By default, both are included.
+.RS 8
+.IP "\fBe\fR" 8
+(estimated)  maximum likelihood (DNA) / empirical (AA)
+.IP "\fBf\fR" 8
+(fixed)      equal (DNA) / model defined (AA)
+.RE
+
+.TP
+\fB\-h, --model-het\fR \fI[uigf]\fR
+Sets the candidate models rate heterogeneity.
+You can select any subset of the parameters below and in any order.
+For example, -h gfu.
+The default configuration if this argument is not present is "\fBuigf\fR".
+.RS 8
+.IP "\fBu\fR" 8
+Uniform: models with no rate heterogeneity
+.IP "\fBi\fR" 8
+Proportion of invariant sites (+I)
+.IP "\fBg\fR" 8
+Discrite Gamma rate categories (+G)
+.IP "\fBf\fR" 8
+Both +I and +G (+I+G)
+.IP "\fBr\fR" 8
+Free rate models (+R)
+.RE
+
+.TP
+\fB\-m, --models\fR \fIlist\fR
+Sets the candidate model matrices separated by commas.
+Use '+' or '-' prefix for updating the default list,
+e.g., "-m JTT,LG" evaluates JTT and LG only.
+"-m +LG4X,+LG4M,-LG" adds LG4 models and removes LG and from the list.
+.RS 8
+.IP "DNA models:" 15
+*JC *HKY *TrN *TPM1 *TPM2 *TPM3 *TIM1 *TIM2 *TIM3 *TVM *GTR
+.IP "Protein models" 15
+*DAYHOFF *LG *DCMUT *JTT *MTREV *WAG *RTREV *CPREV *VT *BLOSUM62 *MTMAM *MTART *MTZOA *PMB *HIVB *HIVW *JTT-DCMUT *FLU *STMTREV LG4M LG4X GTR
+.RS 15
+.IP * 2
+Included by default
+.RE
+.RE
+
+.TP
+\fB\-s, --schemes\fR \fI{3|5|7|11|203}\fR
+Sets the number of predefined DNA substitution schemes evaluated. This argument is ignored for protein data.
+.RS 8
+.IP "\fB3\fR" 8
+JC/F81, K80/HKY, SYM/GTR
+.IP "\fB5\fR" 8
++ TrNef/TrN, TPM1/TPM1uf
+.IP "\fB7\fR" 8
++ TIM1ef/TIM1, TVMef/TVM
+.IP "\fB11\fR" 8
++ TPM2/TPM2uf, TPM3/TPM3uf, TIM2ef/TIM2, TIM3ef/TIM3
+.IP "\fB203\fR" 8
+All possible GTR submatrices
+.RE
+
+.TP
+\fB\-T, --template\fR \fI[tool]\fR
+Sets candidate models according to a specified tool
+.RS 8
+.IP "\fBraxml\fR" 8
+RAxML (DNA 3 schemes / AA full search)
+.IP "\fBphyml\fR" 8
+PhyML (DNA full search / 14 AA matrices)
+.IP "\fBmrbayes\fR" 8
+MrBayes (DNA 3 schemes / 8 AA matrices)
+.IP "\fBpaup\fR" 8
+PAUP* (DNA full search / AA full search)
+.RE
+
+./" #################################################
+
+.SS "Other options"
+.IX Subsection "Other options"
+
+.TP
+\fB--eps\fR \fIvalue\fR
+Sets the model optimization epsilon (in log-Likelihood units). The default value is 0.01.
+
+.TP
+\fB--tol\fR \fIvalue\fR
+Sets the tolerance for each parameter evaluation. The default value is 0.05.
+
+.TP
+\fB--smooth-frequencies\fR
+If some state is not present in the MSA, the frequencies will be smoothed in order to avoid setting stationary frequencies equal to zero.
+
+.TP
+\fB-g\fR, \fB--gamma-rates\fR [a|g]
+Sets gamma rates mode
+.RS 8
+.IP \fBa\fR 8
+Uses the average (or mean) per category (default)
+.IP \fBm\fR 8
+Uses the median per category
+.RE
+
+.TP
+\fB--disable-checkpoint\fR
+Skips creating checkpoint files
+
+.TP
+\fB-H\fR, \fB--no-compress\fR
+Disables pattern compression. ModelTest-NG ignores if there are missing states
+
+.TP
+\fB-k\fR, \fB--keep-params\fR
+Keep branch lengths fixed during the model optimization process
+
+.TP
+\fB-v\fR, \fB--verbose\fR
+Run in verbose mode
+
+.TP
+\fB--help\fR
+Displays a help message and exits
+
+.TP
+\fB--usage\fR
+Displays summarized usage information and exits
+
+.TP
+\fB--version\fR
+Displays version information and exits
+
+
+
+./" #################################################
+.PP
+.SS "Exit status:"
+.TP
+.IP "\fB0\fR" 8
+if OK,
+.IP "\fB1\fR" 8
+some error has occured.
+.SH AUTHOR
+Written by Diego Darriba.
+.SH "EXAMPLES"
+.TP
+DNA Model selection with default parameters
+.br
+   modeltest-ng -i \fIinput_file\fR
+.TP
+Redirecting the output
+.br
+   modeltest-ng -i \fIinput_file\fR -o \fImy_prefix\fR
+
+.SH "REPORTING BUGS"
+Report ModelTest-NG bugs to diego.darriba@udc.es
+.br
+ModelTest-NG home page: <http://github.com/ddarriba/modeltest>
+
+.SH COPYRIGHT
+Copyright \(co 2015 Diego Darriba
+.br
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
