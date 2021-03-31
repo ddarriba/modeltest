@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.10 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 
 ###############################################################################
 # CONFIGURATION
@@ -8,6 +8,7 @@ set (STATIC_BUILD OFF CACHE BOOL "Build static binary")
 set (ENABLE_MPI OFF CACHE BOOL "Enable MPI support")
 set (ENABLE_GUI OFF CACHE BOOL "Enable QT GUI")
 set (ENABLE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
+set (OSX_BUNDLE OFF CACHE BOOL "Build GUI bundle (OSX only)")
 
 # set following options to OFF to build a portable binary
 # (don't worry, libpll will still have full SIMD support!)
@@ -18,10 +19,14 @@ set (ENABLE_PLLMOD_SIMD ON CACHE BOOL "Enable SIMD instructions in pll-modules (
 # END OF CONFIGURATION
 ###############################################################################
 
+project (modeltest C CXX)
+
+set (modeltest_VERSION_MAJOR 0)
+set (modeltest_VERSION_MINOR 1)
+set (modeltest_VERSION_PATCH 7)
+
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
-
-project (modeltest C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -36,33 +41,45 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set (CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
+  if (OSX_BUNDLE)
+    message (STATUS "Build GUI Bundle")
+    set (ENABLE_GUI ON)
+  endif()
   # no support for static linking on Mac
-  set(STATIC_BUILD OFF)
-  # MPI support on Macs seems to be tricky (and unnecessary)
-  set(ENABLE_MPI OFF)
+  if (STATIC_BUILD)
+    message (STATUS "ModelTest Static build disabled for Darwin")
+    set (STATIC_BUILD OFF)
+  endif()
+  if (ENABLE_MPI)
+      message (STATUS "ModelTest MPI build disabled for Darwin")
+    set (ENABLE_MPI OFF)     # MPI support on Macs seems to be tricky (and unnecessary)
+  endif()
+else()
+  if (OSX_BUNDLE)
+    message (STATUS "OSX_BUNDLE disabled (wrong OS)")
+    set (OSX_BUNDLE OFF)
+  endif()
 endif()
-
-set (modeltest_VERSION_MAJOR 0)
-set (modeltest_VERSION_MINOR 1)
-set (modeltest_VERSION_PATCH 7)
 
 set (CMAKE_BUILD_TYPE RELEASE)
 if ( $ENV{MT_DEBUG} )
   set (CMAKE_BUILD_TYPE DEBUG)
 endif ()
+message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 
 if ( $ENV{MT_VERBOSE} )
   set (CMAKE_VERBOSE_MAKEFILE ON)
+  message (STATUS "ModelTest Verbose Makefile")
 endif()
-
-message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -mmacosx-version-min=10.7")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -mmacosx-version-min=10.7")
+  set (WARN_FLAGS               "-Wall -Wno-unused-parameter")
+else()
+  set (WARN_FLAGS               "-Wall -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
+  set (CMAKE_CXX_FLAGS          "-std=c++11 ${WARN_FLAGS}")
 endif()
-
-set (WARN_FLAGS               "-Wall -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
-set (CMAKE_CXX_FLAGS          "-std=c++11 ${WARN_FLAGS}")
 
 set (CMAKE_CXX_FLAGS_DEBUG    "-O0 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG")
 set (CMAKE_C_FLAGS_DEBUG      "-O0 -g -ggdb3 -D_GLIBCXX_DEBUG")
@@ -93,9 +110,6 @@ if(ENABLE_PTHREADS)
 endif()
 
 if(ENABLE_GUI)
-  set(CMAKE_AUTOUIC ON)
-  set(CMAKE_AUTOMOC ON)
-
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
   # Find the QtWidgets library
@@ -153,12 +167,19 @@ endif()
 
 set( BUILD_PLLMODULES_STATIC ON   CACHE BOOL "Passing BUILD_PLLMODULES_STATIC=ON to pll-modules" )
 set( BUILD_PLLMODULES_SHARED OFF  CACHE BOOL "Passing BUILD_PLLMODULES_SHARED=OFF to pll-modules" )
-set(MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
+set( MODELTEST_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps )
+set( PLLMOD_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/src" )
+set( LIBPLL_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/libs/libpll/src" )
 
+if ( ENABLE_GUI )
+  set(CMAKE_AUTOUIC OFF)
+  set(CMAKE_AUTOMOC OFF)
+endif()
 add_subdirectory( ${PROJECT_SOURCE_DIR}/libs/pll-modules )
-
-set(PLLMOD_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/src")
-set(LIBPLL_SRC "${PROJECT_SOURCE_DIR}/libs/pll-modules/libs/libpll/src")
+if ( ENABLE_GUI )
+  set(CMAKE_AUTOUIC ON)
+  set(CMAKE_AUTOMOC ON)
+endif()
 
 file(COPY ${PLLMOD_SRC}/pllmod_common.h
           ${PLLMOD_SRC}/util/pllmod_util.h
@@ -177,10 +198,27 @@ file(COPY ${PLLMOD_SRC}/pllmod_common.h
 include_directories(${MODELTEST_LOCALDEPS_DIR}/include)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
-#install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin COMPONENT applications)
-                          
-include(InstallRequiredSystemLibraries)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_VERSION_MAJOR "${modeltest_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${modeltest_VERSION_MINOR}")
+# =============================================
+#         Packaging
+# =============================================
+
+set(CPACK_GENERATOR "TGZ;STGZ;DEB")
+set(CPACK_SOURCE_GENERATOR "TGZ;STGZ")
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Diego Darriba")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libqt5widgets5, libqt5core5a, libqt5gui5")
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR "GAC")
+set(CPACK_VERBATIM_VARIABLES true)
+set(CPACK_PACKAGE_VERSION_MAJOR ${modeltest_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${modeltest_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${modeltest_VERSION_PATCH})
+
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+
+set(CPACK_SOURCE_IGNORE_FILES "${CMAKE_SOURCE_DIR}/build/;${CMAKE_SOURCE_DIR}/legacy/;${CMAKE_SOURCE_DIR}/.git/;${CMAKE_SOURCE_DIR}/manual/")
+
 include(CPack)

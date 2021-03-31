@@ -28,6 +28,11 @@
 *.app
 
 # Aux files
+*.aux
+*.bbl
+*.blg
+*.log
+*.toc
 .deps
 .dirstamps
 Makefile.in
