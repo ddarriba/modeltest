@@ -201,7 +201,7 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
                 n_sites,                           /* sites */
                 1,                                 /* rate matrices */
                 2*n_tips-3,                        /* prob matrices */
-                optimize_gamma | optimize_ratecats ? n_categories : 1, /* rate cats */
+                (optimize_gamma | optimize_ratecats) ? n_categories : 1, /* rate cats */
                 n_tips-2,                          /* scale buffers */
                 attributes                         /* attributes */
                 );
