@@ -587,12 +587,14 @@ static vector<partition_descriptor_t> * parse_partition (int * inp)
         tmpchar[token.len] = '\0';
 
         /* check first for DNA */
-        if (!strcasecmp(tmpchar,"DNA") || !strcasecmp(tmpchar,"NT"))
+        if (!strcmp(tmpchar,"DNA") || !strcmp(tmpchar,"NT") ||
+            !strcmp(tmpchar,"dna") || !strcmp(tmpchar,"nt"))
         {
             pi.datatype   = dt_dna;
             pi.states     = N_DNA_STATES;
         }
-        else if (!strcasecmp(tmpchar,"PROT") || !strcasecmp(tmpchar,"AA"))
+        else if (!strcmp(tmpchar,"PROT") || !strcmp(tmpchar,"AA") ||
+                 !strcmp(tmpchar,"prot") || !strcmp(tmpchar,"aa"))
         {
             /* and  protein data */
             pi.datatype  = dt_protein;

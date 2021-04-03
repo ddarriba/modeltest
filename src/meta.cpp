@@ -29,6 +29,7 @@
 
 #include <getopt.h>
 #include <sstream>
+#include <algorithm>
 
 #define MAX_OPT_LENGTH 40
 #define SHORT_OPT_LENGTH 6
@@ -136,19 +137,19 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         case 3:
             /* partitioning search */
             //TODO
-            if (!strcasecmp(optarg, "kn"))
+            if (!strcmp(optarg, "kn"))
             {
                 LOG_ERR << "Search K=N" << endl;
             }
-            else if (!strcasecmp(optarg, "hcluster"))
+            else if (!strcmp(optarg, "hcluster"))
             {
                 LOG_ERR << "Search hierarchical clustering" << endl;
             }
-            else if (!strcasecmp(optarg, "greedy"))
+            else if (!strcmp(optarg, "greedy"))
             {
                 LOG_ERR << "Search greedy" << endl;
             }
-            else if (!strcasecmp(optarg, "kn"))
+            else if (!strcmp(optarg, "kn"))
             {
                 LOG_ERR << "Search K=N" << endl;
             }
@@ -210,11 +211,11 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             {
               char * asc_bias_type = strtok(optarg, ":");
               char * asc_bias_values = strtok(NULL, "\0");
-              if (!strcasecmp(asc_bias_type, "lewis"))
+              if (!strcmp(asc_bias_type, "lewis"))
               {
                   exec_opt.asc_bias_corr = asc_lewis;
               }
-              else if (!strcasecmp(asc_bias_type, "felsenstein"))
+              else if (!strcmp(asc_bias_type, "felsenstein"))
               {
                   exec_opt.asc_bias_corr = asc_felsenstein;
                   /* parse dummy weight */
@@ -244,7 +245,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
                     params_ok = false;
                   }
               }
-              else if (!strcasecmp(asc_bias_type, "stamatakis"))
+              else if (!strcmp(asc_bias_type, "stamatakis"))
               {
                   exec_opt.asc_bias_corr = asc_stamatakis;
                   int current_state = 0;
@@ -283,11 +284,11 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             }
             break;
         case 'd':
-            if (!strcasecmp(optarg, "nt"))
+            if (!strcmp(optarg, "nt"))
             {
                 arg_datatype = dt_dna;
             }
-            else if (!strcasecmp(optarg, "aa"))
+            else if (!strcmp(optarg, "aa"))
             {
                 arg_datatype = dt_protein;
             }
@@ -434,27 +435,27 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             exclusion_modelset |= 2;
             break;
         case 't':
-            if (!strcasecmp(optarg, "user"))
+            if (!strcmp(optarg, "user"))
             {
                 exec_opt.starting_tree = tree_user_fixed;
             }
-            else if (!strcasecmp(optarg, "mp"))
+            else if (!strcmp(optarg, "mp"))
             {
                 exec_opt.starting_tree = tree_mp;
             }
-            else if (!strcasecmp(optarg, "ml"))
+            else if (!strcmp(optarg, "ml"))
             {
                 exec_opt.starting_tree = tree_ml;
             }
-            else if (!strcasecmp(optarg, "fixed-ml-gtr"))
+            else if (!strcmp(optarg, "fixed-ml-gtr"))
             {
                 exec_opt.starting_tree = tree_ml_gtr_fixed;
             }
-            else if (!strcasecmp(optarg, "fixed-ml-jc"))
+            else if (!strcmp(optarg, "fixed-ml-jc"))
             {
                 exec_opt.starting_tree = tree_ml_jc_fixed;
             }
-            else if (!strcasecmp(optarg, "random"))
+            else if (!strcmp(optarg, "random"))
             {
                 exec_opt.starting_tree = tree_random;
             }
@@ -467,19 +468,19 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 'T':
             /* load template */
-            if (!strcasecmp(optarg, "raxml"))
+            if (!strcmp(optarg, "raxml"))
             {
                 template_models = template_raxml;
             }
-            else if (!strcasecmp(optarg, "phyml"))
+            else if (!strcmp(optarg, "phyml"))
             {
                 template_models = template_phyml;
             }
-            else if (!strcasecmp(optarg, "mrbayes"))
+            else if (!strcmp(optarg, "mrbayes"))
             {
                 template_models = template_mrbayes;
             }
-            else if (!strcasecmp(optarg, "paup"))
+            else if (!strcmp(optarg, "paup"))
             {
                 template_models = template_paup;
             }
@@ -833,9 +834,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
               }
             }
 
+            std::transform(s.begin(), s.end(), s.begin(),
+                 [](unsigned char c){ return std::toupper(c); });
+
             for (i=0; i<N_PROT_MODEL_ALL_MATRICES; i++)
             {
-                if (!strcasecmp(prot_model_names[i].c_str(), s.c_str()))
+                if (!prot_model_names[i].compare(s))
                 {
                     c_matrix = i;
                     break;
@@ -907,10 +911,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             s = s.substr(1);
           }
 
+          std::transform(s.begin(), s.end(), s.begin(),
+               [](unsigned char c){ return std::toupper(c); });
+
           for (i=0; i<N_DNA_MODEL_MATRICES; i++)
           {
-            if (!strcasecmp(dna_model_names[2*i].c_str(), s.c_str()) ||
-                !strcasecmp(dna_model_names[2*i+1].c_str(), s.c_str()))
+            if (!uc_dna_model_names[2*i].compare(s) ||
+                !uc_dna_model_names[2*i+1].compare(s))
             {
               c_matrix = i;
               break;
