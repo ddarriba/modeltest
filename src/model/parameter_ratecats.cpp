@@ -20,6 +20,7 @@
 */
 
 #include "parameter_ratecats.h"
+#include "parameter_branches.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 2
@@ -121,6 +122,8 @@ double ParameterRateCats::optimize(mt_opt_params_t * params,
   cur_loglh = -1 * pllmod_algo_opt_rates_weights_treeinfo (params->tree_info,
                                                         0.01,
                                                         10,
+                                                        MT_MIN_BRANCH_LENGTH,
+                                                        MT_MAX_BRANCH_LENGTH,
                                                         LBFGSB_FACTOR,
                                                         tolerance);
 
