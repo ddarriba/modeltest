@@ -405,10 +405,21 @@ static bool eval_ckp(mt_options_t & options,
     for (partition_descriptor_t const& partition : (*current_instance->partitions_eff))
     {
         if (partition.datatype == dt_dna)
+        {
+          if (options.rate_clustering)
+          {
+            max_blocks += 2*modeltest::Utils::number_of_models(
+              N_DNA_MODEL_CLUSTER_COUNT,
+              partition.model_params);
+          }
+          else
+          {
             max_blocks += 2 *
               modeltest::Utils::number_of_models(
                 (mt_size_t)options.nt_candidate_models.size(),
                 partition.model_params);
+          }
+        }
         else if (partition.datatype == dt_protein)
             max_blocks += 2 *
               modeltest::Utils::number_of_models(

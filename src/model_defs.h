@@ -31,6 +31,7 @@
 #define N_DNA_SUBST_RATES            6
 #define N_DNA_MODEL_MATRICES        11
 #define N_DNA_ALLMATRIX_COUNT      203
+#define N_DNA_MODEL_CLUSTER_COUNT   36 //1+15+10+6+3+1 
 #define N_PROT_STATES               20
 #define N_PROT_SUBST_RATES         190
 #define N_PROT_MODEL_MATRICES       19
@@ -101,6 +102,20 @@ const std::string dna_model_names[22] = {
     "TIM2ef", "TIM2",
     "TIM3ef", "TIM3",
     "TVMef",  "TVM",
+    "SYM",    "GTR"
+};
+
+const std::string uc_dna_model_names[22] = {
+    "JC",     "F81",
+    "K80",    "HKY",
+    "TRNEF",  "TRN",
+    "TPM1",   "TPM1UF",
+    "TPM2",   "TPM2UF",
+    "TPM3",   "TPM3UF",
+    "TIM1EF", "TIM1",
+    "TIM2EF", "TIM2",
+    "TIM3EF", "TIM3",
+    "TVMEF",  "TVM",
     "SYM",    "GTR"
 };
 
