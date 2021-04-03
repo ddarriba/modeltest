@@ -124,7 +124,7 @@ if(ENABLE_MPI)
     include_directories(${MPI_CXX_INCLUDE_PATH})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILER_FLAGS} -DBUILD_MPI")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-    
+
     # disable static build for MPI
     set(STATIC_BUILD OFF)
   endif()
@@ -143,12 +143,12 @@ message(STATUS "ModelTest Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILE
 include( "${CMAKE_CURRENT_LIST_DIR}/libs/cmake/DownloadDependency.cmake" )
 
 # Do not replace the hashes below manually!
-SET( pll-modules_COMMIT_HASH "82959854129c05a18741ecb93a6ba5c00b9eb667" )
-SET( libpll_COMMIT_HASH "c5f63744743e4070a68da763899889bdb3ef4216" )
+SET( pll-modules_COMMIT_HASH "9333ffd14f34e503edcaca2cc6781a8fb597215a" )
+SET( libpll_COMMIT_HASH "ffe25505677c73cce0b6555b850a2769a48e93f9" )
 
 DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs" "pll-modules" "README.md" "ddarriba/pll-modules" ${pll-modules_COMMIT_HASH} )
 DOWNLOAD_GITHUB_DEPENDENCY( "${PROJECT_SOURCE_DIR}/libs/pll-modules/libs" "libpll" "README.md" "xflouris/libpll-2" ${libpll_COMMIT_HASH} )
-                                                         
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(MODELTEST_COMPILER_TARGET_VERSION "4.8")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS MODELTEST_COMPILER_TARGET_VERSION)
@@ -194,7 +194,7 @@ file(COPY ${PLLMOD_SRC}/pllmod_common.h
 # =============================================
 #         Recurse and compile main code
 # =============================================
-  
+
 include_directories(${MODELTEST_LOCALDEPS_DIR}/include)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 

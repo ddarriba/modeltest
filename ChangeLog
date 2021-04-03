@@ -1,7 +1,10 @@
 * dev 0.1.8
 
+  - Updated pll
+  - Fix bug with model clustering and checkpointing
+  - Replaced non-portable function strcasecmp
   - Fixed bug with pthreads and static linking
-	- Unify build methods
+  - Unify build methods
 
 * release 0.1.7
 
