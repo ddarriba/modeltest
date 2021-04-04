@@ -210,7 +210,7 @@ void ParallelContext::parallel_reduce(double * data, size_t size, int op)
 
     if (_thread_id == 0)
     {
-      MPI_Op reduce_op = MPI_UNDEFINED;
+      MPI_Op reduce_op = MPI_NO_OP;
       if (op == PLLMOD_COMMON_REDUCE_SUM)
         reduce_op = MPI_SUM;
       else if (op == PLLMOD_COMMON_REDUCE_MAX)

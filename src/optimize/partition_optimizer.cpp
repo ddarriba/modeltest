@@ -26,8 +26,6 @@
 
 #include <fstream>
 
-#define MPI_RMA 1
-
 using namespace std;
 
 namespace modeltest
@@ -299,64 +297,51 @@ namespace modeltest
       exec_info.model_index = 0;
 #if(MPI_ENABLED)
   int next_model = 0;
-
-#if(MPI_RMA)
-  int * job_ids;
+  int * job_id;
+  int one = 1;
   MPI_Win comm_win;
+
   if (ROOT)
   {
     MPI_Win_allocate(
-      sizeof(int) * n_models,
+      sizeof(int),
       sizeof(int),
       MPI_INFO_NULL, MPI_COMM_WORLD,
-      &job_ids, &comm_win);
+      &job_id, &comm_win);
 
       MPI_Win_fence(0, comm_win);
-      for (mt_size_t i=0; i<n_models; ++i)
-      {
-        job_ids[i] = -1;
-      }
+      *job_id = 0;
       MPI_Win_fence(0, comm_win);
   }
   else
   {
     MPI_Win_allocate(0, sizeof(int),
                      MPI_INFO_NULL, MPI_COMM_WORLD,
-                     &job_ids, &comm_win);
+                     &job_id, &comm_win);
 
     MPI_Win_fence(0, comm_win);
     MPI_Win_fence(0, comm_win);
   }
-#endif
 
   pll_unode_t * serialized_tree = 0;
   while ((mt_size_t)next_model < n_models)
   {
-    /* get next model */
-    MPI_Win_lock_all(0, comm_win);
+    /* get next model index */
+    MPI_Win_lock(MPI_LOCK_SHARED, 0, MPI_MODE_NOCHECK, comm_win);
 
-    bool found = false;
-    while ((mt_size_t)next_model < n_models && !found)
-    {
-      int job_id;
-      MPI_Fetch_and_op(&next_model, &job_id,
-               MPI_INT, 0, next_model,
-               MPI_REPLACE, comm_win);
-      if (job_id == -1)
-        found = true;
-      else
-        next_model++;
-    }
+    /* atomic update (no need to check for conflicts) */
+    MPI_Fetch_and_op(&one, &next_model,
+                     MPI_INT, 0, 0,
+                     MPI_SUM, comm_win);
 
-      MPI_Win_sync(comm_win);
-    MPI_Win_unlock_all(comm_win);
-
-    /* request model */
+    MPI_Win_unlock(0, comm_win);
 
     if (next_model < 0 || (mt_size_t)next_model >= n_models) break;
-    exec_info.model_index = next_model;
 
-    Model *model = models[exec_info.model_index];
+    /* request model */
+    exec_info.model_index = next_model + 1;
+
+    Model *model = models[exec_info.model_index - 1];
 #else // MPI_ENABLED
       for (Model *model : models)
       {
@@ -376,7 +361,7 @@ namespace modeltest
         notify((void *) &exec_info);
       }
 
-#if(MPI_ENABLED & MPI_RMA)
+#if(MPI_ENABLED)
     if (ROOT)
     {
       mpi_comm_data_t rec_data;
@@ -390,7 +375,7 @@ namespace modeltest
          pll_utree_t * expanded_tree;
 
          /* update model */
-         Model *model = models[rec_data.model_index];
+         Model *model = models[rec_data.model_index - 1];
          if (model->is_G()) model->set_alpha(rec_data.alpha);
          if (model->is_I()) model->set_prop_inv(rec_data.pinv);
          if (model->is_R())
@@ -441,7 +426,7 @@ namespace modeltest
         mpi_comm_data_t snd_data;
         if (model->is_optimized())
         {
-          snd_data.model_index = mindex;
+          snd_data.model_index = mindex + 1;
           snd_data.loglh = model->get_loglh();
 
           if (optimize_topology)
@@ -462,7 +447,7 @@ namespace modeltest
           }
           MPI_Send(&snd_data, sizeof(mpi_comm_data_t), MPI_BYTE, 0, 201, master_mpi_comm);
 
-          if (optimize_topology && snd_data.model_index >= 0)
+          if (optimize_topology && snd_data.model_index > 0)
           {
             assert(serialized_tree);
             MPI_Send(serialized_tree, sizeof(pll_unode_t) * (2*tree.get_n_tips() - 2), MPI_BYTE, 0, 301, master_mpi_comm);
