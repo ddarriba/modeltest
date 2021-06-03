@@ -145,7 +145,7 @@ Model::Model(mt_mask_t model_params,
 
   if (mixture && n_categories != N_MIXTURE_CATS)
   {
-    LOG_WARN << "Warning: Categories for mixture model set to " << N_MIXTURE_CATS << endl;
+    LOG_WARN << "Categories for mixture model set to " << N_MIXTURE_CATS << endl;
     n_categories = N_MIXTURE_CATS;
   }
 
@@ -394,7 +394,7 @@ bool Model::evaluate_criteria (mt_size_t n_branches_params,
 
   mt_size_t n_params = n_free_variables + n_branches_params;
   mt_size_t aicc_sample_size = max(sample_size, n_params + 2);
- 
+
   aic = 2*n_params - 2*loglh;
   aicc = aic + 2*n_params*(n_params+1)/(aicc_sample_size - n_params - 1);
   bic = -2*loglh + n_params * log(sample_size);
@@ -555,7 +555,11 @@ bool Model::optimize( pll_partition_t * partition,
     }
 
     for (AbstractParameter * parameter : parameters)
+    {
+      LOG_DBG << "[" << get_name() << "]" << fixed << setprecision(5) << loglh
+              << " optimize " << parameter->get_name() << endl;
       parameter->optimize(&params, loglh, tolerance, true);
+    }
     //lnL = parameters[0]->optimize(&params, lnL, tolerance, true);
 
     if (optimize_gamma)
@@ -586,8 +590,9 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
 
+  LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
+          << " optimize " << parameter->get_name() << endl;
   loglh = parameter->optimize(&params, loglh, tolerance, true);
-  LOG_DBG << "[dbg] optimize " << parameter->get_name() << ": " << loglh << endl;
   ++current_opt_parameter;
 
   if (current_opt_parameter >= parameters.size())

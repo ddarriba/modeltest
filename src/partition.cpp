@@ -147,12 +147,12 @@ static bool build_models(const partition_descriptor_t &descriptor,
 
   if (ckp_filename.compare("") && Utils::file_exists(ckp_filename))
   {
-    LOG_DBG << "[dbg] Attempting to load partition from checkpoint " << ckp_filename << endl;
+    LOG_DBG << "Attempting to load partition from checkpoint " << ckp_filename << endl;
     for (Model * model : c_models)
     {
       if (model->input_bin(ckp_filename))
       {
-        LOG_DBG << "[dbg] Loaded model from checkpoint: " << model->get_name() << endl;
+        LOG_DBG << "Loaded model from checkpoint: " << model->get_name() << endl;
       }
     }
   }
@@ -212,8 +212,8 @@ Partition::Partition(partition_id_t _id,
     emp_pinv = msa.get_stats(_descriptor.unique_id-1).inv_prop;
     if (emp_pinv < 0.002)
     {
-      LOG_WARN << "WARNING: Empirical invariant sites proportion for partition " << get_name() << " is " << emp_pinv << endl;
-      LOG_WARN << "         You should consider excluding +I and +I+G models from the analysis" << endl << endl;
+      LOG_WARN << "Empirical invariant sites proportion for partition " << get_name() << " is " << emp_pinv << endl;
+      LOG_WARN << "You should consider excluding +I and +I+G models from the analysis" << endl << endl;
     }
   }
 

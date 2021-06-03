@@ -584,7 +584,7 @@ static string raxmlng_name(Model const& model)
          modelname << dna_model_matrices[matrix_index];
          if (model.is_F())
          {
-           modelname << "+F0";
+           modelname << "+FO";
          }
      }
 
@@ -602,7 +602,7 @@ static string raxmlng_name(Model const& model)
       if (model.is_G())
         modelname << "+G" << model.get_n_categories();
       if (model.is_F())
-        modelname << "+F";
+        modelname << "+FC";
   }
 
   if (model.get_asc_bias_corr() == asc_lewis)

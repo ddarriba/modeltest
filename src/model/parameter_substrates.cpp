@@ -273,6 +273,9 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
   UNUSED(first_guess);
   double cur_loglh;
 
+  if (!n_subst_free_params)
+    return loglh;
+
   assert(rate_set_count == 1);
 
   cur_loglh = -1 * pllmod_algo_opt_subst_rates_treeinfo(params->tree_info,

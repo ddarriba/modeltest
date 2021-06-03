@@ -28,6 +28,7 @@
 #include "global_defs.h"
 #include "model/dnamodel.h"
 #include "model/protmodel.h"
+#include "genesis/logging.h"
 
 namespace modeltest
 {

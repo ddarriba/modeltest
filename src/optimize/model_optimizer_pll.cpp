@@ -110,7 +110,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /*test*/
     //num_threads = 2;
 
-    LOG_DBG2 << "[dbg] Optimizing model " << model.get_name() <<  " with " << _num_threads << " threads" << endl;
+    LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << _num_threads << " threads" << endl;
     time_t start_time = time(NULL);
     mt_size_t n_branches = tree.get_n_branches();
 
@@ -122,21 +122,25 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       return false;
     }
 
-    LOG_DBG2 << "[dbg] Initial Frequencies:   ";
+    if (verbosity == VERBOSITY_ULTRA)
+    {
+    stringstream ss;
+    ss << "[" << model.get_name() << "] initial Frequencies: {";
     for (mt_index_t i=0; i<pll_partition->states; i++)
-      LOG_DBG2 << pll_partition->frequencies[0][i] << " ";
-    LOG_DBG2 << endl;
+      ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
+    ss << " }" << endl;
+    LOG_DBG2 << ss.str();
+    }
 
-    /* /PTHREADS */
+    /* Multithread */
     if (_num_threads > 1)
     {
       LOG_INFO << "Multithread optimization is temporary unavailable" << endl;
-      assert(_num_threads == 1);
+      Utils::exit_with_error("Unavailable feature (multi-threaded optimization)");
     }
-    /* /PTHREADS */
-    LOG_DBG << "[dbg] Building parameters and computing initial lk score" << endl;
-    double initial_lk = pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
-    LOG_DBG << "[dbg] Initial score: " << initial_lk << endl;
+
+    LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
+    pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
     double test_loglh;         /* temporary variable */
@@ -145,18 +149,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     double cur_loglh = optimize_model(epsilon, tolerance, true);
 
-    LOG_DBG << "[dbg] Model optimization done: " << cur_loglh << endl;
-
     /* TODO: if bl are reoptimized */
     if (keep_model_parameters)
       tree.set_bl_optimized();
 
     time_t end_time = time(NULL);
-
-    if (_num_threads > 1)
-    {
-      assert(false);
-    }
 
     if (interrupt_optimization)
     {
@@ -215,10 +212,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
           /* ensure we never get a worse likelihood score */
           if (save_loglh - cur_loglh > 1e-5)
           {
-              LOG_ERR << "Error: " << fixed << setprecision(5) << save_loglh << " vs " <<
-                      setprecision(5) << cur_loglh <<
-                      " [" << cur_parameter << "]" << endl;
-              assert(cur_loglh - save_loglh < 1e-5);
+              LOG_ERR << "[" << model.get_name() << "] "
+                      << fixed << setprecision(5) << save_loglh << " vs "
+                      << setprecision(5) << cur_loglh
+                      << " [" << cur_parameter << "]" << endl;
+              Utils::exit_with_error("Optimization converged to a worse likelihood score by %.5lf units",
+                                     cur_loglh - save_loglh);
           }
           opt_delta = cur_loglh;
           notify();
@@ -272,7 +271,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     new_loglh = loglh;
 
-    LOG_DBG << "[dbg] Initial log likelihood: " << loglh << endl;
+    LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << loglh << " initial log likelihood" << endl;
     tree_info = pllmod_treeinfo_create(keep_model_parameters
                                          ?pll_tree
                                          :pll_utree_graph_clone(pll_tree),
@@ -295,7 +294,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
      if (!retval)
      {
        assert(pll_errno);
-       assert(0);
+       Utils::exit_with_error("Init partition error: %s\n", pll_errmsg);
      }
 
     if (optimize_topology)
@@ -316,10 +315,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         ++spr_round_id;
         old_loglh = new_loglh;
 
-        LOG_DBG << "[dbg] SPR params:"
+        LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " SPR params:"
             << " round=" << spr_round_id
             << " rad=[" << radius_min << "," << radius_max << "]"
-            << " bl=[" << MT_MIN_BRANCH_LENGTH << "," << MT_MAX_BRANCH_LENGTH << "]"
+            << " bl=[" << scientific << setprecision(1) << MT_MIN_BRANCH_LENGTH << "," << scientific << setprecision(1) << MT_MAX_BRANCH_LENGTH << "]"
             << " ntopos=" << ntopol_keep
             << " smooth=" << smoothings
             << " tol=" << tolerance
@@ -338,7 +337,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           cutoff_info, /* cutoff */
                                           cutoff_thr);
 
-        LOG_DBG << "[dbg] SPR cycle: " << old_loglh << " -> " << new_loglh << endl;
+        if (pll_errno && new_loglh == 0)
+        {
+          LOG_DBG2 << "[" << model.get_name() << "] Error " << pll_errno << " in SPR cycle: " << pll_errmsg << endl;
+          pllmod_reset_error();
+          new_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
+        }
 
         new_loglh = optimize_parameters(tree_info, 1.0, 1.0, opt_per_param, new_loglh);
 
@@ -347,7 +351,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         {
           radius_min = 1;
           radius_max = radius_step;
-          LOG_DBG << "[dbg] Reset radius: " << radius_min << "," << radius_max << endl;
+          LOG_DBG2 << "[" << model.get_name() << "] Reset radius: " << radius_min << "," << radius_max << endl;
         }
         else if (!impr && DO_THOROUGH_ML_SEARCH)
         {
@@ -358,26 +362,26 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             radius_min = 1;
             radius_max = radius_step;
 
-            LOG_DBG << "[dbg] Reset insertion and radius: "
-                    << radius_min << "," << radius_max << ": " << new_loglh << endl;
+            LOG_DBG2 << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " reset insertion and radius: "
+                    << radius_min << "," << radius_max << endl;
             new_loglh = optimize_parameters(tree_info,
                                             ML_SEARCH_PARAM_EPS,
                                             ML_SEARCH_PARAM_TOL,
                                             opt_per_param,
                                             new_loglh);
-            LOG_DBG << "[dbg] Thorough insertion [" << ML_SEARCH_PARAM_EPS
-                    << "/" << ML_SEARCH_PARAM_TOL << "]: " << new_loglh << endl;
+            LOG_DBG2 << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " thorough insertion [" << ML_SEARCH_PARAM_EPS
+                    << "/" << ML_SEARCH_PARAM_TOL << "] " << endl;
           }
           else
           {
             radius_min += radius_step;
             radius_max += radius_step;
-            LOG_DBG << "[dbg] Update radius: " << radius_min << "," << radius_max << endl;
+            LOG_DBG2 << "[" << model.get_name() << "] Update radius: " << radius_min << "," << radius_max << endl;
           }
         }
       } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
 
-      LOG_DBG << "[dbg] SPR done" << endl;
+      LOG_DBG2 << "[" << model.get_name() << "] SPR done" << endl;
 
       free (cutoff_info);
 
@@ -387,10 +391,10 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     /* final thorough parameter optimization */
     model.set_loglh(new_loglh);
 
-    LOG_DBG << "[dbg] final parameter optimization: " << new_loglh << endl;
+    LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " final parameter optimization: " << endl;
     loglh = optimize_parameters(tree_info, epsilon, tolerance, opt_per_param, new_loglh);
-    LOG_DBG << "[dbg] model done: [" << epsilon
-            << "/" << tolerance << "]: " << loglh << endl;
+    LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << loglh << " model done: [" << epsilon
+            << "/" << tolerance << "] " << endl;
 
     if (!(optimize_topology || keep_model_parameters))
       pll_utree_graph_destroy(tree_info->root, NULL);

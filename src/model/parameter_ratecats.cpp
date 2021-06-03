@@ -21,6 +21,7 @@
 
 #include "parameter_ratecats.h"
 #include "parameter_branches.h"
+#include "../partition.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 2

@@ -23,20 +23,14 @@
 #define GLOBAL_DEFS_H
 
 #define PACKAGE "modeltest-ng"
-#define MTNG_VERSION "0.1.7"
-#define MTNG_DATE "17.03.2021"
-
-#define USE_POSIX_THREADS 1
+#define MTNG_VERSION "0.2.0"
+#define MTNG_DATE "05.04.2021"
 
 #include <string>
 #include <vector>
 #include <climits>
 #include <iomanip>
-#if(USE_POSIX_THREADS)
 #include <mutex>
-#else
-#include "mingw/mingw.mutex.h"
-#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -86,6 +80,7 @@
 #define VERBOSITY_LOW             1
 #define VERBOSITY_MID             2
 #define VERBOSITY_HIGH            3
+#define VERBOSITY_ULTRA           4
 
 #define MT_MIN_SMOOTH_FREQ        0.02
 
@@ -158,6 +153,7 @@ extern MPI_Comm master_mpi_comm;
 #define MT_ERROR_INSTANCE      10600
 #define MT_ERROR_OPTIMIZE      10700
 #define MT_ERROR_NUMBER        10800
+#define MT_ERROR_UNKNOWN        1000
 
 /* fine grain errors */
 #define MT_ERROR_ALIGNMENT_DUPLICATED      10201

@@ -135,8 +135,6 @@ int main(int argc, char *argv[])
         Meta::print_system_info(MT_INFO);
         MT_INFO << endl << flush;
 
-        LOG_DBG << "[dbg] Create modeltest instance" << endl;
-
         if (!ModelTestService::instance()->create_instance(opts))
         {
             LOG_ERR << PACKAGE << ": " << modeltest::mt_errmsg << endl;
@@ -166,7 +164,7 @@ int main(int argc, char *argv[])
         {
             /* We warn only if the number of processors is 1. */
             /* Otherwise we assume that the user is aware of this feature */
-            LOG_WARN << endl << PACKAGE << ": Warning: You are using one single thread out of "
+            LOG_WARN << PACKAGE << ": You are using one single thread out of "
                     << num_cores << " physical cores." << endl;
             LOG_WARN << PACKAGE
                  << ":          You can set the number of threads with -p argument."

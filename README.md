@@ -44,7 +44,7 @@ For other systems, please make sure you have following packages/libraries instal
 
 2. **Build ModelTest-NG.**
 
-PTHREADS version:
+Multithread version:
 
 ```
 mkdir build && cd build
@@ -68,7 +68,7 @@ cmake -DENABLE_GUI=ON ..
 make
 ```
 
-Portable PTHREADS version (static linkage, compatible with old non-AVX CPUs):
+Portable version (static linkage, compatible with old non-AVX CPUs):
 
 ```
 mkdir build && cd build

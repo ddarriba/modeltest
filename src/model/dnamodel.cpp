@@ -87,7 +87,7 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
         ss_name << dna_model_matrices[matrix_index];
         if (is_F())
         {
-          ss_name << "[F]";
+          ss_name << "+FO";
         }
     }
 

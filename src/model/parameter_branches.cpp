@@ -21,7 +21,6 @@
 
 #include "parameter_branches.h"
 #include "../partition.h"
-#include "../genesis/logging.h"
 
 #define SMOOTHINGS 4
 
@@ -134,12 +133,9 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
                                           1,
                                           1);
 
-      LOG_DBG << "[dbg] Reset branches :( " << cur_loglh << " ~= " << loglh << endl;
+      LOG_DBG2 << "Reset branches :( " << fixed << setprecision(5) << cur_loglh
+              << " ~= " << fixed << setprecision(5) <<  loglh << endl;
       assert(fabs(cur_loglh - loglh) < 1e-6);
-  }
-  else
-  {
-    LOG_DBG << "[dbg] fix branches " << cur_loglh << endl;
   }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

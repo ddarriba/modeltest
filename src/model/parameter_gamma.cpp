@@ -20,6 +20,7 @@
 */
 
 #include "parameter_gamma.h"
+#include "../partition.h"
 
 #define MIN_ALPHA 0.02
 #define MAX_ALPHA 100

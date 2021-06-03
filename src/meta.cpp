@@ -93,31 +93,33 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "keep-params", no_argument,        0, 'k' },
         { "models", required_argument,       0, 'm' },
         { "output", required_argument,       0, 'o' },
-        { "processes", required_argument,    0, 'p' },
+        { "threads", required_argument,      0, 'p' },
         { "partitions", required_argument,   0, 'q' },
         { "rngseed", required_argument,      0, 'r' },
         { "schemes", required_argument,      0, 's' },
         { "template", required_argument,     0, 'T' },
         { "tree", required_argument,         0, 't' },
         { "utree", required_argument,        0, 'u' },
-        { "verbose", no_argument,            0, 'v' },
+        { "version", no_argument,            0, 'v' },
+        { "verbose", no_argument,            0, 'V' },
         { "help", no_argument,               0,  0 },
         { "usage", no_argument,              0,  1 },
-        { "version", no_argument,            0,  2 },
-        { "psearch", required_argument,      0,  3 },
-        { "smooth-frequencies", no_argument, 0,  4 },
-        { "disable-repeats", no_argument,    0,  5 },
-        { "disable-checkpoint", no_argument, 0,  6 },
+        { "psearch", required_argument,      0,  2 },
+        { "smooth-frequencies", no_argument, 0,  3 },
+        { "disable-repeats", no_argument,    0,  4 },
+        { "disable-checkpoint", no_argument, 0,  5 },
         { "eps", required_argument,          0, 10 },
         { "tol", required_argument,          0, 11 },
-        { "force", no_argument,              0, 20 },
         { "msa-info", no_argument,           0, 12 },
+        { "force", no_argument,              0, 20 },
+        { "quiet", no_argument,              0, 21 },
+        { "ultraverbose", no_argument,       0, 22 },
         { 0, 0, 0, 0 }
     };
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:q:r:s:t:T:u:v", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:q:r:s:t:T:u:vV", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -131,10 +133,6 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             modeltest::mt_errno = MT_ERROR_IGNORE;
             return false;
         case 2:
-            print_version();
-            modeltest::mt_errno = MT_ERROR_IGNORE;
-            return false;
-        case 3:
             /* partitioning search */
             //TODO
             if (!strcmp(optarg, "kn"))
@@ -160,15 +158,15 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             }
             assert(0);
             break;
-        case 4:
+        case 3:
             /* force frequencies smoothing */
             exec_opt.smooth_freqs = true;
             break;
-        case 5:
+        case 4:
             /* disable subtree repeats */
             modeltest::disable_repeats = true;
             break;
-        case 6:
+        case 5:
             /* disable checkpoint */
             exec_opt.write_checkpoint = false;
             break;
@@ -205,6 +203,12 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             break;
         case 20:
             exec_opt.force_override = true;
+            break;
+        case 21:
+            exec_opt.verbose = VERBOSITY_LOW;
+            break;
+        case 22:
+            exec_opt.verbose = VERBOSITY_ULTRA;
             break;
         case 'a':
             /* ascertainment bias correction */
@@ -461,7 +465,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             }
             else
             {
-                LOG_ERR << PACKAGE << ": ERROR: Invalid starting topology " << optarg << endl;
+                LOG_ERR << PACKAGE << ": Invalid starting topology " << optarg << endl;
                 LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should be one of {ml,mp,fixed-ml-gtr,fixed-ml-jc,random,user}" << endl;
                 params_ok = false;
             }
@@ -496,6 +500,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
             exec_opt.tree_filename = optarg;
             break;
         case 'v':
+            print_version();
+            modeltest::mt_errno = MT_ERROR_IGNORE;
+            return false;
+        case 'V':
             exec_opt.verbose = VERBOSITY_HIGH;
             break;
         default:
@@ -506,7 +514,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     switch (exec_opt.verbose)
     {
       case VERBOSITY_LOW:
-        genesis::utils::Logging::max_level (genesis::utils::Logging::kError);
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kWarning);
         break;
       case VERBOSITY_DEFAULT:
       case VERBOSITY_MID:
@@ -514,6 +522,9 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         break;
       case VERBOSITY_HIGH:
         genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
+        break;
+      case VERBOSITY_ULTRA:
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug4);
         break;
       default:
         assert(0);
@@ -1333,6 +1344,9 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     case VERBOSITY_HIGH:
         out << "high" << endl;
         break;
+    case VERBOSITY_ULTRA:
+        out << "ultra" << endl;
+        break;
     default:
         assert(0);
     }
@@ -1458,8 +1472,8 @@ void Meta::print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -o, --output output_file"
         << "pipes the output into a file" << endl;
 
-    out << setw(MAX_OPT_LENGTH) << left << "  -p, --processes n_procs"
-        << "sets the number of processors to use (shared memory)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -p, --threads n_threads"
+        << "sets the number of threads to use (shared memory)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -q, --partitions partitions_file"
         << "sets a partitioning scheme" << endl;
@@ -1656,13 +1670,17 @@ void Meta::print_help(std::ostream& out)
         << PACKAGE << " ignores if there are missing states" << endl;
     out << setw(MAX_OPT_LENGTH) << left << "  -k, --keep-params"
         << "keep branch lengths fixed" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose"
+    out << setw(MAX_OPT_LENGTH) << left << "  -v, --version"
+        << "output version information and exit" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --quiet"
+        << "run in quiet mode (only essential information shown)" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "  -V, --verbose"
         << "run in verbose mode" << endl;
+    out << setw(MAX_OPT_LENGTH) << left << "      --ultraverbose"
+        << "run in ultra verbose mode" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "      --help"
         << "display this help message and exit" << endl;
-    out << setw(MAX_OPT_LENGTH) << left << "      --version"
-        << "output version information and exit" << endl;
     out << endl;
 
 

@@ -104,28 +104,28 @@ namespace utils {
 // define standard logging types as macro shortcuts:
 
 /** @brief Log an error. See genesis::utils::LoggingLevel. */
-#define LOG_ERR  GENESIS_LOG(genesis::utils::Logging::kError)
+#define LOG_ERR  GENESIS_LOG(genesis::utils::Logging::kError) << "[error] "
 
 /** @brief Log a warning. See genesis::utils::LoggingLevel. */
-#define LOG_WARN GENESIS_LOG(genesis::utils::Logging::kWarning)
+#define LOG_WARN GENESIS_LOG(genesis::utils::Logging::kWarning) << "[warning] "
 
 /** @brief Log an info message. See genesis::utils::LoggingLevel. */
 #define LOG_INFO GENESIS_LOG(genesis::utils::Logging::kInfo)
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
-#define LOG_DBG  GENESIS_LOG(genesis::utils::Logging::kDebug)
+#define LOG_DBG  GENESIS_LOG(genesis::utils::Logging::kDebug) << "[dbg] "
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
-#define LOG_DBG1 GENESIS_LOG(genesis::utils::Logging::kDebug1)
+#define LOG_DBG1 GENESIS_LOG(genesis::utils::Logging::kDebug1) << "[dbg] "
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
-#define LOG_DBG2 GENESIS_LOG(genesis::utils::Logging::kDebug2)
+#define LOG_DBG2 GENESIS_LOG(genesis::utils::Logging::kDebug2) << "[dbg] "
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
-#define LOG_DBG3 GENESIS_LOG(genesis::utils::Logging::kDebug3)
+#define LOG_DBG3 GENESIS_LOG(genesis::utils::Logging::kDebug3) << "[dbg] "
 
 /** @brief Log a debug message. See genesis::utils::LoggingLevel. */
-#define LOG_DBG4 GENESIS_LOG(genesis::utils::Logging::kDebug4)
+#define LOG_DBG4 GENESIS_LOG(genesis::utils::Logging::kDebug4) << "[dbg] "
 
 // define special log shortcuts: the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included.

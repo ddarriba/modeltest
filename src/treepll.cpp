@@ -172,6 +172,7 @@ namespace modeltest
     {
       if (filename.compare(""))
       {
+        LOG_DBG2 << "Read tree from file" << endl;
         starting_tree = pll_utree_parse_newick (filename.c_str());
         if (!starting_tree)
         {
@@ -187,7 +188,7 @@ namespace modeltest
           }
           else
           {
-            LOG_WARN << "WARNING: Input tree is a rooted topology. It will be unrooted" << endl;
+            LOG_WARN << "Input tree is a rooted topology. It will be unrooted" << endl;
 
             starting_tree = pll_rtree_unroot(rtree);
             pll_utree_reset_template_indices(starting_tree->nodes[0]->back, starting_tree->tip_count);
@@ -202,12 +203,14 @@ namespace modeltest
       }
       else if (type == tree_random)
       {
+        LOG_DBG2 << "Random tree" << endl;
         starting_tree = pllmod_utree_create_random(n_tips,
                                                    msa.get_headers(),
                                                    random_seed);
       }
       else
       {
+        LOG_DBG2 << "MP tree" << endl;
         unsigned int * cost = new unsigned int[msa.get_n_patterns()];
         unsigned int states = 0;
         const pll_state_t * map = 0;

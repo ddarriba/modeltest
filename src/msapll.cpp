@@ -177,7 +177,7 @@ namespace modeltest
       case mf_fasta:
         {
         #ifndef NDEBUG
-          bool test_msa = 
+          bool test_msa =
         #endif
             MsaPll::test(msa_filename, &n_taxa, &n_sites);
           assert(test_msa);
@@ -307,25 +307,27 @@ namespace modeltest
       {
         if (statsv->freqs[j] == 0.0)
         {
-          LOG_WARN << "WARNING: State ";
+          stringstream ss;
+          ss << "State ";
           if (states == 4)
-             LOG_WARN << dna_chars[j];
+             ss << dna_chars[j];
           else if (states == 20)
-            LOG_WARN << aa_chars[j];
+            ss << aa_chars[j];
           else
-            LOG_WARN << j;
-          LOG_WARN << " is missing in ";
+            ss << j;
+          ss << " is missing in ";
           if (scheme.size() == 1)
-            LOG_WARN << "the alignment" << endl;
+            ss << "the alignment" << endl;
           else
-            LOG_WARN << "partition " << scheme[i].partition_name << endl;
+            ss << "partition " << scheme[i].partition_name << endl;
+          LOG_WARN << ss.str();
           freqs_ok = false;
         }
       }
       if (!freqs_ok && (scheme[i].model_params & MOD_PARAM_EMPIRICAL_FREQ))
       {
         scheme[i].model_params &= ~MOD_PARAM_EMPIRICAL_FREQ;
-        LOG_WARN << "WARNING: Empirical frequencies will be disabled" << endl;
+        LOG_WARN << "Empirical frequencies will be disabled" << endl;
       }
 
 
@@ -348,12 +350,12 @@ namespace modeltest
 
       if (first_char == '>')
       {
-        LOG_DBG << "[dbg] Guessed FASTA file format" << endl;
+        LOG_DBG << "Guessed FASTA file format" << endl;
         return mf_fasta;
       }
       if (first_char >= '0' && first_char <= '9')
       {
-        LOG_DBG << "[dbg] Guessed PHYLIP file format" << endl;
+        LOG_DBG << "Guessed PHYLIP file format" << endl;
         return mf_phylip_sequential;
       }
       return mf_undefined;
@@ -421,19 +423,19 @@ namespace modeltest
           return false;
       }
 
-      LOG_DBG << "[dbg] guessing file format" << endl;
+      LOG_DBG << "guessing file format" << endl;
       format = modeltest::Msa::guess_msa_format(msa_filename);
 
       if (format == mf_phylip_sequential)
       {
-        LOG_DBG << "[dbg] guessed PHYLIP sequential" << endl;
+        LOG_DBG << "guessed PHYLIP sequential" << endl;
         pll_phylip_t * phylip_data = pll_phylip_open(msa_filename.c_str(),
                                                      mt_map_parser);
         pll_msa_t * msa_data;
         msa_data = pll_phylip_parse_sequential(phylip_data);
         if (!msa_data)
         {
-          LOG_DBG << "[dbg] sequential PHYLIP failed" << endl;
+          LOG_DBG << "sequential PHYLIP failed" << endl;
           pll_msa_destroy(msa_data);
           pll_phylip_close(phylip_data);
           phylip_data = pll_phylip_open(msa_filename.c_str(),
@@ -441,14 +443,14 @@ namespace modeltest
           msa_data = pll_phylip_parse_interleaved(phylip_data);
           if (!msa_data)
           {
-            LOG_DBG << "[dbg] interleaved PHYLIP failed" << endl;
+            LOG_DBG << "interleaved PHYLIP failed" << endl;
             mt_errno = MT_ERROR_IO_FORMAT;
             strncpy(mt_errmsg, pll_errmsg, ERR_MSG_SIZE);
             return false;
           }
           else
           {
-            LOG_DBG << "[dbg] guessed PHYLIP interleaved" << endl;
+            LOG_DBG << "guessed PHYLIP interleaved" << endl;
             format = mf_phylip_interleaved;
           }
         }
