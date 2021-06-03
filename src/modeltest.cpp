@@ -212,7 +212,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   else
     opt_type = partition_optimize_all;
 
-  LOG_DBG << "[dbg] ... ... build partition optimizer " << endl;
+  LOG_DBG << "... ... build partition optimizer " << endl;
   PartitionOptimizer p_opt(partition,
                            *msa,
                            *tree,
@@ -224,7 +224,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
                            epsilon_opt);
   p_opt.attach(this);
 
-  LOG_DBG << "[dbg] ... ... evaluate partition" << endl;
+  LOG_DBG << "... ... evaluate partition" << endl;
   exec_ok = p_opt.evaluate(n_procs);
 
   return exec_ok;
@@ -394,7 +394,7 @@ static bool eval_ckp(mt_options_t & options,
   bin_desc.epsilon_param = options.epsilon_param;
   bin_desc.epsilon_opt = options.epsilon_opt;
 
-  LOG_DBG << "[dbg] Ealuating checkpoint files" << endl;
+  LOG_DBG << "Ealuating checkpoint files" << endl;
 
   if (!Utils::file_exists(current_instance->ckp_filename))
   {
@@ -404,6 +404,7 @@ static bool eval_ckp(mt_options_t & options,
     mt_size_t max_blocks = 1;
     for (partition_descriptor_t const& partition : (*current_instance->partitions_eff))
     {
+        assert(partition.datatype == dt_dna || partition.datatype == dt_protein);
         if (partition.datatype == dt_dna)
         {
           if (options.rate_clustering)
@@ -426,7 +427,7 @@ static bool eval_ckp(mt_options_t & options,
                 (mt_size_t)options.aa_candidate_models.size(),
                 partition.model_params);
         else
-            assert(0);
+            Utils::exit_with_error("Invalid data type");
     }
 
     FILE * bin_file = pllmod_binary_create(
@@ -447,13 +448,13 @@ static bool eval_ckp(mt_options_t & options,
                               sizeof(bin_desc_t),
                               PLLMOD_BIN_ATTRIB_UPDATE_MAP);
 
-    LOG_DBG << "[dbg] New checkpoint file created" << endl;
+    LOG_DBG << "New checkpoint file created" << endl;
 
     pllmod_binary_close(bin_file);
   }
   else
   {
-    LOG_DBG << "[dbg] Loading checkpoint" << endl;
+    LOG_DBG << "Loading checkpoint" << endl;
 
     /* validate binary file */
     bin_desc_t * rec_bin_desc;
@@ -554,6 +555,8 @@ bool ModelTest::build_instance(mt_options_t & options)
   mt_size_t warning_count = 0;
   bool warning_enable_stdout = true;
 
+  LOG_DBG << "Create modeltest instance" << endl;
+
   free_stuff ();
   create_instance ();
 
@@ -595,6 +598,8 @@ bool ModelTest::build_instance(mt_options_t & options)
   /* validate MSA [1] check for errors and count warnings */
   for (mt_index_t i=0; i<options.partitions_eff->size(); ++i)
   {
+    LOG_DBG << "Validating partition " << i+1 << "/" << options.partitions_eff->size() << endl;
+
     msa_stats_t const& stats = current_instance->msa->get_stats(i);
     string part_header("Partition " + options.partitions_eff->at(i).partition_name + ": ");
 
@@ -615,9 +620,9 @@ bool ModelTest::build_instance(mt_options_t & options)
     {
       ++warning_count;
       if (options.compress_patterns)
-        LOG_WARN << "WARNING: " << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
       else
-        LOG_WARN << "WARNING: " << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
       if (warning_enable_stdout && warning_count > MAX_DISPLAY_WARNINGS)
       {
         genesis::utils::Logging::disable_stdout();
@@ -632,7 +637,7 @@ bool ModelTest::build_instance(mt_options_t & options)
       warning_enable_stdout = false;
     }
     for (mt_index_t j=0; j<stats.dup_seqs_pairs_count; ++j)
-      LOG_WARN << "WARNING: " << part_header << "Sequences "
+      LOG_WARN << part_header << "Sequences "
         << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j])
         << " and "
         << current_instance->msa->get_header(stats.dup_seqs_pairs[2*j+1])
@@ -645,7 +650,7 @@ bool ModelTest::build_instance(mt_options_t & options)
       warning_enable_stdout = false;
     }
     for (mt_index_t j=0; j<stats.gap_seqs_count; ++j)
-      LOG_WARN << "WARNING: " << part_header << "Sequence "
+      LOG_WARN << part_header << "Sequence "
                << current_instance->msa->get_header(stats.gap_seqs[j])
                << " contains only gaps"
                << endl;
@@ -659,16 +664,16 @@ bool ModelTest::build_instance(mt_options_t & options)
         warning_enable_stdout = false;
       }
       if (options.compress_patterns)
-        LOG_WARN << "WARNING: " << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << part_header << "There are undetermined columns in the alignment (only gaps)" << endl;
       else
-        LOG_WARN << "WARNING: " << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
+        LOG_WARN << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
     }
   }
 
   if (!warning_enable_stdout)
   {
     genesis::utils::Logging::log_to_stream(cout);
-    cout << "WARNING: ... There are "
+    cout << "... There are "
         << warning_count - MAX_DISPLAY_WARNINGS << " more warnings. "
         << "Check the log file for details" << endl;
   }
@@ -693,7 +698,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_user_fixed:
     if( options.tree_filename.compare ("") )
     {
-      LOG_DBG << "[dbg] Loading fixed tree from " << options.tree_filename << endl;
+      LOG_DBG << "Loading fixed tree from " << options.tree_filename << endl;
       try
       {
         current_instance->tree = new TreePll (options.starting_tree,
@@ -733,7 +738,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
-      LOG_DBG << "[dbg] Creating starting tree" << endl;
+      LOG_DBG << "Creating starting tree" << endl;
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
@@ -757,6 +762,7 @@ bool ModelTest::build_instance(mt_options_t & options)
           mt_errno = MT_ERROR_TREE;
           break;
       default:
+          mt_errno = MT_ERROR_UNKNOWN;
           assert(0);
       }
       free_stuff();
@@ -766,6 +772,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml:
     try
     {
+      LOG_DBG << "Tree structure for ML" << endl;
     current_instance->tree = new TreePll (options.starting_tree,
                                           options.tree_filename,
                                           *current_instance->msa,
@@ -787,6 +794,7 @@ bool ModelTest::build_instance(mt_options_t & options)
           mt_errno = MT_ERROR_TREE;
           break;
       default:
+          mt_errno = MT_ERROR_UNKNOWN;
           assert(0);
       }
       free_stuff();
@@ -813,11 +821,15 @@ bool ModelTest::build_instance(mt_options_t & options)
     current_instance->n_catg = 1;
   current_instance->gamma_rates = options.gamma_rates_mode;
 
+  LOG_DBG << "Creating optimization scheme" << endl;
+
   assert(!partitioning_scheme);
   partitioning_scheme = new PartitioningScheme();
   mt_index_t cur_part_id = 0;
   for (partition_descriptor_t const& partition : (*current_instance->partitions_eff))
   {
+    assert(partition.datatype == dt_dna || partition.datatype == dt_protein);
+
     partition_id_t part_id(1);
     part_id[0] = cur_part_id;
     Partition * new_part = 0;
@@ -837,7 +849,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                  partition.model_params,
                                  options.checkpoint_file);
         else
-            assert(0);
+            Utils::exit_with_error("Invalid data type");
     }
     catch(int e)
     {
@@ -855,15 +867,16 @@ bool ModelTest::build_instance(mt_options_t & options)
         case EXCEPTION_BUILD_MODELS:
             break;
         default:
+            mt_errno = MT_ERROR_UNKNOWN;
             assert(0);
         }
         free_stuff();
         return false;
     }
 
-    if (current_instance->tree->get_n_branches() < new_part->get_n_sites() + 2)
+    if (new_part->get_n_sites() < current_instance->tree->get_n_branches())
     {
-      LOG_WARN << "WARNING: MSA has not enough sites to infer reliable results" << endl;
+      LOG_WARN << "MSA has too few sites compared to the number of taxa and results might not be reliable" << endl;
     }
 
     /*
@@ -970,7 +983,7 @@ void ModelTest::update(Observable * subject, void * data)
 
   opt_info->model->print_inline(opt_info->model_index, opt_info->n_models,
                                 opt_info->start_time, global_ini_time,
-                                cout);
+                                MT_INFO);
 
   if (ROOT && current_instance->ckp_enabled)
   {
