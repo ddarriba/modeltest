@@ -37,7 +37,7 @@ Sets the input MSA file (FASTA or PHYLIP format, required). It is recommended th
 Specify the \fIprefix\fR for output files. If you set a custom prefix, that may contain an absolute or relative path, output files will start with the given prefix. If \fB\-o\fR is not specified, output files will use the input MSA filename (and path) as prefix.
 
 .TP
-\fB\-p\fR, \fB\-\-processes\fR \fInumber\fR
+\fB\-p\fR, \fB\-\-threads\fR \fInumber\fR
 Sets the number of threads to use (shared memory).
 By default, ModelTest-NG runs in one single thread, but you can perform model optimizations in parallel using several threads.
 Note that this number should be at most the number of cores available in your system,
@@ -227,8 +227,16 @@ Disables pattern compression. ModelTest-NG ignores if there are missing states
 Keep branch lengths fixed during the model optimization process
 
 .TP
-\fB-v\fR, \fB--verbose\fR
+\fB-v\fR, \fB--version\fR
+Displays version information and exits
+
+.TP
+\fB-V\fR, \fB--verbose\fR
 Run in verbose mode
+
+.TP
+\fB--ultraverbose\fR
+Run in ultraverbose mode
 
 .TP
 \fB--help\fR
@@ -238,9 +246,6 @@ Displays a help message and exits
 \fB--usage\fR
 Displays summarized usage information and exits
 
-.TP
-\fB--version\fR
-Displays version information and exits
 
 
 

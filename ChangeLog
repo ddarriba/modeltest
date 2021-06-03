@@ -1,11 +1,14 @@
-* dev 0.1.8
 
-  - Updated pll
+* dev 0.2.0
+
   - Bug fix with model clustering and checkpointing
   - Bug fix with MPI One-sided comms
   - Replaced non-portable function strcasecmp
   - Bug fix with pthreads and static linking
   - Unify build methods
+  - Added manpage
+  - Updated pll
+  - Fixed wrong warning message
 
 * release 0.1.7
 
