@@ -43,7 +43,7 @@ if(STATIC_BUILD)
   set (BUILD_SHARED_LIBRARIES OFF)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
-  if(ENABLE_PTHREADS)
+  if(ENABLE_MULTITHREAD)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
   endif()
 endif()

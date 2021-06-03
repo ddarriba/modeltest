@@ -37,8 +37,8 @@
 #include <stdexcept>
 #include <string>
 
-#ifdef PTHREADS
-#    include <mutex>
+#ifdef MULTITHREAD
+#include <mutex>
 #endif
 
 #include "string.h"
@@ -54,7 +54,7 @@ namespace utils {
 //     Settings
 // =============================================================================
 
-#ifdef PTHREADS
+#ifdef MULTITHREAD
     static std::mutex log_mutex;
 #endif
 
@@ -305,11 +305,11 @@ Logging::~Logging()
     }
 
     // add spaces for nested debug levels
-    if (level_ > kDebug) {
-        for (int i = 0; i < level_ - kDebug; i++) {
-            det_buff << debug_indent;
-        }
-    }
+    //if (level_ > kDebug) {
+    //    for (int i = 0; i < level_ - kDebug; i++) {
+    //        det_buff << debug_indent;
+    //    }
+    //}
 
     // make multi line log messages align to the length of the detail header,
     // and trim trailing whitespace, as we only want one newline at the end
@@ -323,9 +323,9 @@ Logging::~Logging()
     }
 
     // output the message to every stream, thread safe!
-#   ifdef PTHREADS
+#ifdef MULTITHREAD
     log_mutex.lock();
-#   endif
+#endif
 
     if (level_ == kError)
     {
@@ -341,9 +341,9 @@ Logging::~Logging()
           (*out) << msg << std::flush;
       }
     }
-#   ifdef PTHREADS
+#ifdef MULTITHREAD
     log_mutex.unlock();
-#   endif
+#endif
 
     // inc log message counter
     count_++;

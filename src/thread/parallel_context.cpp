@@ -60,12 +60,12 @@ void ParallelContext::start_thread(size_t thread_id, const std::function<void()>
   thread_main();
 }
 
-void ParallelContext::init_pthreads(const mt_options_t & opts, const std::function<void()>& thread_main)
+void ParallelContext::init_threads(const mt_options_t & opts, const std::function<void()>& thread_main)
 {
   _num_threads = opts.n_threads;
   _parallel_buf.reserve(PARALLEL_BUF_SIZE);
 
-#ifdef PTHREADS
+#ifdef MULTITHREAD
   /* Launch threads */
   for (size_t i = 1; i < _num_threads; ++i)
   {
@@ -81,7 +81,7 @@ void ParallelContext::resize_buffer(size_t size)
 
 void ParallelContext::finalize(bool force)
 {
-#ifdef PTHREADS
+#ifdef MULTITHREAD
   for (thread& t: _threads)
   {
     if (force)
@@ -113,7 +113,7 @@ void ParallelContext::barrier()
   mpi_barrier();
 #endif
 
-#ifdef PTHREADS
+#ifdef MULTITHREAD
   thread_barrier();
 #endif
 }
@@ -198,7 +198,7 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
 
 void ParallelContext::parallel_reduce(double * data, size_t size, int op)
 {
-#ifdef PTHREADS
+#ifdef MULTITHREAD
   if (_num_threads > 1)
     thread_reduce(data, size, op);
 #endif
@@ -252,7 +252,6 @@ void ParallelContext::thread_broadcast(size_t source_id, void * data, size_t siz
   /* synchronize */
   thread_barrier();
 
-//  pthread_barrier_wait(&barrier);
   __sync_synchronize();
 
   /* read from buf*/
@@ -275,7 +274,6 @@ void ParallelContext::thread_send_master(size_t source_id, void * data, size_t s
   /* synchronize */
   barrier();
 
-//  pthread_barrier_wait(&barrier);
   __sync_synchronize();
 
   /* read from buf*/

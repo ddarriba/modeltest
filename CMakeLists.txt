@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 set (STATIC_BUILD OFF CACHE BOOL "Build static binary")
 set (ENABLE_MPI OFF CACHE BOOL "Enable MPI support")
 set (ENABLE_GUI OFF CACHE BOOL "Enable QT GUI")
-set (ENABLE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
+set (ENABLE_MULTITHREAD ON CACHE BOOL "Enable multi-threading support")
 set (OSX_BUNDLE OFF CACHE BOOL "Build GUI bundle (OSX only)")
 
 # set following options to OFF to build a portable binary
@@ -22,8 +22,8 @@ set (ENABLE_PLLMOD_SIMD ON CACHE BOOL "Enable SIMD instructions in pll-modules (
 project (modeltest C CXX)
 
 set (modeltest_VERSION_MAJOR 0)
-set (modeltest_VERSION_MINOR 1)
-set (modeltest_VERSION_PATCH 7)
+set (modeltest_VERSION_MINOR 2)
+set (modeltest_VERSION_PATCH 0)
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
@@ -103,10 +103,10 @@ else()
   set(PLLMOD_AUTOCONF_ARGS "")
 endif()
 
-if(ENABLE_PTHREADS)
+if(ENABLE_MULTITHREAD)
   find_package(Threads REQUIRED)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPTHREADS -pthread")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPTHREADS -pthread")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULTITHREAD -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMULTITHREAD -pthread")
 endif()
 
 if(ENABLE_GUI)

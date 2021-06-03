@@ -13,14 +13,9 @@
 #include <mpi.h>
 #endif
 
-#ifdef PTHREADS
-#if(USE_POSIX_THREADS)
+#ifdef MULTITHREAD
 #include <mutex>
 #include <thread>
-#else
-#include "../mingw/mingw.mutex.h"
-#include "../mingw/mingw.thread.h"
-#endif
 typedef std::thread ThreadType;
 typedef std::thread::id ThreadIDType;
 typedef std::mutex MutexType;
@@ -36,7 +31,7 @@ class ParallelContext
 {
 public:
   static void init_mpi(int argc, char * argv[], void * comm);
-  static void init_pthreads(const mt_options_t & opts, const std::function<void()>& thread_main);
+  static void init_threads(const mt_options_t & opts, const std::function<void()>& thread_main);
   static void resize_buffer(size_t size);
 
   static void finalize(bool force = false);
