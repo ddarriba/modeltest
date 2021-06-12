@@ -48,7 +48,7 @@ if(STATIC_BUILD)
   endif()
 endif()
 
-if (OSX_BUNDLE)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND Qt5Widgets_FOUND)
   add_executable(modeltest_module MACOSX_BUNDLE ${modeltest_sources} ${UI_HEADERS})
 else()
   add_executable(modeltest_module ${modeltest_sources} ${UI_HEADERS})
@@ -76,7 +76,7 @@ if(MPI_LINK_FLAGS)
 endif()
 
 if(Qt5Widgets_FOUND)
-  if (OSX_BUNDLE)
+  if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties (modeltest_module PROPERTIES OUTPUT_NAME modeltest-gui
                                             MACOSX_BUNDLE_BUNDLE_NAME "modeltest")
     set(exe modeltest-gui.app)
@@ -99,5 +99,7 @@ endif()
 
 set_target_properties (modeltest_module PROPERTIES PREFIX "")
 
-install(TARGETS modeltest_module RUNTIME DESTINATION bin COMPONENT applications)
+install(TARGETS modeltest_module RUNTIME DESTINATION bin
+                                 BUNDLE DESTINATION bin
+                                 COMPONENT applications)
 install(FILES ${PROJECT_SOURCE_DIR}/man/modeltest-ng.1 DESTINATION man/man1)

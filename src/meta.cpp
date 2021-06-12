@@ -1143,12 +1143,15 @@ void Meta::print_system_info(std::ostream  &out)
     out << "Logical cores:  " << modeltest::Utils::count_logical_cores() << endl;
     out << "Memory:         " << setprecision(3) << memcount_gb << "GB" << endl;
     out << "Extensions:     ";
+    if (have_avx2)
+      out << "AVX2 ";
     if (have_avx)
-      out << "AVX" << endl;
-    else if (have_sse3)
-      out << "SSE3" << endl;
-    else
-      out << "none [WARNING!]" << endl;
+      out << "AVX ";
+    if (have_sse3)
+      out << "SSE3 ";
+    if (!(have_avx2 | have_avx | have_sse3))
+      out << "none";
+    out << endl;
 }
 
 static void print_model_params(mt_mask_t model_params, std::ostream  &out)

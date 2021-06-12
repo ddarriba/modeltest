@@ -898,11 +898,11 @@ mt_size_t Utils::count_logical_cores( void ) {
 
 mt_size_t Utils::count_physical_cores( void ) {
     uint32_t registers[4];
-    unsigned logicalcpucount;
-    unsigned physicalcpucount;
 
-    logicalcpucount = count_logical_cores();
+    unsigned logicalcpucount = count_logical_cores();
+    unsigned physicalcpucount = logicalcpucount;
 
+#if !defined(__aarch64__)
     if ((logicalcpucount % 2) != 0)
         return logicalcpucount;
     __asm__ __volatile__ ("cpuid " :
@@ -916,9 +916,8 @@ mt_size_t Utils::count_physical_cores( void ) {
     bool hyperthreading = CPUFeatureSet & (1 << 28);
     if (hyperthreading){
         physicalcpucount = logicalcpucount / 2;
-    } else {
-        physicalcpucount = logicalcpucount;
     }
+#endif
     return physicalcpucount;
 }
 

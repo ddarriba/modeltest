@@ -179,7 +179,11 @@ pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
     assert(!n_tips && _n_tips);
     n_tips = _n_tips;
 
-    if (have_avx)
+    if (have_avx2)
+    {
+      attributes |= PLL_ATTRIB_ARCH_AVX2;
+    }
+    else if (have_avx)
     {
       attributes |= PLL_ATTRIB_ARCH_AVX;
     }

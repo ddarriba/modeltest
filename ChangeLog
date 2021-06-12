@@ -1,6 +1,7 @@
 
 * dev 0.2.0
 
+  - Update for ARM M1 processors
   - Bug fix with model clustering and checkpointing
   - Bug fix with MPI One-sided comms
   - Replaced non-portable function strcasecmp

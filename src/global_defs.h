@@ -126,6 +126,7 @@ extern int mpi_numprocs;
 
 extern mt_size_t num_cores;  //! Number of physical cores
 
+extern bool have_avx2;
 extern bool have_avx;
 extern bool have_sse3;
 

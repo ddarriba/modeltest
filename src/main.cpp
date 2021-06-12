@@ -44,6 +44,7 @@ ModelTestService *ModelTestService::s_instance = 0;
 using namespace std;
 
 /** extensions **/
+bool have_avx2;
 bool have_avx;
 bool have_sse3;
 
@@ -86,14 +87,11 @@ int main(int argc, char *argv[])
     num_cores = modeltest::Utils::count_physical_cores();
 
     pll_hardware_probe();
+    have_avx2 = pll_hardware.avx2_present;
     have_avx = pll_hardware.avx_present;
     have_sse3 = pll_hardware.sse3_present;
 
-    #ifdef PLL_ATTRIB_SITE_REPEATS
-        modeltest::disable_repeats = !have_avx;
-    #else
-        modeltest::disable_repeats = true;
-    #endif
+    modeltest::disable_repeats = false;
 
     genesis::utils::Logging::log_to_stream(cout);
     genesis::utils::Logging::err_to_stream(cerr);
