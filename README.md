@@ -20,6 +20,10 @@ If you use ModelTest-NG, please cite the following:
 * Darriba, D., Posada, D., Kozlov, A. M., Stamatakis, A., Morel, B., & Flouri, T. (2020). ModelTest-NG: a new and scalable tool for the selection of DNA and protein evolutionary models. Molecular Biology and Evolution, 37(1), 291-294. doi.org/10.1093/molbev/msz189
 * Flouri T., Izquierdo-Carrasco F., Darriba D., Aberer AJ, Nguyen LT, Minh BQ, von Haeseler A., Stamatakis A. (2014) The Phylogenetic Likelihood Library. Systematic Biology, 64(2): 356-362. doi:10.1093/sysbio/syu084
 
+## Discussion group
+
+Please use the jModelTest discussion group for any question: http://groups.google.com/group/modeltest-ng
+
 ## Download
 
 From the [releases section](https://github.com/ddarriba/modeltest/releases) you can
@@ -91,3 +95,8 @@ Then call docker run to create a container using the created image.
 ```sh
 docker run -it modeltest-ng bash
 ```
+## Disclaimer
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. The jModelTest distribution includes Phyml executables.
+
+These programs are protected by their own license and conditions, and using jModelTest implies agreeing with those conditions as well.
