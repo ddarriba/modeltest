@@ -22,7 +22,7 @@ If you use ModelTest-NG, please cite the following:
 
 ## Discussion group
 
-Please use the jModelTest discussion group for any question: http://groups.google.com/group/modeltest-ng
+Please use the ModelTest discussion group for any question: http://groups.google.com/group/modeltest-ng
 
 ## Download
 
