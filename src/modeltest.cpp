@@ -394,7 +394,7 @@ static bool eval_ckp(mt_options_t & options,
   bin_desc.epsilon_param = options.epsilon_param;
   bin_desc.epsilon_opt = options.epsilon_opt;
 
-  LOG_DBG << "Ealuating checkpoint files" << endl;
+  LOG_DBG << "Evaluating checkpoint files" << endl;
 
   if (!Utils::file_exists(current_instance->ckp_filename))
   {
