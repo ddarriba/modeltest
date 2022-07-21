@@ -60,7 +60,7 @@ MPI version:
 
 ```
 mkdir build && cd build
-cmake -ENABLE_MPI=ON ..
+cmake -DENABLE_MPI=ON ..
 make
 ```
 
