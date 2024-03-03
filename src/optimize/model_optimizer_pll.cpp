@@ -325,8 +325,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
             << endl;
 
         new_loglh = pllmod_algo_spr_round(tree_info,
-                                          radius_min,
-                                          radius_max,
+                                          radius_min, radius_max,
                                           ntopol_keep,
                                           thorough_insertion,
                                           PLLMOD_OPT_BLO_NEWTON_FAST,
@@ -334,8 +333,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                           MT_MAX_BRANCH_LENGTH,
                                           smoothings,
                                           tolerance,
-                                          cutoff_info, /* cutoff */
-                                          cutoff_thr);
+                                          cutoff_info, cutoff_thr, /* cutoff */
+                                          tolerance, 
+                                          PLL_TRUE);
 
         if (pll_errno && new_loglh == 0)
         {
