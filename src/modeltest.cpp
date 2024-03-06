@@ -26,6 +26,7 @@
 #include "treepll.h"
 #include "genesis/logging.h"
 #include "optimize/partition_optimizer.h"
+#include "thread/parallel_context.h"
 
 #include <sstream>
 #include <cassert>
@@ -74,9 +75,10 @@ void ModelTest::create_instance()
 
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
-                                     mt_index_t thread_number,
                                      bool force_opt_topo,
-                                     bool keep_model_parameters)
+                                     bool keep_model_parameters,
+                                     mt_size_t _n_threads,
+                                     mt_index_t thread_number)
 {
   ModelOptimizer * mopt;
   bool opt_topology;
@@ -129,6 +131,7 @@ static void print_execution_header( bool print_elapsed_time,
 
 bool ModelTest::evaluate_single_model(Model * model,
                                       const partition_id_t &part_id,
+                                      mt_size_t n_threads,
                                       mt_index_t thread_number,
                                       double tolerance,
                                       double epsilon)
@@ -138,6 +141,9 @@ bool ModelTest::evaluate_single_model(Model * model,
   {
     ModelOptimizer * mopt = get_model_optimizer(model,
                                                 part_id,
+                                                false,
+                                                false,
+                                                n_threads,
                                                 thread_number);
     if(!mopt)
       return false;
@@ -153,6 +159,7 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
                           mt_index_t cur_model,
                           mt_index_t n_models,
                           modeltest::Model *model,
+                          mt_size_t n_threads,
                           mt_index_t thread_id,
                           double epsilon_param,
                           double epsilon_opt,
@@ -167,6 +174,7 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
     res = evaluate_single_model(model,
                                 part_id,
                                 thread_id,
+                                n_threads,
                                 epsilon_param,
                                 epsilon_opt);
 
@@ -185,6 +193,7 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 
 bool ModelTest::evaluate_models(const partition_id_t &part_id,
                                 mt_size_t n_threadprocs,
+                                mt_size_t n_threads,
                                 double epsilon_param,
                                 double epsilon_opt,
                                 ostream &out)
@@ -195,6 +204,8 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   bool exec_ok;
 
   assert(n_threadprocs > 0);
+  assert(n_threads > 0);
+  assert(n_threadprocs * n_threads <= MT_MAX_THREADS);
 
   if (!n_models)
       return true;
@@ -226,7 +237,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   p_opt.attach(this);
 
   LOG_DBG << "... ... evaluate partition" << endl;
-  exec_ok = p_opt.evaluate(n_threadprocs);
+  exec_ok = p_opt.evaluate(n_threadprocs, n_threads);
 
   return exec_ok;
 }
@@ -954,9 +965,11 @@ bool ModelTest::build_instance(mt_options_t & options)
     if (!start_model->is_optimized())
     {
       ModelOptimizer * start_opt = get_model_optimizer(start_model,
-                                           {0},
-                                            0,
-                                            true);
+                                           {0},   // partition
+                                           true,  // optimize topology
+                                           false, // keep model parameters
+                                           options.n_threads,
+                                           0);    // thread id
 
       if (!start_opt)
       {
@@ -993,7 +1006,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   {
     current_instance->ckp_filename = options.checkpoint_file;
 
-    if (ROOT)
+    if (ParallelContext::master())
     {
       //TODO: Synchronize MPI
       if (!eval_ckp(options, current_instance))
@@ -1024,7 +1037,7 @@ void ModelTest::update(Observable * subject, void * data)
                                 opt_info->start_time, global_ini_time,
                                 MT_INFO);
 
-  if (ROOT && current_instance->ckp_enabled)
+  if (ParallelContext::master() && current_instance->ckp_enabled)
   {
     opt_info->model->output_bin(current_instance->ckp_filename);
   }

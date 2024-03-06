@@ -122,6 +122,7 @@ public:
      */
     bool evaluate_single_model(Model * model,
                                const partition_id_t &part_id,
+                               mt_size_t n_threads,
                                mt_index_t thread_number = 0,
                                double tolerance = DEFAULT_PARAM_EPSILON,
                                double epsilon = DEFAULT_OPT_EPSILON);
@@ -133,6 +134,7 @@ public:
      * @return true, if the optimization is OK
      */
     bool evaluate_models(const partition_id_t &part_id,
+                         mt_size_t n_threadprocs,
                          mt_size_t n_threads,
                          double epsilon_param,
                          double epsilon_opt,
@@ -140,9 +142,10 @@ public:
 
     ModelOptimizer * get_model_optimizer(Model * model,
                                          const partition_id_t &part_id,
-                                         mt_index_t thread_number = 0,
                                          bool force_opt_topo = false,
-                                         bool keep_model_parameters = false);
+                                         bool keep_model_parameters = false,
+                                         mt_size_t _n_threads = 1,
+                                         mt_index_t thread_number = 0);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
 
@@ -180,6 +183,7 @@ private:
                        mt_index_t cur_model,
                        mt_index_t n_models,
                        modeltest::Model *model,
+                       mt_size_t n_threads,
                        mt_index_t thread_id,
                        double epsilon_param,
                        double epsilon_opt,

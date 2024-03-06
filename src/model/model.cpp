@@ -23,6 +23,7 @@
 #include "../genesis/logging.h"
 #include "../utils.h"
 #include "../model_defs.h"
+#include "../thread/parallel_context.h"
 
 #include <cmath>
 #include <iomanip>
@@ -739,7 +740,7 @@ int Model::input_bin(std::string const& bin_filename)
 
 int Model::output_bin(std::string const& bin_filename) const
 {
-  assert(ROOT);
+  assert(ParallelContext::master());
 
   if (restored_from_ckp)
     return true;

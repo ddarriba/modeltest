@@ -68,6 +68,7 @@ bool ModelTestService::reset_instance( mt_options_t & options )
 
 bool ModelTestService::optimize_single(const partition_id_t &part_id,
                      Model *model,
+                     mt_size_t n_threads,
                      mt_index_t thread_id,
                      double epsilon_param,
                      double epsilon_opt,
@@ -77,6 +78,9 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 
     ModelOptimizer * mopt = modeltest_instance->get_model_optimizer(model,
         part_id,
+        false, // optimize topology
+        false, // keep model parameters
+        n_threads,
         thread_id);
 
     if (!mopt)
@@ -92,6 +96,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 
 bool ModelTestService::evaluate_models(partition_id_t const& part_id,
                                        mt_size_t n_threadprocs,
+                                       mt_size_t n_threads,
                                        double epsilon_param,
                                        double epsilon_opt,
                                        ostream &out)
@@ -100,6 +105,7 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
 
     return modeltest_instance->evaluate_models(part_id,
                                                n_threadprocs,
+                                               n_threads,
                                                epsilon_param,
                                                epsilon_opt,
                                                out);

@@ -452,7 +452,7 @@ void Partition::input_log(std::istream  &in)
 
 int Partition::output_bin(string const& bin_filename) const
 {
-  assert(ROOT);
+  assert(ParallelContext::master());
 
   //TODO
   UNUSED(bin_filename);
@@ -461,7 +461,7 @@ int Partition::output_bin(string const& bin_filename) const
 
 int Partition::input_bin(string const& bin_filename)
 {
-  assert(ROOT);
+  assert(ParallelContext::master());
 
   //TODO
   UNUSED(bin_filename);

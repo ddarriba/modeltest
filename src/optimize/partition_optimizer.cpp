@@ -59,23 +59,23 @@ namespace modeltest
 
   }
 
-  bool PartitionOptimizer::evaluate(mt_size_t n_threadprocs)
+  bool PartitionOptimizer::evaluate(mt_size_t n_threadprocs, mt_size_t n_threads)
   {
     bool exec_ok = false;
 
     switch (opt_type)
     {
       case partition_optimize_all:
-        exec_ok = evaluate_all_models( partition.get_models(), n_threadprocs );
+        exec_ok = evaluate_all_models( partition.get_models(), n_threadprocs, n_threads );
         break;
       case partition_optimize_greedy:
-        exec_ok = evaluate_greedy( n_threadprocs );
+        exec_ok = evaluate_greedy( n_threadprocs, n_threads);
         break;
     }
     return exec_ok;
   }
 
-  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_threadprocs )
+  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_threadprocs, mt_size_t n_threads )
   {
     //opt_info_t exec_info;
     bool exec_ok = true;
@@ -86,7 +86,7 @@ namespace modeltest
 
     MT_INFO << "Step 1/6" << endl;
     /* 1. optimize starting models */
-    if (!evaluate_all_models( candidate_models, n_threadprocs ))
+    if (!evaluate_all_models( candidate_models, n_threadprocs, n_threads ))
       return false;
 
     for (int k=N_DNA_SUBST_RATES-1; k>0; --k)
@@ -104,14 +104,14 @@ namespace modeltest
       /* 3. merge rates */
       candidate_models = partition.update_model_set(*static_cast<DnaModel *>(best_model));
 
-      if (!evaluate_all_models( candidate_models, n_threadprocs ))
+      if (!evaluate_all_models( candidate_models, n_threadprocs, n_threads ))
         return false;
     }
     // exec_info.start_time = time(NULL);
     // exec_info.n_models = 0;
     // start_model_params = MOD_PARAM_ESTIMATED_FREQ | MOD_PARAM_GAMMA;
     // start_model = partition.get_model_by_matrix(DNA_GTR_INDEX, start_model_params);
-    // exec_ok &= evaluate_single_model(*start_model, 0);
+    // exec_ok &= evaluate_single_model(*start_model, n_threads, 0);
     // exec_info.model_index = 0;
     // exec_info.model = start_model;
     // exec_info.end_time = time(NULL);
@@ -244,7 +244,8 @@ namespace modeltest
 #endif
 
   bool PartitionOptimizer::evaluate_all_models( vector<Model *> const& models,
-                                                mt_size_t n_threadprocs )
+                                                mt_size_t n_threadprocs,
+                                                mt_size_t n_threads )
   {
     bool exec_ok = true;
     mt_size_t n_models = models.size();
@@ -264,12 +265,12 @@ namespace modeltest
         ++cur_model;
 
         results.emplace_back(
-          pool.enqueue([cur_model, model, n_models, this] {
+          pool.enqueue([cur_model, model, n_models, n_threads, this] {
             opt_info_t exec_info;
             exec_info.start_time = time(NULL);
             exec_info.n_models = n_models;
 
-            int res = evaluate_single_model(*model, this_thread_id);
+            int res = evaluate_single_model(*model, n_threads, this_thread_id);
 
             exec_info.model_index = cur_model + 1;
             exec_info.model = model;
@@ -301,7 +302,7 @@ namespace modeltest
   int one = 1;
   MPI_Win comm_win;
 
-  if (ROOT)
+  if (ParallelContext::master())
   {
     MPI_Win_allocate(
       sizeof(int),
@@ -349,7 +350,7 @@ namespace modeltest
 #endif // MPI_ENABLED
 
         exec_info.start_time = time(NULL);
-        exec_ok &= evaluate_single_model(*model, 0);
+        exec_ok &= evaluate_single_model(*model, n_threads, 0);
         if (exec_ok) ++opt_models_count;
 
         if (mt_errno)
@@ -362,7 +363,7 @@ namespace modeltest
       }
 
 #if(MPI_ENABLED)
-    if (ROOT)
+    if (ParallelContext::master())
     {
       mpi_comm_data_t rec_data;
       while(opt_models_count < n_models)
@@ -469,6 +470,7 @@ BARRIER;
   }
 
   bool PartitionOptimizer::evaluate_single_model(Model & model,
+                                                 mt_size_t n_threads,
                                                  mt_index_t thread_number)
   {
     bool result;
@@ -476,20 +478,27 @@ BARRIER;
 
     if (model.is_optimized())
     {
+      LOG_DBG2 << "[" << model.get_name() << "] is already optimized" << endl;
       result = true;
     }
     else
     {
       try
       {
+        LOG_DBG2 << "[" << model.get_name() 
+                 << "] create model optimizer from partition optimizer with " 
+                 << n_threads << " threads" << endl;
         ModelOptimizer * mopt = new ModelOptimizerPll(msa, tree, model,
                                                       partition,
                                                       optimize_topology,
                                                       keep_model_parameters,
                                                       gamma_rates,
+                                                      n_threads,
                                                       thread_number);
         assert(mopt);
 
+        LOG_DBG2 << "[" << model.get_name() 
+                 << "] start model optimization from partition optimizer" << endl;
         result = mopt->run(epsilon_opt, epsilon_param);
 
         delete mopt;

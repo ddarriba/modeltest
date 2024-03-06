@@ -20,16 +20,16 @@
 */
 
 #ifndef _NO_GUI_
-#include "gui/xmodeltest.h"
-#include "gui2/xmodeltestfancy.h"
-#include "service/modeltestservice.h"
-#include <QApplication>
+  #include "gui/xmodeltest.h"
+  #include "gui2/xmodeltestfancy.h"
+  #include "service/modeltestservice.h"
+  #include <QApplication>
 #else
-#include "service/modeltestservice.h"
+  #include "service/modeltestservice.h"
 #endif
+#include "thread/parallel_context.h"
 #include "utils.h"
 #include "meta.h"
-#include "thread/parallel_context.h"
 
 #include <ctime>
 #include <cerrno>
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 
         ofstream * results_stream = 0;
 
-        if (ROOT)
+        if (ParallelContext::master())
           results_stream = modeltest::Utils::open_file_for_writing(opts.output_results_file);
 
         if (results_stream)
@@ -201,11 +201,12 @@ int main(int argc, char *argv[])
 
           exec_ok = ModelTestService::instance()->evaluate_models(part_id,
                                                         opts.n_threadprocs,
+                                                        opts.n_threads,
                                                         opts.epsilon_param,
                                                         opts.epsilon_opt,
                                                         MT_INFO);
 
-          if (ROOT)
+          if (ParallelContext::master())
           {
             if (exec_ok)
             {
@@ -299,7 +300,7 @@ int main(int argc, char *argv[])
           }
         }
 
-        if (ROOT)
+        if (ParallelContext::master())
         {
           if (results_stream)
           {

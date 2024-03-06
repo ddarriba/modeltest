@@ -22,6 +22,7 @@
 #include "treepll.h"
 #include "utils.h"
 #include "genesis/logging.h"
+#include "thread/parallel_context.h"
 
 #include <cerrno>
 #include <iostream>
@@ -168,7 +169,7 @@ namespace modeltest
     pll_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
     pll_start_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
 
-    if (ROOT)
+    if (ParallelContext::master())
     {
       if (filename.compare(""))
       {
@@ -249,7 +250,7 @@ namespace modeltest
       }
     }
 
-    if (ROOT && !set_indices(starting_tree, msa))
+    if (ParallelContext::master() && !set_indices(starting_tree, msa))
     {
       cleanup();
       throw EXCEPTION_TREE_FORMAT;
@@ -259,7 +260,7 @@ namespace modeltest
 
     /* broadcast starting topology */
     pll_unode_t * serialized_tree;
-    if (ROOT)
+    if (ParallelContext::master())
     {
 
       serialized_tree = pllmod_utree_serialize(starting_tree->nodes[0]->back,

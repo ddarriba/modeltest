@@ -83,6 +83,7 @@
 #define VERBOSITY_HIGH            3
 #define VERBOSITY_ULTRA           4
 
+#define MT_MAX_THREADS           256
 #define MT_AUTOTHREADS            -1
 
 #define MT_MIN_SMOOTH_FREQ        0.02

@@ -53,6 +53,7 @@ namespace modeltest
                     bool _optimize_topology,
                     bool _keep_model_parameters,
                     int gamma_rates = PLL_GAMMA_RATES_MEAN,
+                    mt_size_t _n_threads = 1,
                     mt_index_t _thread_number = 0)
         : msa(_msa),
           model(_model),
@@ -60,6 +61,7 @@ namespace modeltest
           optimize_topology(_optimize_topology),
           keep_model_parameters(_keep_model_parameters),
           gamma_rates(gamma_rates),
+          n_threads(_n_threads),
           thread_number(_thread_number)
     {
         interrupt_optimization = false;
@@ -76,12 +78,10 @@ namespace modeltest
      * @brief Optimizes all parameters for the model
      * @param[in] epsilon     the tolerance of the global optimization
      * @param[in] tolerance   tolerance for parameter optimization
-     * @param[in] num_threads number of threads for model optimization
      * @return true, if the optimization is OK
      */
     virtual bool run(double epsilon   = DEFAULT_OPT_EPSILON,
-                     double tolerance = DEFAULT_PARAM_EPSILON,
-                     mt_size_t num_threads = 1) = 0;
+                     double tolerance = DEFAULT_PARAM_EPSILON) = 0;
 
     /**
      * @brief Gets the optimization status of the model
@@ -105,7 +105,8 @@ namespace modeltest
     mt_size_t n_sites;    //! original number of sites
     mt_size_t n_patterns; //! crunched number of sites
 
-    mt_index_t thread_number;  //! the number of the current thread
+    mt_size_t n_threads;       //! the number of parallel threads
+    mt_index_t thread_number;  //! the number of the master thread
 
     // dynamic optimization status
     bool interrupt_optimization;

@@ -48,12 +48,21 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       bool _optimize_topology,
                                       bool _keep_model_parameters,
                                       int _gamma_rates,
+                                      mt_size_t _n_threads,
                                       mt_index_t _thread_number)
     : ModelOptimizer(_msa, _model, _partition,
                      _optimize_topology, _keep_model_parameters,
-                     _gamma_rates, _thread_number),
+                     _gamma_rates, _n_threads, _thread_number),
       tree(_tree)
 {
+
+  /* Multithread */
+  if (n_threads > 1)
+  {
+    LOG_WARN << "Multithread optimization is under revision. Handle results with care." << endl;
+  }
+  LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << n_threads << " threads" << endl;
+
   mt_size_t n_tips = tree.get_n_tips ();
   mt_size_t n_patterns = partition.get_n_patterns();
 
@@ -104,13 +113,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
   }
 
   bool ModelOptimizerPll::run(double epsilon,
-                              double tolerance,
-                              mt_size_t _num_threads)
+                              double tolerance)
   {
-    /*test*/
-    //num_threads = 2;
-
-    LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << _num_threads << " threads" << endl;
     time_t start_time = time(NULL);
     mt_size_t n_branches = tree.get_n_branches();
 
@@ -124,19 +128,12 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     if (verbosity == VERBOSITY_ULTRA)
     {
-    stringstream ss;
-    ss << "[" << model.get_name() << "] initial Frequencies: {";
-    for (mt_index_t i=0; i<pll_partition->states; i++)
-      ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
-    ss << " }" << endl;
-    LOG_DBG2 << ss.str();
-    }
-
-    /* Multithread */
-    if (_num_threads > 1)
-    {
-      LOG_INFO << "Multithread optimization is temporary unavailable" << endl;
-      Utils::exit_with_error("Unavailable feature (multi-threaded optimization)");
+      stringstream ss;
+      ss << "[" << model.get_name() << "] initial Frequencies: {";
+      for (mt_index_t i=0; i<pll_partition->states; i++)
+        ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
+      ss << " }" << endl;
+      LOG_DBG2 << ss.str();
     }
 
     LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;

@@ -229,7 +229,7 @@ void * Utils::c_allocate(mt_size_t n, mt_size_t size) {
 
 void Utils::exit_with_error(const char * message, ...) {
     va_list arg;
-    if (ROOT) {
+    if (ParallelContext::master()) {
         va_start(arg, message);
 
         fprintf(stderr, "Error: ");

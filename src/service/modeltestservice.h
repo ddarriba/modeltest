@@ -62,6 +62,7 @@ public:
 
   bool optimize_single(const partition_id_t &part_id,
                        modeltest::Model *model,
+                       mt_size_t n_threads,
                        mt_index_t thread_id,
                        double epsilon_param,
                        double epsilon_opt,
@@ -69,6 +70,7 @@ public:
 
   bool evaluate_models(partition_id_t const& part_id,
                        mt_size_t n_threadprocs,
+                       mt_size_t n_threads,
                        double epsilon_param,
                        double epsilon_opt,
                        std::ostream &out = std::cout);
