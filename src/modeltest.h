@@ -60,7 +60,7 @@ typedef struct
 class ModelTest : public Observer
 {
 public:
-    ModelTest(mt_size_t number_of_threads = 1, mt_size_t number_of_procs = 1);
+    ModelTest(mt_size_t number_of_threadprocs = 1, mt_size_t number_of_procs = 1, mt_size_t number_of_threads = 1);
     ~ModelTest();
 
     /**
@@ -159,8 +159,9 @@ public:
 
     virtual void update(Observable * subject, void * data);
 private:
-    mt_size_t number_of_threads;              //! number of threads
+    mt_size_t number_of_threadprocs;          //! number of coarse grain threads
     mt_size_t number_of_procs;                //! number of processes
+    mt_size_t number_of_threads;              //! number of fine grain threads
     selection_instance * current_instance;    //! model optimization parameters
     //partitions_map_t partitions;            //! partitions
     PartitioningScheme * partitioning_scheme; //! partitioning scheme

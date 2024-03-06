@@ -311,8 +311,9 @@ typedef struct {
     unsigned int rnd_seed;       //! RNG seed
     int verbose;                 //! Verbosity level
 
+    mt_size_t n_mpiprocs;        //! Number of distributed processes
+    mt_size_t n_threadprocs;     //! Number of processes for optimiz.
     mt_size_t n_threads;         //! Number of threads for optimiz.
-    mt_size_t n_procs;           //! Number of processes for optimiz.
 } mt_options_t;
 
 #endif // GLOBAL_DEFS_H

@@ -68,7 +68,7 @@ public:
                        const std::vector<Observer *> observers = {});
 
   bool evaluate_models(partition_id_t const& part_id,
-                       mt_size_t n_procs,
+                       mt_size_t n_threadprocs,
                        double epsilon_param,
                        double epsilon_opt,
                        std::ostream &out = std::cout);

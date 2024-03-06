@@ -55,7 +55,6 @@ int mpi_numprocs;
 mt_size_t num_cores_p;
 mt_size_t num_cores_l;
 
-static mt_size_t n_procs = 1;
 #if(MPI_ENABLED)
 MPI_Comm master_mpi_comm;
 #endif
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 
         /* initialization */
 
-        if (!Meta::parse_arguments(argc, argv, opts, &n_procs))
+        if (!Meta::parse_arguments(argc, argv, opts))
         {
           if (modeltest::mt_errno == MT_ERROR_IGNORE)
           {
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
           }
         }
 
-        opts.n_procs = mpi_numprocs;
+        opts.n_mpiprocs = mpi_numprocs;
 
         if (opts.output_log_file.compare(""))
         {
@@ -152,17 +151,18 @@ int main(int argc, char *argv[])
         MT_INFO << flush;
         LOG_INFO << flush;
 
-        n_procs = opts.n_threads;
-
-        if (mpi_numprocs > 1 && n_procs > 1)
+        if (mpi_numprocs > 1 && opts.n_threadprocs > 1)
         {
-           modeltest::Utils::exit_with_error("MPI and multithreading is not supported");
-           /* for the future, in this case n_procs should be <= mpi_numprocs, and
-            * the master communicator will be split into per-task communicators.
-            */
+           LOG_WARN << PACKAGE << ": MPI + multiple high-level processes are not supported: shared processes set to 1" << endl;
+           opts.n_threadprocs = 1;
         }
 
-        if (mpi_numprocs == 1 && n_procs == 1 && num_cores_p > 1)
+        if (mpi_numprocs > 1 && opts.n_threads > 1)
+        {
+           LOG_WARN << PACKAGE << ": Hybrid MPI + Multithreading is under evaluation. Handle results with care" << endl;
+        }
+
+        if (mpi_numprocs == 1 && opts.n_threadprocs == 1 && num_cores_p > 1)
         {
             /* We warn only if the number of processors is 1. */
             /* Otherwise we assume that the user is aware of this feature */
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
           partition_id_t part_id = {i};
 
           exec_ok = ModelTestService::instance()->evaluate_models(part_id,
-                                                        n_procs,
+                                                        opts.n_threadprocs,
                                                         opts.epsilon_param,
                                                         opts.epsilon_opt,
                                                         MT_INFO);

@@ -62,12 +62,12 @@ namespace modeltest
                        double epsilon_param,
                        double epsilon_opt);
     ~PartitionOptimizer();
-    bool evaluate( mt_size_t n_procs = 1 );
+    bool evaluate( mt_size_t n_threadprocs = 1 );
   private:
-    bool evaluate_greedy( mt_size_t n_procs );
+    bool evaluate_greedy( mt_size_t n_threadprocs );
 
     bool evaluate_all_models( std::vector<Model *> const& models,
-                              mt_size_t n_procs );
+                              mt_size_t n_threadprocs );
 
     bool evaluate_single_model(Model & model,
                                mt_index_t thread_number);

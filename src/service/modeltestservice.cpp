@@ -42,7 +42,7 @@ bool ModelTestService::create_instance( mt_options_t & options )
     if(modeltest_instance)
         return false;
 
-    modeltest_instance = new ModelTest(options.n_threads, options.n_procs);
+    modeltest_instance = new ModelTest(options.n_threadprocs, options.n_mpiprocs, options.n_threads);
     build_ok = modeltest_instance->build_instance(options);
     
     return build_ok;
@@ -91,7 +91,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 }
 
 bool ModelTestService::evaluate_models(partition_id_t const& part_id,
-                                       mt_size_t n_procs,
+                                       mt_size_t n_threadprocs,
                                        double epsilon_param,
                                        double epsilon_opt,
                                        ostream &out)
@@ -99,7 +99,7 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
     assert(modeltest_instance);
 
     return modeltest_instance->evaluate_models(part_id,
-                                               n_procs,
+                                               n_threadprocs,
                                                epsilon_param,
                                                epsilon_opt,
                                                out);

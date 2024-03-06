@@ -59,23 +59,23 @@ namespace modeltest
 
   }
 
-  bool PartitionOptimizer::evaluate(mt_size_t n_procs)
+  bool PartitionOptimizer::evaluate(mt_size_t n_threadprocs)
   {
     bool exec_ok = false;
 
     switch (opt_type)
     {
       case partition_optimize_all:
-        exec_ok = evaluate_all_models( partition.get_models(), n_procs );
+        exec_ok = evaluate_all_models( partition.get_models(), n_threadprocs );
         break;
       case partition_optimize_greedy:
-        exec_ok = evaluate_greedy( n_procs );
+        exec_ok = evaluate_greedy( n_threadprocs );
         break;
     }
     return exec_ok;
   }
 
-  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_procs )
+  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_threadprocs )
   {
     //opt_info_t exec_info;
     bool exec_ok = true;
@@ -86,7 +86,7 @@ namespace modeltest
 
     MT_INFO << "Step 1/6" << endl;
     /* 1. optimize starting models */
-    if (!evaluate_all_models( candidate_models, n_procs ))
+    if (!evaluate_all_models( candidate_models, n_threadprocs ))
       return false;
 
     for (int k=N_DNA_SUBST_RATES-1; k>0; --k)
@@ -104,7 +104,7 @@ namespace modeltest
       /* 3. merge rates */
       candidate_models = partition.update_model_set(*static_cast<DnaModel *>(best_model));
 
-      if (!evaluate_all_models( candidate_models, n_procs ))
+      if (!evaluate_all_models( candidate_models, n_threadprocs ))
         return false;
     }
     // exec_info.start_time = time(NULL);
@@ -244,7 +244,7 @@ namespace modeltest
 #endif
 
   bool PartitionOptimizer::evaluate_all_models( vector<Model *> const& models,
-                                                mt_size_t n_procs )
+                                                mt_size_t n_threadprocs )
   {
     bool exec_ok = true;
     mt_size_t n_models = models.size();
@@ -252,10 +252,10 @@ namespace modeltest
 
     BARRIER;
 
-    if (n_procs > 1)
+    if (n_threadprocs > 1)
     {
       /* execute on thread pool */
-      ThreadPool pool(n_procs);
+      ThreadPool pool(n_threadprocs);
       vector< future<int> > results;
 
       mt_index_t cur_model = 0;

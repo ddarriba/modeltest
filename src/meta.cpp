@@ -37,7 +37,7 @@
 
 using namespace std;
 
-bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_size_t *n_procs)
+bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
 {
     bool input_file_ok = false;
     bool output_files_ok = false;
@@ -72,7 +72,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
     exec_opt.verbose         = VERBOSITY_DEFAULT;
-    exec_opt.n_threads       = DEFAULT_NUM_THREADS;
+    exec_opt.n_threadprocs   = DEFAULT_NUM_THREADS;
+    exec_opt.n_threads       = 1;
     exec_opt.starting_tree   = tree_mp;
     exec_opt.force_override  = false;
     exec_opt.asc_bias_corr   = asc_none;
@@ -93,7 +94,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         { "keep-params", no_argument,        0, 'k' },
         { "models", required_argument,       0, 'm' },
         { "output", required_argument,       0, 'o' },
-        { "threads", required_argument,      0, 'p' },
+        { "processes", required_argument,    0, 'P' },
+        { "threads", required_argument,      0, 'P' },
         { "partitions", required_argument,   0, 'q' },
         { "rngseed", required_argument,      0, 'r' },
         { "schemes", required_argument,      0, 's' },
@@ -119,7 +121,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
 
     int opt = 0, long_index = 0;
     bool params_ok = true;
-    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:q:r:s:t:T:u:vV", long_options,
+    while ((opt = getopt_long(argc, argv, "a:c:d:f:g:h:Hki:m:o:p:P:q:r:s:t:T:u:vV", long_options,
                               &long_index)) != -1) {
         switch (opt) {
         case 0:
@@ -393,10 +395,18 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         case 'o':
             output_basename = optarg;
             break;
+        case 'P':
+            exec_opt.n_threads = (mt_size_t) atoi(optarg);
+            if (exec_opt.n_threads <= 0)
+            {
+                LOG_ERR << PACKAGE << ": Invalid number of parallel threads: " << optarg << endl;
+                LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should a positive integer number" << endl;
+                params_ok = false;
+            }
+            break;
         case 'p':
-            *n_procs = (mt_size_t) atoi(optarg);
-            exec_opt.n_threads = *n_procs;
-            if (*n_procs <= 0)
+            exec_opt.n_threadprocs = (mt_size_t) atoi(optarg);
+            if (exec_opt.n_threadprocs <= 0)
             {
                 LOG_ERR << PACKAGE << ": Invalid number of parallel processes: " << optarg << endl;
                 LOG_ERR <<  setw(strlen(PACKAGE) + 2) << setfill(' ') << " " << "Should a positive integer number" << endl;
@@ -1352,7 +1362,11 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     default:
         assert(0);
     }
-    out << "  " << left << setw(18) << "threads:" << opts.n_threads << "/" << num_cores_l << endl;
+#if(MPI_ENABLED)
+    out << "  " << left << setw(18) << "distributed processes: " << opts.n_mpiprocs << endl;
+#endif
+    out << "  " << left << setw(18) << "high-level threads:    " << opts.n_threadprocs << "/" << num_cores_l << endl;
+    out << "  " << left << setw(18) << "low-level threads:     " << opts.n_threads << endl;
     out << "  " << left << setw(18) << "RNG seed:" << opts.rnd_seed << endl;
     out << "  " << left << setw(18) << "subtree repeats:" <<
            (modeltest::disable_repeats?"disabled":"enabled") << endl;
@@ -1435,15 +1449,15 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
 
     /* check threads/processes */
-    if (opts.n_threads > num_cores_l)
+    if (opts.n_threadprocs * opts.n_threads > num_cores_l)
     {
-      LOG_WARN << "The number of selected threads (" << opts.n_threads << ")"
+      LOG_WARN << "The number of selected threads (" << opts.n_threadprocs << " x " << opts.n_threads << ")"
                << " is greater than the number of logical cores (" << num_cores_l << "). "
                << "This may slow down the process" << endl;
     }
 
     /* check memory */
-    expected_memb = max_memb * opts.n_threads;
+    expected_memb = max_memb * opts.n_threadprocs;
     if (modeltest::Utils::get_memtotal() < expected_memb)
     {
       if (modeltest::Utils::get_memtotal() > max_memb)
@@ -1451,11 +1465,11 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         LOG_WARN << "Input data is too big for the available system memory. "
                  << "ModelTest-NG might suddenly hang or crash." << endl;
       }
-      else if (opts.n_threads > 1)
+      else if (opts.n_threadprocs > 1)
       {
-        LOG_WARN << "System memory could not be enough for handling " << opts.n_threads << " threads. "
+        LOG_WARN << "System memory could not be enough for handling " << opts.n_threadprocs << " parallel optimizations. "
                  << "If the execution hangs or crashes, please try at most " 
-                 << modeltest::Utils::get_memtotal() / expected_memb << " threads." << endl;
+                 << modeltest::Utils::get_memtotal() / expected_memb << " processes." << endl;
       }
     }
     
@@ -1500,8 +1514,11 @@ void Meta::print_help(std::ostream& out)
     out << setw(MAX_OPT_LENGTH) << left << "  -o, --output output_file"
         << "pipes the output into a file" << endl;
 
+    out << setw(MAX_OPT_LENGTH) << left << "  -p, --processes n_processes"
+        << "sets the number of parallel optimizations to perform (shared memory)" << endl;
+
     out << setw(MAX_OPT_LENGTH) << left << "  -p, --threads n_threads"
-        << "sets the number of threads to use (shared memory)" << endl;
+        << "sets the number of threads per optimization to use (shared memory)" << endl;
 
     out << setw(MAX_OPT_LENGTH) << left << "  -q, --partitions partitions_file"
         << "sets a partitioning scheme" << endl;
