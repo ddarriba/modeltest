@@ -52,7 +52,8 @@ bool have_sse3;
 int mpi_rank;
 int mpi_numprocs;
 
-mt_size_t num_cores;
+mt_size_t num_cores_p;
+mt_size_t num_cores_l;
 
 static mt_size_t n_procs = 1;
 #if(MPI_ENABLED)
@@ -84,7 +85,8 @@ int main(int argc, char *argv[])
 
     int return_val = EXIT_SUCCESS;
 
-    num_cores = modeltest::Utils::count_physical_cores();
+    num_cores_p = modeltest::Utils::count_physical_cores();
+    num_cores_l = modeltest::Utils::count_logical_cores();
 
     pll_hardware_probe();
     have_avx2 = pll_hardware.avx2_present;
@@ -150,6 +152,8 @@ int main(int argc, char *argv[])
         MT_INFO << flush;
         LOG_INFO << flush;
 
+        n_procs = opts.n_threads;
+
         if (mpi_numprocs > 1 && n_procs > 1)
         {
            modeltest::Utils::exit_with_error("MPI and multithreading is not supported");
@@ -158,14 +162,14 @@ int main(int argc, char *argv[])
             */
         }
 
-        if (mpi_numprocs == 1 && n_procs == 1 && num_cores > 1)
+        if (mpi_numprocs == 1 && n_procs == 1 && num_cores_p > 1)
         {
             /* We warn only if the number of processors is 1. */
             /* Otherwise we assume that the user is aware of this feature */
             LOG_WARN << PACKAGE << ": You are using one single thread out of "
-                    << num_cores << " physical cores." << endl;
+                    << num_cores_p << " physical cores." << endl;
             LOG_WARN << PACKAGE
-                 << ":          You can set the number of threads with -p argument."
+                 << ": You can set the number of threads with -p argument."
                  << endl;
             LOG_WARN << PACKAGE << ": Try '" << PACKAGE << " --help' or '"
                  << PACKAGE << " --usage' for more information" << endl;

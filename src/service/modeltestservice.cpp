@@ -44,7 +44,7 @@ bool ModelTestService::create_instance( mt_options_t & options )
 
     modeltest_instance = new ModelTest(options.n_threads, options.n_procs);
     build_ok = modeltest_instance->build_instance(options);
-
+    
     return build_ok;
 }
 
@@ -140,7 +140,7 @@ void ModelTestService::print_command_lines(modeltest::Model const& model,
   out << "  > phyml " << get_phyml_command_line(model, msa_filename) << endl;
   out << "  > raxmlHPC-SSE3 " << get_raxml8_command_line(model, msa_filename) << endl;
   out << "  > raxml-ng " << get_raxmlng_command_line(model, msa_filename) << endl;
-  out << "  > paup " << get_paup_command_line(model, msa_filename) << endl;
+ // out << "  > paup " << get_paup_command_line(model, msa_filename) << endl;
   out << "  > iqtree " << get_iqtree_command_line(model, msa_filename) << endl;
 }
 
@@ -421,11 +421,18 @@ bool ModelTestService::topological_summary(partition_id_t const& part_id,
 string ModelTestService::get_iqtree_command_line(Model const& model,
                                                  string const& msa_filename) const
 {
-    //TODO:
     stringstream iqtree_args;
     //mt_index_t matrix_index = model.get_matrix_index();
 
-    iqtree_args << "-s " << msa_filename << " -m " << model.get_name();
+    iqtree_args << "-s " << msa_filename;
+   
+    // fix model name incompatibilities
+    if (!model.get_name().find("JTT-DCMUT"))
+    {
+      iqtree_args << " -m JTTDCMut" << model.get_name().substr(9);
+    }
+    else
+       iqtree_args << " -m " << model.get_name();
 
     return iqtree_args.str();
 }
@@ -487,7 +494,11 @@ string ModelTestService::get_raxml8_command_line(Model const& model,
         raxml_args << " -m PROTGAMMA";
         if (model.is_I())
             raxml_args << "I";
-        raxml_args << prot_model_names[matrix_index];
+        // fix model name incompatibilities
+        if (!model.get_name().find("JTT-DCMUT"))
+          raxml_args << "JTTDCMUT";
+        else
+          raxml_args << prot_model_names[matrix_index];
         if (model.is_F())
             raxml_args << "F";
     }

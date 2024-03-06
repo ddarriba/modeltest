@@ -72,13 +72,13 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
     exec_opt.partitions_desc = NULL;
     exec_opt.partitions_eff  = NULL;
     exec_opt.verbose         = VERBOSITY_DEFAULT;
-    exec_opt.n_threads       = 1;
+    exec_opt.n_threads       = DEFAULT_NUM_THREADS;
     exec_opt.starting_tree   = tree_mp;
     exec_opt.force_override  = false;
     exec_opt.asc_bias_corr   = asc_none;
     exec_opt.write_checkpoint = true;
     memset(exec_opt.asc_weights, 0, sizeof(mt_size_t) * MT_MAX_STATES);
-
+    
     static struct option long_options[] =
     {
         { "asc-bias", required_argument,     0, 'a' },
@@ -627,11 +627,10 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       else if (exec_opt.starting_tree == tree_mp ||
                exec_opt.starting_tree == tree_random)
       {
-        LOG_ERR << PACKAGE << ": Warning: "
-          "User defined tree (-u) is used only with ml, fixed-ml or fixed-user starting trees" <<
+        LOG_WARN << PACKAGE
+          << ": User defined tree (-u) is used only with ml, fixed-ml or fixed-user starting trees" <<
           endl;
-        LOG_ERR << PACKAGE << ":          "
-            "Starting tree will be set to 'user'" << endl;
+        LOG_WARN << PACKAGE << ": Starting tree will be set to 'user'" << endl;
         exec_opt.starting_tree = tree_user_fixed;
       }
     }
@@ -702,8 +701,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
         {
             if (modeltest::mt_errno)
             {
-                LOG_ERR << PACKAGE << ": Warning: "
-                     << modeltest::mt_errmsg << endl;
+                LOG_WARN << PACKAGE << ": " << modeltest::mt_errmsg << endl;
                 modeltest::mt_errno = 0;
             }
         }
@@ -801,7 +799,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
       }
       if (!exist_dna_models && (dna_ss != ss_undef))
       {
-        LOG_ERR << PACKAGE << ": Warning: Substitution schemes will be ignored" << endl;
+        LOG_WARN << PACKAGE << ": Substitution schemes will be ignored" << endl;
       }
 
       if (user_candidate_models.compare(""))
@@ -834,8 +832,8 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt, mt_s
               char cur_action = s.c_str()[0];
               if (!(cur_action == '+' || cur_action == '-'))
               {
-                LOG_ERR << PACKAGE
-                        << ": Warning: Undefined action {+,-} for model " << s
+                LOG_WARN << PACKAGE
+                        << ": Undefined action {+,-} for model " << s
                         << ". Using previous action: " << action <<  endl;
               }
               else
@@ -1163,12 +1161,14 @@ static void print_model_params(mt_mask_t model_params, std::ostream  &out)
     out << "    " << left << setw(17) << "both (+I+G):" << ((model_params&MOD_PARAM_INV_GAMMA)?"true":"false") << endl;
     out << "    " << left << setw(17) << "free rates (+R):" << ((model_params&MOD_PARAM_FREE_RATES)?"true":"false") << endl;
     out << "    " << left << setw(17) << "fixed freqs:" << ((model_params&MOD_PARAM_FIXED_FREQ)?"true":"false") << endl;
-    out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"true":"false") << endl;
+    out << "    " << left << setw(17) << "estimated freqs:" << ((model_params&MOD_PARAM_ESTIMATED_FREQ)?"ML":((model_params&MOD_PARAM_EMPIRICAL_FREQ)?"empirical":"false")) << endl;
 }
 
 void Meta::print_options(mt_options_t & opts, ostream &out)
 {
-    mt_size_t num_cores = modeltest::Utils::count_physical_cores();
+    mt_size_t max_memb = 0;
+    mt_size_t expected_memb = 0;
+
     out << setw(80) << setfill('-') << ""  << setfill(' ') << endl;
     out << "ModelTest-NG v" << MTNG_VERSION << endl << endl;
     out << "Input data:" << endl;
@@ -1211,7 +1211,6 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     if (opts.partitions_eff)
     {
       mt_size_t n_patterns = 0;
-      mt_size_t max_memb = 0;
       for (mt_index_t i=0; i<opts.partitions_eff->size(); ++i)
       {
         n_patterns += opts.partitions_eff->at(i).site_patterns;
@@ -1353,7 +1352,7 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
     default:
         assert(0);
     }
-    out << "  " << left << setw(18) << "threads:" << opts.n_threads << "/" << num_cores << endl;
+    out << "  " << left << setw(18) << "threads:" << opts.n_threads << "/" << num_cores_l << endl;
     out << "  " << left << setw(18) << "RNG seed:" << opts.rnd_seed << endl;
     out << "  " << left << setw(18) << "subtree repeats:" <<
            (modeltest::disable_repeats?"disabled":"enabled") << endl;
@@ -1434,6 +1433,32 @@ void Meta::print_options(mt_options_t & opts, ostream &out)
         }
     }
     out << setw(80) << setfill('-') << "" << setfill(' ') << endl;
+
+    /* check threads/processes */
+    if (opts.n_threads > num_cores_l)
+    {
+      LOG_WARN << "The number of selected threads (" << opts.n_threads << ")"
+               << " is greater than the number of logical cores (" << num_cores_l << "). "
+               << "This may slow down the process" << endl;
+    }
+
+    /* check memory */
+    expected_memb = max_memb * opts.n_threads;
+    if (modeltest::Utils::get_memtotal() < expected_memb)
+    {
+      if (modeltest::Utils::get_memtotal() > max_memb)
+      {
+        LOG_WARN << "Input data is too big for the available system memory. "
+                 << "ModelTest-NG might suddenly hang or crash." << endl;
+      }
+      else if (opts.n_threads > 1)
+      {
+        LOG_WARN << "System memory could not be enough for handling " << opts.n_threads << " threads. "
+                 << "If the execution hangs or crashes, please try at most " 
+                 << modeltest::Utils::get_memtotal() / expected_memb << " threads." << endl;
+      }
+    }
+    
 }
 
 void Meta::print_usage(std::ostream& out)

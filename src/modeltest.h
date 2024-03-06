@@ -53,6 +53,8 @@ typedef struct
   bool keep_model_parameters;
   bool ckp_enabled;
   std::string ckp_filename;
+
+  mt_size_t max_memb; //! expected max memory per partition
 } selection_instance;
 
 class ModelTest : public Observer
@@ -152,6 +154,8 @@ public:
      * @return the set of candidate models
      */
     std::vector<Model *> const& get_models(const partition_id_t &part_id);
+
+    mt_size_t get_max_memb( void ) const;
 
     virtual void update(Observable * subject, void * data);
 private:

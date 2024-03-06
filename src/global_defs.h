@@ -24,7 +24,7 @@
 
 #define PACKAGE "modeltest-ng"
 #define MTNG_VERSION "0.2.0"
-#define MTNG_DATE "05.04.2021"
+#define MTNG_DATE "06.03.2024"
 
 #include <string>
 #include <vector>
@@ -72,6 +72,7 @@
 #define DEFAULT_PARAM_EPSILON     0.05
 #define DEFAULT_OPT_EPSILON       0.01
 #define DEFAULT_RND_SEED          12345
+#define DEFAULT_NUM_THREADS       MT_AUTOTHREADS
 
 #define MT_SIZE_UNDEF             UINT_MAX
 #define DOUBLE_EPSILON            1e-12
@@ -81,6 +82,8 @@
 #define VERBOSITY_MID             2
 #define VERBOSITY_HIGH            3
 #define VERBOSITY_ULTRA           4
+
+#define MT_AUTOTHREADS            -1
 
 #define MT_MIN_SMOOTH_FREQ        0.02
 
@@ -124,7 +127,8 @@ typedef std::vector<mt_index_t> partition_id_t;
 extern int mpi_rank;
 extern int mpi_numprocs;
 
-extern mt_size_t num_cores;  //! Number of physical cores
+extern mt_size_t num_cores_p;  //! Number of physical cores
+extern mt_size_t num_cores_l;  //! Number of logical cores
 
 extern bool have_avx2;
 extern bool have_avx;
@@ -262,25 +266,29 @@ typedef struct {
     std::string tree_filename;        //! User tree filename
     std::string partitions_filename;  //! Partitions filename
 
-    /* output data */
-    std::string output_log_file;      //! Output log filename
-    std::string output_tree_file;     //! Output tree filename
-    std::string output_results_file;  //! Output results filename
-    std::string output_models_file;   //! Output models filename
-    std::string output_topos_file;    //! Output topologies filename
-    std::string output_raxml_part_file;  //! Output RAxML-NG partitions filename
-    bool redirect_output;             //! Redirect standard output to a file
-    bool force_override;              //! Force overriding existing files
-    bool output_tree_to_file;         //! Whether the starting tree is printed
-
-    std::string checkpoint_file;      //! Checkpoint filename
-    bool write_checkpoint;
-
     bool compress_patterns;  //! Compress site patterns
     mt_size_t n_taxa;        //! Number of taxa
     mt_size_t n_sites;       //! Number of sites
     mt_size_t n_patterns;    //! Number of unique patterns
     mt_size_t max_memb;      //! Required memory estimation
+
+    std::vector<partition_descriptor_t> * partitions_desc;      //! Original partitioning
+    std::vector<partition_descriptor_t> const* partitions_eff;  //! Effective partitioning
+
+    /* output data */
+    std::string output_log_file;         //! Output log filename
+    std::string output_tree_file;        //! Output tree filename
+    std::string output_results_file;     //! Output results filename
+    std::string output_models_file;      //! Output models filename
+    std::string output_topos_file;       //! Output topologies filename
+    std::string output_raxml_part_file;  //! Output RAxML-NG partitions filename
+    bool redirect_output;                //! Redirect standard output to a file
+    bool force_override;                 //! Force overriding existing files
+    bool output_tree_to_file;            //! Whether the starting tree is printed
+
+    /* fault tolerance */
+    std::string checkpoint_file;      //! Checkpoint filename
+    bool write_checkpoint;
 
     /* configuration */
     tree_type_t starting_tree;                    //! Starting tree type
@@ -293,19 +301,18 @@ typedef struct {
     int gamma_rates_mode;                         //! Gamma Rates mode (median/mean)
     asc_bias_t asc_bias_corr;                     //! ascertainment bias correction
     mt_size_t asc_weights[MT_MAX_STATES];         //! dummy weights
-    std::vector<partition_descriptor_t> * partitions_desc; //! Original partitioning
-    std::vector<partition_descriptor_t> const* partitions_eff;  //! Effective partitioning
     template_models_t template_models; //! template for different tools
-    double epsilon_param;    //! Parameter optimization epsilon
-    double epsilon_opt;      //! Global optimization epsilon
 
-    bool smooth_freqs;                //! Force frequencies smoothing
-    bool keep_model_parameters;       //! Keep model params between optimizations
-    unsigned int rnd_seed;            //! RNG seed
-    int verbose;                      //! Verbosity level
+    /* optimization */
+    double epsilon_param;        //! Parameter optimization epsilon
+    double epsilon_opt;          //! Global optimization epsilon
+    bool smooth_freqs;           //! Force frequencies smoothing
+    bool keep_model_parameters;  //! Keep model params between optimizations
+    unsigned int rnd_seed;       //! RNG seed
+    int verbose;                 //! Verbosity level
 
-    mt_size_t n_threads;              //! Number of threads for optimiz.
-    mt_size_t n_procs;                //! Number of processes for optimiz.
+    mt_size_t n_threads;         //! Number of threads for optimiz.
+    mt_size_t n_procs;           //! Number of processes for optimiz.
 } mt_options_t;
 
 #endif // GLOBAL_DEFS_H

@@ -231,25 +231,10 @@ const std::string dna_model_matrices[N_DNA_ALLMATRIX_COUNT] = {
 
 const std::string prot_model_names[N_PROT_MODEL_ALL_MATRICES] = {
     /* included by default */
-    "DAYHOFF",   //  0
-    "LG",        //  1
-    "DCMUT",     //  2
-    "JTT",       //  3
-    "MTREV",     //  4
-    "WAG",       //  5
-    "RTREV",     //  6
-    "CPREV",     //  7
-    "VT",        //  8
-    "BLOSUM62",  //  9
-    "MTMAM",     // 10
-    "MTART",     // 11
-    "MTZOA",     // 12
-    "PMB",       // 13
-    "HIVB",      // 14
-    "HIVW",      // 15
-    "JTT-DCMUT", // 16
-    "FLU",       // 17
-    "STMTREV",   // 18
+    "DAYHOFF", "LG",        "DCMUT", "JTT",     "MTREV",     //  0 -  4
+    "WAG",     "RTREV",     "CPREV", "VT",      "BLOSUM62",  //  5 -  9
+    "MTMAM",   "MTART",     "MTZOA", "PMB",     "HIVB",      // 10 - 14
+    "HIVW",    "JTT-DCMUT", "FLU",   "STMTREV",              // 15 - 18
     /* additional mixture matrices */
     "LG4M",      // 19
     "LG4X",      // 20

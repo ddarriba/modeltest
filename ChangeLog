@@ -1,15 +1,16 @@
-
-* dev 0.2.0
+* release 0.2.0
 
   - Update for ARM M1 processors
-  - Bug fix with model clustering and checkpointing
-  - Bug fix with MPI One-sided comms
-  - Replaced non-portable function strcasecmp
-  - Bug fix with pthreads and static linking
   - Unify build methods
+  - Replaced non-portable function strcasecmp
   - Added manpage
   - Updated pll
+  - Autoselect thread count according to available memory
   - Fixed wrong warning message
+  - Bug fix with model clustering and checkpointing
+  - Bug fix with MPI One-sided communications
+  - Bug fix with pthreads and static linking
+  - Minor bug in parameters description
 
 * release 0.1.7
 

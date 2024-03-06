@@ -69,6 +69,7 @@ void ModelTest::create_instance()
     current_instance = new selection_instance;
     current_instance->msa = 0;
     current_instance->tree = 0;
+    current_instance->max_memb = 0;
 }
 
 ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
@@ -562,6 +563,7 @@ bool ModelTest::build_instance(mt_options_t & options)
 
   current_instance->ckp_enabled = options.write_checkpoint;
   current_instance->keep_model_parameters = options.keep_model_parameters;
+  current_instance->max_memb = 0;
 
   assert (options.partitions_desc);
 
@@ -668,6 +670,35 @@ bool ModelTest::build_instance(mt_options_t & options)
       else
         LOG_WARN << part_header << "There are " << stats.gap_cols_count << " undetermined columns in the alignment (only gaps)" << endl;
     }
+
+    mt_size_t memb = modeltest::Utils::mem_size(options.n_taxa,
+                     options.partitions_eff->at(i).site_patterns,
+                     options.n_catg,
+                     options.partitions_eff->at(i).states);
+
+    if (memb > current_instance->max_memb)
+        current_instance->max_memb = memb;
+  }
+
+  if (number_of_threads == static_cast<mt_size_t>(MT_AUTOTHREADS))
+  {
+    if (number_of_procs == 1)
+    {
+      /* auto-select the number of threads */
+      mt_size_t memtotal = Utils::get_memtotal();
+      mt_size_t max_core_count = memtotal / current_instance->max_memb;
+      mt_size_t lcore_count = Utils::count_logical_cores();
+      mt_size_t mt_thread_count = min(max_core_count, lcore_count);
+      
+      if (current_instance->max_memb > memtotal)
+        mt_thread_count = 1;
+
+      options.n_threads = number_of_threads = mt_thread_count;
+    }
+    else
+    {
+      options.n_threads = number_of_threads = 1;
+    }
   }
 
   if (!warning_enable_stdout)
@@ -738,7 +769,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
-      LOG_DBG << "Creating starting tree" << endl;
+      LOG_DBG << "Creating starting tree" << endl;  
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
@@ -876,7 +907,10 @@ bool ModelTest::build_instance(mt_options_t & options)
 
     if (new_part->get_n_sites() < current_instance->tree->get_n_branches())
     {
-      LOG_WARN << "MSA has too few sites compared to the number of taxa and results might not be reliable" << endl;
+      string part_header("Partition " + new_part->get_name());
+      LOG_WARN << part_header << " has too few sites (" << new_part->get_n_sites()
+               << ") compared to the number of tree branches (" << current_instance->tree->get_n_branches()
+               << ") and results might not be reliable" << endl << endl;
     }
 
     /*
@@ -973,6 +1007,11 @@ bool ModelTest::build_instance(mt_options_t & options)
 vector<Model *> const& ModelTest::get_models(partition_id_t const& part_id)
 {
   return partitioning_scheme->get_partition(part_id).get_models();
+}
+
+mt_size_t ModelTest::get_max_memb( void ) const
+{
+  return current_instance->max_memb;
 }
 
 void ModelTest::update(Observable * subject, void * data)
