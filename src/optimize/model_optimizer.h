@@ -89,6 +89,9 @@ namespace modeltest
      */
     int is_optimized() const { return optimized; }
 
+    int get_gamma_rates_mode() const { return gamma_rates; }
+    bool is_keep_model_parameters() const { return keep_model_parameters; }
+
     mt_index_t get_thread_number() const { return thread_number; }
     mt_index_t get_cur_parameter() const { return cur_parameter; }
     double get_opt_delta() const { return opt_delta; }

@@ -2,6 +2,7 @@
 #include "../plldefs.h"
 
 #include <string.h>
+#include <iostream>
 
 using namespace std;
 
@@ -60,9 +61,9 @@ void ParallelContext::start_thread(size_t thread_id, const std::function<void()>
   thread_main();
 }
 
-void ParallelContext::init_threads(const mt_options_t & opts, const std::function<void()>& thread_main)
+void ParallelContext::init_threads(mt_size_t n_threads, const std::function<void()>& thread_main)
 {
-  _num_threads = opts.n_threads;
+  _num_threads = n_threads;
   _parallel_buf.reserve(PARALLEL_BUF_SIZE);
 
 #ifdef MULTITHREAD
@@ -81,16 +82,7 @@ void ParallelContext::resize_buffer(size_t size)
 
 void ParallelContext::finalize(bool force)
 {
-#ifdef MULTITHREAD
-  for (thread& t: _threads)
-  {
-    if (force)
-      t.detach();
-    else
-      t.join();
-  }
-  _threads.clear();
-#endif
+  finalize_threads(force);
 
 #if(MPI_ENABLED)
   if (_owns_comm)
@@ -104,6 +96,20 @@ void ParallelContext::finalize(bool force)
   }
   else
     MPI_Barrier(_comm);
+#endif
+}
+
+void ParallelContext::finalize_threads(bool force)
+{
+#ifdef MULTITHREAD
+  for (thread& t: _threads)
+  {
+    if (force)
+      t.detach();
+    else
+      t.join();
+  }
+  _threads.clear();
 #endif
 }
 

@@ -53,17 +53,29 @@ namespace modeltest
     /* pthreads */
     void * worker(void * void_data);
 
-  private:
+    Model * get_model( void ) { return &model; }
+    Partition * get_partition( void ) { return &partition; }
+    TreePll * get_tree( void ) { return &tree; }
 
-    double optimize_model( double epsilon,
-                           double tolerance,
-                           bool opt_per_param );
+    pll_unode_t ** get_pll_tree_ptr( void ) {return &pll_tree; }
+    pll_partition_t ** get_pll_partition_ptr( void ) {return &pll_partition; }
+
+    void set_pll_partition(pll_partition_t * _partition) { pll_partition = _partition; }
+    void set_pll_tree(pll_unode_t * _tree) { pll_tree = _tree; }
 
     double optimize_parameters( pllmod_treeinfo_t * pll_tree,
                                 double epsilon,
                                 double tolerance,
                                 bool opt_per_param,
                                 double start_loglh );
+    double optimize_model( double epsilon,
+                           double tolerance,
+                           bool opt_per_param );
+  private:
+
+    
+
+    
 
     TreePll & tree;   //! the tree instance
 

@@ -100,6 +100,7 @@ ProtModel::ProtModel(mt_index_t _matrix_index,
 
   n_frequencies   = N_PROT_STATES;
   n_subst_rates   = N_PROT_SUBST_RATES;
+  n_rate_matrices = mixture?N_MIXTURE_CATS:1;
 
   if (mixture)
   {
@@ -220,60 +221,6 @@ mt_size_t ProtModel::get_n_subst_params() const
 {
     /* substitution rates are fixed */
     return 0;
-}
-
-pll_partition_t * ProtModel::build_partition(mt_size_t _n_tips,
-                                            mt_size_t n_sites)
-{
-    mt_mask_t attributes;
-
-    if (disable_repeats)
-    {
-      attributes = PLL_ATTRIB_PATTERN_TIP;
-    }
-    else
-    {
-      attributes = PLL_ATTRIB_SITE_REPEATS;
-    }
-
-    assert(!n_tips && _n_tips);
-    n_tips = _n_tips;
-
-    if (have_avx2)
-    {
-        attributes |= PLL_ATTRIB_ARCH_AVX2;
-    }
-    else if (have_avx)
-    {
-        attributes |= PLL_ATTRIB_ARCH_AVX;
-    }
-    else if (have_sse3)
-    {
-        attributes |= PLL_ATTRIB_ARCH_SSE;
-    }
-    else
-    {
-        attributes |= PLL_ATTRIB_ARCH_CPU;
-    }
-
-    attributes |= Model::asc_bias_attribute(asc_bias_corr);
-
-    pll_partition_t * part = pll_partition_create (
-                n_tips,                           /* tips */
-                n_tips-2,                         /* clv buffers */
-                N_PROT_STATES,                    /* states */
-                n_sites,                          /* sites */
-                mixture?N_MIXTURE_CATS:1,         /* rate matrices */
-                2*n_tips-3,                       /* prob matrices */
-                n_categories,                           /* rate cats */
-                n_tips-2,                         /* scale buffers */
-                attributes                        /* attributes */
-                );
-
-    if (asc_weights)
-      pll_set_asc_state_weights(part, asc_weights);
-
-    return part;
 }
 
 void ProtModel::print(std::ostream  &out)

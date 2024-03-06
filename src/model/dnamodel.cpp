@@ -58,8 +58,9 @@ DnaModel::DnaModel(mt_index_t _matrix_index,
 
     assert(matrix_index < N_DNA_ALLMATRIX_COUNT);
 
-    n_frequencies = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
-    n_subst_rates = gap_aware?10:pllmod_util_subst_rate_count(N_DNA_STATES);
+    n_frequencies   = gap_aware?(N_DNA_STATES+1):N_DNA_STATES;
+    n_subst_rates   = gap_aware?10:pllmod_util_subst_rate_count(N_DNA_STATES);
+    n_rate_matrices = 1;
 
     if (!optimize_freqs)
     {
@@ -153,67 +154,6 @@ mt_index_t DnaModel::get_index_for_matrix(const int * matrix)
 const int * DnaModel::get_symmetries( void ) const
 {
   return matrix_symmetries;
-}
-
-pll_partition_t * DnaModel::build_partition(mt_size_t _n_tips,
-                                            mt_size_t n_sites)
-{
-    mt_size_t states = n_frequencies;
-    mt_mask_t attributes;
-
-#ifndef PLL_ATTRIB_SITE_REPEATS
-    /* safety check */
-    assert(disable_repeats);
-    #define PLL_ATTRIB_SITE_REPEATS 0
-#endif
-
-    if (disable_repeats)
-    {
-      attributes = PLL_ATTRIB_PATTERN_TIP;
-    }
-    else
-    {
-      attributes = PLL_ATTRIB_SITE_REPEATS;
-    }
-
-    assert(!n_tips && _n_tips);
-    n_tips = _n_tips;
-
-    if (have_avx2)
-    {
-      attributes |= PLL_ATTRIB_ARCH_AVX2;
-    }
-    else if (have_avx)
-    {
-      attributes |= PLL_ATTRIB_ARCH_AVX;
-    }
-    else if (have_sse3)
-    {
-      attributes |= PLL_ATTRIB_ARCH_SSE;
-    }
-    else
-    {
-      attributes |= PLL_ATTRIB_ARCH_CPU;
-    }
-
-    attributes |= Model::asc_bias_attribute(asc_bias_corr);
-
-    pll_partition_t * part = pll_partition_create (
-                n_tips,                            /* tips */
-                n_tips-2,                          /* clv buffers */
-                states,                            /* states */
-                n_sites,                           /* sites */
-                1,                                 /* rate matrices */
-                2*n_tips-3,                        /* prob matrices */
-                (optimize_gamma | optimize_ratecats) ? n_categories : 1, /* rate cats */
-                n_tips-2,                          /* scale buffers */
-                attributes                         /* attributes */
-                );
-
-    if (asc_weights)
-      pll_set_asc_state_weights(part, asc_weights);
-
-    return part;
 }
 
 void DnaModel::print(std::ostream  &out)

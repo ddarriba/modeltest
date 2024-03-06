@@ -31,10 +31,12 @@ class ParallelContext
 {
 public:
   static void init_mpi(int argc, char * argv[], void * comm);
-  static void init_threads(const mt_options_t & opts, const std::function<void()>& thread_main);
+  //static void init_threads(const mt_options_t & opts, const std::function<void()>& thread_main);
+  static void init_threads(mt_size_t n_threads, const std::function<void()>& thread_main);
   static void resize_buffer(size_t size);
 
   static void finalize(bool force = false);
+  static void finalize_threads(bool force = false);
 
   static size_t num_procs() { return _num_ranks * _num_threads; }
   static size_t num_threads() { return _num_threads; }
@@ -55,6 +57,7 @@ public:
   static size_t proc_id() { return _rank_id * _num_threads + _thread_id; }
 
   static void barrier();
+  /* dev warning: thread barriers very close to each other may interlock */
   static void thread_barrier();
   static void mpi_barrier();
 

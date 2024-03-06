@@ -22,6 +22,7 @@
 #include "model_optimizer_pll.h"
 #include "../utils.h"
 #include "../genesis/logging.h"
+#include "../thread/parallel_context.h"
 
 #include <cassert>
 #include <iostream>
@@ -38,6 +39,187 @@ namespace modeltest
 {
 
 bool on_run = true;
+
+static mt_mask_t build_attributes(asc_bias_t asc_bias)
+{
+  mt_mask_t attributes = 0;
+
+  /* subtree repeats */
+  attributes |= disable_repeats?PLL_ATTRIB_PATTERN_TIP:PLL_ATTRIB_SITE_REPEATS;
+
+  /* vector intrinsics (prioritized) */
+  attributes |= have_avx2?PLL_ATTRIB_ARCH_AVX2
+                 :have_avx?PLL_ATTRIB_ARCH_AVX
+                 :have_sse3?PLL_ATTRIB_ARCH_SSE
+                 :PLL_ATTRIB_ARCH_CPU;
+
+  switch (asc_bias)
+  {
+      case asc_lewis:
+        attributes |= PLL_ATTRIB_AB_FLAG | PLL_ATTRIB_AB_LEWIS; break;
+      case asc_felsenstein:
+        attributes |= PLL_ATTRIB_AB_FLAG | PLL_ATTRIB_AB_FELSENSTEIN; break;
+      case asc_stamatakis:
+        attributes |= PLL_ATTRIB_AB_FLAG | PLL_ATTRIB_AB_STAMATAKIS; break;
+      case asc_none:
+        break;
+      default:
+        /* unknown AB correction */
+        assert(0);
+   }
+
+    return attributes;
+
+}
+
+void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance)
+{
+  // int thorough_insertion = false;
+  // int radius_min = 2;
+  // int radius_max = 5;
+  // int radius_limit;
+  // int ntopol_keep = 15;
+  // int spr_round_id = 0;
+  // int smoothings = 32;
+  // double cutoff_thr = 10;
+  
+  size_t num_threads = ParallelContext::num_threads();
+
+  pll_partition_t * pll_partition;
+
+  Model & model = *(optimizer->get_model());
+  TreePll & tree = *(optimizer->get_tree());
+  Partition & partition = *(optimizer->get_partition());
+  pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
+  
+  ParallelContext::thread_barrier();
+
+  mt_size_t n_tips = tree.get_n_tips();
+  mt_size_t n_patterns = partition.get_n_patterns();
+  mt_index_t thread_number = optimizer->get_thread_number();
+
+  *pll_tree_ptr = tree.get_pll_tree(thread_number)->nodes[0]->back;
+  
+  pllmod_treeinfo_t * tree_info = pllmod_treeinfo_create(optimizer->is_keep_model_parameters()
+                                        ?*pll_tree_ptr
+                                        :pll_utree_graph_clone(*pll_tree_ptr),
+                                      tree.get_n_tips(),
+                                      1,
+                                      1);
+
+  assert(tree_info);
+
+  pllmod_treeinfo_set_parallel_context(tree_info, (void *) nullptr,
+                                      ParallelContext::parallel_reduce_cb);
+
+  /* build pll partition */
+
+  mt_mask_t attributes = build_attributes(model.get_asc_bias_corr());
+
+  mt_size_t my_length = n_patterns / num_threads;
+  mt_size_t my_start = ParallelContext::thread_id() * my_length;
+  if ((ParallelContext::thread_id() == num_threads - 1) && (n_patterns % num_threads))
+  {
+    my_length = n_patterns - (my_length * (num_threads-1));
+  }
+
+  pll_partition = pll_partition_create(
+      n_tips,                      /* tips */
+      n_tips - 2,                  /* clv buffers */
+      model.get_n_states(),        /* states */
+      my_length,                   /* sites */
+      model.get_n_rate_matrices(), /* rate matrices */
+      2 * n_tips - 3,              /* prob matrices */
+      model.get_n_categories(),    /* rate cats */
+      n_tips - 2,                  /* scale buffers */
+      attributes                   /* attributes */
+  );
+
+  if (model.get_asc_weights())
+    pll_set_asc_state_weights(pll_partition, model.get_asc_weights());
+
+  if (!pll_partition)
+  {
+    mt_errno = MT_ERROR_LIBPLL;
+    snprintf(mt_errmsg, ERR_MSG_SIZE, "[PLL %d] %s",
+              pll_errno, pll_errmsg);
+    throw EXCEPTION_INTERNAL_ERROR;
+  }
+
+  /* find sequences and link them with the corresponding taxa */
+  for (mt_index_t i = 0; i < n_tips; ++i)
+  {
+    const char *c_seq = partition.get_sequence(i) + my_start;
+    const pll_state_t *states_map =
+        (model.get_datatype() == dt_dna) ? (model.is_gap_aware() ? extended_dna_map : pll_map_nt)
+                                          : pll_map_aa;
+
+    if (!pll_set_tip_states(pll_partition,
+                            i,
+                            states_map,
+                            c_seq))
+    {
+      /* data type and tip states should be validated beforehand */
+      mt_errno = MT_ERROR_IO_FORMAT;
+      snprintf(mt_errmsg, ERR_MSG_SIZE, "Data type mismatch");
+      throw EXCEPTION_DATA_MISMATCH;
+    }
+  }
+
+  /* set weights */
+  const mt_size_t *weights = partition.get_weights();
+  pll_set_pattern_weights(pll_partition, weights);
+
+  optimizer->set_pll_partition(pll_partition);
+  //optimizer->set_pll_tree(pll_tree);
+
+  ParallelContext::thread_barrier();
+
+  int retval = pllmod_treeinfo_init_partition(tree_info,
+                                                 0,
+                                                 pll_partition,
+                                                 0xFFFF,
+                                                 optimizer->get_gamma_rates_mode(),
+                                                 model.get_alpha(),
+                                                 model.get_params_indices(),
+                                                 model.get_symmetries());
+
+     if (!retval)
+     {
+       assert(pll_errno);
+       Utils::exit_with_error("Init partition error: %s\n", pll_errmsg);
+     }
+
+  if (!model.optimize_init(pll_partition,
+                             NULL,
+                             optimizer->get_gamma_rates_mode(),
+                             partition))
+    {
+      assert(0);
+    }
+  
+  if (ParallelContext::master_thread())
+  {
+    stringstream ss;
+    ss << "[" << model.get_name() << "] initial Frequencies: {";
+    for (mt_index_t i=0; i<pll_partition->states; i++)
+      ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
+    ss << " }" << endl;
+    LOG_DBG2 << ss.str();
+  }
+
+  double cur_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
+
+  cur_loglh = optimizer->optimize_parameters(tree_info,
+                                 epsilon,
+                                 tolerance,
+                                 true,
+                                 cur_loglh);
+
+  if (ParallelContext::master_thread())
+    model.set_loglh(cur_loglh);
+}
+
 
 ModelOptimizer::~ModelOptimizer() {}
 
@@ -56,55 +238,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
       tree(_tree)
 {
 
-  /* Multithread */
-  if (n_threads > 1)
-  {
-    LOG_WARN << "Multithread optimization is under revision. Handle results with care." << endl;
-  }
-  LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << n_threads << " threads" << endl;
-
-  mt_size_t n_tips = tree.get_n_tips ();
-  mt_size_t n_patterns = partition.get_n_patterns();
-
-  pll_partition = model.build_partition(n_tips, n_patterns);
-
-  if (!pll_partition)
-  {
-    mt_errno = MT_ERROR_LIBPLL;
-    snprintf(mt_errmsg, ERR_MSG_SIZE, "[PLL %d] %s",
-             pll_errno, pll_errmsg);
-    throw EXCEPTION_INTERNAL_ERROR;
-  }
-
-  pll_tree = tree.get_pll_tree(_thread_number)->nodes[0]->back;
-
-  // if (pllmod_utree_is_tip(pll_tree))
-  //   pll_tree = pll_tree->back;
-
-  /* find sequences and link them with the corresponding taxa */
-  for (mt_index_t i = 0; i < n_tips; ++i)
-  {
-      const char *c_seq = partition.get_sequence(i);
-      const pll_state_t * states_map =
-        (model.get_datatype() == dt_dna)?
-          (model.is_gap_aware()?extended_dna_map:pll_map_nt)
-            :pll_map_aa;
-
-      if (!pll_set_tip_states (pll_partition,
-                               i,
-                               states_map,
-                               c_seq))
-      {
-          /* data type and tip states should be validated beforehand */
-          mt_errno = MT_ERROR_IO_FORMAT;
-          snprintf(mt_errmsg, ERR_MSG_SIZE, "Data type mismatch");
-          throw EXCEPTION_DATA_MISMATCH;
-      }
-  }
-
-  /* set weights */
-  const mt_size_t * weights = partition.get_weights();
-  pll_set_pattern_weights(pll_partition, weights);
+  
 }
 
   ModelOptimizerPll::~ModelOptimizerPll ()
@@ -118,33 +252,32 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     time_t start_time = time(NULL);
     mt_size_t n_branches = tree.get_n_branches();
 
-    if (!model.optimize_init(pll_partition,
-                             NULL,
-                             gamma_rates,
-                             partition))
-    {
-      return false;
-    }
+    ParallelContext::init_threads(n_threads, std::bind(thread_main, this, epsilon, tolerance));
 
-    if (verbosity == VERBOSITY_ULTRA)
+    /* Multithread */
+    if (n_threads > 1)
     {
-      stringstream ss;
-      ss << "[" << model.get_name() << "] initial Frequencies: {";
-      for (mt_index_t i=0; i<pll_partition->states; i++)
-        ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
-      ss << " }" << endl;
-      LOG_DBG2 << ss.str();
+      LOG_WARN << "Multithread optimization is under revision. Handle results with care." << endl;
     }
+    LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << n_threads << " threads" << endl;
 
-    LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
-    pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
+    thread_main(this, epsilon, tolerance);
+
+    ParallelContext::finalize_threads();
+
+//exit(0);
+
+
+
+    //LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
+    //pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
 
 #if(CHECK_LOCAL_CONVERGENCE)
     double test_loglh;         /* temporary variable */
     mt_size_t converged = 0;  /* bitvector for parameter convergence */
 #endif
 
-    double cur_loglh = optimize_model(epsilon, tolerance, true);
+    //double cur_loglh = optimize_model(epsilon, tolerance, true);
 
     /* TODO: if bl are reoptimized */
     if (keep_model_parameters)
@@ -159,7 +292,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       optimized = true;
-      model.set_loglh(cur_loglh);
+      //model.set_loglh(cur_loglh);
       model.set_exec_time(end_time - start_time);
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
@@ -182,7 +315,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     double save_loglh = start_loglh;
     double cur_loglh = save_loglh;
 
-    if (start_loglh)
+    if (start_loglh && ParallelContext::master_thread())
       model.set_loglh(start_loglh);
 
     /* notify initial likelihood */
@@ -224,7 +357,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       while ((!interrupt_optimization) &&
-        (fabs (cur_loglh - save_loglh) > epsilon && cur_loglh < save_loglh))
+        (fabs (cur_loglh - save_loglh) > epsilon && cur_loglh > save_loglh))
       {
           save_loglh = cur_loglh;
           model.optimize(pll_partition, tree_info, tolerance);

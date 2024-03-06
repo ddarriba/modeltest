@@ -170,11 +170,7 @@ double ParameterFrequenciesOpt::optimize(mt_opt_params_t * params,
 
     pll_set_frequencies(params->partition, 0, frequencies[0]);
 
-    cur_loglh = pllmod_utree_compute_lk(params->partition,
-                                        params->tree_info->root,
-                                        params->params_indices,
-                                        1,
-                                        1);
+    cur_loglh = pllmod_treeinfo_compute_loglh(params->tree_info, 0);
   }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

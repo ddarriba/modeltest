@@ -42,8 +42,6 @@ public:
     }
 
     /* extended */
-    virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites);
     virtual mt_size_t get_n_subst_params( void ) const;
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);

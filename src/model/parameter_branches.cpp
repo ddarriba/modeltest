@@ -97,11 +97,7 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 
 #ifdef DEBUG
   /* verify that matrices and partials where up to date */
-  double test_loglh = pllmod_utree_compute_lk(params->partition,
-                                              params->tree_info->root,
-                                              params->params_indices,
-                                              1,
-                                              1);
+  double test_loglh = pllmod_treeinfo_compute_loglh(params->tree_info, 0);
   assert(!loglh || fabs(test_loglh - loglh) < 1e-6);
 #endif
 
@@ -111,16 +107,19 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
                               NULL,
                               &cb_extract_branches,
                               &bl_data);
-
-  cur_loglh = -1 * pllmod_opt_optimize_branch_lengths_iterative (
-             params->partition,
-             params->tree_info->root,
-             params->params_indices,
-             MT_MIN_BRANCH_LENGTH, MT_MAX_BRANCH_LENGTH,
-             tolerance, SMOOTHINGS, true);
+  int max_iters = SMOOTHINGS; // x smooth factor?
+  cur_loglh = -1 * pllmod_algo_opt_brlen_treeinfo(params->tree_info,
+                                                  MT_MIN_BRANCH_LENGTH,
+                                                  MT_MAX_BRANCH_LENGTH,
+                                                  tolerance,
+                                                  max_iters,
+                                                  PLLMOD_OPT_BLO_NEWTON_FAST,
+                                                  PLLMOD_OPT_BRLEN_OPTIMIZE_ALL
+                                                  );
 
   if (pll_errno)
   {
+      //TODO: Master thread
       bl_data.bl_pos = 0;
       pllmod_utree_traverse_apply(params->tree_info->root,
                                   NULL,

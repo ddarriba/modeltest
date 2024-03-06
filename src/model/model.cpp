@@ -130,6 +130,7 @@ Model::Model(mt_mask_t model_params,
   n_categories = (optimize_gamma | optimize_ratecats)
       ?_n_categories
       :1;
+  n_rate_matrices = 0;
 
   tree = 0;
   n_tips = 0;
@@ -325,6 +326,11 @@ mt_size_t Model::get_n_states( void ) const
 mt_size_t Model::get_n_subst_rates( void ) const
 {
   return n_subst_rates;
+}
+
+mt_size_t Model::get_n_rate_matrices( void ) const
+{
+  return n_rate_matrices;
 }
 
 const double * Model::get_frequencies( mt_index_t freqs_idx ) const
@@ -591,14 +597,32 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
 
   AbstractParameter * parameter = parameters[current_opt_parameter];
 
+  ParallelContext::thread_barrier();
+
   LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
           << " optimize " << parameter->get_name() << endl;
   loglh = parameter->optimize(&params, loglh, tolerance, true);
-  ++current_opt_parameter;
+
+  
+  
+  if (ParallelContext::master_thread())
+  {
+    ++current_opt_parameter;
+  }
+    
+
+ ParallelContext::thread_barrier();
+
 
   if (current_opt_parameter >= parameters.size())
   {
-    current_opt_parameter = 0;
+    ParallelContext::thread_barrier();
+
+    if (ParallelContext::master_thread())
+      current_opt_parameter = 0;
+
+    ParallelContext::thread_barrier();
+
     return true;
   }
   else
@@ -631,22 +655,6 @@ void Model::print_inline(int index,
   else
     out << setw(8) << "-";
   out << endl;
-}
-
-mt_mask_t Model::asc_bias_attribute(asc_bias_t v)
-{
-  mt_mask_t attr = 0;
-  if (v != asc_none)
-  {
-    attr = PLL_ATTRIB_AB_FLAG;
-    if (v == asc_lewis)
-      attr |= PLL_ATTRIB_AB_LEWIS;
-    else if (v == asc_felsenstein)
-      attr |= PLL_ATTRIB_AB_FELSENSTEIN;
-    else if (v == asc_stamatakis)
-      attr |= PLL_ATTRIB_AB_STAMATAKIS;
-  }
-  return attr;
 }
 
 int Model::input_bin(std::string const& bin_filename)

@@ -50,8 +50,6 @@ public:
     virtual const int * get_symmetries( void ) const;
 
     /* extended */
-    virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites);
     virtual void print(std::ostream  &out = std::cout);
     virtual void print_xml(std::ostream  &out = std::cout);
     virtual void output_log(std::ostream  &out) const;

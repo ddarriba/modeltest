@@ -154,6 +154,11 @@ public:
     mt_size_t get_n_subst_rates( void ) const;
 
     /**
+     * @brief Gets the number of substitution rate matrices
+     * @return the number of substitution rate matrices
+     */
+    mt_size_t get_n_rate_matrices( void ) const;
+    /**
      * @brief Gets the model state frequencies
      * @param[in] freqs_idx the index of frequencies set
      * @return the state frequencies
@@ -297,8 +302,6 @@ public:
     time_t get_exec_time() const;
     void set_exec_time( time_t t);
 
-    virtual pll_partition_t * build_partition( mt_size_t n_tips,
-                                               mt_size_t n_sites) = 0;
     pll_utree_t * get_tree( void ) const;
     pll_unode_t * get_tree_graph( void ) const;
 
@@ -308,8 +311,6 @@ public:
     mt_index_t get_unique_id( void ) const;
 
 protected:
-
-    static mt_mask_t asc_bias_attribute(asc_bias_t v);
 
     bool restored_from_ckp;
 
@@ -326,6 +327,7 @@ protected:
     bool optimize_freqs;
     bool empirical_freqs;
     bool optimize_ratecats;
+
 
     bool mixture;
 
@@ -347,6 +349,7 @@ protected:
     mt_size_t n_categories;
     mt_size_t n_frequencies;
     mt_size_t n_subst_rates;
+    mt_size_t n_rate_matrices;
 
     pll_utree_t *tree;
     mt_size_t n_tips;
