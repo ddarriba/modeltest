@@ -23,6 +23,7 @@
 #include "model_optimizer_pll.h"
 #include "../genesis/logging.h"
 #include "../thread/threadpool.h"
+#include "../thread/parallel_context.h"
 
 #include <fstream>
 

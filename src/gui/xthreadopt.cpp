@@ -34,7 +34,7 @@ using namespace std;
 xThreadOpt::xThreadOpt(partition_id_t & part_id,
                        int n_threads,
                        double epsilon_param,
-                       double epsilon_opt) :
+                       double epsilon_opt):
     scheme(ModelTestService::instance()->get_partitioning_scheme()), n_threads(n_threads),
     epsilon_param(epsilon_param), epsilon_opt(epsilon_opt)
 {
@@ -91,12 +91,12 @@ void xThreadOpt::optimize_single(const partition_id_t &part_id,
     {
       ModelTestService::instance()->optimize_single(part_id,
                                                     model,
+                                                    1,
                                                     thread_id,
                                                     epsilon_param,
                                                     epsilon_opt,
                                                     {this});
     }
-
     // check for models interrupted during optimization
     if (interrupt)
         return;

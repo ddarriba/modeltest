@@ -507,6 +507,7 @@ void Model::set_tree( pll_unode_t * _tree, int _n_tips )
 
 void Model::set_tree( pll_utree_t * _tree )
 {
+  
   if (n_tips > 0)
     assert(n_tips == _tree->tip_count);
   else
@@ -520,17 +521,19 @@ mt_index_t Model::get_unique_id( void ) const
   return unique_id;
 }
 
-bool Model::optimize_init ( pll_partition_t * pll_partition,
-                            pllmod_treeinfo_t * tree_info,
+bool Model::optimize_init ( pllmod_treeinfo_t * tree_info,
                             int gamma_rates_mode,
                             Partition const& partition )
 {
   assert(pll_partition);
   mt_opt_params_t params;
-  params.partition = pll_partition;
-  params.tree_info = tree_info;
-  params.params_indices = params_indices;
+
+  params.partition        = tree_info->partitions[0];
+  params.tree_info        = tree_info;
+  params.params_indices   = params_indices;
   params.gamma_rates_mode = gamma_rates_mode;
+
+  n_tips = params.partition->tips;
 
   /* reorder parameters */
   sort(parameters.begin(),
@@ -539,17 +542,18 @@ bool Model::optimize_init ( pll_partition_t * pll_partition,
 
   bool result = true;
   for (AbstractParameter * parameter : parameters)
+  {
     result &= parameter->initialize(&params, partition);
+  }
   current_opt_parameter = 0;
   return result;
 }
 
-bool Model::optimize( pll_partition_t * partition,
-                      pllmod_treeinfo_t * tree_info,
+bool Model::optimize( pllmod_treeinfo_t * tree_info,
                       double tolerance )
 {
     mt_opt_params_t params;
-    params.partition = partition;
+    params.partition = tree_info->partitions[0];
     params.tree_info = tree_info;
     params.params_indices = params_indices;
 
@@ -581,8 +585,7 @@ bool Model::optimize( pll_partition_t * partition,
     return true;
 }
 
-bool Model::optimize_oneparameter( pll_partition_t * partition,
-                                   pllmod_treeinfo_t * tree_info,
+bool Model::optimize_oneparameter( pllmod_treeinfo_t * tree_info,
                                    double tolerance )
 {
   assert(partition);
@@ -591,7 +594,7 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
 
   assert(current_opt_parameter < parameters.size());
   mt_opt_params_t params;
-  params.partition = partition;
+  params.partition = tree_info->partitions[0];
   params.tree_info = tree_info;
   params.params_indices = params_indices;
 
@@ -601,9 +604,11 @@ bool Model::optimize_oneparameter( pll_partition_t * partition,
 
   LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
           << " optimize " << parameter->get_name() << endl;
+
   loglh = parameter->optimize(&params, loglh, tolerance, true);
 
-  
+  LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
+          << " done " << parameter->get_name() << endl;
   
   if (ParallelContext::master_thread())
   {

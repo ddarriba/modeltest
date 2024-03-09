@@ -21,6 +21,7 @@
 
 #include "parameter_branches.h"
 #include "../partition.h"
+#include "../thread/parallel_context.h"
 
 #define SMOOTHINGS 4
 
@@ -54,6 +55,7 @@ bool ParameterBranches::initialize(mt_opt_params_t * params,
   UNUSED(partition);
   n_branches = partition.get_n_sequences()*2 - 3;
   branch_lengths.resize(n_branches);
+
   return true;
 }
 
@@ -102,11 +104,17 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 #endif
 
   struct bl_data_t bl_data = {branch_lengths, 0};
-  pllmod_utree_traverse_apply(params->tree_info->root,
-                              NULL,
-                              NULL,
-                              &cb_extract_branches,
-                              &bl_data);
+  if (ParallelContext::master_thread())
+  {
+    pllmod_utree_traverse_apply(params->tree_info->root,
+                                NULL,
+                                NULL,
+                                &cb_extract_branches,
+                                &bl_data);
+  }
+
+  ParallelContext::thread_barrier();
+
   int max_iters = SMOOTHINGS; // x smooth factor?
   cur_loglh = -1 * pllmod_algo_opt_brlen_treeinfo(params->tree_info,
                                                   MT_MIN_BRANCH_LENGTH,
@@ -119,22 +127,23 @@ double ParameterBranches::optimize(mt_opt_params_t * params,
 
   if (pll_errno)
   {
-      //TODO: Master thread
+    if (ParallelContext::master_thread())
+    {
       bl_data.bl_pos = 0;
       pllmod_utree_traverse_apply(params->tree_info->root,
                                   NULL,
                                   NULL,
                                   &cb_reset_branches,
                                   &bl_data);
-      cur_loglh = pllmod_utree_compute_lk(params->partition,
-                                          params->tree_info->root,
-                                          params->params_indices,
-                                          1,
-                                          1);
+    }
 
-      LOG_DBG2 << "Reset branches :( " << fixed << setprecision(5) << cur_loglh
-              << " ~= " << fixed << setprecision(5) <<  loglh << endl;
-      assert(fabs(cur_loglh - loglh) < 1e-6);
+    ParallelContext::thread_barrier();
+
+    cur_loglh = pllmod_treeinfo_compute_loglh(params->tree_info, 0);
+
+    LOG_DBG2 << "Reset branches :( " << fixed << setprecision(5) << cur_loglh
+             << " ~= " << fixed << setprecision(5) <<  loglh << endl;
+    assert(fabs(cur_loglh - loglh) < 1e-6);
   }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

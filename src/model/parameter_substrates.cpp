@@ -21,6 +21,7 @@
 
 #include "parameter_substrates.h"
 #include "../partition.h"
+#include "../thread/parallel_context.h"
 
 #define MIN_RATE 0.02
 #define MAX_RATE 100
@@ -226,41 +227,47 @@ bool ParameterSubstRatesOpt::initialize(mt_opt_params_t * params,
     const vector<double> empirical_rates = partition.get_empirical_subst_rates();
     assert(empirical_rates.size() == n_subst_params);
 
-    for (mt_index_t k=0; k<rate_set_count; ++k)
+    if (ParallelContext::master_thread())
     {
-      for (mt_index_t i=0; i<n_subst_free_params; ++i)
+      for (mt_index_t k=0; k<rate_set_count; ++k)
       {
-          double sum_rate = 0;
-          int count = 0;
-          for (mt_index_t j=0; j<n_subst_params; ++j)
-          {
-              if ((mt_index_t)symmetries[j] == i)
-              {
-                  ++count;
-                  sum_rate += empirical_rates[j];
-              }
-          }
-          assert(count);
-          sum_rate /= count;
+        for (mt_index_t i=0; i<n_subst_free_params; ++i)
+        {
+            double sum_rate = 0;
+            int count = 0;
+            for (mt_index_t j=0; j<n_subst_params; ++j)
+            {
+                if ((mt_index_t)symmetries[j] == i)
+                {
+                    ++count;
+                    sum_rate += empirical_rates[j];
+                }
+            }
+            assert(count);
+            sum_rate /= count;
 
-          for (mt_index_t j=0; j<n_subst_params; ++j)
-              if ((mt_index_t)symmetries[j] == i)
-                  subst_rates[k][j] = sum_rate;
+            for (mt_index_t j=0; j<n_subst_params; ++j)
+                if ((mt_index_t)symmetries[j] == i)
+                    subst_rates[k][j] = sum_rate;
+        }
+
+        for (mt_index_t i=0; i<n_subst_params; ++i)
+        {
+            subst_rates[k][i] /= subst_rates[k][n_subst_params-1];
+
+            /* validate boundaries */
+            if (subst_rates[k][i] < MIN_RATE)
+              subst_rates[k][i] = MIN_RATE;
+            else if (subst_rates[k][i] > MAX_RATE)
+              subst_rates[k][i] = MAX_RATE;
+        }
       }
-
-      for (mt_index_t i=0; i<n_subst_params; ++i)
-      {
-          subst_rates[k][i] /= subst_rates[k][n_subst_params-1];
-
-          /* validate boundaries */
-          if (subst_rates[k][i] < MIN_RATE)
-            subst_rates[k][i] = MIN_RATE;
-          else if (subst_rates[k][i] > MAX_RATE)
-            subst_rates[k][i] = MAX_RATE;
-      }
-
-      pll_set_subst_params(params->partition, k, subst_rates[k]);
     }
+    
+  ParallelContext::thread_barrier();
+
+  for (mt_index_t k=0; k<rate_set_count; ++k)
+    pll_set_subst_params(params->partition, k, subst_rates[k]);
 
   return true;
 }
@@ -287,6 +294,8 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 
   if (loglh && (cur_loglh - loglh)/loglh > 1e-10)
   {
+    ParallelContext::thread_barrier();
+
     /* revert */
     memcpy(params->partition->subst_params[0],
            subst_rates[0],
@@ -294,11 +303,7 @@ double ParameterSubstRatesOpt::optimize(mt_opt_params_t * params,
 
     pll_set_subst_params(params->partition, 0, subst_rates[0]);
 
-    cur_loglh = pllmod_utree_compute_lk(params->partition,
-                                        params->tree_info->root,
-                                        params->params_indices,
-                                        1,
-                                        1);
+    cur_loglh = pllmod_treeinfo_compute_loglh(params->tree_info, 0);
   }
 
   assert(!loglh || (cur_loglh - loglh)/loglh < 1e-10);

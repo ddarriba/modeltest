@@ -157,9 +157,16 @@ int main(int argc, char *argv[])
            opts.n_threadprocs = 1;
         }
 
-        if (mpi_numprocs > 1 && opts.n_threads > 1)
+        if (opts.n_threadprocs > 1 && opts.n_threads > 1)
         {
-           LOG_WARN << PACKAGE << ": Hybrid MPI + Multithreading is under evaluation. Handle results with care" << endl;
+           LOG_WARN << PACKAGE << ": high + low-level threads are not supported: shared processes set to 1" << endl;
+           opts.n_threadprocs = 1;
+        }
+
+
+        if (opts.n_threads > 1)
+        {
+           LOG_WARN << PACKAGE << ": Multithreading is under evaluation. Handle results with care" << endl;
         }
 
         if (mpi_numprocs == 1 && opts.n_threadprocs == 1 && num_cores_p > 1)

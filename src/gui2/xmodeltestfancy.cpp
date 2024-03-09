@@ -64,7 +64,7 @@ XModelTestFancy::XModelTestFancy(QWidget *parent) :
   ui->setupUi(this);
 
   ui->slider_nthreads->setRange(1, QThread::idealThreadCount());
-  ui->slider_nthreads->setValue(num_cores);
+  ui->slider_nthreads->setValue(num_cores_p);
 
   scheme = 0;
   status = st_active;
@@ -932,7 +932,8 @@ bool XModelTestFancy::run_modelselection()
     opts.output_tree_to_file = false;
     opts.partitions_desc = NULL;
     opts.partitions_eff = NULL;
-    opts.n_threads = number_of_threads;
+    opts.n_threadprocs = number_of_threads; 
+    opts.n_threads = 1;
     opts.epsilon_param = ui->txtParEpsilon->text().toDouble();
     opts.epsilon_opt = ui->txtOptEpsilon->text().toDouble();
     opts.verbose = VERBOSITY_LOW;
@@ -1167,7 +1168,7 @@ void XModelTestFancy::on_action_quit_triggered()
 
 void XModelTestFancy::on_actionAbout_triggered()
 {
-    QDialog * about = new QDialog(0,0);
+    QDialog * about = new QDialog();//0,0);
 
     Ui_AboutDialog aboutUi;
     aboutUi.setupUi(about);

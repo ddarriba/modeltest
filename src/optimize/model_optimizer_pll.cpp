@@ -72,17 +72,112 @@ static mt_mask_t build_attributes(asc_bias_t asc_bias)
 
 }
 
+const int radius_step = 5;
+
+void thread_infer_topology(ModelOptimizerPll * optimizer, pllmod_treeinfo_t * tree_info, double cur_loglh, double epsilon, double tolerance)
+{
+    int thorough_insertion = false;
+    int radius_min = 2;
+    int radius_max = 5;
+    int radius_limit;
+    int ntopol_keep = 15;
+    int spr_round_id = 0;
+    double cutoff_thr = 10;
+    int smoothings = 32;
+
+    double new_loglh, old_loglh;
+    Model & model = *(optimizer->get_model());
+    pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
+
+    assert(!tree_info->root->data);
+    radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
+
+    new_loglh = optimizer->optimize_parameters(tree_info, 1.0, 1.0, true, cur_loglh);
+
+    cutoff_info_t * cutoff_info = NULL;
+    cutoff_info = (cutoff_info_t *) calloc(1, sizeof(cutoff_info_t));
+    cutoff_info->lh_dec_count = 0;
+    cutoff_info->lh_dec_sum = 0.;
+    cutoff_info->lh_cutoff = new_loglh / -1000.0;
+
+    do
+    {
+      ++spr_round_id;
+      old_loglh = new_loglh;
+
+      LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " SPR params:"
+          << " round=" << spr_round_id
+          << " rad=[" << radius_min << "," << radius_max << "]"
+          << " bl=[" << scientific << setprecision(1) << MT_MIN_BRANCH_LENGTH << "," << scientific << setprecision(1) << MT_MAX_BRANCH_LENGTH << "]"
+          << " ntopos=" << ntopol_keep
+          << " smooth=" << smoothings
+          << " tol=" << tolerance
+          << endl;
+
+      new_loglh = pllmod_algo_spr_round(tree_info,
+                                        radius_min, radius_max,
+                                        ntopol_keep,
+                                        thorough_insertion,
+                                        PLLMOD_OPT_BLO_NEWTON_FAST,
+                                        MT_MIN_BRANCH_LENGTH,
+                                        MT_MAX_BRANCH_LENGTH,
+                                        smoothings,
+                                        tolerance,
+                                        cutoff_info, cutoff_thr, /* cutoff */
+                                        tolerance, 
+                                        PLL_TRUE);
+
+      if (pll_errno && new_loglh == 0)
+      {
+        LOG_DBG2 << "[" << model.get_name() << "] Error " << pll_errno << " in SPR cycle: " << pll_errmsg << endl;
+        pllmod_reset_error();
+        new_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
+      }
+
+      new_loglh = optimizer->optimize_parameters(tree_info, 1.0, 1.0, true, new_loglh);
+
+      bool impr = (new_loglh - old_loglh > epsilon);
+      if (impr && thorough_insertion)
+      {
+        radius_min = 1;
+        radius_max = radius_step;
+        LOG_DBG2 << "[" << model.get_name() << "] Reset radius: " << radius_min << "," << radius_max << endl;
+      }
+      else if (!impr && DO_THOROUGH_ML_SEARCH)
+      {
+        if (!thorough_insertion)
+        {
+          thorough_insertion = true;
+          spr_round_id = 0;
+          radius_min = 1;
+          radius_max = radius_step;
+
+          LOG_DBG2 << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " reset insertion and radius: "
+                  << radius_min << "," << radius_max << endl;
+          new_loglh = optimizer->optimize_parameters(tree_info,
+                                                     ML_SEARCH_PARAM_EPS,
+                                                     ML_SEARCH_PARAM_TOL,
+                                                     true,
+                                                     new_loglh);
+          LOG_DBG2 << "[" << model.get_name() << "] " << fixed << setprecision(5) << new_loglh << " thorough insertion [" << ML_SEARCH_PARAM_EPS
+                  << "/" << ML_SEARCH_PARAM_TOL << "] " << endl;
+        }
+        else
+        {
+          radius_min += radius_step;
+          radius_max += radius_step;
+          LOG_DBG2 << "[" << model.get_name() << "] Update radius: " << radius_min << "," << radius_max << endl;
+        }
+      }
+    } while (radius_min >= 0 && radius_min < radius_limit && fabs(old_loglh - new_loglh) > epsilon );
+
+    LOG_DBG2 << "[" << model.get_name() << "] SPR done" << endl;
+
+    free (cutoff_info);
+}
+
 void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance)
 {
-  // int thorough_insertion = false;
-  // int radius_min = 2;
-  // int radius_max = 5;
-  // int radius_limit;
-  // int ntopol_keep = 15;
-  // int spr_round_id = 0;
-  // int smoothings = 32;
-  // double cutoff_thr = 10;
-  
   size_t num_threads = ParallelContext::num_threads();
 
   pll_partition_t * pll_partition;
@@ -91,15 +186,16 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   TreePll & tree = *(optimizer->get_tree());
   Partition & partition = *(optimizer->get_partition());
   pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
-  
-  ParallelContext::thread_barrier();
+
+  // synchronize and reset barrier state
+  ParallelContext::thread_barrier(true);
 
   mt_size_t n_tips = tree.get_n_tips();
   mt_size_t n_patterns = partition.get_n_patterns();
   mt_index_t thread_number = optimizer->get_thread_number();
 
   *pll_tree_ptr = tree.get_pll_tree(thread_number)->nodes[0]->back;
-  
+
   pllmod_treeinfo_t * tree_info = pllmod_treeinfo_create(optimizer->is_keep_model_parameters()
                                         ?*pll_tree_ptr
                                         :pll_utree_graph_clone(*pll_tree_ptr),
@@ -110,7 +206,7 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   assert(tree_info);
 
   pllmod_treeinfo_set_parallel_context(tree_info, (void *) nullptr,
-                                      ParallelContext::parallel_reduce_cb);
+                                       ParallelContext::parallel_reduce_cb);
 
   /* build pll partition */
 
@@ -167,13 +263,13 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   }
 
   /* set weights */
-  const mt_size_t *weights = partition.get_weights();
+  const mt_size_t *weights = partition.get_weights() + my_start;
   pll_set_pattern_weights(pll_partition, weights);
 
-  optimizer->set_pll_partition(pll_partition);
-  //optimizer->set_pll_tree(pll_tree);
-
   ParallelContext::thread_barrier();
+
+  LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
+           << "] build partition" << endl;
 
   int retval = pllmod_treeinfo_init_partition(tree_info,
                                                  0,
@@ -184,20 +280,24 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
                                                  model.get_params_indices(),
                                                  model.get_symmetries());
 
-     if (!retval)
-     {
-       assert(pll_errno);
-       Utils::exit_with_error("Init partition error: %s\n", pll_errmsg);
-     }
+  if (!retval)
+  {
+    assert(pll_errno);
+    Utils::exit_with_error("Init partition error: %s\n", pll_errmsg);
+  }
 
-  if (!model.optimize_init(pll_partition,
-                             NULL,
-                             optimizer->get_gamma_rates_mode(),
-                             partition))
-    {
-      assert(0);
-    }
+  if (!model.optimize_init(tree_info,
+                           optimizer->get_gamma_rates_mode(),
+                           partition))
+  {
+    assert(0);
+  }
   
+  LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
+           << "] compute initial LogLH" << endl;
+
+  double cur_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
+
   if (ParallelContext::master_thread())
   {
     stringstream ss;
@@ -206,10 +306,21 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
       ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
     ss << " }" << endl;
     LOG_DBG2 << ss.str();
+
+    LOG_DBG2 << "[" << model.get_name() << "] initial log-Likelihood: "
+             << fixed << setprecision(4) << cur_loglh << endl; 
+  }
+             
+  if (optimizer->is_optimize_topology())
+  {
+    thread_infer_topology(optimizer, tree_info, cur_loglh, epsilon, tolerance);
+
+    if (ParallelContext::master_thread())
+        model.set_tree(tree_info->root);
   }
 
-  double cur_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
-
+  /* final thorough parameter optimization */
+  LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() << "] thorough parameter optimization" << endl;
   cur_loglh = optimizer->optimize_parameters(tree_info,
                                  epsilon,
                                  tolerance,
@@ -218,6 +329,15 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
 
   if (ParallelContext::master_thread())
     model.set_loglh(cur_loglh);
+  
+  if (!optimizer->is_keep_model_parameters() && !optimizer->is_optimize_topology())
+  {
+    pll_utree_destroy(tree_info->tree, NULL);
+    tree_info->tree = 0;
+  }
+
+  pll_partition_destroy(tree_info->partitions[0]);
+  pllmod_treeinfo_destroy(tree_info);
 }
 
 
@@ -243,7 +363,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
   ModelOptimizerPll::~ModelOptimizerPll ()
   {
-      pll_partition_destroy(pll_partition);
+
   }
 
   bool ModelOptimizerPll::run(double epsilon,
@@ -254,20 +374,11 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     ParallelContext::init_threads(n_threads, std::bind(thread_main, this, epsilon, tolerance));
 
-    /* Multithread */
-    if (n_threads > 1)
-    {
-      LOG_WARN << "Multithread optimization is under revision. Handle results with care." << endl;
-    }
     LOG_DBG2 << "[" << model.get_name() << "] start optimization with " << n_threads << " threads" << endl;
 
     thread_main(this, epsilon, tolerance);
 
     ParallelContext::finalize_threads();
-
-//exit(0);
-
-
 
     //LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
     //pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
@@ -297,8 +408,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
 
-      if (optimize_topology)
-        model.set_tree(pll_tree);
+      // if (optimize_topology)
+      //   model.set_tree(pll_tree);
 
       return true;
     }
@@ -334,9 +445,8 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         all_params_done = false;
         while ((!all_params_done) && (!interrupt_optimization))
         {
-          all_params_done = model.optimize_oneparameter(pll_partition,
-                                          tree_info,
-                                          tolerance);
+          all_params_done = model.optimize_oneparameter(tree_info,
+                                                        tolerance);
           cur_loglh = model.get_loglh();
 
           /* ensure we never get a worse likelihood score */
@@ -360,7 +470,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
         (fabs (cur_loglh - save_loglh) > epsilon && cur_loglh > save_loglh))
       {
           save_loglh = cur_loglh;
-          model.optimize(pll_partition, tree_info, tolerance);
+          model.optimize(tree_info, tolerance);
           opt_delta = cur_loglh;
           notify();
           cur_loglh = model.get_loglh();
@@ -369,8 +479,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     return cur_loglh;
   }
-
-  const int radius_step = 5;
 
   double ModelOptimizerPll::optimize_model( double epsilon,
                                             double tolerance,

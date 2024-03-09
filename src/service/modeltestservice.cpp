@@ -44,7 +44,7 @@ bool ModelTestService::create_instance( mt_options_t & options )
 
     modeltest_instance = new ModelTest(options.n_threadprocs, options.n_mpiprocs, options.n_threads);
     build_ok = modeltest_instance->build_instance(options);
-    
+
     return build_ok;
 }
 
@@ -60,9 +60,11 @@ bool ModelTestService::destroy_instance( void )
 }
 
 bool ModelTestService::reset_instance( mt_options_t & options )
-{
+{  
     if (modeltest_instance)
+    {
         destroy_instance();
+    }
     return create_instance(options);
 }
 
@@ -88,6 +90,7 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 
     for (Observer * observer : observers)
         mopt->attach(observer);
+
     mopt->run(epsilon_opt, epsilon_param);
     delete mopt;
 

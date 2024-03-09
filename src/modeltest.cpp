@@ -101,6 +101,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                opt_topology,
                                keep_model_parameters,
                                current_instance->gamma_rates,
+                               _n_threads,
                                thread_number);
    }
    catch(int e)
@@ -780,7 +781,7 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
-      LOG_DBG << "Creating starting tree" << endl;  
+      LOG_DBG << "Creating starting tree for procs=" << number_of_threadprocs << endl;  
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,

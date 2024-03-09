@@ -46,7 +46,6 @@ void ParallelContext::init_mpi(int argc, char * argv[], void * comm)
     _rank_id = (size_t) tmp;
     MPI_Comm_size(_comm, &tmp);
     _num_ranks = (size_t) tmp;
-//    printf("size: %lu, rank: %lu\n", _num_ranks, _rank_id);
   }
 #else
   UNUSED(argc);
@@ -132,17 +131,30 @@ void ParallelContext::mpi_barrier()
 #endif
 }
 
-void ParallelContext::thread_barrier()
+void ParallelContext::thread_barrier(bool reset)
 {
   static volatile unsigned int barrier_counter = 0;
   static thread_local volatile int myCycle = 0;
   static volatile int proceed = 0;
 
+  if (ParallelContext::_num_threads == 1)
+    return;
+  
+  if (reset)
+  {
+    assert(barrier_counter == 0);
+    myCycle = 0;
+    if (_thread_id == 0)
+      proceed = 0;
+    
+    return;
+  }
+
   __sync_fetch_and_add( &barrier_counter, 1);
 
   if(_thread_id == 0)
   {
-    while(barrier_counter != ParallelContext::_num_threads);
+    while(barrier_counter < ParallelContext::_num_threads);
     barrier_counter = 0;
     proceed = !proceed;
   }
@@ -157,7 +169,6 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
 {
   /* synchronize */
   thread_barrier();
-
   double *double_buf = (double*) _parallel_buf.data();
 
   /* collect data from threads */
@@ -196,48 +207,13 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
       break;
     }
   }
-
-  //needed?
-//  parallel_barrier(useropt);
 }
-
 
 void ParallelContext::parallel_reduce(double * data, size_t size, int op)
 {
 #ifdef MULTITHREAD
   if (_num_threads > 1)
     thread_reduce(data, size, op);
-#endif
-
-#if(MPI_ENABLED)
-  if (_num_ranks > 1)
-  {
-    thread_barrier();
-
-    if (_thread_id == 0)
-    {
-      MPI_Op reduce_op = MPI_NO_OP;
-      if (op == PLLMOD_COMMON_REDUCE_SUM)
-        reduce_op = MPI_SUM;
-      else if (op == PLLMOD_COMMON_REDUCE_MAX)
-        reduce_op = MPI_MAX;
-      else if (op == PLLMOD_COMMON_REDUCE_MIN)
-        reduce_op = MPI_MIN;
-      else
-        assert(0);
-
-#if 1
-      MPI_Allreduce(MPI_IN_PLACE, data, size, MPI_DOUBLE, reduce_op, _comm);
-#else
-      // not sure if MPI_IN_PLACE will work in all cases...
-      MPI_Allreduce(data, _parallel_buf.data(), size, MPI_DOUBLE, reduce_op, _comm);
-      memcpy(data, _parallel_buf.data(), size * sizeof(double));
-#endif
-    }
-
-    if (_num_threads > 1)
-      thread_broadcast(0, data, size * sizeof(double));
-  }
 #endif
 }
 

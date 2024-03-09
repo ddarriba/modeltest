@@ -203,7 +203,7 @@ size_t Utils::mem_size(unsigned int n_taxa,
     mt_size_t n_branches = n_taxa * 2 - 3;
     size_t n_clvs = n_inner * n_sites * n_states * n_categories;
     size_t n_pmat = n_branches * n_states * n_states * n_categories;
-
+    
     size_t mem =  (n_clvs + n_pmat) * sizeof(double);
 
     return mem;

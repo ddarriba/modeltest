@@ -217,17 +217,14 @@ public:
      */
     void set_loglh( double l );
 
-    bool optimize_init ( pll_partition_t * pll_partition,
-                         pllmod_treeinfo_t * tree_info,
+    bool optimize_init ( pllmod_treeinfo_t * tree_info,
                          int gamma_rates_mode,
                          Partition const& partition );
 
-    bool optimize( pll_partition_t * partition,
-                   pllmod_treeinfo_t * tree_info,
+    bool optimize( pllmod_treeinfo_t * tree_info,
                    double tolerance );
 
-    bool optimize_oneparameter( pll_partition_t * partition,
-                                pllmod_treeinfo_t * tree_info,
+    bool optimize_oneparameter( pllmod_treeinfo_t * tree_info,
                                 double tolerance );
     /**
      * @brief Prints out the model in a human readable way

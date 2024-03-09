@@ -21,6 +21,7 @@
 
 #include "parameter_pinv.h"
 #include "../partition.h"
+#include "../thread/parallel_context.h"
 
 #define MIN_PINV 0.02
 #define MAX_PINV 0.95
@@ -86,6 +87,9 @@ double ParameterPinv::optimize(mt_opt_params_t * params,
   double cur_loglh;
 
   params->tree_info->partitions[0]->prop_invar[0] = params->partition->prop_invar[0];
+
+  ParallelContext::thread_barrier();
+
   cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
                                                     PLLMOD_OPT_PARAM_PINV,
                                                     min_pinv,

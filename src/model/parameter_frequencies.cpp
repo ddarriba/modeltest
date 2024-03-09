@@ -21,6 +21,7 @@
 
 #include "parameter_frequencies.h"
 #include "../partition.h"
+#include "../thread/parallel_context.h"
 
 #include <iostream>
 #include <iomanip>

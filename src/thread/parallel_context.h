@@ -57,8 +57,8 @@ public:
   static size_t proc_id() { return _rank_id * _num_threads + _thread_id; }
 
   static void barrier();
-  /* dev warning: thread barriers very close to each other may interlock */
-  static void thread_barrier();
+  /* dev warning: must reset thread barriers between forks */
+  static void thread_barrier(bool reset=false);
   static void mpi_barrier();
 
   /* static singleton, no instantiation/copying/moving */

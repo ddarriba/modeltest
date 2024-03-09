@@ -21,6 +21,7 @@
 
 #include "parameter_gamma.h"
 #include "../partition.h"
+#include "../thread/parallel_context.h"
 
 #define MIN_ALPHA 0.02
 #define MAX_ALPHA 100
@@ -81,6 +82,9 @@ double ParameterGamma::optimize(mt_opt_params_t * params,
 
   init_alpha = params->tree_info->alphas[0];
   assert(params->tree_info->params_to_optimize[0] & PLLMOD_OPT_PARAM_ALPHA);
+
+  ParallelContext::thread_barrier();
+
   cur_loglh =  -1 * pllmod_algo_opt_onedim_treeinfo(params->tree_info,
                                                     PLLMOD_OPT_PARAM_ALPHA,
                                                     MIN_ALPHA,
