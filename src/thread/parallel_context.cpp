@@ -139,16 +139,6 @@ void ParallelContext::thread_barrier(bool reset)
 
   if (ParallelContext::_num_threads == 1)
     return;
-  
-  if (reset)
-  {
-    assert(barrier_counter == 0);
-    myCycle = 0;
-    if (_thread_id == 0)
-      proceed = 0;
-    
-    return;
-  }
 
   __sync_fetch_and_add( &barrier_counter, 1);
 
@@ -162,6 +152,15 @@ void ParallelContext::thread_barrier(bool reset)
   {
     while(myCycle == proceed);
     myCycle = !myCycle;
+  }
+
+  if (reset && proceed != 0)
+  {
+    // call again to reset variables
+    thread_barrier(false);
+
+    assert(myCycle == 0);
+    assert(proceed == 0);
   }
 }
 

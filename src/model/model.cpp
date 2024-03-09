@@ -186,6 +186,11 @@ Model::Model(mt_mask_t model_params,
     for (mt_index_t i = 0; i < N_MIXTURE_CATS; ++i)
       params_indices[i] = i;
   }
+
+  /* reorder parameters */
+  sort(parameters.begin(),
+       parameters.end(),
+       &sort_parameters);
 }
 
 Model::~Model()
@@ -533,13 +538,6 @@ bool Model::optimize_init ( pllmod_treeinfo_t * tree_info,
   params.params_indices   = params_indices;
   params.gamma_rates_mode = gamma_rates_mode;
 
-  n_tips = params.partition->tips;
-
-  /* reorder parameters */
-  sort(parameters.begin(),
-       parameters.end(),
-       &sort_parameters);
-
   bool result = true;
   for (AbstractParameter * parameter : parameters)
   {
@@ -602,12 +600,12 @@ bool Model::optimize_oneparameter( pllmod_treeinfo_t * tree_info,
 
   ParallelContext::thread_barrier();
 
-  LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
+  LOG_DBG << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
           << " optimize " << parameter->get_name() << endl;
 
   loglh = parameter->optimize(&params, loglh, tolerance, true);
 
-  LOG_DBG2 << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
+  LOG_DBG << "[" << get_name() << "] " << fixed << setprecision(5) << loglh
           << " done " << parameter->get_name() << endl;
   
   if (ParallelContext::master_thread())

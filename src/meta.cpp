@@ -531,7 +531,7 @@ bool Meta::parse_arguments(int argc, char *argv[], mt_options_t & exec_opt)
         genesis::utils::Logging::max_level (genesis::utils::Logging::kProgress);
         break;
       case VERBOSITY_HIGH:
-        genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug);
+        genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug1);
         break;
       case VERBOSITY_ULTRA:
         genesis::utils::Logging::max_level (genesis::utils::Logging::kDebug4);

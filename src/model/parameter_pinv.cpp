@@ -57,19 +57,24 @@ ParameterPinv::~ParameterPinv( void )
 bool ParameterPinv::initialize(mt_opt_params_t * params,
                                Partition const& partition)
 {
-  max_pinv = partition.get_empirical_pinv();
-  min_pinv = MIN_PINV;
-  if (max_pinv > 2*min_pinv)
+  if (ParallelContext::master_thread())
   {
-    pinv = (min_pinv + max_pinv) / 2;
-  }
-  else
-  {
-    pinv = MIN_PINV/2;
-    max_pinv = max(MIN_PINV, max_pinv);
-    min_pinv = 1E-6;
+    max_pinv = partition.get_empirical_pinv();
+    min_pinv = MIN_PINV;
+    if (max_pinv > 2*min_pinv)
+    {
+      pinv = (min_pinv + max_pinv) / 2;
+    }
+    else
+    {
+      pinv = MIN_PINV/2;
+      max_pinv = max(MIN_PINV, max_pinv);
+      min_pinv = 1E-6;
+    }
   }
 
+  ParallelContext::thread_barrier();
+  
   for (mt_index_t i=0; i<params->partition->rate_cats; ++i)
     pll_update_invariant_sites_proportion(params->partition,
                                           params->params_indices[i],

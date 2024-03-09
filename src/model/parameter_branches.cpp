@@ -53,9 +53,12 @@ bool ParameterBranches::initialize(mt_opt_params_t * params,
 {
   UNUSED(params);
   UNUSED(partition);
-  n_branches = partition.get_n_sequences()*2 - 3;
-  branch_lengths.resize(n_branches);
 
+  if (ParallelContext::master_thread())
+  {
+    n_branches = partition.get_n_sequences()*2 - 3;
+    branch_lengths.resize(n_branches);
+  }
   return true;
 }
 

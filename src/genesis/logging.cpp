@@ -46,17 +46,14 @@
 #include "date_time.h"
 
 /* if LOG_ALL_PROCS = false, output is handled only for root process */
-#define LOG_ALL_PROCS false
-/* if LOG_ALL_THREADS = false, output is handled only for master thread process */
-#define LOG_ALL_THREADS false
+#define LOG_ALL_PROCS true
 
 namespace genesis {
 namespace utils {
 
 static inline bool skip_print()
 {
-    return !(   (LOG_ALL_PROCS || ROOT)
-             && (LOG_ALL_THREADS || (ParallelContext::thread_id()==0))); 
+    return !( (LOG_ALL_PROCS || ROOT) ); 
 }
 
 // =============================================================================
@@ -312,13 +309,6 @@ Logging::~Logging()
     if (details_.level) {
         det_buff << level_to_string(level_);
     }
-
-    // add spaces for nested debug levels
-    //if (level_ > kDebug) {
-    //    for (int i = 0; i < level_ - kDebug; i++) {
-    //        det_buff << debug_indent;
-    //    }
-    //}
 
     // make multi line log messages align to the length of the detail header,
     // and trim trailing whitespace, as we only want one newline at the end

@@ -57,7 +57,7 @@ namespace modeltest
     Partition * get_partition( void ) { return &partition; }
     TreePll * get_tree( void ) { return &tree; }
 
-    pll_unode_t ** get_pll_tree_ptr( void ) {return &pll_tree; }
+    pll_unode_t * get_pll_tree( void ) {return pll_tree; }
     pll_partition_t ** get_pll_partition_ptr( void ) {return &pll_partition; }
 
     void set_pll_partition(pll_partition_t * _partition) { pll_partition = _partition; }

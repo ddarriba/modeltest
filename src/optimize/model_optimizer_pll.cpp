@@ -87,7 +87,6 @@ void thread_infer_topology(ModelOptimizerPll * optimizer, pllmod_treeinfo_t * tr
 
     double new_loglh, old_loglh;
     Model & model = *(optimizer->get_model());
-    pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
 
     assert(!tree_info->root->data);
     radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
@@ -185,20 +184,16 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   Model & model = *(optimizer->get_model());
   TreePll & tree = *(optimizer->get_tree());
   Partition & partition = *(optimizer->get_partition());
-  pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
-
-  // synchronize and reset barrier state
-  ParallelContext::thread_barrier(true);
+  //pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
 
   mt_size_t n_tips = tree.get_n_tips();
   mt_size_t n_patterns = partition.get_n_patterns();
-  mt_index_t thread_number = optimizer->get_thread_number();
 
-  *pll_tree_ptr = tree.get_pll_tree(thread_number)->nodes[0]->back;
+  ParallelContext::thread_barrier();
 
   pllmod_treeinfo_t * tree_info = pllmod_treeinfo_create(optimizer->is_keep_model_parameters()
-                                        ?*pll_tree_ptr
-                                        :pll_utree_graph_clone(*pll_tree_ptr),
+                                        ?optimizer->get_pll_tree()
+                                        :pll_utree_graph_clone(optimizer->get_pll_tree()),
                                       tree.get_n_tips(),
                                       1,
                                       1);
@@ -287,14 +282,16 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   }
 
   if (!model.optimize_init(tree_info,
-                           optimizer->get_gamma_rates_mode(),
-                           partition))
+                          optimizer->get_gamma_rates_mode(),
+                          partition))
   {
     assert(0);
   }
-  
-  LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
-           << "] compute initial LogLH" << endl;
+    
+
+  LOG_DBG << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
+          << "] compute initial LogLH" << endl;
+
 
   double cur_loglh = pllmod_treeinfo_compute_loglh(tree_info, 0);
 
@@ -305,9 +302,9 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
     for (mt_index_t i=0; i<pll_partition->states; i++)
       ss << " " << fixed << setprecision(4) << pll_partition->frequencies[0][i];
     ss << " }" << endl;
-    LOG_DBG2 << ss.str();
+    LOG_DBG << ss.str();
 
-    LOG_DBG2 << "[" << model.get_name() << "] initial log-Likelihood: "
+    LOG_DBG << "[" << model.get_name() << "] initial log-Likelihood: "
              << fixed << setprecision(4) << cur_loglh << endl; 
   }
              
@@ -338,6 +335,9 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
 
   pll_partition_destroy(tree_info->partitions[0]);
   pllmod_treeinfo_destroy(tree_info);
+
+  // final barrier: reset barrier state
+  ParallelContext::thread_barrier(true);
 }
 
 
@@ -357,7 +357,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                      _gamma_rates, _n_threads, _thread_number),
       tree(_tree)
 {
-
+  pll_tree = tree.get_pll_tree(thread_number)->nodes[0]->back;
   
 }
 
@@ -378,6 +378,7 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
 
     thread_main(this, epsilon, tolerance);
 
+    LOG_DBG2 << "[" << model.get_name() << "] optimization done: finalizing threads" << endl;
     ParallelContext::finalize_threads();
 
     //LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
@@ -425,6 +426,9 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
      * function can minimize the score */
     double save_loglh = start_loglh;
     double cur_loglh = save_loglh;
+
+    LOG_DBG << "[" << model.get_name() << "] " << fixed << setprecision(5) << start_loglh
+          << " start model optimization" << endl;
 
     if (start_loglh && ParallelContext::master_thread())
       model.set_loglh(start_loglh);

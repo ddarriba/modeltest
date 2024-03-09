@@ -121,25 +121,31 @@ ParameterFrequenciesOpt::~ParameterFrequenciesOpt( void )
 bool ParameterFrequenciesOpt::initialize(mt_opt_params_t * params,
                                          Partition const& partition)
 {
-  for (mt_index_t j=0; j<freq_set_count; ++j)
+  if (ParallelContext::master_thread())
   {
-    memcpy(frequencies[j],
-           &partition.get_empirical_frequencies()[0],
-           sizeof(double) * states);
-
-    /* if there are missing states, set initial freqs to equal */
-    for (mt_index_t i=0; i<states; ++i)
+    for (mt_index_t j=0; j<freq_set_count; ++j)
     {
-      if (frequencies[j][i] <= 1e-7)
+      memcpy(frequencies[j],
+            &partition.get_empirical_frequencies()[0],
+            sizeof(double) * states);
+
+      /* if there are missing states, set initial freqs to equal */
+      for (mt_index_t i=0; i<states; ++i)
       {
-        for (mt_index_t k=0; k<states; ++k)
-          frequencies[j][k] = 1.0/states;
-        break;
+        if (frequencies[j][i] <= 1e-7)
+        {
+          for (mt_index_t k=0; k<states; ++k)
+            frequencies[j][k] = 1.0/states;
+          break;
+        }
       }
     }
-
-    pll_set_frequencies(params->partition, j, frequencies[j]);
   }
+
+  ParallelContext::thread_barrier();
+
+  for (mt_index_t j=0; j<freq_set_count; ++j)
+    pll_set_frequencies(params->partition, j, frequencies[j]);
 
   return true;
 }
