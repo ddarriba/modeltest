@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "genesis/logging.h"
+#include "thread/parallel_context.h"
 
 using namespace std;
 

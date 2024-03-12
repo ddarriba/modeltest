@@ -60,23 +60,23 @@ namespace modeltest
 
   }
 
-  bool PartitionOptimizer::evaluate(mt_size_t n_threadprocs, mt_size_t n_threads)
+  bool PartitionOptimizer::evaluate(mt_size_t n_threads)
   {
     bool exec_ok = false;
 
     switch (opt_type)
     {
       case partition_optimize_all:
-        exec_ok = evaluate_all_models( partition.get_models(), n_threadprocs, n_threads );
+        exec_ok = evaluate_all_models( partition.get_models(), n_threads );
         break;
       case partition_optimize_greedy:
-        exec_ok = evaluate_greedy( n_threadprocs, n_threads);
+        exec_ok = evaluate_greedy( n_threads );
         break;
     }
     return exec_ok;
   }
 
-  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_threadprocs, mt_size_t n_threads )
+  bool PartitionOptimizer::evaluate_greedy( mt_size_t n_threads )
   {
     //opt_info_t exec_info;
     bool exec_ok = true;
@@ -87,7 +87,7 @@ namespace modeltest
 
     MT_INFO << "Step 1/6" << endl;
     /* 1. optimize starting models */
-    if (!evaluate_all_models( candidate_models, n_threadprocs, n_threads ))
+    if (!evaluate_all_models( candidate_models, n_threads ))
       return false;
 
     for (int k=N_DNA_SUBST_RATES-1; k>0; --k)
@@ -105,7 +105,7 @@ namespace modeltest
       /* 3. merge rates */
       candidate_models = partition.update_model_set(*static_cast<DnaModel *>(best_model));
 
-      if (!evaluate_all_models( candidate_models, n_threadprocs, n_threads ))
+      if (!evaluate_all_models( candidate_models, n_threads ))
         return false;
     }
     // exec_info.start_time = time(NULL);
@@ -245,19 +245,20 @@ namespace modeltest
 #endif
 
   bool PartitionOptimizer::evaluate_all_models( vector<Model *> const& models,
-                                                mt_size_t n_threadprocs,
                                                 mt_size_t n_threads )
   {
     bool exec_ok = true;
     mt_size_t n_models = models.size();
     mt_size_t opt_models_count = 0;
 
+    mt_size_t pool_size = ParallelContext::num_threadgroups();
     BARRIER;
 
-    if (n_threadprocs > 1)
+    if (pool_size > 1)
     {
+      
       /* execute on thread pool */
-      ThreadPool pool(n_threadprocs);
+      ThreadPool pool(pool_size);
       vector< future<int> > results;
 
       mt_index_t cur_model = 0;
@@ -293,7 +294,6 @@ namespace modeltest
     }
     else
     {
-      /* sequential execution */
       opt_info_t exec_info;
       exec_info.n_models = n_models;
       exec_info.model_index = 0;
@@ -477,6 +477,9 @@ BARRIER;
     bool result;
     mt_errno = 0;
 
+    /* initialize threadgroup */
+    ParallelContext::init_threadgroup(this_thread_id, n_threads);
+
     if (model.is_optimized())
     {
       LOG_DBG2 << "[" << model.get_name() << "] is already optimized" << endl;
@@ -494,8 +497,7 @@ BARRIER;
                                                       optimize_topology,
                                                       keep_model_parameters,
                                                       gamma_rates,
-                                                      n_threads,
-                                                      thread_number);
+                                                      n_threads);
         assert(mopt);
 
         LOG_DBG2 << "[" << model.get_name() 

@@ -302,7 +302,7 @@ public:
     pll_utree_t * get_tree( void ) const;
     pll_unode_t * get_tree_graph( void ) const;
 
-    void set_tree( pll_unode_t * tree, int n_tips = 0 );
+    void set_tree( pll_unode_t * tree, mt_size_t n_tips = 0 );
     void set_tree( pll_utree_t * tree );
 
     mt_index_t get_unique_id( void ) const;

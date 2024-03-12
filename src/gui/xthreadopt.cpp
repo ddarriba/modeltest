@@ -73,7 +73,7 @@ void xThreadOpt::update(Observable * subject, void * data)
         mopt->interrupt();
     }
 
-    emit next_parameter( mopt->get_cur_parameter(), mopt->get_opt_delta(), mopt->get_thread_number() );
+    emit next_parameter( mopt->get_cur_parameter(), mopt->get_opt_delta(), mopt->get_threadgroup_id() );
 }
 
 void xThreadOpt::optimize_single(const partition_id_t &part_id,

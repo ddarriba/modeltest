@@ -159,15 +159,15 @@ namespace modeltest
                     string const& filename,
                     Msa &msa,
                     data_type_t datatype,
-                    mt_size_t number_of_threads,
+                    mt_size_t num_trees,
                     int random_seed)
-    : Tree(type, filename, msa, number_of_threads, random_seed)
+    : Tree(type, filename, msa, num_trees, random_seed)
   {
     pll_utree_t * starting_tree = NULL;
 
     bl_optimized = false;
-    pll_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
-    pll_start_tree = (pll_utree_t **) Utils::c_allocate(number_of_threads, sizeof(pll_utree_t *));
+    pll_tree = (pll_utree_t **) Utils::c_allocate(num_trees, sizeof(pll_utree_t *));
+    pll_start_tree = (pll_utree_t **) Utils::c_allocate(num_trees, sizeof(pll_utree_t *));
 
     if (ParallelContext::master())
     {
@@ -301,27 +301,27 @@ namespace modeltest
     cleanup();
   }
 
-  bool TreePll::set_branches(double length, mt_index_t thread_number)
+  bool TreePll::set_branches(double length, mt_index_t tree_number)
   {
-    assert(thread_number < number_of_threads);
+    assert(tree_number < num_trees);
     assert(length > 0);
-    pllmod_utree_set_length_recursive(pll_tree[thread_number], length, false);
+    pllmod_utree_set_length_recursive(pll_tree[tree_number], length, false);
 
     return true;
   }
 
-  bool TreePll::scale_branches(double factor, mt_index_t thread_number)
+  bool TreePll::scale_branches(double factor, mt_index_t tree_number)
   {
     assert(factor > 0);
-    assert(thread_number < number_of_threads);
-    pllmod_utree_scale_branches(pll_tree[thread_number], factor);
+    assert(tree_number < num_trees);
+    pllmod_utree_scale_branches(pll_tree[tree_number], factor);
 
     return true;
   }
 
-  bool TreePll::reset_branches(mt_index_t thread_number)
+  bool TreePll::reset_branches(mt_index_t tree_number)
   {
-    assert(thread_number < number_of_threads);
+    assert(tree_number < num_trees);
     return false;
   }
 
@@ -351,31 +351,45 @@ namespace modeltest
     }
   }
 
-  const string TreePll::get_label( mt_index_t index, mt_index_t thread_number) const
+  const string TreePll::get_label( mt_index_t index, mt_index_t tree_number) const
   {
-    assert(thread_number < number_of_threads);
+    assert(tree_number < num_trees);
     if (index >= n_tips)
         return "";
     else
-        return pll_tree[thread_number]->nodes[index]->label;
+        return pll_tree[tree_number]->nodes[index]->label;
   }
 
-  string TreePll::newick(mt_index_t thread_number) const
+  string TreePll::newick(mt_index_t tree_number) const
   {
-    assert(thread_number < number_of_threads);
-    char *nw_cstr = pll_utree_export_newick(pll_tree[thread_number]->nodes[0]->back,
+    assert(tree_number < num_trees);
+    char *nw_cstr = pll_utree_export_newick(pll_tree[tree_number]->nodes[0]->back,
                                             NULL);
     string nw = string(nw_cstr);
     free (nw_cstr);
     return (nw);
   }
 
-  void TreePll::set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number)
+  pll_utree_t * TreePll::get_pll_start_tree( void )
   {
+    mt_index_t tree_id = ParallelContext::threadgroup_id();
+    return pll_start_tree[tree_id];
+  }
+
+  pll_utree_t * TreePll::get_pll_tree( void )
+  {
+    mt_index_t tree_id = ParallelContext::threadgroup_id();
+    return pll_tree[tree_id];
+  }
+
+  void TreePll::set_pll_tree( pll_utree_t * new_tree )
+  {
+    mt_index_t tree_id = ParallelContext::threadgroup_id();
+    
     assert(pll_utree_check_integrity(new_tree));
-    pll_utree_destroy(pll_tree[thread_number], NULL);
-    pll_tree[thread_number] = new_tree;
-    //pll_start_tree[thread_number] = new_tree;
+    pll_utree_destroy(pll_tree[tree_id], NULL);
+    pll_tree[tree_id] = new_tree;
+    //pll_start_tree[tree_number] = new_tree;
   }
 
   void TreePll::update_names( pll_utree_t * tree, Msa * msa )
@@ -398,10 +412,10 @@ namespace modeltest
     }
   }
 
-  void * TreePll::extract_tree ( mt_index_t thread_number) const
+  void * TreePll::extract_tree ( mt_index_t tree_number) const
   {
-    assert(thread_number < number_of_threads);
-    pll_utree_t * new_tree = pll_utree_clone(pll_tree[thread_number]);
+    assert(tree_number < num_trees);
+    pll_utree_t * new_tree = pll_utree_clone(pll_tree[tree_number]);
     return new_tree;
   }
 
@@ -437,7 +451,7 @@ namespace modeltest
   {
     if (pll_tree)
     {
-      for (mt_index_t i=0; i<number_of_threads; i++)
+      for (mt_index_t i=0; i<num_trees; i++)
       {
         if (pll_tree[i])
         {
@@ -455,7 +469,7 @@ namespace modeltest
   {
     pllmod_utree_set_length_recursive(tree, 0.1, true);
 
-    for (mt_index_t i=0; i<number_of_threads; i++)
+    for (mt_index_t i=0; i<num_trees; i++)
     {
       pll_tree[i] = pll_utree_clone (tree);
       pll_start_tree[i] = pll_tree[i];

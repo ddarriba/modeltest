@@ -9,18 +9,25 @@ using namespace std;
 // This is just a default size; the buffer will be resized later according to #part and #threads
 #define PARALLEL_BUF_SIZE (128 * 1024)
 
-size_t ParallelContext::_num_threads = 1;
+/* distributed memory level*/
 size_t ParallelContext::_num_ranks = 1;
 size_t ParallelContext::_rank_id = 0;
+
+/* shared high-level*/
+size_t ParallelContext::_num_threadgroups = 0;
+thread_local ThreadGroup * ParallelContext::_threadgroup = nullptr;
+
+/* shared low-level*/
 thread_local size_t ParallelContext::_thread_id = 0;
-std::vector<ThreadType> ParallelContext::_threads;
-std::vector<char> ParallelContext::_parallel_buf;
+thread_local size_t ParallelContext::_threadgroup_id = 0;
+
 std::unordered_map<ThreadIDType, ParallelContext> ParallelContext::_thread_ctx_map;
 MutexType ParallelContext::mtx;
 
 #if(MPI_ENABLED)
 MPI_Comm ParallelContext::_comm = MPI_COMM_WORLD;
 bool ParallelContext::_owns_comm = true;
+std::vector<char> ParallelContext::_parallel_buf;
 #endif
 
 void ParallelContext::init_mpi(int argc, char * argv[], void * comm)
@@ -54,29 +61,58 @@ void ParallelContext::init_mpi(int argc, char * argv[], void * comm)
 #endif
 }
 
-void ParallelContext::start_thread(size_t thread_id, const std::function<void()>& thread_main)
+void ParallelContext::init_threadgroups(mt_size_t num_threadgroups)
 {
-  ParallelContext::_thread_id = thread_id;
+  ParallelContext::_num_threadgroups = num_threadgroups;
+}
+
+void ParallelContext::init_threadgroup(mt_index_t id, mt_size_t  n_threads_per_group)
+{
+  if (_threadgroup != nullptr)
+  {
+    assert(id == _threadgroup_id);
+    return;
+  }
+
+  size_t mt_bufsize = max(1024lu, sizeof(double) * 2 * n_threads_per_group);
+  _threadgroup = new ThreadGroup(id, n_threads_per_group, mt_bufsize);
+  _threadgroup_id = id;
+}
+
+void ParallelContext::start_thread(size_t thread_id,
+                                   ThreadGroup& threadgroup,
+                                   const std::function<void()>& thread_main)
+{
+  ParallelContext::_thread_id      = thread_id;
+  ParallelContext::_threadgroup    = &threadgroup;
+
   thread_main();
 }
 
 void ParallelContext::init_threads(mt_size_t n_threads, const std::function<void()>& thread_main)
 {
-  _num_threads = n_threads;
-  _parallel_buf.reserve(PARALLEL_BUF_SIZE);
+  /* check if threadgroups have been initialized*/
+  assert(_threadgroup != nullptr);
 
 #ifdef MULTITHREAD
-  /* Launch threads */
-  for (size_t i = 1; i < _num_threads; ++i)
+  mt_size_t threads_to_create = n_threads;
+  if (!n_threads)
   {
-    _threads.emplace_back(ParallelContext::start_thread, i, thread_main);
+    threads_to_create = _threadgroup->num_threads;
+  }
+  assert(threads_to_create > 0);
+
+  /* Launch threads */
+  for (size_t i = 1; i < threads_to_create; ++i)
+  {
+    _threadgroup->threads.emplace_back(ParallelContext::start_thread, i, std::ref(*_threadgroup), thread_main);
   }
 #endif
 }
 
 void ParallelContext::resize_buffer(size_t size)
 {
-  _parallel_buf.reserve(size);
+  _threadgroup->reduction_buf.reserve(size);
 }
 
 void ParallelContext::finalize(bool force)
@@ -100,15 +136,18 @@ void ParallelContext::finalize(bool force)
 
 void ParallelContext::finalize_threads(bool force)
 {
+  if (_threadgroup == nullptr)
+    return;
+
 #ifdef MULTITHREAD
-  for (thread& t: _threads)
+  for (thread& t: _threadgroup->threads)
   {
     if (force)
       t.detach();
     else
       t.join();
   }
-  _threads.clear();
+  _threadgroup->threads.clear();
 #endif
 }
 
@@ -133,34 +172,33 @@ void ParallelContext::mpi_barrier()
 
 void ParallelContext::thread_barrier(bool reset)
 {
-  static volatile unsigned int barrier_counter = 0;
-  static thread_local volatile int myCycle = 0;
-  static volatile int proceed = 0;
+  static thread_local volatile int my_cycle = 0;
+  auto &g = *_threadgroup;
 
-  if (ParallelContext::_num_threads == 1)
+  if (g.num_threads == 1)
     return;
 
-  __sync_fetch_and_add( &barrier_counter, 1);
+  __sync_fetch_and_add( &g.barrier_counter, 1);
 
   if(_thread_id == 0)
   {
-    while(barrier_counter < ParallelContext::_num_threads);
-    barrier_counter = 0;
-    proceed = !proceed;
+    while(g.barrier_counter < g.num_threads);
+    g.barrier_counter = 0;
+    g.proceed = !g.proceed;
   }
   else
   {
-    while(myCycle == proceed);
-    myCycle = !myCycle;
+    while(my_cycle == g.proceed);
+    my_cycle = !my_cycle;
   }
 
-  if (reset && proceed != 0)
+  if (reset && g.proceed != 0)
   {
     // call again to reset variables
     thread_barrier(false);
 
-    assert(myCycle == 0);
-    assert(proceed == 0);
+    assert(my_cycle == 0);
+    assert(g.proceed == 0);
   }
 }
 
@@ -168,7 +206,7 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
 {
   /* synchronize */
   thread_barrier();
-  double *double_buf = (double*) _parallel_buf.data();
+  double *double_buf = (double*) _threadgroup->reduction_buf.data();
 
   /* collect data from threads */
   size_t i, j;
@@ -186,21 +224,21 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
       case PLLMOD_COMMON_REDUCE_SUM:
       {
         data[i] = 0.;
-        for (j = 0; j < ParallelContext::_num_threads; ++j)
+        for (j = 0; j < _threadgroup->num_threads; ++j)
           data[i] += double_buf[j * size + i];
       }
       break;
       case PLLMOD_COMMON_REDUCE_MAX:
       {
-        data[i] = _parallel_buf[i];
-        for (j = 1; j < ParallelContext::_num_threads; ++j)
+        data[i] = _threadgroup->reduction_buf[i];
+        for (j = 1; j < _threadgroup->num_threads; ++j)
           data[i] = max(data[i], double_buf[j * size + i]);
       }
       break;
       case PLLMOD_COMMON_REDUCE_MIN:
       {
-        data[i] = _parallel_buf[i];
-        for (j = 1; j < ParallelContext::_num_threads; ++j)
+        data[i] = _threadgroup->reduction_buf[i];
+        for (j = 1; j < _threadgroup->num_threads; ++j)
           data[i] = min(data[i], double_buf[j * size + i]);
       }
       break;
@@ -211,7 +249,7 @@ void ParallelContext::thread_reduce(double * data, size_t size, int op)
 void ParallelContext::parallel_reduce(double * data, size_t size, int op)
 {
 #ifdef MULTITHREAD
-  if (_num_threads > 1)
+  if (_threadgroup->num_threads > 1)
     thread_reduce(data, size, op);
 #endif
 }
@@ -227,7 +265,7 @@ void ParallelContext::thread_broadcast(size_t source_id, void * data, size_t siz
   /* write to buf */
   if (_thread_id == source_id)
   {
-    memcpy((void *) _parallel_buf.data(), data, size);
+    memcpy((void *) _threadgroup->reduction_buf.data(), data, size);
   }
 
   /* synchronize */
@@ -238,7 +276,7 @@ void ParallelContext::thread_broadcast(size_t source_id, void * data, size_t siz
   /* read from buf*/
   if (_thread_id != source_id)
   {
-    memcpy(data, (void *) _parallel_buf.data(), size);
+    memcpy(data, (void *) _threadgroup->reduction_buf.data(), size);
   }
 
   thread_barrier();
@@ -249,7 +287,7 @@ void ParallelContext::thread_send_master(size_t source_id, void * data, size_t s
   /* write to buf */
   if (_thread_id == source_id && data && size)
   {
-    memcpy((void *) _parallel_buf.data(), data, size);
+    memcpy((void *) _threadgroup->reduction_buf.data(), data, size);
   }
 
   /* synchronize */
@@ -260,7 +298,7 @@ void ParallelContext::thread_send_master(size_t source_id, void * data, size_t s
   /* read from buf*/
   if (_thread_id == 0)
   {
-    memcpy(data, (void *) _parallel_buf.data(), size);
+    memcpy(data, (void *) _threadgroup->reduction_buf.data(), size);
   }
 
   barrier();

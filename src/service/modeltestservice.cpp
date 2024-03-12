@@ -42,7 +42,7 @@ bool ModelTestService::create_instance( mt_options_t & options )
     if(modeltest_instance)
         return false;
 
-    modeltest_instance = new ModelTest(options.n_threadprocs, options.n_mpiprocs, options.n_threads);
+    modeltest_instance = new ModelTest(options.n_mpiprocs, options.n_threads);
     build_ok = modeltest_instance->build_instance(options);
 
     return build_ok;
@@ -78,12 +78,14 @@ bool ModelTestService::optimize_single(const partition_id_t &part_id,
 {
     assert(modeltest_instance);
 
+    /* initialize threadgroup */
+    ParallelContext::init_threadgroup(thread_id, n_threads);
+
     ModelOptimizer * mopt = modeltest_instance->get_model_optimizer(model,
         part_id,
         false, // optimize topology
         false, // keep model parameters
-        n_threads,
-        thread_id);
+        n_threads);
 
     if (!mopt)
       return false;
@@ -107,7 +109,6 @@ bool ModelTestService::evaluate_models(partition_id_t const& part_id,
     assert(modeltest_instance);
 
     return modeltest_instance->evaluate_models(part_id,
-                                               n_threadprocs,
                                                n_threads,
                                                epsilon_param,
                                                epsilon_opt,

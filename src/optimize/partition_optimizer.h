@@ -62,18 +62,16 @@ namespace modeltest
                        double epsilon_param,
                        double epsilon_opt);
     ~PartitionOptimizer();
-    bool evaluate( mt_size_t n_threadprocs = 1, mt_size_t n_threads = 1);
+    bool evaluate( mt_size_t n_threads = 1);
   private:
-    bool evaluate_greedy( mt_size_t n_threadprocs,
-                          mt_size_t n_threads );
+    bool evaluate_greedy( mt_size_t n_threads );
 
     bool evaluate_all_models( std::vector<Model *> const& models,
-                              mt_size_t n_threadprocs,
                               mt_size_t n_threads );
 
     bool evaluate_single_model(Model & model,
                                mt_size_t n_threads,
-                               mt_index_t thread_number);
+                               mt_index_t threadproc_id);
 
     void * model_scheduler( std::vector<Model *> const& models );
 

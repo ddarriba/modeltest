@@ -27,8 +27,6 @@
 #include <cassert>
 #include <iostream>
 
-#define CHECK_LOCAL_CONVERGENCE 0
-
 #define DO_THOROUGH_ML_SEARCH true
 #define ML_SEARCH_PARAM_EPS   0.1
 #define ML_SEARCH_PARAM_TOL   0.1
@@ -88,7 +86,6 @@ void thread_infer_topology(ModelOptimizerPll * optimizer, pllmod_treeinfo_t * tr
     double new_loglh, old_loglh;
     Model & model = *(optimizer->get_model());
 
-    assert(!tree_info->root->data);
     radius_limit = (tree_info->tip_count>25)?22:(tree_info->tip_count-3);
 
     new_loglh = optimizer->optimize_parameters(tree_info, 1.0, 1.0, true, cur_loglh);
@@ -184,7 +181,6 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   Model & model = *(optimizer->get_model());
   TreePll & tree = *(optimizer->get_tree());
   Partition & partition = *(optimizer->get_partition());
-  //pll_unode_t ** pll_tree_ptr = optimizer->get_pll_tree_ptr();
 
   mt_size_t n_tips = tree.get_n_tips();
   mt_size_t n_patterns = partition.get_n_patterns();
@@ -213,6 +209,9 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   {
     my_length = n_patterns - (my_length * (num_threads-1));
   }
+
+  LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
+           << "] build partition with length " << my_length << " starting at " << my_start << endl;
 
   pll_partition = pll_partition_create(
       n_tips,                      /* tips */
@@ -264,7 +263,7 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   ParallelContext::thread_barrier();
 
   LOG_DBG2 << "[" << model.get_name() << "][" << ParallelContext::thread_id() 
-           << "] build partition" << endl;
+           << "] init partition" << endl;
 
   int retval = pllmod_treeinfo_init_partition(tree_info,
                                                  0,
@@ -312,8 +311,8 @@ void thread_main(ModelOptimizerPll * optimizer, double epsilon, double tolerance
   {
     thread_infer_topology(optimizer, tree_info, cur_loglh, epsilon, tolerance);
 
-    if (ParallelContext::master_thread())
-        model.set_tree(tree_info->root);
+    //if (ParallelContext::master_thread())
+    //    model.set_tree(tree_info->root, tree_info->tip_count);
   }
 
   /* final thorough parameter optimization */
@@ -350,14 +349,14 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
                                       bool _optimize_topology,
                                       bool _keep_model_parameters,
                                       int _gamma_rates,
-                                      mt_size_t _n_threads,
-                                      mt_index_t _thread_number)
+                                      mt_size_t _n_threads)
     : ModelOptimizer(_msa, _model, _partition,
                      _optimize_topology, _keep_model_parameters,
-                     _gamma_rates, _n_threads, _thread_number),
+                     _gamma_rates, _n_threads),
       tree(_tree)
 {
-  pll_tree = tree.get_pll_tree(thread_number)->nodes[0]->back;
+  /* get the tree for current groupid */
+  pll_tree = tree.get_pll_tree()->nodes[0]->back;
   
 }
 
@@ -381,16 +380,6 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     LOG_DBG2 << "[" << model.get_name() << "] optimization done: finalizing threads" << endl;
     ParallelContext::finalize_threads();
 
-    //LOG_DBG << "[" << model.get_name() << "] building parameters and computing initial lk score" << endl;
-    //pllmod_utree_compute_lk(pll_partition, pll_tree, model.get_params_indices(), 1, 1);
-
-#if(CHECK_LOCAL_CONVERGENCE)
-    double test_loglh;         /* temporary variable */
-    mt_size_t converged = 0;  /* bitvector for parameter convergence */
-#endif
-
-    //double cur_loglh = optimize_model(epsilon, tolerance, true);
-
     /* TODO: if bl are reoptimized */
     if (keep_model_parameters)
       tree.set_bl_optimized();
@@ -404,17 +393,22 @@ ModelOptimizerPll::ModelOptimizerPll (MsaPll &_msa,
     else
     {
       optimized = true;
-      //model.set_loglh(cur_loglh);
+
       model.set_exec_time(end_time - start_time);
 
       model.evaluate_criteria(n_branches, msa.get_n_sites());
 
-      // if (optimize_topology)
-      //   model.set_tree(pll_tree);
+      if (optimize_topology)
+        model.set_tree(pll_tree, tree.get_n_tips());
 
       return true;
     }
   }
+
+  mt_index_t ModelOptimizerPll::get_threadgroup_id() const
+  {
+    return ParallelContext::threadgroup_id();
+  };
 
   double ModelOptimizerPll::optimize_parameters( pllmod_treeinfo_t * tree_info,
                                                  double epsilon,

@@ -44,12 +44,12 @@ namespace modeltest
     Tree (tree_type_t _type,
           std::string const& filename,
           Msa &_msa,
-          mt_size_t _number_of_threads,
+          mt_size_t _num_trees,
           int _random_seed)
         : type(_type),
           tree_file(filename),
           n_tips(_msa.get_n_sequences()),
-          number_of_threads(_number_of_threads),
+          num_trees(_num_trees),
           random_seed(_random_seed)
     {
     }
@@ -126,11 +126,11 @@ namespace modeltest
     void set_bl_optimized( void ) { bl_optimized = true; }
 
   protected:
-    tree_type_t type;               //! type of starting tree
+    tree_type_t type;             //! type of starting tree
     const std::string tree_file;  //! NEWICK tree filename
     mt_size_t n_tips;             //! number of tips
     mt_size_t n_inner;            //! number of inner nodes (2n_tips - 3)
-    mt_size_t number_of_threads;  //! number of threads
+    mt_size_t num_trees;          //! number of trees
     int random_seed;              //! RNG seed
 
     bool bl_optimized;            //! branch lengths are optimized

@@ -60,7 +60,7 @@ typedef struct
 class ModelTest : public Observer
 {
 public:
-    ModelTest(mt_size_t number_of_threadprocs = 1, mt_size_t number_of_procs = 1, mt_size_t number_of_threads = 1);
+    ModelTest(mt_size_t number_of_procs = 1, mt_size_t number_of_threads = 1);
     ~ModelTest();
 
     /**
@@ -134,7 +134,6 @@ public:
      * @return true, if the optimization is OK
      */
     bool evaluate_models(const partition_id_t &part_id,
-                         mt_size_t n_threadprocs,
                          mt_size_t n_threads,
                          double epsilon_param,
                          double epsilon_opt,
@@ -144,8 +143,7 @@ public:
                                          const partition_id_t &part_id,
                                          bool force_opt_topo = false,
                                          bool keep_model_parameters = false,
-                                         mt_size_t _n_threads = 1,
-                                         mt_index_t thread_number = 0);
+                                         mt_size_t _n_threads = 1);
 
     PartitioningScheme & get_partitioning_scheme( void ) const;
 
@@ -162,7 +160,6 @@ public:
 
     virtual void update(Observable * subject, void * data);
 private:
-    mt_size_t number_of_threadprocs;          //! number of coarse grain threads
     mt_size_t number_of_procs;                //! number of processes
     mt_size_t number_of_threads;              //! number of fine grain threads
     selection_instance * current_instance;    //! model optimization parameters

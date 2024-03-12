@@ -43,12 +43,13 @@ namespace modeltest
                        bool _optimize_topology,
                        bool _keep_model_parameters,
                        int gamma_rates = PLL_GAMMA_RATES_MEAN,
-                       mt_size_t _n_threads = 1,
-                       mt_index_t _thread_number = 0);
+                       mt_size_t _n_threads = 1);
     virtual ~ModelOptimizerPll ();
 
     virtual bool run(double epsilon   = 0.01,
                      double tolerance = 0.0001);
+
+    virtual mt_index_t get_threadgroup_id() const;
 
     /* pthreads */
     void * worker(void * void_data);

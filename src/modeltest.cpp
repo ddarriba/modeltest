@@ -52,8 +52,10 @@ bool disable_repeats = false;
 
 using namespace std;
 
-ModelTest::ModelTest(mt_size_t _number_of_threadprocs, mt_size_t _number_of_procs, mt_size_t _number_of_threads)
-    : number_of_threadprocs(_number_of_threadprocs), number_of_procs(_number_of_procs), number_of_threads(_number_of_threads)
+ModelTest::ModelTest(mt_size_t _number_of_procs,
+                     mt_size_t _number_of_threads)
+    : number_of_procs(_number_of_procs),
+      number_of_threads(_number_of_threads)
 {
     setlocale(LC_NUMERIC, "C");
     partitioning_scheme = 0;
@@ -77,16 +79,10 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                      const partition_id_t &part_id,
                                      bool force_opt_topo,
                                      bool keep_model_parameters,
-                                     mt_size_t _n_threads,
-                                     mt_index_t thread_number)
+                                     mt_size_t _n_threads)
 {
   ModelOptimizer * mopt;
   bool opt_topology;
-
-  if( thread_number > number_of_threadprocs)
-  {
-      return 0;
-  }
 
   opt_topology = force_opt_topo || current_instance->start_tree == tree_ml;
   MsaPll *msa = static_cast<MsaPll *>(current_instance->msa);
@@ -101,8 +97,7 @@ ModelOptimizer * ModelTest::get_model_optimizer(Model * model,
                                opt_topology,
                                keep_model_parameters,
                                current_instance->gamma_rates,
-                               _n_threads,
-                               thread_number);
+                               _n_threads);
    }
    catch(int e)
    {
@@ -144,8 +139,7 @@ bool ModelTest::evaluate_single_model(Model * model,
                                                 part_id,
                                                 false,
                                                 false,
-                                                n_threads,
-                                                thread_number);
+                                                n_threads);
     if(!mopt)
       return false;
 
@@ -193,7 +187,6 @@ int ModelTest::eval_and_print(const partition_id_t &part_id,
 }
 
 bool ModelTest::evaluate_models(const partition_id_t &part_id,
-                                mt_size_t n_threadprocs,
                                 mt_size_t n_threads,
                                 double epsilon_param,
                                 double epsilon_opt,
@@ -204,9 +197,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   mt_size_t n_models = partition.get_number_of_models();
   bool exec_ok;
 
-  assert(n_threadprocs > 0);
   assert(n_threads > 0);
-  assert(n_threadprocs * n_threads <= MT_MAX_THREADS);
 
   if (!n_models)
       return true;
@@ -238,7 +229,7 @@ bool ModelTest::evaluate_models(const partition_id_t &part_id,
   p_opt.attach(this);
 
   LOG_DBG << "... ... evaluate partition" << endl;
-  exec_ok = p_opt.evaluate(n_threadprocs, n_threads);
+  exec_ok = p_opt.evaluate( n_threads );
 
   return exec_ok;
 }
@@ -692,7 +683,7 @@ bool ModelTest::build_instance(mt_options_t & options)
         current_instance->max_memb = memb;
   }
 
-  if (number_of_threadprocs == static_cast<mt_size_t>(MT_AUTOTHREADS))
+  if (options.n_threadprocs == static_cast<mt_size_t>(MT_AUTOTHREADS))
   {
     if (number_of_procs == 1)
     {
@@ -705,13 +696,15 @@ bool ModelTest::build_instance(mt_options_t & options)
       if (current_instance->max_memb > memtotal)
         mt_thread_count = 1;
 
-      options.n_threadprocs = number_of_threadprocs = mt_thread_count;
+      options.n_threadprocs = mt_thread_count;
     }
     else
     {
-      options.n_threadprocs = number_of_threadprocs = 1;
+      options.n_threadprocs = 1;
     }
   }
+
+  ParallelContext::init_threadgroups(options.n_threadprocs);
 
   if (!warning_enable_stdout)
   {
@@ -748,7 +741,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                               options.tree_filename,
                                               *current_instance->msa,
                                               options.partitions_desc->at(0).datatype,
-                                              number_of_threadprocs,
+                                              ParallelContext::num_threadgroups(),
                                               options.rnd_seed);
       }
       catch(int e)
@@ -781,12 +774,12 @@ bool ModelTest::build_instance(mt_options_t & options)
   case tree_ml_jc_fixed:
     try
     {
-      LOG_DBG << "Creating starting tree for procs=" << number_of_threadprocs << endl;  
+      LOG_DBG << "Creating starting tree for threadgroups = " << ParallelContext::num_threadgroups() << endl;  
       current_instance->tree = new TreePll (options.starting_tree,
                                             options.tree_filename,
                                             *current_instance->msa,
                                             options.partitions_desc->at(0).datatype,
-                                            number_of_threadprocs,
+                                            ParallelContext::num_threadgroups(),
                                             options.rnd_seed);
     }
     catch(int e)
@@ -820,7 +813,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                           options.tree_filename,
                                           *current_instance->msa,
                                           options.partitions_desc->at(0).datatype,
-                                          number_of_threadprocs,
+                                          ParallelContext::num_threadgroups(),
                                           options.rnd_seed);
     }
     catch(int e)
@@ -929,7 +922,7 @@ bool ModelTest::build_instance(mt_options_t & options)
      * sort candidate models by
      * estimated computational needs
      */
-    new_part->sort_models(number_of_threadprocs == 1 && number_of_procs == 1);
+    new_part->sort_models(ParallelContext::num_threadgroups() == 1 && number_of_procs == 1);
 
     partitioning_scheme->add_partition(part_id, new_part);
     cur_part_id++;
@@ -969,8 +962,7 @@ bool ModelTest::build_instance(mt_options_t & options)
                                            {0},   // partition
                                            true,  // optimize topology
                                            false, // keep model parameters
-                                           options.n_threads,
-                                           0);    // thread id
+                                           options.n_threads);
 
       if (!start_opt)
       {

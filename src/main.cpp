@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 
     ParallelContext::init_mpi(argc, argv, 0);
 
-    mpi_numprocs = ParallelContext::num_procs();
-    mpi_rank = ParallelContext::proc_id();
+    mpi_numprocs = ParallelContext::num_ranks();
+    mpi_rank = ParallelContext::rank_id();
 
     cout << "MPI Start: Size: " << mpi_numprocs
          << " Rank: " << mpi_rank << endl;

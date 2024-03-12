@@ -53,16 +53,14 @@ namespace modeltest
                     bool _optimize_topology,
                     bool _keep_model_parameters,
                     int gamma_rates = PLL_GAMMA_RATES_MEAN,
-                    mt_size_t _n_threads = 1,
-                    mt_index_t _thread_number = 0)
+                    mt_size_t _n_threads = 1)
         : msa(_msa),
           model(_model),
           partition(_partition),
           optimize_topology(_optimize_topology),
           keep_model_parameters(_keep_model_parameters),
           gamma_rates(gamma_rates),
-          n_threads(_n_threads),
-          thread_number(_thread_number)
+          n_threads(_n_threads)
     {
         interrupt_optimization = false;
         optimized = false;
@@ -83,6 +81,8 @@ namespace modeltest
     virtual bool run(double epsilon   = DEFAULT_OPT_EPSILON,
                      double tolerance = DEFAULT_PARAM_EPSILON) = 0;
 
+    virtual mt_index_t get_threadgroup_id() const = 0;
+
     /**
      * @brief Gets the optimization status of the model
      * @return true, if the model is optimized
@@ -93,7 +93,6 @@ namespace modeltest
     bool is_keep_model_parameters() const { return keep_model_parameters; }
     bool is_optimize_topology() const { return optimize_topology; }
 
-    mt_index_t get_thread_number() const { return thread_number; }
     mt_index_t get_cur_parameter() const { return cur_parameter; }
     double get_opt_delta() const { return opt_delta; }
     void interrupt() { interrupt_optimization = true; }
@@ -110,7 +109,6 @@ namespace modeltest
     mt_size_t n_patterns; //! crunched number of sites
 
     mt_size_t n_threads;       //! the number of parallel threads
-    mt_index_t thread_number;  //! the number of the master thread
 
     // dynamic optimization status
     bool interrupt_optimization;

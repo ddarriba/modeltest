@@ -483,7 +483,7 @@ pll_unode_t * Model::get_tree_graph( void ) const
   return tree->nodes[0];
 }
 
-void Model::set_tree( pll_unode_t * _tree, int _n_tips )
+void Model::set_tree( pll_unode_t * _tree, mt_size_t _n_tips )
 {
   assert(_tree);
 
@@ -498,7 +498,10 @@ void Model::set_tree( pll_unode_t * _tree, int _n_tips )
   assert(n_tips || _n_tips > 0);
 
   if (_n_tips > 0)
+  {
+    assert(n_tips == 0 || n_tips == _n_tips);
     n_tips = _n_tips;
+  }
 
   assert(!_tree->next && _tree->back->next);
 
@@ -530,7 +533,6 @@ bool Model::optimize_init ( pllmod_treeinfo_t * tree_info,
                             int gamma_rates_mode,
                             Partition const& partition )
 {
-  assert(pll_partition);
   mt_opt_params_t params;
 
   params.partition        = tree_info->partitions[0];
@@ -586,7 +588,6 @@ bool Model::optimize( pllmod_treeinfo_t * tree_info,
 bool Model::optimize_oneparameter( pllmod_treeinfo_t * tree_info,
                                    double tolerance )
 {
-  assert(partition);
   assert(tree_info);
   assert(tree_info->root);
 
@@ -804,8 +805,6 @@ int Model::output_bin(std::string const& bin_filename) const
     assert(n_tips > 0);
     assert(tree);
     assert(tree->nodes);
-
-//  vector<unsigned int> v = serialize_topo(tree->nodes[0], n_tips);
 
     write_ok &= pllmod_binary_utree_dump(bin_file,
                                          unique_id + 1,

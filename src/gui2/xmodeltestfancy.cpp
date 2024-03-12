@@ -917,6 +917,7 @@ bool XModelTestFancy::run_modelselection()
     opts.n_sites = n_sites;
     opts.n_patterns = n_patterns;
     opts.compress_patterns = true;
+    opts.keep_model_parameters = false;
     opts.rnd_seed = 12345;
     opts.model_params = model_params;
     opts.n_catg = ui->sliderNCat->value();

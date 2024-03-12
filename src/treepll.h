@@ -25,6 +25,9 @@
 #include "tree.h"
 #include "plldefs.h"
 
+#include "thread/parallel_context.h"
+#include <iostream>
+
 namespace modeltest
 {
 
@@ -35,42 +38,33 @@ namespace modeltest
              std::string const& filename,
              Msa &_msa,
              data_type_t data_type,
-             mt_size_t _number_of_threads = 1,
+             mt_size_t _num_trees,
              int _random_seed = 12345);
     virtual ~TreePll ();
 
-    virtual const std::string get_label(mt_index_t index, mt_index_t thread_number = 0) const;
-    virtual bool set_branches(double length, mt_index_t thread_number = 0);
-    virtual bool scale_branches(double factor, mt_index_t thread_number = 0);
-    virtual bool reset_branches(mt_index_t thread_number = 0);
-    virtual std::string newick(mt_index_t thread_number = 0) const;
-    virtual void * extract_tree ( mt_index_t thread_number = 0 ) const;
+    virtual const std::string get_label(mt_index_t index, mt_index_t tree_number = 0) const;
+    virtual bool set_branches(double length, mt_index_t tree_number = 0);
+    virtual bool scale_branches(double factor, mt_index_t tree_number = 0);
+    virtual bool reset_branches(mt_index_t tree_number = 0);
+    virtual std::string newick(mt_index_t tree_number = 0) const;
+    virtual void * extract_tree ( mt_index_t tree_number = 0 ) const;
 
     /**
      * @brief get the starting tree pointer (before doing any rearrangement)
-     * @param[in] thread_number the thread index
      * @return the starting pll unrooted tree
      */
-    pll_utree_t *get_pll_start_tree( mt_index_t thread_number = 0)
-    {
-        return pll_start_tree[thread_number];
-    }
+    pll_utree_t * get_pll_start_tree( void );
 
     /**
-     * @brief get a particular pll tree
-     * @param[in] thread_number the thread index
+     * @brief get the pll tree for current threadgroup
      * @return the pll unrooted tree structure
      */
-    pll_utree_t *get_pll_tree( mt_index_t thread_number = 0)
-    {
-        return pll_tree[thread_number];
-    }
+    pll_utree_t *get_pll_tree( void );
 
     /**
-     * @brief sets a particular pll tree
-     * @param[in] thread_number the thread index
+     * @brief sets the pll tree for the specific threadgroup
      */
-    void set_pll_tree( pll_utree_t * new_tree, mt_index_t thread_number = 0);
+    void set_pll_tree( pll_utree_t * new_tree );
 
     /**
      * @brief set missing taxa names into topology
@@ -100,8 +94,8 @@ namespace modeltest
   private:
     void cleanup( void );
     void clone_tree( pll_utree_t * tree );
-    pll_utree_t **pll_tree;          //! pll tree structures for each thread
-    pll_utree_t **pll_start_tree;    //! pll initial tree structures for each thread
+    pll_utree_t **pll_tree;          //! pll tree structures for each threadgroup
+    pll_utree_t **pll_start_tree;    //! pll initial tree structures for each threadgroup
   };
 
 } /* namespace modeltest */
